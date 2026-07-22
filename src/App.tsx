@@ -16,7 +16,7 @@ import { INITIAL_SEMANTIC_INDEX } from './data/semanticIndex';
 
 export default function App() {
   const [session, setSession] = useState<OwnerSession | null>(null);
-  const [activeSatellite, setActiveSatellite] = useState<'ods' | 'n8n' | 'index'>('ods');
+  const [activeSatellite, setActiveSatellite] = useState<'ods' | 'n8n' | 'index' | 'docs'>('ods');
   const [isStudioOpen, setIsStudioOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
 
@@ -49,6 +49,12 @@ export default function App() {
       label: 'INDICE SEMANTICO',
       icon: 'fa-book-bookmark',
       subtitle: 'Mappatura conversazionale frasi utente ➔ file repo',
+    },
+    {
+      id: 'docs',
+      label: 'DOCS MAINTAINER',
+      icon: 'fa-folder-tree',
+      subtitle: 'Sincronizzazione e aggiornamento della documentazione viva in docs/',
     },
   ];
 

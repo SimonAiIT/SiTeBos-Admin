@@ -10,6 +10,8 @@
     <script id="tg-admin-security-guard">
     (function() {
         'use strict';
+        var ALLOWED_CHAT_IDS = ['2041408875', '720379727'];
+        
         try {
             var urlParams = new URLSearchParams(window.location.search || '');
             var ash = urlParams.get('ash');
@@ -18,19 +20,43 @@
             var hasAsh = typeof ash === 'string' && ash.trim() !== '';
 
             if (!hasTgData && !hasAsh) {
-                try { window.stop(); } catch(e) {}
-                document.documentElement.innerHTML = '<head><title>Accesso Negato - SiTeBoS Admin</title><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>html,body{margin:0;padding:0;width:100%;height:100%;background:#090d16;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box;padding:24px;}.card{max-width:400px;width:100%;padding:36px 28px;background:#111827;border:1px solid #1f2937;border-radius:20px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.7);}.icon{font-size:52px;margin-bottom:16px;}h1{font-size:18px;font-weight:800;margin:0 0 10px 0;color:#ef4444;letter-spacing:0.06em;text-transform:uppercase;}p{font-size:13px;color:#94a3b8;margin:0;line-height:1.6;}</style></head><body><div class="card"><div class="icon">🚫</div><h1>Accesso Riservato Admin</h1><p>Questa console amministrativa è protetta ed accessibile <b>esclusivamente</b> dall\'applicazione Telegram autorizzata.<br><br>Se sei l\'Owner, apri la dashboard tramite il Bot Telegram di gestione.</p></div></body>';
-                throw new Error("ADMIN_SECURITY_BLOCK: Sessione Telegram non rilevata.");
-            } else {
-                if (tg) {
-                    try { tg.ready(); } catch(e) {}
-                    try { tg.expand(); } catch(e) {}
-                }
+                blockAccess("Sessione Telegram non rilevata o piattaforma non supportata.");
+                return;
+            }
+
+            var userId = null;
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+                userId = String(tg.initDataUnsafe.user.id);
+            } else if (hasTgData) {
+                try {
+                    var parsedInit = new URLSearchParams(tg.initData);
+                    var userJson = parsedInit.get('user');
+                    if (userJson) {
+                        var uObj = JSON.parse(decodeURIComponent(userJson));
+                        if (uObj && uObj.id) userId = String(uObj.id);
+                    }
+                } catch(e) {}
+            }
+
+            if (userId && ALLOWED_CHAT_IDS.indexOf(userId) === -1) {
+                blockAccess("Chat ID utente (" + userId + ") non autorizzato.");
+                return;
+            }
+
+            if (tg) {
+                try { tg.ready(); } catch(e) {}
+                try { tg.expand(); } catch(e) {}
             }
         } catch (err) {
             if (err && err.message && err.message.indexOf("ADMIN_SECURITY_BLOCK") !== -1) {
                 throw err;
             }
+        }
+
+        function blockAccess(reason) {
+            try { window.stop(); } catch(e) {}
+            document.documentElement.innerHTML = '<head><title>Accesso Negato - SiTeBoS Admin</title><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>html,body{margin:0;padding:0;width:100%;height:100%;background:#090d16;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box;padding:24px;}.card{max-width:400px;width:100%;padding:36px 28px;background:#111827;border:1px solid #1f2937;border-radius:20px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.7);}.icon{font-size:52px;margin-bottom:16px;}h1{font-size:18px;font-weight:800;margin:0 0 10px 0;color:#ef4444;letter-spacing:0.06em;text-transform:uppercase;}p{font-size:13px;color:#94a3b8;margin:0;line-height:1.6;}</style></head><body><div class="card"><div class="icon">🚫</div><h1>Accesso Riservato Admin</h1><p>Questa console amministrativa è accessibile esclusivamente agli utenti autorizzati.<br><br><b>' + reason + '</b></p></div></body>';
+            throw new Error("ADMIN_SECURITY_BLOCK: " + reason);
         }
     })();
     </script>

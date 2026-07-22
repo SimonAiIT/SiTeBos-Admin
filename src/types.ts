@@ -16,6 +16,8 @@ export interface SelectorResult {
   frontend_paths: string[];
   backend_paths: string[];
   database_collections: string[];
+  ods_esistente?: string | null;
+  azione_consigliata?: 'continua_implementazione_ods_esistente' | 'crea_nuovo_ods';
   rationale?: string;
 }
 

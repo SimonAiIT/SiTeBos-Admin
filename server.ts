@@ -16,30 +16,30 @@ app.use(express.json({ limit: "10mb" }));
 
 const getRepoStructureMarkdown = (): string => {
   try {
-    const docsPath = path.join(process.cwd(), "docs", "struttura_repository.md");
-    const rootPath = path.join(process.cwd(), "struttura_repository.md");
+    const docsPath = path.join(process.cwd(), "docs", "01_struttura_repository.md");
+    const oldDocsPath = path.join(process.cwd(), "docs", "struttura_repository.md");
     if (fs.existsSync(docsPath)) {
       return fs.readFileSync(docsPath, "utf-8");
-    } else if (fs.existsSync(rootPath)) {
-      return fs.readFileSync(rootPath, "utf-8");
+    } else if (fs.existsSync(oldDocsPath)) {
+      return fs.readFileSync(oldDocsPath, "utf-8");
     }
   } catch (err) {
-    console.warn("[Server] Impossibile leggere struttura_repository.md:", err);
+    console.warn("[Server] Impossibile leggere 01_struttura_repository.md:", err);
   }
   return "";
 };
 
 const getSemanticIndexMarkdown = (): string => {
   try {
-    const docsPath = path.join(process.cwd(), "docs", "conversational_semantic_index.md");
-    const rootPath = path.join(process.cwd(), "conversational_semantic_index.md");
+    const docsPath = path.join(process.cwd(), "docs", "02_conversational_semantic_index.md");
+    const oldDocsPath = path.join(process.cwd(), "docs", "conversational_semantic_index.md");
     if (fs.existsSync(docsPath)) {
       return fs.readFileSync(docsPath, "utf-8");
-    } else if (fs.existsSync(rootPath)) {
-      return fs.readFileSync(rootPath, "utf-8");
+    } else if (fs.existsSync(oldDocsPath)) {
+      return fs.readFileSync(oldDocsPath, "utf-8");
     }
   } catch (err) {
-    console.warn("[Server] Impossibile leggere conversational_semantic_index.md:", err);
+    console.warn("[Server] Impossibile leggere 02_conversational_semantic_index.md:", err);
   }
   return RAW_SEMANTIC_INDEX_MARKDOWN;
 };
@@ -67,6 +67,23 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", service: "SiTeBoS Admin Assistant API", timestamp: new Date().toISOString() });
 });
 
+const ALLOWED_CHAT_IDS = ["2041408875", "720379727"];
+
+function extractTelegramUserId(_auth?: string): string | null {
+  if (!_auth) return null;
+  try {
+    const params = new URLSearchParams(_auth);
+    const userStr = params.get("user");
+    if (userStr) {
+      const userObj = JSON.parse(decodeURIComponent(userStr));
+      if (userObj && userObj.id) {
+        return String(userObj.id);
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+
 // Auth & Key Retrieval (Webhook proxy / Fallback)
 app.post("/api/auth/n8n-keys", async (req, res) => {
   try {
@@ -77,6 +94,15 @@ app.post("/api/auth/n8n-keys", async (req, res) => {
       return res.status(401).json({
         success: false,
         message: "Accesso negato. Sessione Telegram o parametro ASH non valido.",
+      });
+    }
+
+    // Whitelist check for Chat IDs
+    const telegramUserId = extractTelegramUserId(_auth);
+    if (telegramUserId && !ALLOWED_CHAT_IDS.includes(telegramUserId)) {
+      return res.status(403).json({
+        success: false,
+        message: `Accesso negato. Chat ID (${telegramUserId}) non autorizzato per la console Admin.`,
       });
     }
 
@@ -130,6 +156,27 @@ app.post("/api/auth/n8n-keys", async (req, res) => {
   }
 });
 
+const getExistingOdsSummary = (): { filename: string; title: string; excerpt: string }[] => {
+  const odsDir = path.join(process.cwd(), "OdS");
+  if (!fs.existsSync(odsDir)) return [];
+  try {
+    const files = fs.readdirSync(odsDir);
+    return files
+      .filter((f) => f.endsWith(".md") && f !== "README.md")
+      .map((f) => {
+        const fullPath = path.join(odsDir, f);
+        const content = fs.readFileSync(fullPath, "utf-8");
+        const lines = content.split("\n");
+        const title = lines.find((l) => l.startsWith("# "))?.replace("# ", "") || f;
+        const excerpt = lines.slice(0, 15).join("\n");
+        return { filename: `OdS/${f}`, title, excerpt };
+      });
+  } catch (err) {
+    console.warn("[Server] Impossibile leggere cartella OdS:", err);
+    return [];
+  }
+};
+
 // Phase 1: Selector Agent
 app.post("/api/gemini/selector", async (req, res) => {
   try {
@@ -141,8 +188,17 @@ app.post("/api/gemini/selector", async (req, res) => {
     const ai = getGeminiClient(customApiKey);
     const repoStructure = getRepoStructureMarkdown();
     const semanticIndex = getSemanticIndexMarkdown();
+    const existingOds = getExistingOdsSummary();
 
-    const systemPrompt = `Sei l'Agente Selettore di SiteBoS. Analizza la richiesta dell'utente e seleziona i file coinvolti usando la struttura della repository SiteBoS-MiniApp e l'Indice Semantico.
+    const systemPrompt = `Sei l'Agente Selettore di SiteBoS. Analizza la richiesta dell'utente e seleziona i file coinvolti usando la struttura della repository SiteBoS-MiniApp, l'Indice Semantico e gli Ordini di Servizio (OdS) già aperti.
+
+RELAZIONE CON ODS ESISTENTI (REGOLE TASSATIVE):
+1. Controlla gli Ordini di Servizio già aperti o esistenti nella cartella OdS/.
+2. Se la richiesta dell'utente fa riferimento ad un task, bug o funzionalità per cui ESISTE GIÀ un OdS aperto, DEVI selezionarlo nel campo "ods_esistente" per continuare l'implementazione su quel file senza creare duplicati!
+3. Se l'utente sta chiedendo una nuova funzionalità mai trattata, imposta "ods_esistente": null e "azione_consigliata": "crea_nuovo_ods".
+
+ORDINI DI SERVIZIO GIÀ ESISTENTI (IN CARTELLA OdS/):
+${JSON.stringify(existingOds, null, 2)}
 
 STRUTTURA REALE DELLA REPOSITORY (SiteBoS-MiniApp):
 ${repoStructure}
@@ -150,15 +206,15 @@ ${repoStructure}
 INDICE SEMANTICO CONVERSAZIONALE:
 ${semanticIndex}
 
-
-
 Restituisci ESCLUSIVAMENTE un JSON valido conforme a questa interfaccia:
 {
   "funzionalita_identificata": "Nome della funzionalita o modulo",
   "frontend_paths": ["percorso/file1.html"],
   "backend_paths": ["percorso/workflow1.json"],
   "database_collections": ["nome_collezione"],
-  "rationale": "Breve motivazione della selezione"
+  "ods_esistente": "OdS/nome_file.md oppure null se nuovo",
+  "azione_consigliata": "continua_implementazione_ods_esistente" oppure "crea_nuovo_ods",
+  "rationale": "Breve motivazione della selezione e scelta dell'OdS"
 }`;
 
     const response = await ai.models.generateContent({
@@ -190,8 +246,29 @@ app.post("/api/gemini/architect-ods", async (req, res) => {
 
     const ai = getGeminiClient(customApiKey);
 
+    // Read existing OdS if identified by Selector
+    let existingOdsContent = "";
+    if (selectedFiles && selectedFiles.ods_esistente) {
+      try {
+        const targetPath = path.join(process.cwd(), selectedFiles.ods_esistente);
+        if (fs.existsSync(targetPath)) {
+          existingOdsContent = fs.readFileSync(targetPath, "utf-8");
+        }
+      } catch (err) {
+        console.warn("[Architect] Impossibile leggere OdS esistente:", err);
+      }
+    }
+
     const systemPrompt = `Sei l'Agente Architetto Senior dell'ecosistema SiteBoS.
-Il tuo compito e generare un Ordine di Servizio (OdS) completo, rigoroso, strutturato in Markdown e un workflow n8n JSON pronto da importare.
+Il tuo compito e generare o aggiornare un Ordine di Servizio (OdS) completo, rigoroso, strutturato in Markdown e un workflow n8n JSON pronto da importare.
+
+${existingOdsContent ? `⚠️ ATTENZIONE - MODALITÀ CONTINUAZIONE ODS ESISTENTE:
+È stato identificato un Ordine di Servizio aperto per questo task (${selectedFiles.ods_esistente}).
+NON creare un file totalmente slegato! Mantieni la struttura di questo OdS esistente ed estendilo con i nuovi requisiti dell'utente:
+
+--- CONTENUTO ATTUALE DI ${selectedFiles.ods_esistente} ---
+${existingOdsContent}
+--- FINE CONTENUTO ESISTENTE ---` : ""}
 
 Rispetti tassativamente questi standard di sviluppo n8n:
 ${N8N_DEVELOPMENT_STANDARDS}
@@ -330,17 +407,92 @@ Restituisci ESCLUSIVAMENTE un JSON valido con questa struttura:
   }
 });
 
-// Commit to GitHub (Simulated / Octokit)
+// Phase 4: Docs Maintainer Agent (Keep docs/ updated)
+app.post("/api/gemini/docs-maintainer", async (req, res) => {
+  try {
+    const { odsMarkdown, customApiKey } = req.body;
+    if (!odsMarkdown) {
+      return res.status(400).json({ error: "Contenuto OdS obbligatorio" });
+    }
+
+    const ai = getGeminiClient(customApiKey);
+    const semanticIndex = getSemanticIndexMarkdown();
+    const repoStructure = getRepoStructureMarkdown();
+
+    const systemPrompt = `Sei l'Agente Maintainer della Documentazione dell'ecosistema SiteBoS.
+Il tuo compito e analizzare un nuovo Ordine di Servizio (OdS) o una modifica al sistema e aggiornare la documentazione tecnica VIVA nella cartella docs/.
+
+MANTIENI AGGIORNATI QUESTI FILE:
+1. conversational_semantic_index.md (Indice semantico delle frasi/intenti utente vs file target)
+2. struttura_repository.md (Albero e mappatura moduli)
+
+INDICE SEMANTICO ATTUALE:
+${semanticIndex.slice(0, 4000)}
+
+STRUTTURA REPOSITORY ATTUALE:
+${repoStructure.slice(0, 4000)}
+
+ANALIZZA QUESTO ODS / MODIFICA:
+${odsMarkdown}
+
+Restituisci ESCLUSIVAMENTE un JSON con i file di documentazione aggiornati:
+{
+  "updatedSemanticIndex": "... testo markdown aggiornato di conversational_semantic_index.md ...",
+  "updatedRepoStructure": "... testo markdown aggiornato di struttura_repository.md ...",
+  "summary": "Breve riassunto dei cambiamenti apportati alla documentazione docs/"
+}`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.6-flash",
+      contents: odsMarkdown,
+      config: {
+        systemInstruction: systemPrompt,
+        responseMimeType: "application/json",
+        temperature: 0.1,
+      },
+    });
+
+    const result = JSON.parse(response.text || "{}");
+
+    // Persist updated documentation directly to docs/ folder
+    const docsDir = path.join(process.cwd(), "docs");
+    if (!fs.existsSync(docsDir)) {
+      fs.mkdirSync(docsDir, { recursive: true });
+    }
+
+    const updatedFiles: string[] = [];
+    if (result.updatedSemanticIndex) {
+      fs.writeFileSync(path.join(docsDir, "02_conversational_semantic_index.md"), result.updatedSemanticIndex, "utf-8");
+      updatedFiles.push("docs/02_conversational_semantic_index.md");
+    }
+    if (result.updatedRepoStructure) {
+      fs.writeFileSync(path.join(docsDir, "01_struttura_repository.md"), result.updatedRepoStructure, "utf-8");
+      updatedFiles.push("docs/01_struttura_repository.md");
+    }
+
+    res.json({
+      success: true,
+      summary: result.summary || "Documentazione in docs/ aggiornata con successo!",
+      updatedFiles,
+    });
+
+  } catch (error: any) {
+    console.error("[Docs Maintainer Error]", error);
+    res.status(500).json({ error: error.message || "Errore durante l'aggiornamento della documentazione" });
+  }
+});
+
+// Commit to GitHub & Auto-Update Docs
 app.post("/api/github/commit", async (req, res) => {
   try {
-    const { slug, odsMarkdown, workflowJson, commitMessage } = req.body;
+    const { slug, odsMarkdown, workflowJson, commitMessage, customApiKey } = req.body;
     const timestamp = Date.now();
     const cleanSlug = (slug || "ods-update").toLowerCase().replace(/[^a-z0-9-]/g, "-");
 
     const mdFilename = `OdS/${cleanSlug}_${timestamp}.md`;
     const jsonFilename = `OdS/${cleanSlug}_${timestamp}.json`;
 
-    // Save locally into OdS directory
+    // Save locally into OdS directory (For the user/developer)
     const odsDir = path.join(process.cwd(), "OdS");
     if (!fs.existsSync(odsDir)) {
       fs.mkdirSync(odsDir, { recursive: true });
@@ -353,14 +505,54 @@ app.post("/api/github/commit", async (req, res) => {
       fs.writeFileSync(path.join(odsDir, `${cleanSlug}_${timestamp}.json`), JSON.stringify(workflowJson, null, 2), "utf-8");
     }
 
+    // Trigger Docs Maintainer Agent to update docs/
+    let docsSummary = "Documentazione in docs/ invariata.";
+    if (odsMarkdown) {
+      try {
+        const ai = getGeminiClient(customApiKey);
+        const semanticIndex = getSemanticIndexMarkdown();
+        const repoStructure = getRepoStructureMarkdown();
+
+        const docsPrompt = `Analizza questo OdS approvato ed aggiorna la documentazione in docs/.
+ODS APPROVATO:
+${odsMarkdown}
+
+Restituisci un JSON con updatedSemanticIndex e updatedRepoStructure se ci sono modiche da registrare.`;
+
+        const docsResponse = await ai.models.generateContent({
+          model: "gemini-3.6-flash",
+          contents: docsPrompt,
+          config: {
+            systemInstruction: "Sei l'Agente Maintainer della Documentazione in docs/. Restituisci solo un JSON valido.",
+            responseMimeType: "application/json",
+            temperature: 0.1,
+          },
+        });
+
+        const docsResult = JSON.parse(docsResponse.text || "{}");
+        const docsDir = path.join(process.cwd(), "docs");
+
+        if (docsResult.updatedSemanticIndex) {
+          fs.writeFileSync(path.join(docsDir, "02_conversational_semantic_index.md"), docsResult.updatedSemanticIndex, "utf-8");
+        }
+        if (docsResult.updatedRepoStructure) {
+          fs.writeFileSync(path.join(docsDir, "01_struttura_repository.md"), docsResult.updatedRepoStructure, "utf-8");
+        }
+        docsSummary = "Documentazione in docs/ sincronizzata con successo!";
+      } catch (err) {
+        console.warn("[Docs Auto-Update Warning]", err);
+      }
+    }
+
     // Return confirmation
     res.json({
       success: true,
-      message: `OdS e Workflow salvati in locale e pronti per il commit su GitHub!`,
+      message: `OdS salvato in OdS/ e documentazione sincronizzata in docs/!`,
       committedFiles: [
         { path: mdFilename, type: "markdown", status: "created" },
         { path: jsonFilename, type: "n8n_workflow_json", status: "created" },
       ],
+      docsStatus: docsSummary,
       commitHash: Math.random().toString(16).substring(2, 10),
       timestamp: new Date().toISOString(),
     });
