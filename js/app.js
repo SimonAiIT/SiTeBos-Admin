@@ -50,19 +50,34 @@
         if (ghInput) ghInput.value = window.SiTeBoSApi.getGitHubToken();
     });
 
-    // Navigation Tab Switching
+    // Navigation Tab Switching (Desktop + Mobile Bottom Bar)
     window.switchTab = function(tabId) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.nav-btn').forEach(el => {
+        
+        // Desktop nav buttons
+        document.querySelectorAll('.nav-btn-dt').forEach(el => {
             el.classList.remove('bg-blue-600/10', 'text-blue-400', 'border', 'border-blue-500/20');
             el.classList.add('hover:bg-slate-800/60', 'text-slate-400');
         });
 
+        // Mobile bottom nav buttons
+        document.querySelectorAll('.nav-btn-mob').forEach(el => {
+            el.classList.remove('text-blue-400');
+            el.classList.add('text-slate-400');
+        });
+
         document.getElementById('tab-' + tabId).classList.remove('hidden');
-        const navBtn = document.getElementById('nav-' + tabId);
-        if (navBtn) {
-            navBtn.classList.remove('hover:bg-slate-800/60', 'text-slate-400');
-            navBtn.classList.add('bg-blue-600/10', 'text-blue-400', 'border', 'border-blue-500/20');
+        
+        const dtBtn = document.getElementById('nav-' + tabId + '-desktop');
+        if (dtBtn) {
+            dtBtn.classList.remove('hover:bg-slate-800/60', 'text-slate-400');
+            dtBtn.classList.add('bg-blue-600/10', 'text-blue-400', 'border', 'border-blue-500/20');
+        }
+
+        const mobBtn = document.getElementById('nav-' + tabId + '-mob');
+        if (mobBtn) {
+            mobBtn.classList.remove('text-slate-400');
+            mobBtn.classList.add('text-blue-400');
         }
     };
 
