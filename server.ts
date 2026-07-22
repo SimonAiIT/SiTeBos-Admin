@@ -49,7 +49,7 @@ const getSemanticIndexMarkdown = (): string => {
 
 // Server-side Gemini initialization
 const getGeminiClient = (customApiKey?: string) => {
-  const apiKey = customApiKey || process.env.GEMINI_API_KEY || "AIzaSy_DEV_FALLBACK_KEY";
+  const apiKey = customApiKey || process.env.GEMINI_API_KEY || "";
   return new GoogleGenAI({
     apiKey,
     httpOptions: {
@@ -124,7 +124,7 @@ app.post("/api/auth/n8n-keys", async (req, res) => {
           if (data && (data.GEMINI_API_KEY || data.gemini_key || data.success)) {
             return res.json({
               success: true,
-              gemini_key: data.GEMINI_API_KEY || data.gemini_key || process.env.GEMINI_API_KEY || "AIzaSy_KEY_RESTORED",
+              gemini_key: data.GEMINI_API_KEY || data.gemini_key || process.env.GEMINI_API_KEY || "",
               github_token: data.GITHUB_TOKEN_SITEBOS_ADMIN || data.github_token || process.env.GITHUB_TOKEN || "ghp_sitebos_token",
               github_token_structure: data.GITHUB_TOKEN_SITEBOS_STRUCTURE || process.env.GITHUB_TOKEN_SITEBOS_STRUCTURE || "",
               github_token_admin: data.GITHUB_TOKEN_SITEBOS_ADMIN || process.env.GITHUB_TOKEN_SITEBOS_ADMIN || "",

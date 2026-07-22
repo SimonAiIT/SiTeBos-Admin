@@ -20,6 +20,10 @@ Genera una sezione Markdown dettagliata:
   3. Inizializzazione Telegram WebApp SDK (\`window.Telegram.WebApp.ready()\` e \`expand()\`)
   4. Chiamate Webhook Fetch con header \`Content-Type: application/json\` e payload contenente \`_auth\` e \`ash\`.`;
 
-        return await window.SiTeBoSApi.callGemini(promptText, systemPrompt, false);
+        const response = await window.SiTeBoSApi.callGemini(promptText, systemPrompt, false);
+        return {
+            specText: response.text,
+            usage: response.usage
+        };
     }
 };

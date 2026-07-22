@@ -22,6 +22,10 @@ Restituisci ESCLUSIVAMENTE un JSON con questa struttura:
   "azione_consigliata": "Descrizione dell'azione (es. Estendere l'OdS esistente per la gestione delle immagini)"
 }`;
 
-        return await window.SiTeBoSApi.callGemini(promptText, systemPrompt, true);
+        const response = await window.SiTeBoSApi.callGemini(promptText, systemPrompt, true);
+        return {
+            data: response.data || {},
+            usage: response.usage
+        };
     }
 };

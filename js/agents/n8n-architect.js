@@ -3,7 +3,7 @@
  * Specializzato nella progettazione di workflow n8n e generazione JSON rigorosi.
  */
 window.N8nArchitectAgent = {
-    designBackend: async function(promptText, selectorData, frontendSpec) {
+    designBackend: async function(promptText, selectorData, frontendSpecText) {
         const systemPrompt = `Sei l'Agente Architetto Backend n8n dell'ecosistema SiTeBoS.
 Sei uno specialista esperto nella progettazione e refactoring di workflow n8n per integrazioni Telegram e MongoDB.
 
@@ -17,7 +17,7 @@ Genera una guida passo-passo Markdown ed il JSON del workflow n8n per: "${prompt
 
 Restituisci la guida Markdown per la sezione Backend.`;
 
-        const markdownBackend = await window.SiTeBoSApi.callGemini(promptText, systemPrompt, false);
+        const response = await window.SiTeBoSApi.callGemini(promptText, systemPrompt, false);
 
         // Generate starter n8n JSON workflow
         const workflowJson = {
@@ -36,6 +36,10 @@ Restituisci la guida Markdown per la sezione Backend.`;
             }
         };
 
-        return { markdownBackend, workflowJson };
+        return {
+            markdownBackend: response.text,
+            workflowJson: workflowJson,
+            usage: response.usage
+        };
     }
 };
