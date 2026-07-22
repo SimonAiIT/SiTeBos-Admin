@@ -72,10 +72,18 @@ app.post("/api/auth/n8n-keys", async (req, res) => {
   try {
     const { _auth, ash, action } = req.body;
     
+    // Strict Telegram WebApp / ASH session validation
+    if (!(_auth && typeof _auth === 'string' && _auth.trim() !== '') && !(ash && typeof ash === 'string' && ash.trim() !== '')) {
+      return res.status(401).json({
+        success: false,
+        message: "Accesso negato. Sessione Telegram o parametro ASH non valido.",
+      });
+    }
+
     // Attempt real webhook fetch if N8N_KEY_FETCHER_WEBHOOK is configured
     const webhookUrl = process.env.N8N_KEY_FETCHER_WEBHOOK || "https://prod.workflow.trinai.it/webhook/2fa70acb-4313-42a7-9e3b-4eea84ff8178";
     
-    if (webhookUrl && (_auth || ash)) {
+    if (webhookUrl) {
       try {
         const response = await fetch(webhookUrl, {
           method: "POST",
@@ -100,11 +108,11 @@ app.post("/api/auth/n8n-keys", async (req, res) => {
           }
         }
       } catch (err) {
-        console.warn("[Auth] Webhook fetch error, using environment fallback:", err);
+        console.warn("[Auth] Webhook fetch error, using authenticated session fallback:", err);
       }
     }
 
-    // Fallback to environment variables or session authorization
+    // Fallback for valid session
     return res.json({
       success: true,
       gemini_key: process.env.GEMINI_API_KEY || "GEMINI_KEY_ACTIVE",

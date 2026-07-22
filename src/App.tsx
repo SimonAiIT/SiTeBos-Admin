@@ -89,21 +89,31 @@ export default function App() {
           isAuthenticated: true,
           source: data.source || 'environment',
         });
+      } else {
+        setSession({
+          geminiKey: '',
+          githubToken: '',
+          githubTokenStructure: '',
+          githubTokenAdmin: '',
+          mongoUri: '',
+          ownerId: '',
+          isAuthenticated: false,
+          source: 'unauthenticated',
+        });
       }
     } catch (err) {
-      console.warn('Session auth fallback error:', err);
+      console.warn('Session auth error:', err);
       setSession({
-        geminiKey: 'GEMINI_KEY_ACTIVE',
-        githubToken: 'ghp_sitebos_token',
+        geminiKey: '',
+        githubToken: '',
         githubTokenStructure: '',
         githubTokenAdmin: '',
         mongoUri: '',
-        ownerId: 'owner_sitebos_admin',
-        isAuthenticated: true,
-        source: 'environment',
+        ownerId: '',
+        isAuthenticated: false,
+        source: 'unauthenticated',
       });
     } finally {
-
       setIsRefreshingKeys(false);
     }
   };
@@ -222,6 +232,25 @@ export default function App() {
       setIsCommitting(false);
     }
   };
+
+  if (session && !session.isAuthenticated) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-slate-950 text-slate-100 p-6">
+        <div className="max-w-md w-full p-8 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl text-center space-y-4">
+          <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto text-red-500 text-3xl">
+            <i className="fa-solid fa-shield-halved"></i>
+          </div>
+          <h1 className="text-xl font-bold uppercase tracking-wide text-red-400">Accesso Riservato Admin</h1>
+          <p className="text-sm text-slate-400 leading-relaxed">
+            Questa console amministrativa è protetta ed accessibile esclusivamente tramite l'applicazione Telegram autorizzata con sessione verificata.
+          </p>
+          <div className="pt-2 text-xs font-mono text-slate-500 border-t border-slate-800">
+            Sessione non valida • SiTeBoS Security Guard
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-white text-slate-900 font-sans selection:bg-slate-900 selection:text-white">
