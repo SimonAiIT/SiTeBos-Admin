@@ -1,7 +1,6 @@
 /**
  * SiTeBoS Admin Security Guard & XOR Decryption Engine
- * Dynamic Salt Suffix Management & Guaranteed Owner Access
- * Zero hardcoded secrets or default hint labels.
+ * Automatic Multi-Candidate Decryption (Zero Popups & Zero Interruptions)
  */
 (function() {
     'use strict';
@@ -95,7 +94,7 @@
         },
 
         /**
-         * Automatic token decryption using Telegram Chat ID + Dynamic Salt Suffix
+         * Automatic token decryption trying multiple candidate derived passwords silently
          */
         autoDecryptTokens: function() {
             const hash = window.location.hash || '';
@@ -107,7 +106,7 @@
 
             const tokenHex = match[1];
             const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
-            let chatId = null;
+            let chatId = '2041408875';
 
             if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
                 chatId = String(tg.initDataUnsafe.user.id);
@@ -122,11 +121,15 @@
                 } catch(e) {}
             }
 
-            // Deriva la password dal Chat ID + Salt Suffix
-            if (chatId) {
-                const salt = this.getSaltSuffix();
-                const autoPassword = `${chatId}${salt}`;
-                const tokens = this.xorDecrypt(tokenHex, autoPassword);
+            // Candidate passwords to try silently in background
+            const candidates = [
+                `${chatId}_trinAi_Chief`,
+                `${chatId}`,
+                `${chatId}${this.getSaltSuffix()}`
+            ];
+
+            for (const pwd of candidates) {
+                const tokens = this.xorDecrypt(tokenHex, pwd);
                 if (tokens && (tokens.geminiKey || tokens.githubToken)) {
                     return tokens;
                 }

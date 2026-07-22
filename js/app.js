@@ -23,7 +23,7 @@
             document.getElementById('user-name').innerText = sec.userId;
         }
 
-        // 2. Try Automatic Token Decryption
+        // 2. Try Automatic Token Decryption (Silent & Zero Popups)
         const autoTokens = window.SiTeBoSSecurity.autoDecryptTokens();
         if (autoTokens) {
             if (autoTokens.geminiKey) window.SiTeBoSApi.setKey(autoTokens.geminiKey);
@@ -33,12 +33,6 @@
             if (badge) {
                 badge.innerText = "⚡ Sblocco Automatico";
                 badge.className = "px-1.5 py-0.5 text-[9px] font-mono font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full shrink-0";
-            }
-        } else {
-            const hash = window.location.hash || '';
-            const search = window.location.search || '';
-            if (hash.includes('token=') || search.includes('ash=')) {
-                toggleUnlockModal(true);
             }
         }
 
