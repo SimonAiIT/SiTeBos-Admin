@@ -30,96 +30,110 @@ window.SiTeBoSApi = {
             throw new Error('API Key Gemini mancante. Sblocca con il link cifrato #token=... o inseriscila nelle Impostazioni.');
         }
 
-        // STRICTLY ONLY LATEST ENDPOINTS
+        // STRICTLY ONLY LATEST MODELS
         const models = [
             'gemini-flash-latest',
-            'gemini-flash-lite-latest'
+            'gemini-flash-lite-latest',
+            'gemini-3.6-flash'
         ];
 
         let lastError = null;
 
         for (const model of models) {
-            try {
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            const configsToTry = [];
+            if (thinkingLevel) {
+                const cfgWithThinking = {};
+                if (isJsonMode) cfgWithThinking.responseMimeType = "application/json";
+                cfgWithThinking.thinkingConfig = { thinkingLevel: thinkingLevel };
+                configsToTry.push(cfgWithThinking);
+            }
 
-                const generationConfig = {
-                    thinkingConfig: { thinkingLevel: thinkingLevel || "MINIMAL" }
-                };
+            const cfgStandard = {};
+            if (isJsonMode) cfgStandard.responseMimeType = "application/json";
+            configsToTry.push(cfgStandard);
 
-                if (isJsonMode) {
-                    generationConfig.responseMimeType = "application/json";
-                }
+            for (const genConfig of configsToTry) {
+                try {
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-                const payload = {
-                    contents: [{ role: "user", parts: [{ text: prompt }] }],
-                    systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction }] } : undefined,
-                    generationConfig: generationConfig
-                };
+                    const payload = {
+                        contents: [{ role: "user", parts: [{ text: prompt }] }],
+                        systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction }] } : undefined,
+                        generationConfig: genConfig
+                    };
 
-                const res = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                    let res = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
 
-                if (!res.ok) {
-                    let errMessage = `Errore API Gemini (${model}) HTTP ${res.status}`;
-                    try {
-                        const errJson = await res.json();
-                        if (errJson.error && errJson.error.message) {
-                            errMessage = `API Gemini (${model}) [${res.status}]: ${errJson.error.message}`;
+                    // If 429 (Rate Limit), wait 1s and retry once
+                    if (res.status === 429) {
+                        console.warn(`[Gemini API] Rate limit 429 per ${model}. Pausa 1s e riprova...`);
+                        await new Promise(r => setTimeout(r, 1000));
+                        res = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                    }
+
+                    if (!res.ok) {
+                        let errMessage = `Errore API Gemini (${model}) HTTP ${res.status}`;
+                        try {
+                            const errJson = await res.json();
+                            if (errJson.error && errJson.error.message) {
+                                errMessage = `API Gemini (${model}) [${res.status}]: ${errJson.error.message}`;
+                            }
+                        } catch(e) {}
+
+                        if (res.status === 400 && genConfig.thinkingConfig) {
+                            console.warn(`[Gemini API] thinkingConfig non accettato da ${model}. Riprovo senza thinkingConfig...`);
+                            continue;
                         }
-                    } catch(e) {}
+
+                        throw new Error(errMessage);
+                    }
+
+                    const data = await res.json();
                     
-                    if (res.status === 403) {
-                        throw new Error(`🔑 Errore 403 (Forbidden): La tua Gemini API Key non è valida o non ha i permessi per il modello ${model}. Verifica la chiave nelle Impostazioni.`);
+                    let rawText = '';
+                    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                        const parts = data.candidates[0].content.parts || [];
+                        rawText = parts.map(p => p.text || '').join('');
                     }
 
-                    console.warn(`[Gemini Fallback] Modello ${model} non supportato o fallito (${res.status}). Prova con il successivo...`);
-                    throw new Error(errMessage);
-                }
+                    const usage = {
+                        promptTokens: data.usageMetadata?.promptTokenCount || 0,
+                        candidatesTokens: data.usageMetadata?.candidatesTokenCount || 0,
+                        totalTokens: data.usageMetadata?.totalTokenCount || 0
+                    };
 
-                const data = await res.json();
-                
-                // Extract candidates text
-                let rawText = '';
-                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                    const parts = data.candidates[0].content.parts || [];
-                    rawText = parts.map(p => p.text || '').join('');
-                }
-
-                // Extract token usage metadata from Gemini response
-                const usage = {
-                    promptTokens: data.usageMetadata?.promptTokenCount || 0,
-                    candidatesTokens: data.usageMetadata?.candidatesTokenCount || 0,
-                    totalTokens: data.usageMetadata?.totalTokenCount || 0
-                };
-
-                let parsedData = null;
-                if (isJsonMode) {
-                    try {
-                        parsedData = JSON.parse(rawText);
-                    } catch (err) {
-                        console.warn('[Gemini API] Impossibile parsare JSON:', rawText);
-                        parsedData = { raw: rawText };
+                    let parsedData = null;
+                    if (isJsonMode) {
+                        try {
+                            parsedData = JSON.parse(rawText);
+                        } catch (err) {
+                            console.warn('[Gemini API] Impossibile parsare JSON:', rawText);
+                            parsedData = { raw: rawText };
+                        }
                     }
-                }
 
-                return {
-                    text: rawText,
-                    data: parsedData,
-                    usage: usage,
-                    activeModel: model
-                };
-            } catch (err) {
-                lastError = err;
-                if (err.message.includes('403')) {
-                    throw err;
+                    return {
+                        text: rawText,
+                        data: parsedData,
+                        usage: usage,
+                        activeModel: model
+                    };
+
+                } catch (err) {
+                    lastError = err;
                 }
             }
         }
 
-        throw lastError || new Error('Impossibile chiamare l\'API di Gemini.');
+        throw lastError || new Error('🔑 Errore API Gemini: La tua API Key non è autorizzata o nessun modello risponde. Verifica la chiave nelle Impostazioni.');
     },
 
     listOdSFiles: async function() {

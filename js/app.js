@@ -298,6 +298,7 @@
             }
 
             // --- STEP 2: FRONTEND ARCHITECT AGENT (HIGH) ---
+            await new Promise(r => setTimeout(r, 350));
             const step2 = document.getElementById('step-2');
             if (step2) {
                 step2.className = "p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 flex items-center gap-2.5 text-xs";
@@ -317,6 +318,7 @@
             }
 
             // --- STEP 3: BACKEND N8N ARCHITECT AGENT (HIGH) ---
+            await new Promise(r => setTimeout(r, 350));
             const step3 = document.getElementById('step-3');
             if (step3) {
                 step3.className = "p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 flex items-center gap-2.5 text-xs";
