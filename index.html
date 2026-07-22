@@ -7,60 +7,6 @@
     <title>SiTeBoS Admin Assistant</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script id="tg-admin-security-guard">
-    (function() {
-        'use strict';
-        var ALLOWED_CHAT_IDS = ['2041408875', '720379727'];
-        var isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        
-        function verifyAccess() {
-            var urlParams = new URLSearchParams(window.location.search || '');
-            var ash = urlParams.get('ash');
-            var tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
-
-            if (isLocalhost) return true;
-
-            if (tg) {
-                try { tg.ready(); } catch(e) {}
-                try { tg.expand(); } catch(e) {}
-
-                var userId = null;
-                if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
-                    userId = String(tg.initDataUnsafe.user.id);
-                } else if (tg.initData) {
-                    try {
-                        var parsedInit = new URLSearchParams(tg.initData);
-                        var userJson = parsedInit.get('user');
-                        if (userJson) {
-                            var uObj = JSON.parse(decodeURIComponent(userJson));
-                            if (uObj && uObj.id) userId = String(uObj.id);
-                        }
-                    } catch(e) {}
-                }
-
-                if (userId) {
-                    return ALLOWED_CHAT_IDS.indexOf(userId) !== -1;
-                }
-
-                if (tg.initData && tg.initData.trim() !== '') {
-                    return true;
-                }
-            }
-
-            if (ash && ash.trim() !== '') return true;
-
-            return false;
-        }
-
-        var isAuthorized = verifyAccess();
-        if (!isAuthorized) {
-            window.addEventListener('DOMContentLoaded', function() {
-                try { window.stop(); } catch(e) {}
-                document.body.innerHTML = '<div style="min-height:100vh; display:flex; align-items:center; justify-content:center; background:#090d16; color:#f8fafc; font-family:-apple-system,BlinkMacSystemFont,sans-serif; text-align:center; padding:24px;"><div style="max-width:400px; width:100%; padding:36px 28px; background:#111827; border:1px solid #1f2937; border-radius:20px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7);"><div style="font-size:52px; margin-bottom:16px;">🚫</div><h1 style="font-size:18px; font-weight:800; margin:0 0 10px 0; color:#ef4444; text-transform:uppercase;">Accesso Riservato Admin</h1><p style="font-size:13px; color:#94a3b8; margin:0; line-height:1.6;">Questa console amministrativa è accessibile esclusivamente dagli unici account Telegram autorizzati.</p></div></div>';
-            });
-        }
-    })();
-    </script>
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -71,6 +17,6 @@
   </head>
   <body class="bg-white text-slate-950 font-sans antialiased selection:bg-slate-900 selection:text-white">
     <div id="root"></div>
-    <script type="module" crossorigin src="./dist/assets/index-Dlnff--n.js"></script>
+    <script type="module" crossorigin src="./dist/assets/index-CD_nO6A-.js"></script>
   </body>
 </html>
