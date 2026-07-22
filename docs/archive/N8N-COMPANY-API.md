@@ -1,3 +1,4 @@
+{% raw %}
 # N8N Company Data API (Bridge)
 
 Questa API permette a N8N di interrogare il servizio **OpenAPI Company** tramite TrinAI. Il sistema gestisce automaticamente l'autenticazione verso OpenAPI e la **cache intelligente** dei risultati per ridurre i costi e migliorare le performance.
@@ -80,3 +81,4 @@ Il bridge restituisce un oggetto standardizzato che include i dati originali di 
 1. **Usa il nodo HTTP Request**: Imposta il metodo su `POST`.
 2. **Header Auth**: Usa `Authorization` con valore `Bearer {{ $env.API_EXTERNAL_TOKEN }}`.
 3. **Caching**: Non preoccuparti di interrogare l'API più volte; TrinAI risponderà istantaneamente se i dati sono già in cache e non sono scaduti.
+{% endraw %}

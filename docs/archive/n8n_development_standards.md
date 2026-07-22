@@ -1,3 +1,4 @@
+{% raw %}
 # Standard di Sviluppo Workflow n8n (SiteBoS Project)
 
 Questo documento definisce le specifiche tecniche, gli standard di sicurezza, i pattern di programmazione e le convenzioni grafiche per lo sviluppo dei workflow n8n all'interno della directory [n8n_workflows](file:///c:/Users/garof/Desktop/TrinAi/SiteBoS-MiniApp/n8n_workflows).
@@ -786,3 +787,4 @@ graph TD
     Check -->|NO| SetErr[Set: status=error, error=Collection Not Found]
     SetErr --> Response[Respond to Webhook: HTTP 401]
 ```
+{% endraw %}
