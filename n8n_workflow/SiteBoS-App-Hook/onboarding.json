@@ -817,7 +817,7 @@
             "user_id": "web_user_verify",
             "file_data": "verify_key",
             "mime_type": "application/pdf",
-            "gemini_key": "AIzaSyAbDReRpDWAg93RXoOxuOmNtCGzIfZmF4Q"
+            "gemini_key": "YOUR_GEMINI_API_KEY"
           },
           "webhookUrl": "https://prod.workflow.trinai.it/webhook/1211a23e-ff91-4d3c-8938-aa273555bd8e",
           "executionMode": "production"

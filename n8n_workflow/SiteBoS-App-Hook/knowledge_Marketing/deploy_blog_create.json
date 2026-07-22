@@ -3716,7 +3716,7 @@
             "group_id": null,
             "user_name": "",
             "vat_number": "CLADDM85E03G273A",
-            "gemini_key": "AIzaSyAbDReRpDWAg93RXoOxuOmNtCGzIfZmF4Q",
+            "gemini_key": "YOUR_GEMINI_API_KEY",
             "bot_key": "8427099881:AAEUegPGAGnKx-ZeK0I2z5DJoHUTxB0gwqQ",
             "path": "",
             "name": "Davide Amedeo",
@@ -3788,7 +3788,7 @@
                 "OperatorLenguage": "Italiano",
                 "FreeHandOperator": true,
                 "Role": "Owner",
-                "GeminiKey": "AIzaSyAbDReRpDWAg93RXoOxuOmNtCGzIfZmF4Q"
+                "GeminiKey": "YOUR_GEMINI_API_KEY"
               }
             ],
             "payment_preference": "wire",

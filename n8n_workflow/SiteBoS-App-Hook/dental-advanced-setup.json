@@ -1850,7 +1850,7 @@
                 "rate_type": "percentage",
                 "rate": 30,
                 "specialization": "Ortodontista",
-                "GeminiKey": "AIzaSyBCV2D4FL-1Nww0jYJRJTDBG5QRdm7Kclc",
+                "GeminiKey": "YOUR_GEMINI_API_KEY",
                 "status": "",
                 "invitation_code": ""
               },

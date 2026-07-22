@@ -1503,7 +1503,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:streamGenerateContent?key=AIzaSyAbDReRpDWAg93RXoOxuOmNtCGzIfZmF4Q",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:streamGenerateContent?key=YOUR_GEMINI_API_KEY",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [

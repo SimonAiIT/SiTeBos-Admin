@@ -1124,7 +1124,7 @@
             "group_id": null,
             "user_name": "",
             "vat_number": "IT06988830821",
-            "gemini_key": "AIzaSyAbDReRpDWAg93RXoOxuOmNtCGzIfZmF4Q",
+            "gemini_key": "YOUR_GEMINI_API_KEY",
             "bot_key": "8680185361:AAFb_6KjAXXw_YUPe4bI_SkVKBaateiEK9A",
             "path": "",
             "name": "Giuseppe",
@@ -1203,7 +1203,7 @@
                 "OperatorLenguage": "Italiano",
                 "FreeHandOperator": true,
                 "Role": "Owner",
-                "GeminiKey": "AIzaSyAxXPYncXfpB34itpCiG228dl4DRIO3Oro"
+                "GeminiKey": "YOUR_GEMINI_API_KEY"
               },
               {
                 "OperatorName": "Collaboratore_SPSIN",
