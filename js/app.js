@@ -116,7 +116,34 @@
 
     // Settings Modal Handlers
     window.toggleSettingsModal = function() {
-        document.getElementById('settings-modal').classList.toggle('hidden');
+        const modal = document.getElementById('settings-modal');
+        if (modal) {
+            const isHidden = modal.classList.contains('hidden');
+            if (isHidden) {
+                const keyInput = document.getElementById('api-key-input');
+                const ghInput = document.getElementById('gh-token-input');
+                if (keyInput) keyInput.value = window.SiTeBoSApi.getKey();
+                if (ghInput) ghInput.value = window.SiTeBoSApi.getGitHubToken();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+    };
+
+    window.toggleKeyVisibility = function() {
+        const keyInput = document.getElementById('api-key-input');
+        const ghInput = document.getElementById('gh-token-input');
+        const btn = document.getElementById('btn-toggle-key-vis');
+
+        if (keyInput && ghInput) {
+            const isPassword = keyInput.type === 'password';
+            keyInput.type = isPassword ? 'text' : 'password';
+            ghInput.type = isPassword ? 'text' : 'password';
+            if (btn) {
+                btn.innerHTML = isPassword ? `<i class="fa-solid fa-eye-slash"></i> Nascondi in Chiaro` : `<i class="fa-solid fa-eye"></i> Mostra in Chiaro`;
+            }
+        }
     };
 
     window.saveSettings = function() {

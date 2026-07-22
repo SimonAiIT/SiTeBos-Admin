@@ -355,7 +355,12 @@ SiTeBos-Admin/
             
             <div class="space-y-3 text-xs">
                 <div class="space-y-2">
-                    <div class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Credenziali In Memoria</div>
+                    <div class="flex items-center justify-between">
+                        <div class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Credenziali In Memoria</div>
+                        <button id="btn-toggle-key-vis" onclick="toggleKeyVisibility()" class="text-[10px] text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-eye"></i> Mostra in Chiaro
+                        </button>
+                    </div>
                     <div>
                         <label class="text-[10px] font-semibold text-slate-400 block mb-0.5">Google Gemini API Key</label>
                         <input id="api-key-input" type="password" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-blue-500">

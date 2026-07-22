@@ -1,6 +1,7 @@
 /**
  * Agente Architetto Backend n8n (Backend n8n Architect Agent)
  * Specializzato nella progettazione di workflow n8n e generazione JSON rigorosi.
+ * ThinkingLevel: HIGH (Ragionamento profondo per nodi n8n, HMAC & MongoDB)
  */
 window.N8nArchitectAgent = {
     designBackend: async function(promptText, selectorData, frontendSpecText) {
@@ -17,7 +18,7 @@ Genera una guida passo-passo Markdown ed il JSON del workflow n8n per: "${prompt
 
 Restituisci la guida Markdown per la sezione Backend.`;
 
-        const response = await window.SiTeBoSApi.callGemini(promptText, systemPrompt, false);
+        const response = await window.SiTeBoSApi.callGemini(promptText, systemPrompt, false, "HIGH");
 
         // Generate starter n8n JSON workflow
         const workflowJson = {
@@ -27,7 +28,7 @@ Restituisci la guida Markdown per la sezione Backend.`;
                 { id: "node-auth", name: "Ash Decoder Auth Subworkflow", type: "n8n-nodes-base.executeWorkflow", position: [340, 300] },
                 { id: "node-mongodb", name: "MongoDB Operation (alwaysOutputData: true)", type: "n8n-nodes-base.mongoDb", position: [580, 300] },
                 { id: "node-403", name: "⛔️ 403 Forbidden Response", type: "n8n-nodes-base.respondToWebhook", position: [340, 480] },
-                { id: "node-[response]", name: "Respond 200 OK", type: "n8n-nodes-base.respondToWebhook", position: [820, 300] }
+                { id: "node-response", name: "Respond 200 OK", type: "n8n-nodes-base.respondToWebhook", position: [820, 300] }
             ],
             connections: {
                 "Webhook Input (POST)": { main: [[{ node: "Ash Decoder Auth Subworkflow", type: "main", index: 0 }]] },

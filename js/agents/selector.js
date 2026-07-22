@@ -1,6 +1,7 @@
 /**
  * Agente Selettore (Selector Agent)
  * Identifica componenti frontend/backend/database e controlla se esiste un OdS aperto.
+ * ThinkingLevel: MINIMAL
  */
 window.SelectorAgent = {
     analyzeRequest: async function(promptText) {
@@ -22,7 +23,7 @@ Restituisci ESCLUSIVAMENTE un JSON con questa struttura:
   "azione_consigliata": "Descrizione dell'azione (es. Estendere l'OdS esistente per la gestione delle immagini)"
 }`;
 
-        const response = await window.SiTeBoSApi.callGemini(promptText, systemPrompt, true);
+        const response = await window.SiTeBoSApi.callGemini(promptText, systemPrompt, true, "MINIMAL");
         return {
             data: response.data || {},
             usage: response.usage
