@@ -1,63 +1,39 @@
-# Struttura Ufficiale della Repository SiTeBos-Admin
+# Mappa e Albero della Repository (SiTeBos-Admin)
 
-Questo documento illustra l'albero delle directory dell'unica repository **SiTeBos-Admin**, che raccoglie tutti i macro-componenti dell'ecosistema SiteBoS.
+Questo documento fornisce la mappa strutturale aggiornata e rigorosa dell'intera repository **SiTeBos-Admin**.
 
 ---
 
-## 📁 Albero Generale del Progetto
+## 📂 Struttura dell'Albero della Repository
 
 ```text
 SiTeBos-Admin/
-├── index.html                    # Entry point HTML dell'App Admin
-├── server.ts                     # Server Express & API Gemini / Auth / GitHub
-├── package.json                  # Dipendenze Node.js / Vite / React / Gemini SDK
-├── tsconfig.json                 # Configurazione TypeScript
-├── vite.config.ts                # Configurazione Vite dev/build
-├── .env                          # Variabili di ambiente private (API Keys, Webhooks, DB)
+├── index.html                           # Standalone Admin MiniApp (Vanilla HTML5 + JS, Zero Build)
+├── server.ts                            # Server backend Express / Gemini Proxy
+├── .env                                 # Variabili d'ambiente private (GEMINI_API_KEY, ecc.)
+├── .nojekyll                            # Disabilita il parser Jekyll su GitHub Pages
 │
-├── src/                          # Sorgenti React dell'App Admin
-│   ├── main.tsx                  # Bootstrap React
-│   ├── App.tsx                   # Layout Principale Dashboard Admin & State
-│   ├── types.ts                  # Interfaccie TypeScript (OwnerSession, SelectorResult, OdS, Linter)
-│   ├── index.css                 # Design System & Utility Tailwind
-│   ├── components/               # Componenti UI (Header, OrbitNav, StudioDrawer, N8nLinter, ecc.)
-│   └── data/                     # Data Stores e Standard (semanticIndex.ts, n8nStandards.ts)
+├── docs/                                # Knowledge Base dell'AI & Documentazione Viva
+│   ├── 01_struttura_repository.md       # Albero repository e mappa dei componenti
+│   ├── 02_conversational_semantic_index.md # Indice semantico frasi/intenti utente vs file
+│   ├── 03_backend_frontend_mapping.md   # Mappatura chiamate Frontend TWA vs Webhook n8n
+│   ├── 04_n8n_development_standards.md   # Standard obbligatori di sviluppo n8n (HMAC, Lock, etc.)
+│   ├── 05_stato_sistema_e_produzione.md # Registro rilascio workflow e storico modifiche
+│   ├── 06_api_esterne_e_integrazioni.md # API Minisite JSON Engine & OpenAPI Company Bridge
+│   └── archive/                         # Archivio bozze e vecchi documenti storici
 │
-├── docs/                         # Documentazione Tecnica Viva del Sistema (per l'AI)
-│   ├── 01_struttura_repository.md
-│   ├── 02_conversational_semantic_index.md
-│   ├── 03_backend_frontend_mapping.md
-│   ├── 04_n8n_development_standards.md
-│   ├── 05_stato_sistema_e_produzione.md
-│   ├── 06_api_esterne_e_integrazioni.md
-│   └── archive/                  # Archivio storico bozze e vecchi log
+├── OdS/                                 # Ordini di Servizio generati (.md & .json)
+├── n8n_workflow/                        # Workflow n8n di produzione (JSON)
+├── Database_Structure/                  # Schemi delle collezioni MongoDB
 │
-├── OdS/                          # Ordini di Servizio Operativi (per lo Sviluppatore/Utente)
-│   ├── [slug]_[timestamp].md     # Specifiche tecniche Markdown OdS
-│   └── [slug]_[timestamp].json   # Workflow n8n JSON pronto all'importazione
-│
-├── n8n_workflow/                 # Repository di Workflow n8n di Backend (Pronti per Prod)
-│   ├── Unified-Authentication.json
-│   ├── Lock-Manager.json
-│   ├── Standard_AcCredit.json
-│   ├── Billing-Balance.json
-│   ├── SiteBoS-App-Hook/         # Hooks di comunicazione MiniApp -> n8n
-│   └── SiteBoS_Caller/           # Wrapper centralizzati Gemini AI
-│
-├── Database_Structure/           # Schemi e Collezioni MongoDB
-│   ├── MemoryManager/            # Collezioni sessioni, proposte e memoria agenti
-│   ├── TbosAssetLake/            # Collezioni asset digitali e risorse
-│   └── Telegram_owner_bot/       # Collezioni impostazioni e profilo owner
-│
-└── SiteBoS-MiniApp/              # Interfacce Telegram Mini App (In sola lettura per l'Agente)
-    └── telegram_control/
-        ├── agents/               # Magazzino Intelligente, Sicurezza 81/08, HR, Agenda
-        ├── customer_bot/         # Booking, Preventivi, E-commerce, FAQ Assistant
-        ├── dashboard/            # Identity & Main Dashboard Utenti
-        ├── gestione/             # Catalogo Prodotti, Blog Editor, Blueprint
-        ├── identity/             # Bot Config & Advanced Setup
-        ├── operativita/          # Gestione Job, Ordini, Itinerari Operatori
-        ├── operators/            # Dashboard Operatori sul Campo
-        ├── softskill/            # Valutazione Soft Skill utente
-        └── userguide/            # Manuale Utente HTML integrato
+└── SiteBoS-MiniApp/                     # Pagine TWA statiche per Telegram (SOLO LETTURA)
+    ├── telegram_control/                # Interfacce HTML dei vari moduli
+    └── n8n_workflows/                   # Workflow di supporto
 ```
+
+---
+
+## 🔒 Regole di Accesso e Architettura
+1. **`index.html`**: MiniApp Amministrativa Standalone in **Vanilla HTML5/JS** senza dipendenze o comandi di build. Funziona istantaneamente sia in locale che su GitHub Pages e Telegram.
+2. **Sicurezza Telegram**: Accesso riservato esclusivamente ai Chat ID autorizzati (`2041408875` e `720379727`) con bypass per lo sviluppo locale (`localhost`).
+3. **Cartella `SiteBoS-MiniApp/`**: In SOLA LETTURA. Non deve essere mai modificata.
