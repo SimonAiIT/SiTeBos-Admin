@@ -122,6 +122,105 @@ window.SiTeBoSApi = {
         throw lastError || new Error('Impossibile chiamare l\'API di Gemini.');
     },
 
+    listOdSFiles: async function() {
+        // 1. Direct local/relative fetch of OdS/ods_manifest.json
+        try {
+            const res = await fetch('OdS/ods_manifest.json');
+            if (res.ok) {
+                const list = await res.json();
+                if (Array.isArray(list) && list.length > 0) return list;
+            }
+        } catch(e) {}
+
+        // 2. Fallback to GitHub REST API
+        const ghToken = this.getGitHubToken();
+        const owner = 'SimonAiIT';
+        const repo = 'SiTeBos-Admin';
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/OdS`;
+
+        const headers = { 'Accept': 'application/vnd.github.v3+json' };
+        if (ghToken) headers['Authorization'] = `Bearer ${ghToken}`;
+
+        try {
+            const res = await fetch(apiUrl, { headers });
+            if (!res.ok) return [];
+            const files = await res.json();
+            return Array.isArray(files) ? files.filter(f => f.name.endsWith('.md')) : [];
+        } catch (e) {
+            console.warn('Impossibile recuperare la lista degli OdS:', e);
+            return [];
+        }
+    },
+
+    getOdSContent: async function(fileNameOrUrl) {
+        // 1. Direct local relative fetch (OdS/[fileName])
+        if (fileNameOrUrl && !fileNameOrUrl.startsWith('http')) {
+            try {
+                const res = await fetch(`OdS/${fileNameOrUrl}`);
+                if (res.ok) return await res.text();
+            } catch(e) {}
+        }
+
+        // 2. Download via URL
+        try {
+            const res = await fetch(fileNameOrUrl);
+            if (!res.ok) return '';
+            return await res.text();
+        } catch (e) {
+            return '';
+        }
+    },
+
+    deleteOdSFile: async function(fileName) {
+        const ghToken = this.getGitHubToken();
+        const owner = 'SimonAiIT';
+        const repo = 'SiTeBos-Admin';
+        const filePath = `OdS/${fileName}`;
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+        if (!ghToken) {
+            return { success: true, source: 'local_only' };
+        }
+
+        let sha = null;
+        try {
+            const getRes = await fetch(apiUrl, {
+                headers: {
+                    'Authorization': `Bearer ${ghToken}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            if (getRes.ok) {
+                const getJson = await getRes.json();
+                sha = getJson.sha;
+            }
+        } catch(e) {}
+
+        if (!sha) {
+            return { success: true, source: 'local_only' };
+        }
+
+        const delRes = await fetch(apiUrl, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${ghToken}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: `fix(ods): elimina ordine di servizio ${fileName}`,
+                sha: sha
+            })
+        });
+
+        if (!delRes.ok) {
+            const errData = await delRes.json();
+            throw new Error(errData.message || `Errore eliminazione file (${delRes.status})`);
+        }
+
+        return await delRes.json();
+    },
+
     commitFileToGitHub: async function(filePath, contentString, commitMessage) {
         const ghToken = this.getGitHubToken();
         if (!ghToken) {

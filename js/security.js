@@ -1,6 +1,7 @@
 /**
  * SiTeBoS Admin Security Guard & XOR Decryption Engine
  * Dynamic Salt Suffix Management & Guaranteed Owner Access
+ * Zero hardcoded secrets or default hint labels.
  */
 (function() {
     'use strict';
@@ -9,7 +10,7 @@
 
     window.SiTeBoSSecurity = {
         getSaltSuffix: function() {
-            return localStorage.getItem('sitebos_salt_suffix') || '_trinAi_Chief';
+            return localStorage.getItem('sitebos_salt_suffix') || '';
         },
 
         setSaltSuffix: function(salt) {
@@ -95,7 +96,6 @@
 
         /**
          * Automatic token decryption using Telegram Chat ID + Dynamic Salt Suffix
-         * PASSWORD = `${chatId}${SALT_SUFFIX}`
          */
         autoDecryptTokens: function() {
             const hash = window.location.hash || '';

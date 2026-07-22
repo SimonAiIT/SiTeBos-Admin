@@ -44,7 +44,7 @@
 </head>
 <body class="h-screen w-full flex flex-col overflow-hidden select-none bg-[#090d16]">
 
-    <!-- ACCESS DENIED SHIELD (MOBILE OPTIMIZED) -->
+    <!-- ACCESS DENIED SHIELD -->
     <div id="access-denied-screen" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-[#090d16] p-4 text-center">
         <div class="max-w-sm w-full p-6 glass-card rounded-2xl shadow-2xl space-y-4">
             <div class="w-14 h-14 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto text-red-500 text-2xl">
@@ -52,15 +52,12 @@
             </div>
             <h1 class="text-base font-bold uppercase tracking-wide text-red-400">Accesso Riservato Admin</h1>
             <p class="text-xs text-slate-400 leading-relaxed">
-                Console amministrativa accessibile esclusivamente dagli unici account Telegram autorizzati.
+                Console accessibile unicamente tramite account autorizzato.
             </p>
-            <div class="pt-2 text-[10px] font-mono text-slate-500 border-t border-slate-800">
-                SiTeBoS Security Guard • Chat ID Riservato
-            </div>
         </div>
     </div>
 
-    <!-- UNLOCK ENCRYPTED TOKENS MODAL (MOBILE OPTIMIZED) -->
+    <!-- UNLOCK MODAL -->
     <div id="unlock-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
         <div class="max-w-sm w-full glass-card p-5 rounded-2xl space-y-4 shadow-2xl border border-blue-500/30">
             <div class="flex items-center gap-3 text-blue-400">
@@ -73,28 +70,24 @@
                 </div>
             </div>
 
-            <p class="text-xs text-slate-300 leading-relaxed">
-                Inserisci la tua password per decifrare in memoria la Gemini Key ed il GitHub Token.
-            </p>
-
             <div class="space-y-1">
                 <label class="text-[11px] font-semibold text-slate-400 block">Password di Sblocco</label>
-                <input id="unlock-password-input" type="password" placeholder="Password sblocco..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-blue-500">
+                <input id="unlock-password-input" type="password" placeholder="Password..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-blue-500">
             </div>
 
             <div class="pt-2 flex justify-end gap-2">
-                <button onclick="toggleUnlockModal(false)" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition">Annulla</button>
-                <button onclick="unlockEncryptedTokens()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                <button onclick="toggleUnlockModal(false)" class="px-3 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-medium">Annulla</button>
+                <button onclick="unlockEncryptedTokens()" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5">
                     <i class="fa-solid fa-key"></i> Sblocca
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- MAIN MOBILE APP CONTAINER -->
+    <!-- MAIN APP CONTAINER -->
     <div id="app-container" class="h-screen w-full flex flex-col overflow-hidden">
         
-        <!-- COMPACT MOBILE HEADER -->
+        <!-- COMPACT HEADER -->
         <header class="h-14 shrink-0 border-b border-slate-800 bg-[#0d1322]/90 backdrop-blur-md px-3 sm:px-4 flex items-center justify-between z-20">
             <div class="flex items-center gap-2 min-w-0">
                 <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-xs shrink-0 shadow-md">
@@ -102,7 +95,7 @@
                 </div>
                 <div class="min-w-0">
                     <h1 class="text-xs sm:text-sm font-bold text-slate-100 truncate flex items-center gap-1.5">
-                        <span class="truncate">SiTeBoS Admin</span>
+                        <span class="truncate">SiTeBoS OdS Console</span>
                         <span id="key-badge" class="px-1.5 py-0.5 text-[9px] font-mono font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full shrink-0">ONLINE</span>
                     </h1>
                 </div>
@@ -119,34 +112,28 @@
             </div>
         </header>
 
-        <!-- DESKTOP SIDEBAR + MOBILE CONTENT CONTAINER -->
+        <!-- MAIN DESKTOP / MOBILE LAYOUT -->
         <div class="flex-1 flex overflow-hidden">
             
-            <!-- DESKTOP-ONLY SIDEBAR (HIDDEN ON MOBILE/TABLET) -->
+            <!-- DESKTOP SIDEBAR -->
             <aside class="hidden md:flex w-60 shrink-0 border-r border-slate-800 bg-[#0d1322]/50 p-3 flex-col justify-between overflow-y-auto">
                 <div class="space-y-4">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-2 block">Moduli Console</span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-2 block">Gestione OdS</span>
                     <nav class="space-y-1">
-                        <button onclick="switchTab('ods')" id="nav-ods-desktop" class="nav-btn-dt w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition bg-blue-600/10 text-blue-400 border border-blue-500/20">
-                            <i class="fa-solid fa-file-signature"></i> Generatore OdS
+                        <button onclick="switchTab('ods')" id="nav-ods-desktop" class="nav-btn-dt w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition bg-blue-600/10 text-blue-400 border border-blue-500/20">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Nuovo OdS
                         </button>
-                        <button onclick="switchTab('linter')" id="nav-linter-desktop" class="nav-btn-dt w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition hover:bg-slate-800/60 text-slate-400">
-                            <i class="fa-solid fa-diagram-project"></i> Linter n8n
-                        </button>
-                        <button onclick="switchTab('semantic')" id="nav-semantic-desktop" class="nav-btn-dt w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition hover:bg-slate-800/60 text-slate-400">
-                            <i class="fa-solid fa-book-bookmark"></i> Indice Semantico
-                        </button>
-                        <button onclick="switchTab('docs')" id="nav-docs-desktop" class="nav-btn-dt w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition hover:bg-slate-800/60 text-slate-400">
-                            <i class="fa-solid fa-folder-tree"></i> Docs Maintainer
+                        <button onclick="switchTab('discuss')" id="nav-discuss-desktop" class="nav-btn-dt w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition hover:bg-slate-800/60 text-slate-400">
+                            <i class="fa-solid fa-comments"></i> Discussione OdS
                         </button>
                     </nav>
                 </div>
             </aside>
 
-            <!-- MAIN WORKSPACE CONTAINER -->
+            <!-- MAIN WORKSPACE -->
             <main class="flex-1 flex flex-col overflow-hidden bg-[#090d16] mobile-safe-pb">
                 
-                <!-- TAB 1: GENERATORE ODS (MOBILE FIRST STACK) -->
+                <!-- TAB 1: GENERATORE NUOVO ODS -->
                 <div id="tab-ods" class="tab-content flex-1 flex flex-col overflow-hidden p-3 sm:p-5 space-y-3">
                     
                     <!-- PROMPT INPUT CARD -->
@@ -154,9 +141,9 @@
                         <label class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
                             <span class="flex items-center gap-1.5">
                                 <i class="fa-solid fa-wand-magic-sparkles text-blue-400"></i>
-                                Descrivi Funzionalità OdS
+                                Descrivi Nuova Funzionalità
                             </span>
-                            <span class="text-[9px] font-normal text-slate-500">Multi-Agente AI</span>
+                            <span class="text-[9px] font-normal text-slate-500">Generatore Agenti AI</span>
                         </label>
                         <div class="flex flex-col sm:flex-row gap-2">
                             <textarea id="prompt-input" rows="2" placeholder="Es: Aggiungi gestione video promozionali nel catalogo con notifica Vault owner..." class="w-full flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 font-sans resize-none"></textarea>
@@ -167,20 +154,18 @@
                         </div>
                     </div>
 
-                    <!-- MOBILE SEGMENTED VIEW SWITCHER (ODS MARKDOWN vs N8N WORKFLOW) -->
+                    <!-- SEGMENTED VIEW SWITCHER -->
                     <div class="flex items-center justify-between bg-slate-900/80 p-1 rounded-xl border border-slate-800 shrink-0">
                         <button onclick="toggleResultView('md')" id="btn-view-md" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg transition bg-blue-600 text-white flex items-center justify-center gap-1.5 shadow">
-                            <i class="fa-regular fa-file-code"></i> OdS Markdown
+                            <i class="fa-regular fa-file-code"></i> Specifiche OdS
                         </button>
                         <button onclick="toggleResultView('json')" id="btn-view-json" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg transition text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-diagram-project"></i> Workflow n8n JSON
+                            <i class="fa-solid fa-diagram-project"></i> Workflow n8n
                         </button>
                     </div>
 
-                    <!-- RESULT DISPLAY (MOBILE FULL WIDTH / DESKTOP SIDE BY SIDE) -->
+                    <!-- RESULT DISPLAY -->
                     <div class="flex-1 relative overflow-hidden">
-                        
-                        <!-- LEFT / MOBILE VIEW 1: MARKDOWN ODS SPEC -->
                         <div id="ods-md-card" class="glass-card rounded-xl flex flex-col h-full overflow-hidden">
                             <div class="h-9 px-3 border-b border-slate-800 bg-slate-900/90 flex items-center justify-between shrink-0">
                                 <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
@@ -203,7 +188,6 @@
                             </div>
                         </div>
 
-                        <!-- RIGHT / MOBILE VIEW 2: N8N WORKFLOW JSON -->
                         <div id="ods-json-card" class="glass-card rounded-xl hidden flex flex-col h-full overflow-hidden">
                             <div class="h-9 px-3 border-b border-slate-800 bg-slate-900/90 flex items-center justify-between shrink-0">
                                 <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
@@ -217,96 +201,60 @@
 // Il JSON del workflow generato comparirà qui...
                             </pre>
                         </div>
-
                     </div>
                 </div>
 
-                <!-- TAB 2: LINTER N8N (MOBILE OPTIMIZED) -->
-                <div id="tab-linter" class="tab-content hidden flex-1 flex flex-col overflow-hidden p-3 sm:p-5 space-y-3">
+                <!-- TAB 2: SELEZIONA ODS & APRI DISCUSSIONE (CONTINUA IMPLEMENTAZIONE) -->
+                <div id="tab-discuss" class="tab-content hidden flex-1 flex flex-col overflow-hidden p-3 sm:p-5 space-y-3">
+                    
+                    <!-- SELECT ODS CARD -->
+                    <div class="glass-card p-3 rounded-xl space-y-2 shrink-0">
+                        <div class="flex items-center justify-between">
+                            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-folder-open text-amber-400"></i>
+                                Seleziona OdS da Modificare o Discutere:
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <button onclick="deleteSelectedOdS()" class="text-[10px] text-red-400 hover:text-red-300 font-semibold flex items-center gap-1">
+                                    <i class="fa-solid fa-trash-can"></i> Elimina
+                                </button>
+                                <button onclick="loadOdSList()" class="text-[10px] text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1">
+                                    <i class="fa-solid fa-rotate-right"></i> Aggiorna
+                                </button>
+                            </div>
+                        </div>
+
+                        <select id="ods-file-select" onchange="onOdSSelected()" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-amber-500">
+                            <option value="">Caricamento OdS dalla repository...</option>
+                        </select>
+                    </div>
+
+                    <!-- DISCUSS & EXTEND PROMPT CARD -->
                     <div class="glass-card p-3 rounded-xl space-y-2 shrink-0">
                         <label class="text-[11px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-                            <i class="fa-solid fa-diagram-project text-emerald-400"></i>
-                            Incolla Workflow n8n JSON
+                            <i class="fa-solid fa-comments text-amber-400"></i>
+                            Continua la Discussione & Estendi Specifiche:
                         </label>
-                        <div class="flex flex-col gap-2">
-                            <textarea id="linter-input" rows="3" placeholder="Incolla JSON n8n..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 font-mono resize-none"></textarea>
-                            <button onclick="runLinter()" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20 active:scale-95 transition">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                                <span>Analizza JSON Workflow</span>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <textarea id="extend-prompt-input" rows="2" placeholder="Es: Ora aggiungi anche la gestione dei lotti di magazzino ed invia notifica all'operatore..." class="w-full flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-500 font-sans resize-none"></textarea>
+                            <button onclick="extendSelectedOdS()" class="w-full sm:w-auto px-4 py-3 sm:py-0 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95 transition shrink-0">
+                                <i class="fa-solid fa-reply"></i>
+                                <span>Aggiorna OdS</span>
                             </button>
                         </div>
                     </div>
 
-                    <div id="linter-result-view" class="flex-1 glass-card p-4 rounded-xl overflow-y-auto text-xs text-slate-300">
-                        <div class="text-center py-10 text-slate-600">
-                            <i class="fa-solid fa-list-check text-3xl mb-2 block opacity-40"></i>
-                            Incolla un workflow n8n per l'audit di conformità (HMAC, Ash Decoder, MongoDB alwaysOutputData, 403).
+                    <!-- PREVIEW OF SELECTED ODS -->
+                    <div class="flex-1 glass-card rounded-xl flex flex-col overflow-hidden">
+                        <div class="h-9 px-3 border-b border-slate-800 bg-slate-900/90 flex items-center justify-between shrink-0">
+                            <span id="selected-ods-title" class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5 truncate">
+                                <i class="fa-regular fa-file-code text-amber-400"></i> Anteprima OdS Selezionato
+                            </span>
                         </div>
-                    </div>
-                </div>
-
-                <!-- TAB 3: INDICE SEMANTICO (MOBILE OPTIMIZED) -->
-                <div id="tab-semantic" class="tab-content hidden flex-1 flex flex-col overflow-hidden p-3 sm:p-5 space-y-3">
-                    <div class="shrink-0">
-                        <h2 class="text-xs sm:text-sm font-bold text-slate-100">Indice Semantico Conversazionale</h2>
-                        <p class="text-[11px] text-slate-400">Mappatura usata dall'Agente Selettore (Frasi ➔ File)</p>
-                    </div>
-
-                    <div class="flex-1 glass-card p-3 sm:p-4 rounded-xl overflow-y-auto space-y-2.5 font-sans text-xs">
-                        <div class="p-3 bg-slate-950/60 border border-slate-800 rounded-lg space-y-1">
-                            <div class="font-bold text-blue-400 text-xs">🔍 Gestione Catalogo & Prodotti</div>
-                            <div class="text-slate-400 text-[11px]">"voglio aggiungere un prodotto", "modifica scheda del servizio"</div>
-                            <div class="font-mono text-[10px] text-slate-500 pt-0.5">catalog.html ➔ service_catalog.json</div>
-                        </div>
-
-                        <div class="p-3 bg-slate-950/60 border border-slate-800 rounded-lg space-y-1">
-                            <div class="font-bold text-emerald-400 text-xs">📦 Magazzino Intelligente (OCR)</div>
-                            <div class="text-slate-400 text-[11px]">"scansiona bolla di carico", "estrai lotti magazzino"</div>
-                            <div class="font-mono text-[10px] text-slate-500 pt-0.5">intelligent-warehouse.html ➔ intelligent_warehouse.json</div>
-                        </div>
-
-                        <div class="p-3 bg-slate-950/60 border border-slate-800 rounded-lg space-y-1">
-                            <div class="font-bold text-amber-400 text-xs">🛡️ Assistente Sicurezza (81/08 & DVR)</div>
-                            <div class="text-slate-400 text-[11px]">"genera DVR aziendale", "valutazione di sicurezza"</div>
-                            <div class="font-mono text-[10px] text-slate-500 pt-0.5">assistente-sicurezza.html ➔ Secure_Assistant.json</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 4: DOCS MAINTAINER (MOBILE OPTIMIZED) -->
-                <div id="tab-docs" class="tab-content hidden flex-1 flex flex-col overflow-hidden p-3 sm:p-5 space-y-3">
-                    <div class="shrink-0">
-                        <h2 class="text-xs sm:text-sm font-bold text-slate-100">Docs Maintainer</h2>
-                        <p class="text-[11px] text-slate-400">Struttura docs/ e regole agenti</p>
-                    </div>
-
-                    <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 overflow-hidden">
-                        <div class="glass-card p-3 rounded-xl flex flex-col overflow-hidden">
-                            <div class="font-bold text-xs text-blue-400 mb-1.5 flex items-center justify-between">
-                                <span>01_struttura_repository.md</span>
-                                <i class="fa-solid fa-folder-tree"></i>
-                            </div>
-                            <div class="flex-1 bg-slate-950 p-2.5 rounded-lg overflow-y-auto font-mono text-[10px] text-slate-400 leading-relaxed">
-SiTeBos-Admin/
-├── index.html (Mobile-First Standalone TWA)
-├── js/ (Script modularizzati e manutenibili)
-├── docs/ (01-06 documentazione viva)
-├── OdS/ (Ordini di Servizio)
-└── n8n_workflow/ (Workflow JSON)
-                            </div>
-                        </div>
-
-                        <div class="glass-card p-3 rounded-xl flex flex-col overflow-hidden">
-                            <div class="font-bold text-xs text-emerald-400 mb-1.5 flex items-center justify-between">
-                                <span>04_n8n_development_standards.md</span>
-                                <i class="fa-solid fa-shield-halved"></i>
-                            </div>
-                            <div class="flex-1 bg-slate-950 p-2.5 rounded-lg overflow-y-auto font-mono text-[10px] text-slate-400 leading-relaxed">
-✓ Validazione HMAC Telegram WebApp
-✓ Decodifica Token Ash Decoder
-✓ Lock Manager Concorrenza Operatori
-✓ MongoDB Node: alwaysOutputData = true
-✓ Risposta 403 Forbidden su fallimento auth
+                        <div id="selected-ods-content" class="flex-1 p-3 sm:p-4 overflow-y-auto font-sans text-xs text-slate-300 leading-relaxed space-y-2">
+                            <div class="text-center py-10 text-slate-600">
+                                <i class="fa-solid fa-folder-open text-3xl mb-2 block opacity-40"></i>
+                                Seleziona un Ordine di Servizio dal menu in alto per leggerlo o continuare la discussione.
                             </div>
                         </div>
                     </div>
@@ -315,38 +263,28 @@ SiTeBos-Admin/
             </main>
         </div>
 
-        <!-- THUMB-FRIENDLY MOBILE BOTTOM NAVIGATION BAR -->
-        <nav class="fixed bottom-0 inset-x-0 h-16 bg-[#0d1322]/95 backdrop-blur-xl border-t border-slate-800 flex items-center justify-around z-30 px-2">
-            <button onclick="switchTab('ods')" id="nav-ods-mob" class="nav-btn-mob flex flex-col items-center justify-center gap-1 text-[10px] font-semibold text-blue-400 w-1/4 h-full">
-                <i class="fa-solid fa-file-signature text-base"></i>
-                <span>Genera OdS</span>
+        <!-- THUMB-FRIENDLY MOBILE BOTTOM BAR (2 CLEAN TABS) -->
+        <nav class="fixed bottom-0 inset-x-0 h-16 bg-[#0d1322]/95 backdrop-blur-xl border-t border-slate-800 flex items-center justify-around z-30 px-4">
+            <button onclick="switchTab('ods')" id="nav-ods-mob" class="nav-btn-mob flex flex-col items-center justify-center gap-1 text-[11px] font-bold text-blue-400 w-1/2 h-full">
+                <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                <span>Nuovo OdS</span>
             </button>
             
-            <button onclick="switchTab('linter')" id="nav-linter-mob" class="nav-btn-mob flex flex-col items-center justify-center gap-1 text-[10px] font-semibold text-slate-400 hover:text-slate-200 w-1/4 h-full">
-                <i class="fa-solid fa-diagram-project text-base"></i>
-                <span>Linter n8n</span>
-            </button>
-
-            <button onclick="switchTab('semantic')" id="nav-semantic-mob" class="nav-btn-mob flex flex-col items-center justify-center gap-1 text-[10px] font-semibold text-slate-400 hover:text-slate-200 w-1/4 h-full">
-                <i class="fa-solid fa-book-bookmark text-base"></i>
-                <span>Indice</span>
-            </button>
-
-            <button onclick="switchTab('docs')" id="nav-docs-mob" class="nav-btn-mob flex flex-col items-center justify-center gap-1 text-[10px] font-semibold text-slate-400 hover:text-slate-200 w-1/4 h-full">
-                <i class="fa-solid fa-folder-tree text-base"></i>
-                <span>Docs</span>
+            <button onclick="switchTab('discuss')" id="nav-discuss-mob" class="nav-btn-mob flex flex-col items-center justify-center gap-1 text-[11px] font-bold text-slate-400 hover:text-slate-200 w-1/2 h-full">
+                <i class="fa-solid fa-comments text-lg"></i>
+                <span>Discussione OdS</span>
             </button>
         </nav>
 
     </div>
 
-    <!-- SETTINGS MODAL & ENCRYPTER TOOL (MOBILE OPTIMIZED) -->
+    <!-- SETTINGS MODAL (READONLY INSPECTION) -->
     <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 overflow-y-auto">
         <div class="max-w-md w-full glass-card p-4 sm:p-5 rounded-2xl space-y-3 shadow-2xl border border-slate-800 my-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
                 <h3 class="text-xs sm:text-sm font-bold text-slate-100 flex items-center gap-2">
                     <i class="fa-solid fa-shield-halved text-blue-400"></i>
-                    Credenziali & Cifratura
+                    Ispezione Credenziali in Memoria
                 </h3>
                 <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-slate-200 text-xs p-1">
                     <i class="fa-solid fa-xmark text-sm"></i>
@@ -356,44 +294,19 @@ SiTeBos-Admin/
             <div class="space-y-3 text-xs">
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
-                        <div class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Credenziali In Memoria</div>
+                        <div class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Credenziali Attive</div>
                         <button id="btn-toggle-key-vis" onclick="toggleKeyVisibility()" class="text-[10px] text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1">
                             <i class="fa-solid fa-eye"></i> Mostra in Chiaro
                         </button>
                     </div>
                     <div>
                         <label class="text-[10px] font-semibold text-slate-400 block mb-0.5">Google Gemini API Key</label>
-                        <input id="api-key-input" type="password" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-blue-500">
+                        <input id="api-key-input" type="password" readonly placeholder="Nessuna chiave caricata" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none select-all">
                     </div>
 
                     <div>
                         <label class="text-[10px] font-semibold text-slate-400 block mb-0.5">GitHub Token (PAT)</label>
-                        <input id="gh-token-input" type="password" placeholder="ghp_..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-emerald-500">
-                    </div>
-                    
-                    <button onclick="saveSettings()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition">
-                        Salva Credenziali
-                    </button>
-                </div>
-
-                <div class="border-t border-slate-800 pt-3 space-y-2">
-                    <div class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-user-lock"></i>
-                        Generatore URL Cifrato (#token=...)
-                    </div>
-
-                    <div>
-                        <label class="text-[10px] font-semibold text-slate-400 block mb-0.5">Password Cifratura (Default: ChatID_trinAi_Chief)</label>
-                        <input id="encrypt-password-input" type="password" placeholder="Password cifratura..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-emerald-500">
-                    </div>
-
-                    <button onclick="generateEncryptedTokenUrl()" class="w-full py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-lock"></i> Genera URL Cifrato per Telegram
-                    </button>
-
-                    <div id="encrypted-url-container" class="hidden space-y-1 pt-1">
-                        <label class="text-[9px] font-bold uppercase text-emerald-400">URL Cifrato (Usa nel pulsante Telegram Bot):</label>
-                        <textarea id="encrypted-url-output" readonly rows="3" class="w-full bg-slate-950 border border-emerald-500/40 rounded-xl p-2 font-mono text-[9px] text-emerald-400 focus:outline-none select-all resize-none"></textarea>
+                        <input id="gh-token-input" type="password" readonly placeholder="Nessun token caricato" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none select-all">
                     </div>
                 </div>
             </div>

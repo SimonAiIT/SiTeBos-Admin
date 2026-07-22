@@ -1,7 +1,7 @@
 /**
  * Main Controller & Multi-Agent Orchestrator (SiTeBoS Admin Assistant)
- * Coordina la catena agentica: Selettore -> Architetto Frontend -> Architetto Backend n8n -> Linter
- * Inclusi: Sblocco Automatico dal ChatID (`${chatId}_trinAi_Chief`), Decifratura XOR Hex, Commit GitHub.
+ * Catena agentica: Selettore -> Architetto Frontend -> Architetto Backend n8n -> Auditor
+ * Gestione Discussione OdS & Selezione OdS Esistenti da Repository.
  */
 (function() {
     'use strict';
@@ -9,6 +9,7 @@
     let currentOdSMarkdown = null;
     let currentWorkflowJson = null;
     let currentSlug = null;
+    let odsFilesMap = {};
 
     document.addEventListener('DOMContentLoaded', async () => {
         // 1. Security Check
@@ -22,7 +23,7 @@
             document.getElementById('user-name').innerText = sec.userId;
         }
 
-        // 2. Try Automatic Token Decryption via `${chatId}_trinAi_Chief`
+        // 2. Try Automatic Token Decryption
         const autoTokens = window.SiTeBoSSecurity.autoDecryptTokens();
         if (autoTokens) {
             if (autoTokens.geminiKey) window.SiTeBoSApi.setKey(autoTokens.geminiKey);
@@ -30,11 +31,10 @@
 
             const badge = document.getElementById('key-badge');
             if (badge) {
-                badge.innerText = "⚡ Sblocco Automatico ChatID";
-                badge.className = "px-2 py-0.5 text-[10px] font-mono font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full";
+                badge.innerText = "⚡ Sblocco Automatico";
+                badge.className = "px-1.5 py-0.5 text-[9px] font-mono font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full shrink-0";
             }
         } else {
-            // Check for Encrypted URL Token (#token=... or ?ash=...)
             const hash = window.location.hash || '';
             const search = window.location.search || '';
             if (hash.includes('token=') || search.includes('ash=')) {
@@ -42,25 +42,19 @@
             }
         }
 
-        // 3. Load Saved Keys into Modal
-        const keyInput = document.getElementById('api-key-input');
-        if (keyInput) keyInput.value = window.SiTeBoSApi.getKey();
-
-        const ghInput = document.getElementById('gh-token-input');
-        if (ghInput) ghInput.value = window.SiTeBoSApi.getGitHubToken();
+        // Load OdS Files for Discussion Tab
+        loadOdSList();
     });
 
-    // Navigation Tab Switching (Desktop + Mobile Bottom Bar)
+    // Navigation Tab Switching
     window.switchTab = function(tabId) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         
-        // Desktop nav buttons
         document.querySelectorAll('.nav-btn-dt').forEach(el => {
             el.classList.remove('bg-blue-600/10', 'text-blue-400', 'border', 'border-blue-500/20');
             el.classList.add('hover:bg-slate-800/60', 'text-slate-400');
         });
 
-        // Mobile bottom nav buttons
         document.querySelectorAll('.nav-btn-mob').forEach(el => {
             el.classList.remove('text-blue-400');
             el.classList.add('text-slate-400');
@@ -78,6 +72,10 @@
         if (mobBtn) {
             mobBtn.classList.remove('text-slate-400');
             mobBtn.classList.add('text-blue-400');
+        }
+
+        if (tabId === 'discuss') {
+            loadOdSList();
         }
     };
 
@@ -105,16 +103,17 @@
             if (tokens.githubToken) window.SiTeBoSApi.setGitHubToken(tokens.githubToken);
 
             document.getElementById('key-badge').innerText = "🔒 Credenziali Sbloccate";
-            document.getElementById('key-badge').className = "px-2 py-0.5 text-[10px] font-mono font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full";
+            document.getElementById('key-badge').className = "px-1.5 py-0.5 text-[9px] font-mono font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full shrink-0";
 
             alert('🔒 Credenziali decifrate con successo!');
             toggleUnlockModal(false);
+            loadOdSList();
         } else {
             alert('❌ Password errata o token non valido.');
         }
     };
 
-    // Settings Modal Handlers
+    // Settings Modal (Readonly Inspection)
     window.toggleSettingsModal = function() {
         const modal = document.getElementById('settings-modal');
         if (modal) {
@@ -146,44 +145,103 @@
         }
     };
 
-    window.saveSettings = function() {
-        const geminiVal = document.getElementById('api-key-input').value.trim();
-        const ghVal = document.getElementById('gh-token-input').value.trim();
+    // FETCH COMMITTED ODS FILES FROM REPOSITORY
+    window.loadOdSList = async function() {
+        const select = document.getElementById('ods-file-select');
+        if (!select) return;
 
-        if (geminiVal) window.SiTeBoSApi.setKey(geminiVal);
-        if (ghVal) window.SiTeBoSApi.setGitHubToken(ghVal);
+        select.innerHTML = '<option value="">Caricamento OdS dalla repository GitHub...</option>';
 
-        alert('Impostazioni salvate con successo!');
-        window.toggleSettingsModal();
+        try {
+            const files = await window.SiTeBoSApi.listOdSFiles();
+            odsFilesMap = {};
+
+            if (files.length === 0) {
+                select.innerHTML = '<option value="">Nessun OdS trovato in OdS/ (Generane uno nuovo)</option>';
+                return;
+            }
+
+            select.innerHTML = '<option value="">-- Seleziona un OdS dalla Repository --</option>';
+            files.forEach(f => {
+                odsFilesMap[f.name] = f;
+                const opt = document.createElement('option');
+                opt.value = f.name;
+                opt.innerText = `📄 ${f.name} (${Math.round(f.size / 1024)} KB)`;
+                select.appendChild(opt);
+            });
+        } catch (e) {
+            select.innerHTML = '<option value="">Errore nel caricamento OdS</option>';
+        }
     };
 
-    // Tool: Generate Encrypted URL Token (Defaults password to `${chatId}_trinAi_Chief`)
-    window.generateEncryptedTokenUrl = function() {
-        const gKey = document.getElementById('api-key-input').value.trim() || window.SiTeBoSApi.getKey();
-        const ghTok = document.getElementById('gh-token-input').value.trim() || window.SiTeBoSApi.getGitHubToken();
-        let pwd = document.getElementById('encrypt-password-input').value.trim();
+    // DISPLAY SELECTED ODS CONTENT
+    window.onOdSSelected = async function() {
+        const select = document.getElementById('ods-file-select');
+        const view = document.getElementById('selected-ods-content');
+        const title = document.getElementById('selected-ods-title');
+        const fileName = select ? select.value : '';
 
-        // Default password format if not typed explicitly
-        if (!pwd) {
-            const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
-            let chatId = '2041408875';
-            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
-                chatId = String(tg.initDataUnsafe.user.id);
-            }
-            const salt = window.SiTeBoSSecurity.getSaltSuffix();
-            pwd = `${chatId}${salt}`;
+        if (!fileName) {
+            view.innerHTML = `<div class="text-center py-10 text-slate-600"><i class="fa-solid fa-folder-open text-3xl mb-2 block opacity-40"></i>Seleziona un Ordine di Servizio.</div>`;
+            return;
         }
 
-        const tokensObj = { geminiKey: gKey, githubToken: ghTok };
-        const tokenHex = window.SiTeBoSSecurity.xorEncrypt(tokensObj, pwd);
+        title.innerHTML = `<i class="fa-regular fa-file-code text-amber-400"></i> ${fileName}`;
+        view.innerHTML = `<div class="text-center py-8 text-amber-400"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><div>Caricamento OdS locale...</div></div>`;
 
-        if (tokenHex) {
-            const fullUrl = `https://simonaiit.github.io/SiTeBos-Admin/index.html#token=${tokenHex}`;
-            document.getElementById('encrypted-url-output').value = fullUrl;
-            document.getElementById('encrypted-url-container').classList.remove('hidden');
-        } else {
-            alert('Errore durante la cifratura del token.');
+        const fileObj = odsFilesMap[fileName];
+        const targetUrl = (fileObj && fileObj.download_url) ? fileObj.download_url : fileName;
+        const mdText = await window.SiTeBoSApi.getOdSContent(targetUrl);
+
+        view.innerHTML = window.marked ? window.marked.parse(mdText) : `<pre class="whitespace-pre-wrap">${mdText}</pre>`;
+    };
+
+    // DELETE SELECTED ODS
+    window.deleteSelectedOdS = async function() {
+        const select = document.getElementById('ods-file-select');
+        const fileName = select ? select.value : '';
+
+        if (!fileName) {
+            alert('Seleziona un OdS da eliminare.');
+            return;
         }
+
+        const confirmDel = confirm(`Sei sicuro di voler eliminare l'OdS: ${fileName}?`);
+        if (!confirmDel) return;
+
+        try {
+            await window.SiTeBoSApi.deleteOdSFile(fileName);
+            alert(`🗑️ OdS ${fileName} eliminato con successo.`);
+
+            delete odsFilesMap[fileName];
+            loadOdSList();
+            onOdSSelected();
+        } catch(err) {
+            alert(`Errore durante l'eliminazione: ${err.message}`);
+        }
+    };
+
+    // EXTEND SELECTED ODS (DISCUSS & UPDATE)
+    window.extendSelectedOdS = async function() {
+        const select = document.getElementById('ods-file-select');
+        const extendPrompt = document.getElementById('extend-prompt-input').value.trim();
+        const selectedFileName = select ? select.value : '';
+
+        if (!selectedFileName) {
+            alert('Seleziona un OdS esistente dalla lista in alto.');
+            return;
+        }
+
+        if (!extendPrompt) {
+            alert('Inserisci le istruzioni o la modifica da apportare a questo OdS.');
+            return;
+        }
+
+        const fullPrompt = `STAI AGGIORNANDO L'ODS ESISTENTE: ${selectedFileName}.\n\nMODIFICHE/DISCUSSIONE RICHIESTA DALL'UTENTE:\n${extendPrompt}`;
+        document.getElementById('prompt-input').value = fullPrompt;
+        
+        switchTab('ods');
+        generateOdS();
     };
 
     // MULTI-AGENT PIPELINE EXECUTION
@@ -203,27 +261,26 @@
 
         currentSlug = `ods_${Date.now()}`;
 
-        // Render Live Progress Cards
         mdView.innerHTML = `
-            <div class="space-y-4 p-4">
+            <div class="space-y-3 p-2 sm:p-4">
                 <div class="text-xs font-bold uppercase tracking-wider text-blue-400 flex items-center gap-2">
                     <i class="fa-solid fa-network-wired fa-spin"></i> Catena Multi-Agente in esecuzione...
                 </div>
-                <div id="step-1" class="p-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 flex items-center gap-3">
+                <div id="step-1" class="p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 flex items-center gap-2.5 text-xs">
                     <i class="fa-solid fa-spinner fa-spin text-blue-400"></i>
-                    <span>Step 1: Agente Selettore (Mappatura componenti & verifica OdS aperto...)</span>
+                    <span>Step 1: Agente Selettore (MINIMAL thinking)...</span>
                 </div>
-                <div id="step-2" class="p-3 bg-slate-900/40 border border-slate-800/40 rounded-xl text-slate-600 flex items-center gap-3">
+                <div id="step-2" class="p-2.5 bg-slate-900/40 border border-slate-800/40 rounded-xl text-slate-600 flex items-center gap-2.5 text-xs">
                     <i class="fa-solid fa-circle-notch"></i>
-                    <span>Step 2: Agente Architetto Frontend (Bozza completa UI TWA...)</span>
+                    <span>Step 2: Agente Architetto Frontend (HIGH thinking UI TWA)...</span>
                 </div>
-                <div id="step-3" class="p-3 bg-slate-900/40 border border-slate-800/40 rounded-xl text-slate-600 flex items-center gap-3">
+                <div id="step-3" class="p-2.5 bg-slate-900/40 border border-slate-800/40 rounded-xl text-slate-600 flex items-center gap-2.5 text-xs">
                     <i class="fa-solid fa-circle-notch"></i>
-                    <span>Step 3: Agente Architetto Backend n8n (Bozza completa Workflow JSON...)</span>
+                    <span>Step 3: Agente Architetto Backend n8n (HIGH thinking Workflow)...</span>
                 </div>
-                <div id="step-4" class="p-3 bg-slate-900/40 border border-slate-800/40 rounded-xl text-slate-600 flex items-center gap-3">
+                <div id="step-4" class="p-2.5 bg-slate-900/40 border border-slate-800/40 rounded-xl text-slate-600 flex items-center gap-2.5 text-xs">
                     <i class="fa-solid fa-circle-notch"></i>
-                    <span>Step 4: Agente Auditor & Token Counter (Audit & Calcolo Token...)</span>
+                    <span>Step 4: Agente Auditor & Token Counter...</span>
                 </div>
             </div>
         `;
@@ -232,7 +289,7 @@
         let totalCandidatesTokens = 0;
 
         try {
-            // --- STEP 1: SELECTOR AGENT ---
+            // --- STEP 1: SELECTOR AGENT (MINIMAL) ---
             const selectorResult = await window.SelectorAgent.analyzeRequest(promptText);
             const selectorData = selectorResult.data;
             const selectorUsage = selectorResult.usage;
@@ -242,15 +299,15 @@
 
             const step1 = document.getElementById('step-1');
             if (step1) {
-                step1.className = "p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 flex items-center gap-3";
-                step1.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>Step 1: Agente Selettore (${selectorData.modulo || 'Componenti Mappati'}, OdS: ${selectorData.ods_esistente || 'Nuova Architettura [NEW]'}) • ${selectorUsage.totalTokens || 0} token</span>`;
+                step1.className = "p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 flex items-center gap-2.5 text-xs";
+                step1.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>Step 1: Selettore (${selectorData.modulo || 'Componenti Mappati'}) • ${selectorUsage.totalTokens || 0} t</span>`;
             }
 
-            // --- STEP 2: FRONTEND ARCHITECT AGENT ---
+            // --- STEP 2: FRONTEND ARCHITECT AGENT (HIGH) ---
             const step2 = document.getElementById('step-2');
             if (step2) {
-                step2.className = "p-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 flex items-center gap-3";
-                step2.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-blue-400"></i><span>Step 2: Agente Architetto Frontend (Bozza completa UI TWA...)</span>`;
+                step2.className = "p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 flex items-center gap-2.5 text-xs";
+                step2.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-blue-400"></i><span>Step 2: Architetto Frontend (HIGH thinking UI TWA...)...</span>`;
             }
 
             const frontendResult = await window.FrontendArchitectAgent.designFrontend(promptText, selectorData);
@@ -261,15 +318,15 @@
             totalCandidatesTokens += frontendUsage.candidatesTokens || 0;
 
             if (step2) {
-                step2.className = "p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 flex items-center gap-3";
-                step2.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>Step 2: Agente Architetto Frontend (Bozza UI TWA generata) • ${frontendUsage.totalTokens || 0} token</span>`;
+                step2.className = "p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 flex items-center gap-2.5 text-xs";
+                step2.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>Step 2: Architetto Frontend (Bozza UI TWA generata) • ${frontendUsage.totalTokens || 0} t</span>`;
             }
 
-            // --- STEP 3: BACKEND N8N ARCHITECT AGENT ---
+            // --- STEP 3: BACKEND N8N ARCHITECT AGENT (HIGH) ---
             const step3 = document.getElementById('step-3');
             if (step3) {
-                step3.className = "p-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 flex items-center gap-3";
-                step3.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-blue-400"></i><span>Step 3: Agente Architetto Backend n8n (Workflow n8n & Schema JSON...)</span>`;
+                step3.className = "p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 flex items-center gap-2.5 text-xs";
+                step3.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-blue-400"></i><span>Step 3: Architetto Backend n8n (HIGH thinking Workflow...)...</span>`;
             }
 
             const backendResult = await window.N8nArchitectAgent.designBackend(promptText, selectorData, frontendSpecText);
@@ -279,18 +336,18 @@
             totalCandidatesTokens += backendUsage.candidatesTokens || 0;
 
             if (step3) {
-                step3.className = "p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 flex items-center gap-3";
-                step3.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>Step 3: Agente Architetto Backend n8n (Workflow JSON generato) • ${backendUsage.totalTokens || 0} token</span>`;
+                step3.className = "p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 flex items-center gap-2.5 text-xs";
+                step3.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>Step 3: Architetto Backend n8n (Workflow JSON generato) • ${backendUsage.totalTokens || 0} t</span>`;
             }
 
             // Total Token Calculation
             const grandTotalTokens = totalPromptTokens + totalCandidatesTokens;
 
-            // --- STEP 4: LINTER & TOKEN AUDITOR ---
+            // --- STEP 4: AUDITOR ---
             const step4 = document.getElementById('step-4');
             if (step4) {
-                step4.className = "p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 flex items-center gap-3";
-                step4.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>Step 4: Agente Auditor & Token Counter (Totale Lavoro: ${grandTotalTokens} token)</span>`;
+                step4.className = "p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 flex items-center gap-2.5 text-xs";
+                step4.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>Step 4: Auditor & Token Counter (Totale: ${grandTotalTokens} token)</span>`;
             }
 
             // Assemble Complete Structured OdS Markdown
@@ -343,10 +400,10 @@ ${backendResult.markdownBackend}
             }, 600);
 
         } catch (err) {
-            mdView.innerHTML = `<div class="text-red-400 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">Errore nella catena agentica: ${err.message}</div>`;
+            mdView.innerHTML = `<div class="text-red-400 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-xs">Errore nella catena agentica: ${err.message}</div>`;
         } finally {
             btn.disabled = false;
-            btn.innerHTML = `<i class="fa-solid fa-paper-plane text-sm"></i><span>Genera OdS</span>`;
+            btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i><span>Genera OdS</span>`;
         }
     };
 
@@ -365,7 +422,6 @@ ${backendResult.markdownBackend}
         }
 
         try {
-            // Commit OdS Markdown to OdS/
             const mdPath = `OdS/${currentSlug}.md`;
             await window.SiTeBoSApi.commitFileToGitHub(
                 mdPath,
@@ -373,7 +429,6 @@ ${backendResult.markdownBackend}
                 `feat(ods): salva ordine di servizio ${currentSlug}.md`
             );
 
-            // Commit Workflow JSON to n8n_workflow/
             const jsonPath = `n8n_workflow/${currentSlug}.json`;
             await window.SiTeBoSApi.commitFileToGitHub(
                 jsonPath,
@@ -382,50 +437,10 @@ ${backendResult.markdownBackend}
             );
 
             alert(`🚀 OdS e Workflow n8n salvati con successo sulla repository GitHub!\n- ${mdPath}\n- ${jsonPath}`);
+            loadOdSList();
         } catch (err) {
             alert(`Errore durante il commit su GitHub: ${err.message}`);
         }
-    };
-
-    // Linter Tab Execution
-    window.runLinter = function() {
-        const inputVal = document.getElementById('linter-input').value.trim();
-        const view = document.getElementById('linter-result-view');
-        if (!inputVal) {
-            alert('Incolla un JSON di un workflow n8n per l\'analisi.');
-            return;
-        }
-
-        view.innerHTML = `<div class="text-center py-8 text-emerald-400"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><div>Audit di conformità in corso...</div></div>`;
-
-        setTimeout(() => {
-            const audit = window.LinterAgent.auditWorkflow(inputVal);
-
-            let html = `
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between p-3 ${audit.isValid ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400'} border rounded-xl">
-                        <span class="font-bold">${audit.isValid ? '✓ Audit di Conformità n8n Superato' : '⚠️ Rilevate Violazioni agli Standard n8n'}</span>
-                        <span class="text-[10px] font-mono px-2 py-0.5 rounded ${audit.isValid ? 'bg-emerald-500/20' : 'bg-amber-500/20'}">${audit.nodeCount} Nodi Analizzati</span>
-                    </div>
-
-                    <div class="space-y-2">
-                        <div class="font-bold text-slate-200">Verifiche Superate:</div>
-                        ${audit.passed.map(p => `<div class="p-2 bg-slate-950/60 rounded-lg font-mono text-[11px] text-emerald-400/90">✓ ${p}</div>`).join('')}
-                    </div>
-            `;
-
-            if (audit.violations.length > 0) {
-                html += `
-                    <div class="space-y-2 pt-2">
-                        <div class="font-bold text-red-400">Violazioni da Correggere:</div>
-                        ${audit.violations.map(v => `<div class="p-2 bg-red-500/10 border border-red-500/20 rounded-lg font-mono text-[11px] text-red-400">❌ ${v}</div>`).join('')}
-                    </div>
-                `;
-            }
-
-            html += `</div>`;
-            view.innerHTML = html;
-        }, 500);
     };
 
     // Download Handlers
