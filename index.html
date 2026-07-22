@@ -51,11 +51,11 @@
                 <i class="fa-solid fa-shield-halved"></i>
             </div>
             <h1 class="text-xl font-bold uppercase tracking-wide text-red-400">Accesso Riservato Admin</h1>
-            <p id="denied-reason" class="text-sm text-slate-400 leading-relaxed">
-                Questa console amministrativa è accessibile esclusivamente tramite l'applicazione Telegram autorizzata.
+            <p class="text-sm text-slate-400 leading-relaxed">
+                Questa console amministrativa è accessibile esclusivamente tramite l'applicazione Telegram autorizzata (Chat ID: 2041408875 / 720379727).
             </p>
             <div class="pt-2 text-xs font-mono text-slate-500 border-t border-slate-800">
-                SiTeBoS Security Guard • Chat ID Non Autorizzato
+                SiTeBoS Security Guard • Accesso Negato
             </div>
         </div>
     </div>
@@ -72,18 +72,18 @@
                 <div>
                     <h1 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                         SiTeBoS Admin Assistant
-                        <span class="px-2 py-0.5 text-[10px] font-mono font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full">LIVE</span>
+                        <span class="px-2 py-0.5 text-[10px] font-mono font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full">STANDALONE</span>
                     </h1>
-                    <p class="text-[11px] text-slate-400">Console di Ingegnerizzazione & Ordini di Servizio</p>
+                    <p class="text-[11px] text-slate-400">Orchestrazione Agenti: Selettore ➔ Architetto Frontend ➔ Architetto Backend ➔ Auditor</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
                 <button onclick="toggleSettingsModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-300 flex items-center gap-2 transition">
                     <i class="fa-solid fa-key text-slate-400"></i>
-                    <span id="key-badge">API Key AI</span>
+                    <span>API Key AI</span>
                 </button>
-                <div id="user-badge" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300">
+                <div id="user-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300">
                     <i class="fa-solid fa-user-shield text-blue-400"></i>
                     <span id="user-name">Owner</span>
                 </div>
@@ -103,7 +103,7 @@
                                 <i class="fa-solid fa-file-signature text-base"></i>
                                 <div>
                                     <div>Generatore OdS</div>
-                                    <div class="text-[10px] text-slate-500 font-normal">Ordini di Servizio & n8n</div>
+                                    <div class="text-[10px] text-slate-500 font-normal">Ordini di Servizio Multi-Agente</div>
                                 </div>
                             </button>
                             
@@ -127,7 +127,7 @@
                                 <i class="fa-solid fa-folder-tree text-base"></i>
                                 <div>
                                     <div>Docs Maintainer</div>
-                                    <div class="text-[10px] text-slate-500 font-normal">Sincronizzazione docs/</div>
+                                    <div class="text-[10px] text-slate-500 font-normal">Documentazione viva</div>
                                 </div>
                             </button>
                         </nav>
@@ -136,25 +136,25 @@
 
                 <div class="p-3 glass-card rounded-xl text-[11px] text-slate-400 space-y-1">
                     <div class="font-semibold text-slate-200 flex items-center justify-between">
-                        <span>SiTeBoS Standalone</span>
-                        <i class="fa-solid fa-bolt text-amber-400"></i>
+                        <span>Architettura Modulare</span>
+                        <i class="fa-solid fa-code text-blue-400"></i>
                     </div>
-                    <p class="text-[10px]">Zero dipendenze • Caricamento istantaneo su Telegram WebApp</p>
+                    <p class="text-[10px]">File JS Separati & Manutenibili • Zero Dipendenze</p>
                 </div>
             </aside>
 
             <!-- MAIN WORKSPACE CONTAINER -->
             <main class="flex-1 flex flex-col overflow-hidden bg-[#090d16]">
                 
-                <!-- TAB 1: GENERATORE ODS -->
+                <!-- TAB 1: GENERATORE ODS (MULTI-AGENT PIPELINE) -->
                 <div id="tab-ods" class="tab-content flex-1 flex flex-col overflow-hidden p-6 space-y-4">
                     <div class="glass-card p-4 rounded-2xl space-y-3 shrink-0">
                         <label class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
                             <i class="fa-solid fa-wand-magic-sparkles text-blue-400"></i>
-                            Cosa vuoi implementare o modificare nell'ecosistema?
+                            Descrivi la funzionalità da implementare o modificare:
                         </label>
                         <div class="flex gap-3">
-                            <textarea id="prompt-input" rows="2" placeholder="Es: Aggiungi la gestione delle recensioni clienti nel Customer Bot con notifica automatica al Vault dell'owner e salvataggio su MongoDB..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 resize-none font-sans"></textarea>
+                            <textarea id="prompt-input" rows="2" placeholder="Es: Aggiungi la gestione dei video promozionali nel catalogo con notifica al Vault dell'owner..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 resize-none font-sans"></textarea>
                             <button id="btn-generate" onclick="generateOdS()" class="px-5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs flex flex-col items-center justify-center gap-1 shadow-lg shadow-blue-500/20 active:scale-95 transition shrink-0">
                                 <i class="fa-solid fa-paper-plane text-sm"></i>
                                 <span>Genera OdS</span>
@@ -179,7 +179,7 @@
                             <div id="ods-markdown-view" class="flex-1 p-5 overflow-y-auto font-sans text-xs text-slate-300 leading-relaxed space-y-3">
                                 <div class="text-center py-12 text-slate-600">
                                     <i class="fa-solid fa-file-signature text-4xl mb-3 block opacity-40"></i>
-                                    Inserisci un prompt per generare l'Ordine di Servizio in Markdown e il workflow n8n.
+                                    Inserisci un prompt per eseguire la catena agentica multi-esperto.
                                 </div>
                             </div>
                         </div>
@@ -196,7 +196,7 @@
                                 </button>
                             </div>
                             <pre id="ods-json-view" class="flex-1 p-4 overflow-y-auto font-mono text-[11px] text-emerald-400/90 bg-slate-950/60 leading-normal">
-// Il JSON del workflow n8n verrà visualizzato qui...
+// Il JSON del workflow generato dall'Architetto Backend comparirà qui...
                             </pre>
                         </div>
                     </div>
@@ -207,7 +207,7 @@
                     <div class="glass-card p-4 rounded-2xl space-y-3 shrink-0">
                         <label class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
                             <i class="fa-solid fa-diagram-project text-emerald-400"></i>
-                            Incolla il JSON del workflow n8n per l'audit di sicurezza e conformità
+                            Incolla il JSON del workflow n8n per l'audit dell'Agente Auditor
                         </label>
                         <div class="flex gap-3">
                             <textarea id="linter-input" rows="3" placeholder="Incolla il JSON completo di un workflow n8n..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-emerald-500 font-mono resize-none"></textarea>
@@ -221,7 +221,7 @@
                     <div id="linter-result-view" class="flex-1 glass-card p-6 rounded-2xl overflow-y-auto text-xs text-slate-300">
                         <div class="text-center py-12 text-slate-600">
                             <i class="fa-solid fa-list-check text-4xl mb-3 block opacity-40"></i>
-                            Incolla un workflow n8n per verificare la conformità a HMAC Telegram, Ash Decoder, MongoDB alwaysOutputData e Lock Manager.
+                            Incolla un workflow n8n per l'audit di conformità (HMAC, Ash Decoder, MongoDB alwaysOutputData, 403 Forbidden).
                         </div>
                     </div>
                 </div>
@@ -231,7 +231,7 @@
                     <div class="flex items-center justify-between shrink-0">
                         <div>
                             <h2 class="text-sm font-bold text-slate-100">Indice Semantico Conversazionale</h2>
-                            <p class="text-xs text-slate-400">Mappatura automatica tra frasi dell'utente, file HTML frontend e workflow n8n</p>
+                            <p class="text-xs text-slate-400">Mappatura usata dall'Agente Selettore (Frasi Utente ➔ File TWA & Workflow)</p>
                         </div>
                     </div>
 
@@ -253,12 +253,6 @@
                             <div class="text-slate-400">"genera il DVR aziendale", "controlla i rischi delle mansioni", "stampa la valutazione di sicurezza"</div>
                             <div class="font-mono text-[11px] text-slate-500 pt-1">Target: SiteBoS-MiniApp/telegram_control/agents/assistente-sicurezza.html ➔ n8n_workflow/SiteBoS-App-Hook/intelligence/Secure_Assistant.json</div>
                         </div>
-
-                        <div class="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2">
-                            <div class="font-bold text-indigo-400">📱 Customer Bot (Booking & Preventivi)</div>
-                            <div class="text-slate-400">"prenota un appuntamento", "richiedi un preventivo custom", "stato dell'ordine"</div>
-                            <div class="font-mono text-[11px] text-slate-500 pt-1">Target: SiteBoS-MiniApp/telegram_control/customer_bot/booking.html ➔ n8n_workflow/SiteBoS-App-Hook/Telegram_customerBot/booking_engine.json</div>
-                        </div>
                     </div>
                 </div>
 
@@ -266,8 +260,8 @@
                 <div id="tab-docs" class="tab-content hidden flex-1 flex flex-col overflow-hidden p-6 space-y-4">
                     <div class="flex items-center justify-between shrink-0">
                         <div>
-                            <h2 class="text-sm font-bold text-slate-100">Docs Maintainer (Cartella docs/)</h2>
-                            <p class="text-xs text-slate-400">Documentazione viva utilizzata dall'AI per la comprensione dell'architettura</p>
+                            <h2 class="text-sm font-bold text-slate-100">Docs Maintainer (Documentazione Viva)</h2>
+                            <p class="text-xs text-slate-400">Struttura della cartella docs/ e regole per gli agenti</p>
                         </div>
                     </div>
 
@@ -279,12 +273,15 @@
                             </div>
                             <div class="flex-1 bg-slate-950 p-3 rounded-xl overflow-y-auto font-mono text-[11px] text-slate-400 leading-relaxed">
 SiTeBos-Admin/
-├── index.html (Standalone Admin MiniApp)
-├── docs/ (01_struttura, 02_semantic, 03_mapping, 04_standards, 05_stato, 06_api)
-├── OdS/ (Ordini di Servizio generati per te)
-├── n8n_workflow/ (Workflow JSON attivi)
-├── Database_Structure/ (Schemi MongoDB)
-└── SiteBoS-MiniApp/ (Interfacce Telegram TWA - Sola Lettura)
+├── index.html (Clean Standalone MiniApp)
+├── js/ (Script modularizzati e manutenibili)
+│   ├── security.js
+│   ├── api.js
+│   ├── app.js
+│   └── agents/ (Selettore, Frontend Arch, Backend Arch, Auditor)
+├── docs/ (01-06 documentazione viva)
+├── OdS/ (Ordini di Servizio)
+└── n8n_workflow/ (Workflow JSON)
                             </div>
                         </div>
 
@@ -298,7 +295,7 @@ SiTeBos-Admin/
 ✓ Decodifica Token Ash Decoder
 ✓ Lock Manager Concorrenza Operatori
 ✓ MongoDB Node: alwaysOutputData = true
-✓ Merge Node: CombineAll pattern
+✓ Risposta 403 Forbidden su fallimento auth
                             </div>
                         </div>
                     </div>
@@ -337,224 +334,13 @@ SiTeBos-Admin/
         </div>
     </div>
 
-    <!-- APPLICATION LOGIC (VANILLA JS) -->
-    <script>
-        'use strict';
-
-        const ALLOWED_CHAT_IDS = ['2041408875', '720379727'];
-        let activeApiKey = localStorage.getItem('sitebos_gemini_key') || 'AIzaSyAsJnrkSleTbvGRZgpZ_Tyla0IsJvALa5w';
-        let currentGeneratedOdS = null;
-        let currentGeneratedJson = null;
-
-        // Boot security & initialization
-        document.addEventListener('DOMContentLoaded', () => {
-            initSecurityCheck();
-            document.getElementById('api-key-input').value = activeApiKey;
-        });
-
-        function initSecurityCheck() {
-            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
-
-            if (isLocalhost) {
-                document.getElementById('user-name').innerText = "Developer (Localhost)";
-                return;
-            }
-
-            if (tg) {
-                try { tg.ready(); } catch(e) {}
-                try { tg.expand(); } catch(e) {}
-
-                let userId = null;
-                if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
-                    userId = String(tg.initDataUnsafe.user.id);
-                    document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name || "Owner";
-                }
-
-                if (userId && ALLOWED_CHAT_IDS.indexOf(userId) !== -1) {
-                    return; // Authorized!
-                }
-
-                if (tg.initData && tg.initData.trim() !== '') {
-                    return; // Telegram WebApp Authorized
-                }
-            }
-
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('ash')) return; // ASH session authorized
-
-            // If not authorized, show shield
-            document.getElementById('access-denied-screen').classList.remove('hidden');
-        }
-
-        // Tab Switching
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.nav-btn').forEach(el => {
-                el.classList.remove('bg-blue-600/10', 'text-blue-400', 'border', 'border-blue-500/20');
-                el.classList.add('hover:bg-slate-800/60', 'text-slate-400');
-            });
-
-            document.getElementById('tab-' + tabId).classList.remove('hidden');
-            const navBtn = document.getElementById('nav-' + tabId);
-            navBtn.classList.remove('hover:bg-slate-800/60', 'text-slate-400');
-            navBtn.classList.add('bg-blue-600/10', 'text-blue-400', 'border', 'border-blue-500/20');
-        }
-
-        // Settings Modal
-        function toggleSettingsModal() {
-            document.getElementById('settings-modal').classList.toggle('hidden');
-        }
-
-        function saveApiKey() {
-            const inputVal = document.getElementById('api-key-input').value.trim();
-            if (inputVal) {
-                activeApiKey = inputVal;
-                localStorage.setItem('sitebos_gemini_key', activeApiKey);
-                alert('API Key salvata con successo!');
-                toggleSettingsModal();
-            }
-        }
-
-        // Generate OdS (Calls Gemini API directly)
-        async function generateOdS() {
-            const promptText = document.getElementById('prompt-input').value.trim();
-            if (!promptText) {
-                alert('Inserisci una descrizione prima di generare l\'OdS.');
-                return;
-            }
-
-            const btn = document.getElementById('btn-generate');
-            const mdView = document.getElementById('ods-markdown-view');
-            const jsonView = document.getElementById('ods-json-view');
-
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-sm"></i><span>Generazione...</span>`;
-            mdView.innerHTML = `<div class="text-center py-12 text-blue-400 flex flex-col items-center gap-3"><i class="fa-solid fa-brain fa-spin text-3xl"></i><span>L'Agente Architetto sta elaborando l'OdS e il workflow n8n...</span></div>`;
-
-            try {
-                // Call Gemini REST API directly
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeApiKey}`;
-                
-                const systemPrompt = `Sei l'Agente Architetto Senior di SiTeBoS.
-Genera un Ordine di Servizio (OdS) completo in Markdown rigoroso ed un workflow n8n JSON valido per questa richiesta: "${promptText}".
-
-Formato OdS Markdown:
-# 📐 ORDINE DI SERVIZIO: [TITOLO]
-**Slug Progetto:** \`[slug-kebab-case]\`  
-**Data:** ${new Date().toLocaleDateString('it-IT')}  
-
-## 📝 1. CONTESTO OPERATIVO E OBIETTIVO
-[Descrizione]
-
-## 🔗 2. MAPPATURA COMPONENTI
-- Frontend: [file HTML]
-- Backend: [workflow n8n]
-- DB: [collezioni MongoDB]
-
-## 📐 3. SPECIFICHE FRONTEND
-- Istruzioni precise
-
-## ⚙️ 4. GUIDA PASSO-PASSO BACKEND (n8n)
-- Specifiche dei nodi n8n`;
-
-                const res = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: promptText }] }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] }
-                    })
-                });
-
-                if (!res.ok) {
-                    throw new Error(`Errore API Gemini (${res.status})`);
-                }
-
-                const data = await res.json();
-                const textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text || "Impossibile generare l'OdS.";
-
-                currentGeneratedOdS = textOutput;
-                mdView.innerHTML = marked.parse(textOutput);
-
-                // Generate starter n8n JSON workflow
-                currentGeneratedJson = {
-                    name: `SiTeBoS - ${promptText.slice(0, 30)}`,
-                    nodes: [
-                        { id: "node-1", name: "Webhook Input", type: "n8n-nodes-base.webhook", position: [100, 300] },
-                        { id: "node-2", name: "Ash Decoder Auth", type: "n8n-nodes-base.executeWorkflow", position: [320, 300] },
-                        { id: "node-3", name: "MongoDB Operation (alwaysOutputData: true)", type: "n8n-nodes-base.mongoDb", position: [540, 300] },
-                        { id: "node-4", name: "Respond to Webhook", type: "n8n-nodes-base.respondToWebhook", position: [760, 300] }
-                    ],
-                    connections: {
-                        "Webhook Input": { main: [[{ node: "Ash Decoder Auth", type: "main", index: 0 }]] },
-                        "Ash Decoder Auth": { main: [[{ node: "MongoDB Operation (alwaysOutputData: true)", type: "main", index: 0 }]] },
-                        "MongoDB Operation (alwaysOutputData: true)": { main: [[{ node: "Respond to Webhook", type: "main", index: 0 }]] }
-                    }
-                };
-
-                jsonView.textContent = JSON.stringify(currentGeneratedJson, null, 2);
-
-            } catch (err) {
-                mdView.innerHTML = `<div class="text-red-400 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">Errore durante la generazione: ${err.message}</div>`;
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-paper-plane text-sm"></i><span>Genera OdS</span>`;
-            }
-        }
-
-        // Run n8n Linter
-        async function runLinter() {
-            const inputVal = document.getElementById('linter-input').value.trim();
-            const view = document.getElementById('linter-result-view');
-            if (!inputVal) {
-                alert('Incolla un JSON di un workflow n8n per l\'analisi.');
-                return;
-            }
-
-            view.innerHTML = `<div class="text-center py-8 text-emerald-400"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><div>Analisi standard di sicurezza n8n in corso...</div></div>`;
-
-            setTimeout(() => {
-                let parsed = null;
-                try { parsed = JSON.parse(inputVal); } catch(e) {}
-
-                view.innerHTML = `
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
-                            <span class="font-bold">✓ Audit di Conformità n8n Completato</span>
-                            <span class="text-[10px] font-mono bg-emerald-500/20 px-2 py-0.5 rounded">PASSED</span>
-                        </div>
-
-                        <div class="space-y-2">
-                            <div class="font-bold text-slate-200">Standard Verificati:</div>
-                            <div class="p-2 bg-slate-950/60 rounded-lg font-mono text-[11px] text-slate-400">✓ Ash Decoder / Telegram Auth Check</div>
-                            <div class="p-2 bg-slate-950/60 rounded-lg font-mono text-[11px] text-slate-400">✓ MongoDB alwaysOutputData: true</div>
-                            <div class="p-2 bg-slate-950/60 rounded-lg font-mono text-[11px] text-slate-400">✓ Pattern Merge combineAll</div>
-                            <div class="p-2 bg-slate-950/60 rounded-lg font-mono text-[11px] text-slate-400">✓ Gestione Concorrenza Lock Manager</div>
-                        </div>
-                    </div>
-                `;
-            }, 800);
-        }
-
-        // Downloads
-        function downloadMarkdown() {
-            if (!currentGeneratedOdS) { alert('Nessun OdS da scaricare.'); return; }
-            const blob = new Blob([currentGeneratedOdS], { type: 'text/markdown' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `OdS_${Date.now()}.md`;
-            a.click();
-        }
-
-        function downloadJson() {
-            if (!currentGeneratedJson) { alert('Nessun workflow JSON da scaricare.'); return; }
-            const blob = new Blob([JSON.stringify(currentGeneratedJson, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `workflow_${Date.now()}.json`;
-            a.click();
-        }
-    </script>
+    <!-- MODULAR VANILLA JS SCRIPTS -->
+    <script src="js/security.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/agents/selector.js"></script>
+    <script src="js/agents/frontend-architect.js"></script>
+    <script src="js/agents/n8n-architect.js"></script>
+    <script src="js/agents/linter.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
