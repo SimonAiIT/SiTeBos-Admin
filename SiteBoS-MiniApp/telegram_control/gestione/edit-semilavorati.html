@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Semilavorati Architect | SiteBoS</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #fafafa !important; color: #000000 !important; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .card, .section-card, .dark-card, .upload-box { 
+            background: white !important; 
+            border: 1px solid #eeeeee !important; 
+            box-shadow: none !important; 
+        }
+        input:focus, textarea:focus, select:focus { 
+            border-color: #000000 !important; 
+            box-shadow: none !important; 
+            outline: none !important;
+        }
+        .bg-black { background-color: #000000 !important; color: #ffffff !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { border: 2px solid rgba(0,0,0,0.1); border-top-color: #000; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        .view-overlay { position: fixed; inset: 0; background: #fafafa; z-index: 50; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(100%); overflow-y: auto; }
+        .view-overlay.active { transform: translateX(0); }
+        .tag-anim { animation: tagIn 0.3s ease-out; }
+        @keyframes tagIn { from { opacity: 0; scale: 0.9; } to { opacity: 1; scale: 1; } }
+    </style>
+</head>
+<body class="p-5 pb-24">
+
+    <!-- LOADER -->
+    <div id="loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center space-y-4">
+        <div class="spinner"></div>
+        <div id="loader-text" class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Sincronizzazione...</div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div class="max-w-md mx-auto space-y-6 hidden" id="app-content">
+        <header class="flex justify-between items-center py-2">
+            <div>
+                <div class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1">Produzione</div>
+                <h1 class="text-2xl font-black tracking-tighter uppercase leading-none">Semilavorati</h1>
+            </div>
+            <button onclick="openCreateView()" class="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center shadow-sm active:scale-95 transition">
+                <i class="fas fa-plus text-sm"></i>
+            </button>
+        </header>
+
+        <section>
+            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1 mb-4">Lotti Attivi</p>
+            <div id="semi-list" class="space-y-3"></div>
+        </section>
+    </div>
+
+    <!-- CREATE VIEW OVERLAY (ARCHITECT) -->
+    <div id="view-create" class="view-overlay flex flex-col p-5 pb-24">
+        <header class="flex justify-between items-center py-2 mb-6">
+            <button onclick="closeCreateView()" class="w-10 h-10 bg-white border border-border rounded-xl flex items-center justify-center shadow-sm active:scale-95 transition">
+                <i class="fas fa-arrow-left text-sm"></i>
+            </button>
+            <h2 class="text-sm font-black uppercase tracking-widest italic">Nuovo Semilavorato</h2>
+            <div class="w-10"></div>
+        </header>
+
+        <div class="space-y-6 flex-1">
+            
+            <!-- 1. IDENTITÀ E LOTTO -->
+            <div class="card rounded-3xl p-5 space-y-4">
+                <p class="text-[8px] font-black uppercase tracking-[0.2em] text-gray-300">📋 Identità Lotto</p>
+                
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black uppercase tracking-widest text-gray-400">Nome / Parent ID</label>
+                    <input type="text" id="input-parent-id" class="w-full bg-gray-50 border border-border rounded-xl p-4 text-xs font-bold outline-none focus:border-black transition-colors" placeholder="Es. IMPASTO-NAPOLETANO">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[8px] font-black uppercase tracking-widest text-gray-400">ID Lotto</label>
+                        <input type="text" id="input-lot-id" class="w-full bg-gray-50 border border-border rounded-xl p-4 text-[10px] font-black outline-none focus:border-black transition-colors uppercase" placeholder="Es. L2604-XYZ">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[8px] font-black uppercase tracking-widest text-gray-400">Quantità</label>
+                        <input type="number" id="input-qty" class="w-full bg-gray-50 border border-border rounded-xl p-4 text-xs font-black outline-none focus:border-black transition-colors" placeholder="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. COMPONENTI (BOM) -->
+            <div class="card rounded-3xl p-5 space-y-4">
+                <div class="flex justify-between items-center">
+                    <p class="text-[8px] font-black uppercase tracking-[0.2em] text-gray-300">📦 Ingredienti / Componenti</p>
+                    <button onclick="addBomRow()" class="text-[9px] font-black uppercase text-blue-600">+ Aggiungi</button>
+                </div>
+                <div id="bom-container" class="space-y-2"></div>
+            </div>
+
+            <!-- 3. BLUEPRINT (PROCEDURA) -->
+            <div class="card rounded-3xl p-5 space-y-4">
+                <div class="flex justify-between items-center">
+                    <p class="text-[8px] font-black uppercase tracking-[0.2em] text-gray-300">⚡ Blueprint Operativo</p>
+                    <button onclick="addStepRow()" class="text-[9px] font-black uppercase text-blue-600">+ Step</button>
+                </div>
+                <div id="steps-container" class="space-y-3"></div>
+            </div>
+
+            <!-- 4. ASSET / ATTREZZATURE -->
+            <div class="card rounded-3xl p-5 space-y-4">
+                <div class="flex justify-between items-center">
+                    <p class="text-[8px] font-black uppercase tracking-[0.2em] text-gray-300">🛠️ Attrezzature Necessarie</p>
+                    <button onclick="addAssetRow()" class="text-[9px] font-black uppercase text-blue-600">+ Asset</button>
+                </div>
+                <div id="assets-container" class="space-y-2"></div>
+            </div>
+
+            <button onclick="saveSemilavorato()" class="w-full py-5 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl active:scale-95 transition">
+                <i class="fas fa-save"></i> Salva Semilavorato
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const WEBHOOK_URL = "https://prod.workflow.trinai.it/webhook/2c6416b1-32c6-4661-bd8f-b175d24fd035";
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.ready(); tg.expand();
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const ash = urlParams.get('ash');
+        const sopId = urlParams.get('sop_id');
+        
+        let semiList = [], bomItems = [], blueprintSteps = [], assetItems = [];
+        let globalAssets = [
+            { id: "ast_1", name: "Impastatrice Spirale" },
+            { id: "ast_2", name: "Cella Lievitazione" },
+            { id: "ast_3", name: "Bilancia Digitale" }
+        ];
+
+        async function initApp() {
+            if (!ash) {
+                document.body.innerHTML = `<div class="h-full flex items-center justify-center font-black text-red-500">ASH MISSING</div>`;
+                return;
+            }
+            showLoader('Sincronizzazione...');
+            
+            // Mock Data
+            setTimeout(() => {
+                semiList = [
+                    { _id: '1', parent_item_id: 'PRD-IMPASTO', lot_info: { lot_id: 'LOT-2026-A1', produced_at: '2026-04-26' }, stock_info: { quantity: 15, unit: 'kg' } }
+                ];
+                renderList();
+                hideLoader();
+            }, 800);
+        }
+
+        function renderList() {
+            const container = document.getElementById('semi-list');
+            container.innerHTML = '';
+            if (semiList.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-gray-300"><i class="fas fa-box-open text-4xl mb-2"></i><p class="text-[10px] font-black uppercase tracking-widest">Nessun semilavorato</p></div>`;
+                return;
+            }
+            semiList.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "card rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[8px] font-black uppercase tracking-widest text-gray-400">${item.parent_item_id}</p>
+                            <h3 class="text-xs font-black uppercase tracking-tight">${item.lot_info.lot_id}</h3>
+                        </div>
+                        <span class="bg-black text-white text-[10px] font-black px-2 py-1 rounded-lg">${item.stock_info.quantity} ${item.stock_info.unit || 'kg'}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- BOM LOGIC ---
+        function addBomRow() {
+            const id = Date.now();
+            bomItems.push({ id, name: '', qty: 0 });
+            renderBom();
+        }
+        function renderBom() {
+            const container = document.getElementById('bom-container');
+            container.innerHTML = '';
+            bomItems.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'flex gap-2 items-center tag-anim';
+                row.innerHTML = `
+                    <input type="text" placeholder="Ingrediente/Mat." value="${item.name}" oninput="bomItems[${index}].name=this.value" class="flex-[2] bg-gray-50 p-2 rounded-lg text-[10px] font-bold border border-transparent focus:border-black outline-none">
+                    <input type="number" placeholder="Q.tà" value="${item.qty}" oninput="bomItems[${index}].qty=this.value" class="flex-1 bg-gray-50 p-2 rounded-lg text-[10px] font-black border border-transparent focus:border-black outline-none text-center">
+                    <button onclick="bomItems.splice(${index},1);renderBom();" class="text-red-400"><i class="fas fa-times-circle"></i></button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // --- STEPS LOGIC ---
+        function addStepRow() {
+            const id = Date.now();
+            blueprintSteps.push({ id, title: '', desc: '' });
+            renderSteps();
+        }
+        function renderSteps() {
+            const container = document.getElementById('steps-container');
+            container.innerHTML = '';
+            blueprintSteps.forEach((step, index) => {
+                const row = document.createElement('div');
+                row.className = 'bg-gray-50 p-3 rounded-xl border border-border tag-anim space-y-1';
+                row.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-[9px] font-black bg-black text-white px-2 py-0.5 rounded-full">${index+1}</span>
+                        <button onclick="blueprintSteps.splice(${index},1);renderSteps();" class="text-red-400 text-xs"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <input type="text" placeholder="Titolo operazione..." value="${step.title}" oninput="blueprintSteps[${index}].title=this.value" class="w-full bg-transparent text-[10px] font-black uppercase outline-none">
+                    <textarea placeholder="Dettagli step..." oninput="blueprintSteps[${index}].desc=this.value" class="w-full bg-transparent text-[9px] font-medium outline-none resize-none" rows="2">${step.desc}</textarea>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // --- ASSET LOGIC (Allineato a Advanced Drawer) ---
+        function addAssetRow() {
+            assetItems.push({ asset_id: '', notes: '' });
+            renderAssets();
+        }
+        function renderAssets() {
+            const container = document.getElementById('assets-container');
+            container.innerHTML = '';
+            assetItems.forEach((item, index) => {
+                let optionsHtml = `<option value="">-- Seleziona --</option><option value="NEW">➕ Nuovo</option>`;
+                globalAssets.forEach(a => {
+                    optionsHtml += `<option value="${a.id}" ${item.asset_id === a.id ? 'selected' : ''}>${a.name}</option>`;
+                });
+
+                const row = document.createElement('div');
+                row.className = 'bg-gray-50 p-2 rounded-xl border border-gray-100 tag-anim space-y-2';
+                row.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <select onchange="handleAssetSelect(${index}, this.value)" class="flex-1 bg-white border border-transparent rounded-lg p-2 text-[10px] font-bold outline-none focus:border-black appearance-none transition-colors">
+                            ${optionsHtml}
+                        </select>
+                        <button onclick="assetItems.splice(${index},1);renderAssets();" class="text-red-400 text-sm"><i class="fas fa-times-circle"></i></button>
+                    </div>
+                    <input type="text" placeholder="Note operative (es. temp. esercizio)" value="${item.notes || ''}" oninput="assetItems[${index}].notes=this.value" class="w-full bg-white border border-transparent rounded-lg p-2 text-[9px] font-medium outline-none focus:border-black transition-colors">
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function handleAssetSelect(index, val) {
+            if(val === 'NEW') {
+                const name = prompt("Inserisci nome nuova attrezzatura:");
+                if(name) {
+                    const id = 'ast_' + Date.now();
+                    globalAssets.push({ id, name });
+                    assetItems[index].asset_id = id;
+                }
+            } else {
+                assetItems[index].asset_id = val;
+            }
+            renderAssets();
+        }
+
+        function openCreateView() {
+            document.getElementById('view-create').classList.add('active');
+            if(tg.BackButton) { tg.BackButton.show(); tg.BackButton.onClick(closeCreateView); }
+        }
+        function closeCreateView() {
+            document.getElementById('view-create').classList.remove('active');
+            if(tg.BackButton) tg.BackButton.hide();
+        }
+
+        async function saveSemilavorato() {
+            const parentId = document.getElementById('input-parent-id').value.trim();
+            if (!parentId) { tg.showAlert("Nome Semilavorato obbligatorio"); return; }
+            
+            showLoader('Salvataggio...');
+            
+            const payload = {
+                _auth: tg.initData,
+                ash: ash,
+                action: 'SAVE_SEMI',
+                sop_id: sopId,
+                identity: { 
+                    name: parentId, 
+                    lot: document.getElementById('input-lot-id').value,
+                    item_type: 'SEMI_FINISHED'
+                },
+                bom: bomItems,
+                blueprint: blueprintSteps,
+                assets: assetItems,
+                qty: document.getElementById('input-qty').value
+            };
+            
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert("Semilavorato Salvato correttamente!");
+                closeCreateView();
+            } catch (e) {
+                console.error(e);
+                tg.showAlert("Errore durante il salvataggio.");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        function showLoader(text) { document.getElementById('loader').classList.remove('hidden'); document.getElementById('loader-text').innerText = text; }
+        function hideLoader() { document.getElementById('loader').classList.add('hidden'); document.getElementById('app-content').classList.remove('hidden'); }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

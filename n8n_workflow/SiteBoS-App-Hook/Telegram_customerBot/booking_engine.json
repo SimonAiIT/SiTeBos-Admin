@@ -1,0 +1,60 @@
+{
+  "name": "booking_engine",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "0a62e876-7bb1-4d74-a8bc-a8828606a0e7",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "bca57f49-980b-466b-8c87-a09f1865428b",
+      "name": "Webhook",
+      "webhookId": "0a62e876-7bb1-4d74-a8bc-a8828606a0e7"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        368,
+        0
+      ],
+      "id": "a42aa290-f83b-48c4-bec3-15a8b3e6016d",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f8cc2d8a-d42d-4d0b-a9c0-b738c0a98d9e",
+  "meta": {
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "x4BuftUEkjn67QAu",
+  "tags": []
+}

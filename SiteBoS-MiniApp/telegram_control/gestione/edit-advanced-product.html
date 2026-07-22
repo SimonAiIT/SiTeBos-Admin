@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SiteBoS Advanced - Product Operations & BOM Controller</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem' }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* SiteBoS Architect Alignment */
+        body {
+            background-color: #fafafa !important;
+            color: #000000 !important;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .card,
+        .section-card,
+        .dark-card,
+        .upload-box {
+            background: white !important;
+            border: 1px solid #eeeeee !important;
+            box-shadow: none !important;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: #000000 !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        .text-primary,
+        .text-blue-500,
+        .text-blue-600,
+        .text-[#007bff] {
+            color: #000000 !important;
+        }
+
+        .bg-primary,
+        .bg-blue-500,
+        .bg-blue-600,
+        .bg-[#007bff] {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+        }
+
+        .border-primary,
+        .border-blue-500,
+        .border-blue-600,
+        .border-[#007bff] {
+            border-color: #000000 !important;
+        }
+
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-top-color: #000 !important;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        input[type="checkbox"]:checked {
+            background-color: #000 !important;
+            border-color: #000 !important;
+        }
+
+        .fas,
+        .far,
+        .fal {
+            font-weight: 900 !important;
+            font-family: "Font Awesome 6 Free" !important;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Custom Slider Style */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #000000;
+            cursor: pointer;
+            margin-top: -7px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:active {
+            transform: scale(1.2);
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #e5e7eb;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col pb-10">
+
+    <!-- LOADER SCREEN -->
+    <div id="loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center space-y-4">
+        <div class="spinner"></div>
+        <div id="loaderText" class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Caricamento dettagli
+            avanzati prodotto...</div>
+    </div>
+
+    <!-- MENU LATERALE -->
+    <div id="menu-backdrop"
+        class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300"
+        onclick="toggleMenu()"></div>
+    <div id="menu-drawer"
+        class="fixed top-0 left-0 h-full w-[300px] bg-white border-r border-border z-50 shadow-2xl -translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-5 border-b border-border flex justify-between items-center bg-gray-50/50">
+            <div>
+                <span class="px-2 py-0.5 bg-black text-white text-[8px] font-black uppercase rounded">Product
+                    Menu</span>
+                <h3 class="text-xs font-black uppercase text-gray-500 mt-1">Seleziona Sezione</h3>
+            </div>
+            <button onclick="toggleMenu()"
+                class="w-8 h-8 rounded-full border border-border bg-white text-gray-500 hover:text-black flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-1">
+            <button onclick="selectMenuSection('tab-cfo', '🏛️ CFO Advisory')"
+                class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 bg-black text-white"
+                id="menu-tab-cfo">
+                <i class="fas fa-balance-scale text-sm w-5 text-center"></i> 🏛️ CFO Advisory
+            </button>
+            <button onclick="selectMenuSection('tab-bom', '📦 Distinta Base (BOM)')"
+                class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black"
+                id="menu-tab-bom">
+                <i class="fas fa-cubes text-sm w-5 text-center"></i> 📦 Distinta Base (BOM)
+            </button>
+            <button onclick="selectMenuSection('tab-competitors', '🎯 Analisi Concorrenza')"
+                class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black"
+                id="menu-tab-competitors">
+                <i class="fas fa-bullseye text-sm w-5 text-center"></i> 🎯 Analisi Concorrenza
+            </button>
+            <button onclick="selectMenuSection('tab-suppliers', ' Sourcing Fornitori')"
+                class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black"
+                id="menu-tab-suppliers">
+                <i class="fas fa-box text-sm w-5 text-center"></i> Sourcing Fornitori
+            </button>
+            <button onclick="selectMenuSection('tab-locations', '📍 Aree di Stoccaggio')"
+                class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black"
+                id="menu-tab-locations">
+                <i class="fas fa-map-marker-alt text-sm w-5 text-center"></i> 📍 Aree di Stoccaggio
+            </button>
+            <button onclick="selectMenuSection('tab-assets', '🛠️ Asset & Attrezzature')"
+                class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black"
+                id="menu-tab-assets">
+                <i class="fas fa-tools text-sm w-5 text-center"></i> 🛠️ Asset & Attrezzature
+            </button>
+            <button onclick="selectMenuSection('tab-blueprint', '📋 Blueprint Assemblaggio')"
+                class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black"
+                id="menu-tab-blueprint">
+                <i class="fas fa-paste text-sm w-5 text-center"></i> 📋 Blueprint Assemblaggio
+            </button>
+        </div>
+    </div>
+
+    <!-- HEADER PRINCIPALE -->
+    <header class="bg-white border-b border-border sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center gap-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span
+                        class="px-2.5 py-1 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-md">SiteBoS
+                        Product</span>
+                    <span class="text-xs text-gray-400 font-bold">V1.0</span>
+                </div>
+                <h1 class="text-xl font-black uppercase tracking-tight mt-1" id="header-title">Gestione Avanzata
+                    Prodotto</h1>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest italic" id="header-subtitle">
+                    Caricamento...</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="hidden md:block text-right pr-4 border-r border-gray-200">
+                    <span class="block text-[9px] text-gray-400 font-black uppercase tracking-widest">Costo BOM</span>
+                    <span class="text-lg font-black text-blue-600" id="header-cost">€ 0,00</span>
+                </div>
+                <div class="hidden md:block text-right pr-4 border-r border-gray-200">
+                    <span class="block text-[9px] text-gray-400 font-black uppercase tracking-widest">MDC Stimato</span>
+                    <span class="text-lg font-black text-green-600" id="header-mdc">€ 0,00</span>
+                </div>
+                <button onclick="toggleMenu()"
+                    class="p-3 bg-black text-white rounded-2xl flex items-center justify-center transition-all duration-200">
+                    <i class="fas fa-bars text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENUTO PRINCIPALE -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8 space-y-6">
+
+        <!-- 1. CFO ADVISORY TAB -->
+        <div id="tab-cfo" class="tab-content space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- CARD PREZZO E COSTI -->
+                <div class="card rounded-3xl p-6 space-y-5">
+                    <h3 class="text-xs font-black uppercase text-gray-400 tracking-wider">💰 Analisi Economica Prodotto
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-gray-50 pb-2">
+                            <span class="text-xs text-gray-500 font-medium">Prezzo di Vendita Base</span>
+                            <span class="text-sm font-black" id="cfo-base-price">€ 0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-50 pb-2">
+                            <span class="text-xs text-gray-500 font-medium">Costo dei Beni (COGS/BOM)</span>
+                            <span class="text-sm font-black text-blue-600" id="cfo-cogs">€ 0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2">
+                            <span class="text-xs text-gray-500 font-bold">Margine di Contribuzione (MDC)</span>
+                            <span class="text-sm font-black text-green-600" id="cfo-mdc">€ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INFO FINANZIARIE -->
+                <div class="card rounded-3xl p-6 space-y-4">
+                    <h3 class="text-xs font-black uppercase text-gray-400 tracking-wider">📈 Indicatori di Efficienza
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block mb-1">MDC
+                                %</span>
+                            <div class="text-sm font-black text-green-600" id="cfo-mdc-percent">0.0%</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block mb-1">Break
+                                Even (Unità)</span>
+                            <div class="text-sm font-black text-gray-800" id="cfo-break-even">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADVISORY E HEALTH RATING -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <!-- HEALTH RATING -->
+                <div class="md:col-span-4 card rounded-3xl p-6 flex flex-col justify-between items-center text-center bg-black text-white border-black" id="cfo-health-card">
+                    <div class="space-y-2">
+                        <span class="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400">HEALTH RATING</span>
+                        <h3 class="text-sm font-black uppercase text-gray-200">Stato di Salute</h3>
+                    </div>
+                    <div class="py-6">
+                        <span class="px-4 py-2 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-md" id="label-health">VERIFICA...</span>
+                    </div>
+                    <p class="text-[9px] text-gray-400 leading-relaxed font-semibold" id="label-health-desc">-</p>
+                </div>
+
+                <!-- ADVISORY TESTUALE -->
+                <div class="md:col-span-8 card rounded-3xl p-6 space-y-3 border-gray-200 bg-white">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">💡 STRATEGIA DI PREZZO & ADVISORY</span>
+                    <p class="text-xs text-gray-700 leading-relaxed" id="pricing-advisory-text">Caricamento dell'analisi strategica di prezzo in corso...</p>
+                </div>
+            </div>
+
+            <!-- SIMULATORE PREDITTIVO -->
+            <div class="card rounded-3xl p-6 space-y-6 bg-white">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">🚀 SIMULATORE
+                            DI VENDITA MENSILE</span>
+                        <p class="text-[10px] text-gray-500 font-medium mt-1">Sposta l'indicatore per simulare l'impatto
+                            sul fatturato mensile.</p>
+                    </div>
+                    <div class="bg-gray-100 border border-gray-200 px-4 py-2 rounded-xl text-center min-w-[80px]">
+                        <span id="slider-val" class="text-lg font-black text-black">100</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 px-2">
+                    <span class="text-xs font-bold text-gray-400">0</span>
+                    <input type="range" id="volume-slider" min="0" max="1000" value="100" class="flex-1"
+                        oninput="updateSimulation()">
+                    <span class="text-xs font-bold text-gray-400">1000</span>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 pt-4 border-t border-gray-100">
+                    <div class="bg-gray-50 border border-gray-100 p-3 rounded-2xl">
+                        <span class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Fatturato
+                            Stimato</span>
+                        <span id="sim-fatturato" class="text-sm font-black text-black">€0,00</span>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-100 p-3 rounded-2xl">
+                        <span class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Margine
+                            Totale</span>
+                        <span id="sim-margine" class="text-sm font-black text-green-600">€0,00</span>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 p-3 rounded-2xl">
+                        <span
+                            class="block text-[8px] font-black text-green-700 uppercase tracking-widest mb-1">Rendimento
+                            Stimato</span>
+                        <span id="sim-rendimento" class="text-base font-black text-green-700">€0,00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RACCOMANDAZIONI OPERATIVE -->
+            <div class="card rounded-3xl p-6 space-y-4 border-gray-200 bg-white shadow-sm">
+                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">🛠️ RACCOMANDAZIONI OPERATIVE</span>
+                <div class="space-y-2" id="cost-optimization-list"></div>
+            </div>
+        </div>
+
+        <!-- 2. BUSTA DISTINTA BASE (BOM) TAB -->
+        <div id="tab-bom" class="tab-content space-y-4 hidden">
+            <div class="card rounded-3xl p-6 space-y-4 bg-white">
+                <div class="flex justify-between items-center pb-2 border-b border-gray-100">
+                    <div>
+                        <h3 class="text-xs font-black uppercase text-black" id="bom-title">📦 Distinta Base dei Componenti (BOM)</h3>
+                        <p class="text-[9px] text-gray-400 font-bold uppercase mt-1" id="bom-subtitle">Elenco dei semilavorati e delle
+                            materie prime che compongono il prodotto</p>
+                    </div>
+                    <button onclick="openAddBomModal()"
+                        class="text-[9px] font-black uppercase bg-black text-white px-3 py-1.5 rounded-lg active:scale-95 transition">+
+                        Aggiungi</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 text-gray-400 text-[8px] font-black uppercase tracking-wider">
+                                <th class="py-2">Componente/SKU</th>
+                                <th class="py-2 text-center">Quantità</th>
+                                <th class="py-2 text-center">U.M.</th>
+                                <th class="py-2 text-right">Costo Unitario</th>
+                                <th class="py-2 text-right">Subtotale</th>
+                                <th class="py-2 text-center">Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bom-table-body" class="divide-y divide-gray-50 text-gray-700 font-bold">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. COMPETITORS TAB -->
+        <div id="tab-competitors" class="tab-content space-y-4 hidden">
+            <div class="card rounded-3xl p-6 space-y-4 bg-white">
+                <h3 class="text-xs font-black uppercase text-black border-b border-gray-50 pb-2">🎯 Prezzi di Mercato
+                    Concorrenti</h3>
+                <div id="competitors-list-container" class="space-y-3">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. SUPPLIERS TAB -->
+        <div id="tab-suppliers" class="tab-content space-y-4 hidden">
+            <div class="card rounded-3xl p-6 space-y-4 bg-white">
+                <h3 class="text-xs font-black uppercase text-black border-b border-gray-50 pb-2"> Sourcing Fornitori e
+                    Canali d'Acquisto</h3>
+                <div id="suppliers-list-container" class="space-y-4">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. LOCATIONS TAB -->
+        <div id="tab-locations" class="tab-content space-y-4 hidden">
+            <div class="card rounded-3xl p-6 space-y-4 bg-white">
+                <h3 class="text-xs font-black uppercase text-black border-b border-gray-50 pb-2" id="locations-title">📍 Logistica e Aree di
+                    Stoccaggio</h3>
+                <div id="locations-list-container" class="space-y-4">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. ASSETS TAB -->
+        <div id="tab-assets" class="tab-content space-y-4 hidden">
+            <div class="card rounded-3xl p-6 space-y-4 bg-white">
+                <h3 class="text-xs font-black uppercase text-black border-b border-gray-50 pb-2" id="assets-title">🛠️ Attrezzature e
+                    Macchinari di Assemblaggio</h3>
+                <div id="assets-list-container" class="space-y-4">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. BLUEPRINT TAB -->
+        <div id="tab-blueprint" class="tab-content space-y-4 hidden">
+            <div class="card rounded-3xl p-6 space-y-4 bg-white">
+                <h3 class="text-xs font-black uppercase text-black border-b border-gray-50 pb-2" id="blueprint-title">📋 Sequenza di
+                    Assemblaggio Finale (Blueprint)</h3>
+                <div id="blueprint-steps-container" class="space-y-3">
+                    <!-- Injected by JS (Read-Only visualization of the assembly stages) -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER NAV ACCORDO SAVE -->
+    <div class="fixed bottom-0 left-0 w-full p-4 bg-white/90 backdrop-blur-lg border-t border-gray-100 z-[100]">
+        <div class="flex items-center gap-3 max-w-7xl mx-auto px-6">
+            <button onclick="goBack()"
+                class="w-10 h-10 bg-white text-black rounded-xl shadow-md flex items-center justify-center text-lg border border-gray-100 active:scale-90 transition">
+                <i class="fas fa-times"></i>
+            </button>
+            <button id="saveBtn" disabled onclick="saveProductAdvancedData()"
+                class="flex-1 h-10 bg-black text-white rounded-xl shadow-sm font-black uppercase tracking-widest text-[9px] active:scale-95 transition-all disabled:opacity-20 flex items-center justify-center gap-2">
+                <i class="fas fa-save text-xs"></i> <span>Salva Setup Avanzato</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const WEBHOOK_URL = "https://prod.workflow.trinai.it/webhook/6333dff0-d886-499c-8000-f3e0266845ed"; // advanced processor endpoint
+        const urlParams = new URLSearchParams(window.location.search);
+        const sopId = urlParams.get('sop_id') || urlParams.get('productId');
+        const ash = urlParams.get('ash');
+        const messageId = urlParams.get('msg') || urlParams.get('message_id');
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.ready(); tg.expand();
+
+        let currentData = null;
+        let originalDataStr = "";
+
+        // UI states
+        let activeTab = "tab-cfo";
+
+        function toggleMenu() {
+            const drawer = document.getElementById('menu-drawer');
+            const backdrop = document.getElementById('menu-backdrop');
+
+            if (drawer.classList.contains('-translate-x-full')) {
+                drawer.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+                setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+            } else {
+                drawer.classList.add('-translate-x-full');
+                backdrop.classList.add('opacity-0');
+                setTimeout(() => backdrop.classList.add('hidden'), 300);
+            }
+        }
+
+        function selectMenuSection(tabId, tabName) {
+            activeTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+
+            document.getElementById('header-title').innerText = tabName;
+
+            // Highlight selected in menu
+            document.querySelectorAll('.menu-link').forEach(btn => {
+                btn.className = "menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black";
+            });
+            const activeBtn = document.getElementById('menu-' + tabId);
+            if (activeBtn) {
+                activeBtn.className = "menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 bg-black text-white";
+            }
+
+            toggleMenu();
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function goBack() {
+            tg.close();
+        }
+    </script>
+
+    <!-- MODAL AGGIUNGI COMPONENTE BOM -->
+    <div id="add-bom-modal"
+        class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] hidden items-center justify-center p-4">
+        <div
+            class="bg-white rounded-3xl w-full max-w-sm p-6 space-y-4 border border-border shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center pb-2 border-b border-gray-100">
+                <h4 class="text-xs font-black uppercase text-black">Aggiungi Componente</h4>
+                <button onclick="closeAddBomModal()" class="text-gray-400 hover:text-black transition-colors"><i
+                        class="fas fa-times"></i></button>
+            </div>
+
+            <!-- SEARCH AND SELECT FROM CATALOG -->
+            <div class="space-y-2 flex-1 flex flex-col overflow-hidden">
+                <p class="text-[8px] font-black uppercase text-gray-400">Seleziona da Catalogo (Semilavorato)</p>
+                <input type="text" id="bom-catalog-search" placeholder="Cerca tra SOP e Prodotti..."
+                    oninput="filterBomCatalog()"
+                    class="w-full bg-gray-50 border border-gray-100 p-2.5 rounded-xl text-xs font-medium">
+
+                <div id="bom-catalog-list"
+                    class="flex-1 overflow-y-auto divide-y divide-gray-50 space-y-1 pr-1 max-h-[30vh] min-h-[150px] no-scrollbar">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- MANUAL INPUT FOR RAW MATERIAL -->
+            <div class="pt-3 border-t border-gray-100 space-y-3">
+                <p class="text-[8px] font-black uppercase text-gray-400">Oppure inserisci materia prima generica</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="manual-bom-name" placeholder="Nome materiale..."
+                        class="w-full bg-gray-50 border border-gray-100 p-2.5 rounded-xl text-xs font-medium">
+                    <input type="text" id="manual-bom-sku" placeholder="SKU (opzionale)..."
+                        class="w-full bg-gray-50 border border-gray-100 p-2.5 rounded-xl text-xs font-medium">
+                </div>
+                <button onclick="addManualBomItem()"
+                    class="w-full h-10 bg-black text-white rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition">
+                    + Aggiungi Materia Prima
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="edit-advanced-product.js"></script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+
+</html>

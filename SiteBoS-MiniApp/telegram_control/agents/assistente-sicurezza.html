@@ -1,0 +1,3304 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Assistente Sicurezza | SiteBoS</title>
+    <meta name="description" content="Gestione checklist di sicurezza e compliance normativa per i servizi aziendali.">
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        (function () {
+            if (!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)) {
+                document.documentElement.innerHTML = `
+                    <body class="bg-black text-white flex items-center justify-center h-screen text-center p-10 font-sans">
+                        <div><h1 class="text-6xl mb-4">🚫</h1><h2 class="text-xl font-black uppercase tracking-widest">Accesso Proibito</h2><p style="font-size:10px;margin-top:16px;opacity:0.5">Questa applicazione è accessibile solo tramite Telegram</p></div>
+                    </body>`;
+                window.stop();
+            }
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #fafafa !important;
+            color: #000000 !important;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .card-noir {
+            background: white !important;
+            border: 1px solid #eeeeee !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            border-radius: 1.5rem;
+        }
+
+        .label-micro {
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #a3a3a3;
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeInUp 0.3s ease-out forwards;
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: translate(-50%, -50%) scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .loader-spin {
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #000;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Checkbox custom noir */
+        .chk-box {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .chk-box.checked {
+            background: #000;
+            border-color: #000;
+        }
+
+        .chk-box.checked::after {
+            content: '';
+            display: block;
+            width: 5px;
+            height: 9px;
+            border: 2px solid white;
+            border-top: none;
+            border-left: none;
+            transform: rotate(45deg) translateY(-1px);
+        }
+
+        .chk-row {
+            transition: opacity 0.2s ease;
+        }
+
+        .chk-row.done {
+            opacity: 0.5;
+        }
+
+        /* Progress bar */
+        .progress-fill {
+            transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Risk warning */
+        .risk-tag {
+            background: #fff5f5;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #7f1d1d;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.5;
+        }
+
+        /* Regulation pill */
+        .reg-pill {
+            background: #f9fafb;
+            border: 1px solid #eeeeee;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 9px;
+            color: #374151;
+        }
+
+        /* Service card hover */
+        .service-card {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+        }
+
+        .service-card:active {
+            transform: scale(0.97);
+        }
+
+        /* Detail view slide */
+        .view-slide {
+            animation: slideFromRight 0.3s ease-out forwards;
+        }
+
+        @keyframes slideFromRight {
+            from {
+                opacity: 0;
+                transform: translateX(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Area badge */
+        .area-badge {
+            font-size: 8px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: #f3f4f6;
+            color: #6b7280;
+            white-space: nowrap;
+        }
+
+        /* Detail mode tab pills */
+        .detail-tab-pill {
+            flex: 1;
+            padding: 8px 0;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .detail-tab-pill.active {
+            background: #000;
+            color: #fff;
+        }
+
+        .detail-tab-switcher {
+            background: #f3f4f6;
+            border-radius: 14px;
+            padding: 3px;
+            display: flex;
+            gap: 3px;
+        }
+
+        /* INAIL risk badge */
+        .risk-badge-wrap {
+            border-radius: 12px;
+            border-width: 2px;
+            border-style: solid;
+            padding: 6px 4px;
+            text-align: center;
+        }
+
+        .risk-low {
+            background: #f0fdf4;
+            border-color: #86efac;
+            color: #166534;
+        }
+
+        .risk-mid {
+            background: #fff7ed;
+            border-color: #fdba74;
+            color: #9a3412;
+        }
+
+        .risk-high {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+
+        /* DVR Document styles */
+        .dvr-doc {
+            background: white;
+            border: 1px solid #eeeeee;
+            border-radius: 1.5rem;
+            padding: 24px 20px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .dvr-doc h2 {
+            font-size: 14px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 4px;
+        }
+
+        .dvr-doc .dvr-label {
+            font-size: 7px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #9ca3af;
+        }
+
+        .dvr-doc .dvr-section-title {
+            font-size: 8px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #374151;
+            border-bottom: 1px solid #f3f4f6;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+            margin-top: 20px;
+        }
+
+        .dvr-doc .dvr-field {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #f9fafb;
+            font-size: 10px;
+        }
+
+        .dvr-doc .dvr-field-label {
+            color: #6b7280;
+            font-weight: 700;
+        }
+
+        .dvr-doc .dvr-field-value {
+            font-weight: 600;
+            text-align: right;
+            max-width: 55%;
+        }
+
+        .dvr-doc .dvr-chk-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f9fafb;
+            font-size: 10px;
+        }
+
+        .dvr-doc .dvr-chk-num {
+            font-size: 7px;
+            font-weight: 900;
+            min-width: 20px;
+            padding-top: 1px;
+        }
+
+        .dvr-doc .dvr-risk-cell {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .dvr-doc .dvr-risk-low {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .dvr-doc .dvr-risk-mid {
+            background: #ffedd5;
+            color: #9a3412;
+        }
+
+        .dvr-doc .dvr-risk-high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .dvr-doc .dvr-warning-row {
+            font-size: 9px;
+            color: #7f1d1d;
+            padding: 5px 0;
+            border-bottom: 1px solid #fef2f2;
+            display: flex;
+            gap: 6px;
+            align-items: flex-start;
+        }
+
+        .dvr-doc .dvr-footer {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 2px solid #000;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .dvr-doc .dvr-signature-box {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 10px 12px;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        /* Print overrides */
+        @media print {
+
+            #loader,
+            header,
+            #view-list,
+            #detail-tab-nav,
+            #btn-save-checklist,
+            .btn-no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white !important;
+                padding: 0 !important;
+            }
+
+            #app-content {
+                max-width: 100% !important;
+            }
+
+            #view-detail {
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+
+            #detail-tab-checklist {
+                display: none !important;
+            }
+
+            #detail-tab-dvr {
+                display: block !important;
+            }
+
+            .dvr-doc {
+                border: none !important;
+                border-radius: 0 !important;
+                padding: 10mm 14mm !important;
+            }
+
+            @page {
+                size: A4;
+                margin: 10mm 14mm;
+            }
+
+            .signature-container,
+            .dvr-footer {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            .dvr-section-title {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+            }
+
+            .dvr-chk-row,
+            tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col pb-24">
+
+    <!-- ══════════ LOADER GLOBALE ══════════ -->
+    <div id="loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center space-y-4">
+        <div class="loader-spin"></div>
+        <div id="loader-text" class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Caricamento...
+        </div>
+    </div>
+
+    <!-- ══════════ APP CONTENT ══════════ -->
+    <div id="app-content" class="hidden max-w-md mx-auto w-full flex-1 flex flex-col">
+
+        <!-- ── HEADER FISSO ── -->
+        <header class="sticky top-0 z-40 bg-white border-b border-eeeeee px-5 pt-5 pb-3 space-y-3">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div
+                        class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1">
+                        🔒 Sicurezza & Compliance</div>
+                    <h1 class="text-xl font-black tracking-tighter uppercase leading-none">Assistente Sicurezza</h1>
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5 italic"
+                        id="header-subtitle">Caricamento dati aziendali...</p>
+                </div>
+                <!-- Crediti & Impostazioni -->
+                <div class="flex items-center gap-2.5 shrink-0">
+                    <div class="text-right">
+                        <span class="label-micro block">Completamento</span>
+                        <span id="global-pct" class="text-xl font-black tracking-tight">0%</span>
+                    </div>
+                    <button onclick="openSettingsOverlay()"
+                        class="w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-black active:scale-95 transition-all shadow-sm btn-no-print"
+                        title="Impostazioni Sicurezza">
+                        <i class="fas fa-cog text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Barra progresso globale -->
+            <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                <div id="global-progress-bar" class="h-full bg-black rounded-full progress-fill" style="width: 0%">
+                </div>
+            </div>
+
+            <!-- Selettore Categoria (Menu a tendina) -->
+            <div class="pb-2 pt-1">
+                <select id="category-dropdown" onchange="switchCategory(this.value)"
+                    class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition appearance-none">
+                    <!-- Popolato da JS -->
+                </select>
+            </div>
+        </header>
+
+        <!-- ══════ VIEW: LISTA SERVIZI ══════ -->
+        <div id="view-list" class="flex-1 overflow-y-auto no-scrollbar px-5 py-5 space-y-4">
+            <!-- Statistiche top -->
+            <div id="stats-strip" class="grid grid-cols-3 gap-2">
+                <div class="card-noir p-2.5 text-center">
+                    <span class="text-base font-black" id="stat-services">0</span>
+                    <p class="text-[6.5px] font-black uppercase text-gray-400 mt-0.5 tracking-wider">Servizi</p>
+                </div>
+                <div class="card-noir p-2.5 text-center">
+                    <span class="text-base font-black text-orange-400" id="stat-pending">0</span>
+                    <p class="text-[6.5px] font-black uppercase text-gray-400 mt-0.5 tracking-wider">In Attesa</p>
+                </div>
+                <div class="card-noir p-2.5 text-center">
+                    <span class="text-base font-black text-green-500" id="stat-done">0</span>
+                    <p class="text-[6.5px] font-black uppercase text-gray-400 mt-0.5 tracking-wider">Completati</p>
+                </div>
+            </div>
+
+            <!-- Grid servizi -->
+            <div id="services-grid" class="space-y-3">
+                <!-- Popolato da JS -->
+            </div>
+        </div>
+
+        <!-- ══════ VIEW: DETTAGLIO SERVIZIO ══════ -->
+        <div id="view-detail" class="hidden flex-1 overflow-y-auto no-scrollbar px-5 py-5 space-y-4 view-slide">
+
+            <!-- Navigazione indietro -->
+            <button onclick="goBackToList()"
+                class="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-500 active:opacity-60 transition btn-no-print">
+                <i class="fas fa-arrow-left text-xs"></i> Tutti i Servizi
+            </button>
+
+            <!-- Hero servizio -->
+            <div class="card-noir p-5 space-y-3">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex-1">
+                        <span id="detail-category" class="label-micro block mb-1"></span>
+                        <h2 id="detail-service-name"
+                            class="font-black text-base uppercase tracking-tight leading-tight"></h2>
+                        <p id="detail-sku" class="text-[9px] font-mono text-gray-400 mt-1"></p>
+                    </div>
+                    <div id="detail-emoji" class="text-3xl shrink-0 mt-0.5"></div>
+                </div>
+
+                <!-- Target price / positioning -->
+                <div id="detail-meta" class="flex flex-wrap gap-2 pt-2 border-t border-gray-50"></div>
+
+                <!-- Progress bar servizio -->
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="label-micro">Checklist Compliance</span>
+                        <span id="detail-pct" class="text-[10px] font-black">0 / 0</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                        <div id="detail-progress-bar" class="h-full bg-black rounded-full progress-fill"
+                            style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Per le SOP: Ultima esecuzione -->
+            <div id="sop-execution-container" class="card-noir p-4 space-y-3 hidden">
+                <div class="flex items-center justify-between">
+                    <span class="label-micro font-black text-gray-500 uppercase tracking-widest">🗓️ Ultima Esecuzione</span>
+                    <span id="sop-last-executed-badge" class="text-[8px] font-black uppercase px-2 py-0.5 rounded-full bg-red-50 text-red-600">Non eseguito</span>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label for="sop-execution-date" class="text-[8px] font-black uppercase tracking-wider text-gray-400">Seleziona la data dell'ultimo svolgimento:</label>
+                    <input type="date" id="sop-execution-date" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold focus:border-black outline-none transition" />
+                </div>
+            </div>
+
+            <!-- ── TAB SWITCHER: Checklist / DVR ── -->
+            <div id="detail-tab-nav" class="detail-tab-switcher btn-no-print">
+                <button id="dtab-checklist" class="detail-tab-pill active" onclick="switchDetailTab('checklist')">
+                    <i class="fas fa-tasks mr-1"></i>Checklist Operativa
+                </button>
+                <button id="dtab-dvr" class="detail-tab-pill" onclick="switchDetailTab('dvr')">
+                    <i class="fas fa-file-alt mr-1"></i>Documento DVR
+                </button>
+            </div>
+
+            <!-- ══════════════════════════════════════════════════
+                 TAB 1: CHECKLIST OPERATIVA (interattiva)
+            ══════════════════════════════════════════════════ -->
+            <div id="detail-tab-checklist" class="space-y-4">
+
+                <!-- Quadro normativo -->
+                <div class="space-y-2">
+                    <span class="label-micro flex items-center gap-1.5"><i class="fas fa-balance-scale"></i> Quadro
+                        Normativo</span>
+                    <div id="regulatory-grid" class="grid grid-cols-1 gap-2">
+                        <!-- Popolato da JS -->
+                    </div>
+                </div>
+
+                <!-- ── MATRICE DI RISCHIO INAIL (R = P × D) ── -->
+                <div id="rischio-inail-section" class="space-y-2 hidden">
+                    <span class="label-micro flex items-center gap-1.5"><i class="fas fa-calculator"></i> Valutazione
+                        Matematica del Rischio (INAIL)</span>
+                    <div class="card-noir p-4 space-y-3">
+                        <!-- Formula header -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Algoritmo
+                                Applicato:</span>
+                            <span class="text-[9px] font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-600">R = P ×
+                                D</span>
+                        </div>
+
+                        <!-- Griglia coefficienti -->
+                        <div class="grid grid-cols-4 gap-2 text-center pt-1">
+                            <div class="bg-gray-50 p-2 rounded-xl border border-gray-100">
+                                <span class="text-sm font-black" id="inail-val-d">—</span>
+                                <p class="text-[7px] font-black text-gray-400 uppercase mt-0.5">Danno (D)</p>
+                            </div>
+                            <div class="bg-gray-50 p-2 rounded-xl border border-gray-100">
+                                <span class="text-sm font-black" id="inail-val-c">—</span>
+                                <p class="text-[7px] font-black text-gray-400 uppercase mt-0.5">Contam. (C)</p>
+                            </div>
+                            <div class="bg-gray-50 p-2 rounded-xl border border-gray-100">
+                                <span class="text-sm font-black" id="inail-val-p">—</span>
+                                <p class="text-[7px] font-black text-gray-400 uppercase mt-0.5">Prob. (P)</p>
+                            </div>
+                            <!-- Badge R con colore dinamico -->
+                            <div class="risk-badge-wrap" id="inail-risk-badge">
+                                <span class="text-sm font-black" id="inail-val-r">—</span>
+                                <p class="text-[7px] font-black uppercase mt-0.5" id="inail-risk-label">Rischio (R)</p>
+                            </div>
+                        </div>
+
+                        <!-- Barra visiva livello rischio -->
+                        <div class="space-y-1 pt-1">
+                            <div class="flex justify-between text-[8px] font-black text-gray-400">
+                                <span>Basso</span><span>Medio</span><span>Alto</span>
+                            </div>
+                            <div
+                                class="relative w-full h-2 bg-gradient-to-r from-green-300 via-orange-300 to-red-400 rounded-full">
+                                <div id="inail-risk-pointer"
+                                    class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-black border-2 border-white rounded-full shadow transition-all duration-700"
+                                    style="left: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Giustificazione Gemini -->
+                        <div id="inail-justification"
+                            class="text-[10px] text-gray-600 leading-relaxed border-t border-gray-50 pt-3 hidden"></div>
+                    </div>
+                </div>
+
+                <!-- Checklist compliance -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="label-micro flex items-center gap-1.5"><i class="fas fa-tasks"></i> Azioni di
+                            Conformità</span>
+                        <button onclick="resetServiceChecklist()"
+                            class="text-[8px] font-black uppercase tracking-widest text-gray-400 active:opacity-60 transition">
+                            <i class="fas fa-undo mr-1"></i>Reset
+                        </button>
+                    </div>
+                    <div id="checklist-container" class="card-noir p-0 overflow-hidden divide-y divide-gray-50">
+                        <!-- Popolato da JS -->
+                    </div>
+                </div>
+
+                <!-- Note regionali -->
+                <div id="regional-section" class="space-y-2 hidden">
+                    <span class="label-micro flex items-center gap-1.5"><i class="fas fa-map-marker-alt"></i> Note
+                        Territoriali</span>
+                    <div class="card-noir p-4 space-y-3">
+                        <div id="regional-authority" class="text-[10px] text-gray-700 font-medium leading-relaxed">
+                        </div>
+                        <div id="regional-waste"
+                            class="hidden text-[10px] text-gray-500 font-medium leading-relaxed border-t border-gray-50 pt-3">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Warnings -->
+                <div id="warnings-section" class="space-y-2 hidden">
+                    <span class="label-micro flex items-center gap-1.5 text-red-400"><i
+                            class="fas fa-exclamation-triangle"></i> Avvertenze di Rischio</span>
+                    <div id="warnings-container" class="space-y-2">
+                        <!-- Popolato da JS -->
+                    </div>
+                </div>
+
+                <!-- Pulsante salva -->
+                <div class="pt-2 pb-6">
+                    <button id="btn-save-checklist" onclick="saveChecklist()"
+                        class="w-full py-4 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition flex items-center justify-center gap-2 shadow-md">
+                        <i class="fas fa-shield-alt"></i> Salva Avanzamento
+                    </button>
+                </div>
+
+            </div>
+            <!-- fine TAB 1 -->
+
+            <!-- ══════════════════════════════════════════════════
+                 TAB 2: DOCUMENTO DVR (agnostico / stampabile)
+            ══════════════════════════════════════════════════ -->
+            <div id="detail-tab-dvr" class="hidden pb-6">
+
+                <!-- Toolbar stampa -->
+                <div class="flex items-center justify-between mb-4 btn-no-print">
+                    <span class="label-micro flex items-center gap-1.5"><i class="fas fa-file-contract"></i> Anteprima
+                        Documento DVR</span>
+                    <button onclick="printSingleDVR()"
+                        class="flex items-center gap-1.5 px-3 py-1.5 bg-black text-white rounded-xl text-[8px] font-black uppercase tracking-widest active:scale-95 transition">
+                        <i class="fas fa-print"></i> Stampa / Esporta Capitolo
+                    </button>
+                </div>
+
+                <!-- Corpo documento DVR — popolato da buildDVRPage() -->
+                <div id="dvr-document-body" class="dvr-doc space-y-1">
+                    <!-- Popolato da JS -->
+                </div>
+
+            </div>
+            <!-- fine TAB 2 -->
+
+        </div>
+
+    </div>
+
+    <!-- ══════════ OVERLAY IMPOSTAZIONI SICUREZZA ══════════ -->
+    <div id="settings-backdrop"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] transition-opacity duration-300 hidden opacity-0"
+        onclick="closeSettingsOverlay()"></div>
+    <div id="settings-drawer"
+        class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white rounded-t-[2rem] border-t border-gray-100 p-6 z-[101] shadow-2xl transform translate-y-full transition-transform duration-300 flex flex-col max-h-[90vh]">
+        <!-- Linea di trascinamento -->
+        <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-4 cursor-pointer" onclick="closeSettingsOverlay()">
+        </div>
+
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h3 class="text-sm font-black uppercase tracking-tighter text-gray-900 flex items-center gap-1.5">
+                    <i class="fas fa-user-shield text-gray-400"></i> Impostazioni Sicurezza
+                </h3>
+                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">D.Lgs. 81/08 & Settori
+                    Attivi</p>
+            </div>
+            <button onclick="closeSettingsOverlay()" class="text-gray-300 hover:text-black transition">
+                <i class="fas fa-times-circle text-lg"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto no-scrollbar space-y-4 pb-6">
+            <!-- Referenti Sicurezza -->
+            <div class="space-y-3">
+                <span class="label-micro flex items-center gap-1.5"><i class="fas fa-users-gear"></i> Referenti
+                    Nominati</span>
+
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black text-gray-400 uppercase tracking-wider">Responsabile Prevenzione
+                        Protezione (RSPP)</label>
+                    <input type="text" id="settings-rspp"
+                        class="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs font-bold focus:bg-white focus:border-black outline-none transition">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black text-gray-400 uppercase tracking-wider">Medico Competente
+                        Incaricato</label>
+                    <input type="text" id="settings-medico"
+                        class="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs font-bold focus:bg-white focus:border-black outline-none transition">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black text-gray-400 uppercase tracking-wider">Rappresentante
+                        Lavoratori (RLS)</label>
+                    <input type="text" id="settings-rls"
+                        class="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs font-bold focus:bg-white focus:border-black outline-none transition">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black text-gray-400 uppercase tracking-wider">Addetti Emergenza
+                        (separati da virgola)</label>
+                    <textarea id="settings-addetti" rows="2"
+                        class="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:border-black outline-none transition resize-none leading-relaxed"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-4 border-t border-gray-100">
+            <button id="btn-confirm-settings" onclick="saveSettingsOverlayData()"
+                class="w-full h-12 bg-black text-white rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition shadow-sm flex items-center justify-center gap-2">
+                <span>Conferma Impostazioni</span><i class="fas fa-check-double text-[10px]"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ══════════ JAVASCRIPT ══════════ -->
+    <script>
+        'use strict';
+
+        // ── COSTANTI ──────────────────────────────────────────────────────────────
+        const WEBHOOK_URL = 'https://prod.workflow.trinai.it/webhook/7f254dec-e28f-452a-afb9-2a2a90206cbb';
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        try { tg.ready(); tg.expand(); } catch (e) { }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const ash = urlParams.get('ash');
+
+        // ── METADATI MULTI-VERTICALE ──────────────────────────────────────────────
+        const verticalsMeta = {
+            "comune": { emoji: "🏠", name: "Misure Comuni (Sede)", chairs_label: "Sedi Attive" },
+            "generic": { emoji: "💼", name: "Generico / Altro", chairs_label: "Postazioni Attive" },
+            "dental": { emoji: "🦷", name: "Settore Dentale", chairs_label: "Sale Operatorie (Riuniti)" },
+            "health": { emoji: "🏥", name: "Sanità & Salute", chairs_label: "Ambulatori / Studi" },
+            "beauty": { emoji: "💄", name: "Settore Estetica", chairs_label: "Cabine Estetiche (Lettini)" },
+            "food": { emoji: "🍳", name: "Ristorazione", chairs_label: "Cucine / Tavoli Attivi" },
+            "hospitality": { emoji: "🛌", name: "Ospitalità e Hotel", chairs_label: "Camere Attive" },
+            "professional": { emoji: "💼", name: "Servizi Professionali", chairs_label: "Postazioni Ufficio Attive" },
+            "workshop": { emoji: "🔧", name: "Officine e Artigianato", chairs_label: "Postazioni Officina" },
+            "construction": { emoji: "🚧", name: "Edilizia e Impiantistica", chairs_label: "Cantieri Attivi" }
+        };
+
+        const parametriVerticali = {
+            "common": {
+                D: 2,
+                C: 1,
+                desc_d: "Infortuni o patologie professionali generiche",
+                desc_c: "Presenza standard all'interno dei locali di lavoro e contatto generico con il pubblico",
+                normativa_rif: "D.Lgs. 81/08 Titolo II (Luoghi di lavoro)"
+            },
+            "comune": {
+                D: 2,
+                C: 1,
+                desc_d: "Infortuni o patologie professionali generiche",
+                desc_c: "Presenza standard all'interno dei locali di lavoro e contatto generico con il pubblico",
+                normativa_rif: "D.Lgs. 81/08 Titolo II (Luoghi di lavoro)"
+            },
+            "generic": {
+                D: 2,
+                C: 1,
+                desc_d: "Infortuni lievi (scivolamento, caduta in piano) o disturbi transitori",
+                desc_c: "Presenza standard all'interno dei locali di lavoro e contatto generico con il pubblico",
+                normativa_rif: "D.Lgs. 81/08 Titolo II (Luoghi di lavoro)"
+            },
+            "dental": {
+                D: 3,
+                C: 2,
+                desc_d: "Patogeni ematogeni e respiratori a danno grave (HBV, HCV, HIV, Mycobacterium t.)",
+                desc_c: "Contaminazione elevata e costante da bioaerosol e fluidi organici (sangue/saliva) in area clinica",
+                normativa_rif: "D.Lgs. 81/08 Titolo X (Agenti Biologici), D.Lgs. 101/20 (Radioprotezione)"
+            },
+            "health": {
+                D: 3,
+                C: 2,
+                desc_d: "Patogeni ematogeni e biologici a danno grave, rischi chimici da sterilizzanti",
+                desc_c: "Contatto costante con pazienti, manipolazione di aghi, taglienti e sostanze disinfettanti ad alto livello",
+                normativa_rif: "D.Lgs. 81/08 Titolo X (Agenti Biologici), D.Lgs. 81/08 Titolo IX (Agenti Chimici), Legge Gelli-Bianco"
+            },
+            "beauty": {
+                D: 2,
+                C: 2,
+                desc_d: "Patogeni a danno moderato (infezioni micotiche, batteriche cutanee, herpes simplex)",
+                desc_c: "Contatto cutaneo e transcutaneo frequente durante trattamenti estetici e micropigmentazione",
+                normativa_rif: "D.Lgs. 81/08 Titolo VIII Capo IV (Radiazioni Ottiche Artificiali - Laser ed IPL)"
+            },
+            "food": {
+                D: 3,
+                C: 2,
+                desc_d: "Tossinfezioni e infezioni a trasmissione oro-fecale o alimentare (Salmonella, Listeria m., E. Coli)",
+                desc_c: "Manipolazione diretta di alimenti crudi, superfici di taglio e gestione dei rifiuti organici",
+                normativa_rif: "Regolamento CE 852/2004 (HACCP), D.Lgs. 81/08 Allegato IV (Microclima e ventilazione)"
+            },
+            "hospitality": {
+                D: 2,
+                C: 1,
+                desc_d: "Rischi da sovraccarico del rachide, rischio biologico da Legionellosi",
+                desc_c: "Attività di rifacimento letti, pulizia camere e igienizzazione dei terminali idrici e dei condizionatori",
+                normativa_rif: "D.Lgs. 81/08 Titolo VI (MMC), D.Lgs. 81/08 Titolo X (Biologico), Linee Guida Legionellosi"
+            },
+            "professional": {
+                D: 1,
+                C: 1,
+                desc_d: "Disturbi muscolo-scheletrici minori, affaticamento visivo (astenia visiva), stress lavoro-correlato",
+                desc_c: "Esposizione sedentaria prolungata a schermi digitali e arredi da ufficio in ambiente confinato",
+                normativa_rif: "D.Lgs. 81/08 Titolo VII (Attrezzature munite di videoterminali)"
+            },
+            "workshop": {
+                D: 3,
+                C: 2,
+                desc_d: "Schiacciamento, traumi gravi, esposizione chimica e rumore/vibrazioni",
+                desc_c: "Uso di ponti sollevatori, compressori d'aria, inalazione gas esausti, oli e solventi speciali",
+                normativa_rif: "D.Lgs. 81/08 Titolo III (Attrezzature), Titolo IX (Sostanze pericolose), Titolo VIII Capo II e III"
+            },
+            "construction": {
+                D: 3,
+                C: 2,
+                desc_d: "Cadute dall'alto, seppellimento, elettrocuzione e inalazione polveri silicee",
+                desc_c: "Lavori su ponteggi, scavi, impiego di attrezzature da demolizione e installazione d'impianti",
+                normativa_rif: "D.Lgs. 81/08 Titolo IV (Cantieri temporanei o mobili), UNI EN 12811"
+            }
+        };
+
+        const FATTORI_RISCHIO_BOILERPLATE = {
+            "common": {
+                riferimento_legislativo: "D.Lgs. 81/08 Titolo I (Principi Comuni) e Titolo II (Luoghi di Lavoro), D.M. 3 Settembre 2021 (Decreto GSA - Gestione Sicurezza Antincendio), D.M. 37/08 (Impianti Elettrici).",
+                definizione: "La valutazione comprende i rischi trasversali legati all'infrastruttura della sede lavorativa, inclusi gli impianti elettrici di alimentazione, i sistemi di rilevazione e spegnimento incendi, le vie di fuga e le emergenze mediche o di evacuazione.",
+                agenti: "Rischio elettrico (contatto diretto o indiretto), rischio incendio (fiamme libere, cortocircuiti), rischi ergonomici e di scivolamento/caduta in piano.",
+                modalita: "Innesco accidentale di incendi per sovraccarico elettrico, traumi osteoarticolari dovuti a pavimentazioni sconnesse o bagnate, elettrocuzione per assenza di idonea messa a terra o differenziali non revisionati.",
+                misure_prevenzione: [
+                    "Manutenzione periodica semestrale dei presidi antincendio (estintori, idranti) secondo UNI 9994-1.",
+                    "Verifica biennale/quinquennale dell'impianto di messa a terra ai sensi del DPR 462/01.",
+                    "Formazione e addestramento periodico degli addetti alle emergenze (Primo Soccorso e Antincendio)."
+                ]
+            }
+        };
+
+        const verticalsRegistry = {
+            "comune": {
+                id: "comune",
+                title: "Misure Comuni (Sede e Sicurezza Generale)",
+                law_references: "D.Lgs. 81/08 Titolo I (Principi Comuni) e Titolo II (Luoghi di Lavoro), D.M. 3 Settembre 2021 (GSA), D.M. 37/08",
+                risks: [
+                    {
+                        risk_id: "infrastruttura",
+                        name: "Sicurezza Infrastrutturale e Antincendio",
+                        danno_base: 2,
+                        checklist: [
+                            { question_id: "com_q1", text: "La manutenzione dei presidi antincendio (estintori, idranti) viene effettuata semestralmente secondo UNI 9994-1?", weight: 0.4 },
+                            { question_id: "com_q2", text: "La verifica periodica dell'impianto di messa a terra viene eseguita regolarmente ai sensi del DPR 462/01?", weight: 0.3 },
+                            { question_id: "com_q3", text: "Viene svolta la formazione e l'addestramento periodico degli addetti alle emergenze (Primo Soccorso e Antincendio)?", weight: 0.3 }
+                        ]
+                    }
+                ]
+            },
+            "generic": {
+                id: "generic",
+                title: "Settore Generico e Servizi Operativi",
+                law_references: "D.Lgs. 81/08 Titolo II (Luoghi di lavoro) e Allegato IV (Requisiti dei luoghi di lavoro)",
+                risks: [
+                    {
+                        risk_id: "rischi_generici",
+                        name: "Rischi Generici Operativi e di Sede",
+                        danno_base: 2,
+                        checklist: [
+                            { question_id: "gen_q1", text: "I corridoi, i passaggi e le vie d'esodo sono mantenuti costantemente sgomberi da materiali e ostacoli?", weight: 0.4 },
+                            { question_id: "gen_q2", text: "Le pavimentazioni dei locali sono prive di fessure, irregolarità o raccordi che possano favorire cadute?", weight: 0.3 },
+                            { question_id: "gen_q3", text: "Viene effettuata una pulizia periodica degli ambienti e degli arredi con prodotti idonei e registrata?", weight: 0.3 }
+                        ]
+                    }
+                ]
+            },
+            "dentale": {
+                id: "dentale",
+                title: "Settore Dentale ed Odontoiatrico",
+                law_references: "D.Lgs. 81/08 Titolo X (Biologico), D.Lgs. 101/2020 (Radiazioni Ionizzanti), D.Lgs. 81/08 Titolo IX (Chimico)",
+                risks: [
+                    {
+                        risk_id: "bio_aerosol",
+                        name: "Rischio Biologico da Aerosol e Fluidi",
+                        danno_base: 4,
+                        checklist: [
+                            { question_id: "dent_q1", text: "È attivo un protocollo di disinfezione e shock termico/chimico delle linee idriche del riunito per prevenire la proliferazione di Legionella?", weight: 0.5 },
+                            { question_id: "dent_q2", text: "Il personale esposto ad aerosol dispone e utilizza maschere protettive certificate FFP2 o FFP3 durante i trattamenti clinici?", weight: 0.5 }
+                        ]
+                    },
+                    {
+                        risk_id: "rad_ionizzanti",
+                        name: "Rischio Esposizione a Radiazioni Ionizzanti",
+                        danno_base: 3,
+                        checklist: [
+                            { question_id: "dent_q3", text: "È stata formalizzata la nomina dell'Esperto di Radioprotezione ed eseguita la relazione preventiva ex D.Lgs. 101/2020?", weight: 0.6 },
+                            { question_id: "dent_q4", text: "Tutti gli operatori esposti utilizzano dosimetri personali con letture periodiche registrate?", weight: 0.4 }
+                        ]
+                    },
+                    {
+                        risk_id: "chimico_dent",
+                        name: "Rischio Chimico (Acido peracetico, SDS)",
+                        danno_base: 2,
+                        checklist: [
+                            { question_id: "dent_q5", text: "Sono disponibili le Schede di Sicurezza (SDS) a 16 punti per tutti i disinfettanti ad alto livello (es. acido peracetico)?", weight: 0.5 },
+                            { question_id: "dent_q6", text: "Sono forniti idonei DPI per la manipolazione di detergenti chimici concentrati (guanti nitrile manica lunga UNI EN ISO 374, visiere)?", weight: 0.5 }
+                        ]
+                    }
+                ]
+            },
+            "estetica": {
+                id: "estetica",
+                title: "Medicina Estetica e Benessere",
+                law_references: "D.Lgs. 81/08 Titolo VIII Capo V, D.M. 206/2015, CEI EN 60825-1, CEI 76-17",
+                risks: [
+                    {
+                        risk_id: "laser_roa",
+                        name: "Radiazioni Ottiche Artificiali (Laser Cl. 3B/4)",
+                        danno_base: 3,
+                        checklist: [
+                            { question_id: "est_q1", text: "È stato nominato un Tecnico Sicurezza Laser (TSL) o Esperto Sicurezza Laser certificato CEI 76-17?", weight: 0.3 },
+                            { question_id: "est_q2", text: "La cabina laser è dotata di sistema di interblocco (interlock) sulle porte d'accesso e cartelli di avvertimento luminosi?", weight: 0.4 },
+                            { question_id: "est_q3", text: "Sono disponibili occhiali di protezione conformi alla norma UNI EN 207 con corretta marcatura della lunghezza d'onda?", weight: 0.3 }
+                        ]
+                    }
+                ]
+            },
+            "ristorazione": {
+                id: "ristorazione",
+                title: "Ospitalità e Ristorazione (Ho.Re.Ca.)",
+                law_references: "D.Lgs. 81/08 Titolo III (Attrezzature), Titolo VI (MMC), Allegato IV",
+                risks: [
+                    {
+                        risk_id: "infortuni_tagli",
+                        name: "Rischi Infortunistici - Tagli e Ustioni",
+                        danno_base: 3,
+                        checklist: [
+                            { question_id: "food_q1", text: "Sono presenti e funzionanti i dispositivi di protezione sulle attrezzature (es. pressamerce sulle affettatrici, carter sulle impastatrici)?", weight: 0.4 },
+                            { question_id: "food_q2", text: "Vengono forniti e utilizzati guanti di protezione contro i tagli (maglia d'acciaio o kevlar) per disosso e porzionatura?", weight: 0.3 },
+                            { question_id: "food_q3", text: "Sono attive procedure operative per lo sversamento e la manipolazione di liquidi caldi (es. olio friggitrici)?", weight: 0.3 }
+                        ]
+                    },
+                    {
+                        risk_id: "ergonomia_mmc",
+                        name: "Rischio Ergonomico e Movimentazione Manuale dei Carichi",
+                        danno_base: 2,
+                        checklist: [
+                            { question_id: "food_q4", text: "È presente una valutazione specifica del rischio da sovraccarico biomeccanico degli arti superiori per movimenti ripetitivi?", weight: 0.5 },
+                            { question_id: "food_q5", text: "Sono forniti ausili meccanici per il trasporto e lo stoccaggio delle merci pesanti (carrelli, transpallet)?", weight: 0.5 }
+                        ]
+                    },
+                    {
+                        risk_id: "scivolamento_cadute",
+                        name: "Rischio Scivolamento e Cadute a Livello",
+                        danno_base: 2,
+                        checklist: [
+                            { question_id: "food_q6", text: "La pavimentazione delle aree umide (cucine, lavaggi) ha un coefficiente di attrito antisdrucciolo certificato R11 o R12?", weight: 0.5 },
+                            { question_id: "food_q7", text: "È obbligatorio l'utilizzo di calzature di sicurezza professionali con suola certificata antiscivolo (SRC)?", weight: 0.5 }
+                        ]
+                    }
+                ]
+            },
+            "ufficio": {
+                id: "ufficio",
+                title: "Uffici e Attività Amministrative",
+                law_references: "D.Lgs. 81/08 Titolo VII (Videoterminali) e Allegato XXXIV",
+                risks: [
+                    {
+                        risk_id: "videoterminale",
+                        name: "Rischio Videoterminale e Disturbi Muscoloscheletrici",
+                        danno_base: 2,
+                        checklist: [
+                            {
+                                question_id: "off_q1",
+                                text: "I sedili di lavoro sono ergonomici, regolabili in altezza, inclinazione e dotati di basamento stabile a 5 razze?",
+                                weight: 0.25
+                            },
+                            {
+                                question_id: "off_q2",
+                                text: "I monitor sono orientabili, antiriflesso e posizionati a una distanza corretta (50-70 cm) dagli occhi dell'operatore?",
+                                weight: 0.25
+                            },
+                            {
+                                question_id: "off_q3",
+                                text: "I livelli di illuminazione generale e localizzata sono progettati per evitare riflessi e abbagliamenti sullo schermo?",
+                                weight: 0.25
+                            },
+                            {
+                                question_id: "off_q4",
+                                text: "È pianificata e rispettata una pausa obbligatoria di 15 minuti ogni 120 minuti di applicazione continuativa al videoterminale?",
+                                weight: 0.25
+                            }
+                        ]
+                    }
+                ]
+            },
+            "health": {
+                id: "health",
+                title: "Settore Sanitario e Salute",
+                law_references: "D.Lgs. 81/08 Titolo X (Biologico), D.Lgs. 81/08 Titolo IX (Chimico), Legge Gelli-Bianco",
+                risks: [
+                    {
+                        risk_id: "bio_sanitario",
+                        name: "Rischio Biologico (Infezioni, Aghi e Taglienti)",
+                        danno_base: 3,
+                        checklist: [
+                            { question_id: "san_q1", text: "Vengono utilizzati aghi e taglienti dotati di dispositivi di sicurezza integrati (es. aghi autoretraibili o con camicia protettiva)?", weight: 0.4 },
+                            { question_id: "san_q2", text: "I contenitori rigidi imperforabili per lo smaltimento di aghi e taglienti sono posizionati nelle immediate vicinanze dell'area d'uso?", weight: 0.3 },
+                            { question_id: "san_q3", text: "È formalizzato ed esposto un protocollo operativo per la gestione immediata delle punture/ferite accidentali a rischio biologico?", weight: 0.3 }
+                        ]
+                    },
+                    {
+                        risk_id: "chimico_sanitario",
+                        name: "Rischio Chimico e Disinfettanti ad Alto Livello",
+                        danno_base: 2,
+                        checklist: [
+                            { question_id: "san_q4", text: "Sono disponibili e consultabili le schede di sicurezza (SDS) aggiornate di tutti i detergenti chirurgici e sterilizzanti chimici in uso?", weight: 0.5 },
+                            { question_id: "san_q5", text: "Il personale dispone di dispositivi di protezione idonei (guanti EN ISO 374, visiere/schermi) per la manipolazione di agenti chimici?", weight: 0.5 }
+                        ]
+                    }
+                ]
+            },
+            "hospitality": {
+                id: "hospitality",
+                title: "Settore Ospitalità e Alberghiero",
+                law_references: "D.Lgs. 81/08 Titolo VI (MMC), Titolo X (Biologico), Linee Guida prevenzione Legionellosi 2015",
+                risks: [
+                    {
+                        risk_id: "ergonomia_piani",
+                        name: "Rischio Ergonomico (Rifacimento letti e movimentazione)",
+                        danno_base: 2,
+                        checklist: [
+                            { question_id: "hosp_q1", text: "Il personale addetto alle camere ha ricevuto formazione specifica sulle posture ergonomiche di sollevamento e spinta?", weight: 0.5 },
+                            { question_id: "hosp_q2", text: "I carrelli di servizio per la biancheria e le pulizie sono leggeri, agevoli e mantenuti in efficienza strutturale?", weight: 0.5 }
+                        ]
+                    },
+                    {
+                        risk_id: "legionella_idrica",
+                        name: "Rischio Biologico da Legionella",
+                        danno_base: 2,
+                        checklist: [
+                            { question_id: "hosp_q3", text: "Viene eseguita una pulizia, decalcificazione e disinfezione trimestrale di tutti i soffioni doccia e aeratori delle camere?", weight: 0.5 },
+                            { question_id: "hosp_q4", text: "È attivo un registro di autocontrollo delle temperature e delle sanificazioni degli impianti idrico-sanitari?", weight: 0.5 }
+                        ]
+                    }
+                ]
+            },
+            "workshop": {
+                id: "workshop",
+                title: "Settore Officine e Riparazioni",
+                law_references: "D.Lgs. 81/08 Titolo III (Attrezzature), Titolo IX (Sostanze pericolose), Titolo VIII Capo II e Capo III",
+                risks: [
+                    {
+                        risk_id: "rumore_vibrazioni",
+                        name: "Rischi Fisici - Rumore e Vibrazioni meccaniche",
+                        danno_base: 3,
+                        checklist: [
+                            { question_id: "work_q1", text: "È presente una relazione aggiornata di valutazione dei rischi fisici (rumore e vibrazioni) con misurazioni strumentali?", weight: 0.5 },
+                            { question_id: "work_q2", text: "Gli operatori utilizzano DPI antirumore (inserti, cuffie) certificati e adatti al livello di esposizione personale?", weight: 0.5 }
+                        ]
+                    },
+                    {
+                        risk_id: "chimico_idrocarburi",
+                        name: "Rischio Chimico da Idrocarburi ed Oli minerali",
+                        danno_base: 3,
+                        checklist: [
+                            { question_id: "work_q3", text: "Gli oli esausti minerali e i filtri sostituiti vengono stoccati in aree dedicate protette e smaltiti tramite consorzi autorizzati?", weight: 0.5 },
+                            { question_id: "work_q4", text: "I lavoratori utilizzano guanti di protezione in nitrile resistenti alle sostanze chimiche e agli idrocarburi (EN ISO 374)?", weight: 0.5 }
+                        ]
+                    }
+                ]
+            },
+            "construction": {
+                id: "construction",
+                title: "Settore Edilizia e Impiantistica",
+                law_references: "D.Lgs. 81/08 Titolo IV (Cantieri temporanei o mobili), UNI EN 12811",
+                risks: [
+                    {
+                        risk_id: "cadute_alto",
+                        name: "Rischio Caduta dall'alto (> 2 metri)",
+                        danno_base: 3,
+                        checklist: [
+                            { question_id: "const_q1", text: "I ponteggi e le opere provvisionali sono montati secondo libretto d'uso e conformi alla norma UNI EN 12811?", weight: 0.5 },
+                            { question_id: "const_q2", text: "Gli operatori sono provvisti e vincolati all'uso di imbracature di sicurezza collegate a linee vita o punti d'ancoraggio certificati?", weight: 0.5 }
+                        ]
+                    },
+                    {
+                        risk_id: "silice_polveri",
+                        name: "Rischio Inalazione Polveri e Silice Libera",
+                        danno_base: 3,
+                        checklist: [
+                            { question_id: "const_q3", text: "Durante il taglio, la demolizione o la sabbiatura di materiali cementizi è obbligatorio l'uso di semimaschere con filtri P3?", weight: 0.5 },
+                            { question_id: "const_q4", text: "Sono adottati sistemi di abbattimento ad acqua o aspirazione localizzata sulle attrezzature di taglio e foratura?", weight: 0.5 }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        const verticalLabels = {
+            "common": "Misure Comuni e Sicurezza Sede",
+            "dental": "Settore Odontoiatrico e Clinico",
+            "beauty": "Settore Estetica e Benessere",
+            "health": "Settore Sanitario",
+            "food": "Settore Ristorazione"
+        };
+
+        const verticalEmojis = {
+            "common": "🏠",
+            "dental": "🦷",
+            "beauty": "💄"
+        };
+
+        function getVerticalLabel(v) {
+            const norm = (v || "").toLowerCase().trim();
+            return verticalLabels[norm] || `Settore ${v.toUpperCase()}`;
+        }
+
+        function getVerticalEmoji(v) {
+            const norm = (v || "").toLowerCase().trim();
+            return verticalEmojis[norm] || "💼";
+        }
+
+        function cleanCategoryName(name) {
+            return (name || '').replace(/^\[SOP\]\s*/i, '').replace(/^\[SER\]\s*/i, '').replace(/^\[PRO\]\s*/i, '').trim();
+        }
+
+        function formatSchedulingInterval(days, isSop) {
+            if (days === undefined || days === null) return '';
+            
+            if (isSop) {
+                // Formattazione per SOP (Frequenze)
+                if (days === 1) return '🔄 Giornaliero';
+                if (days === 7) return '🔄 Settimanale';
+                if (days === 30) return '🔄 Mensile';
+                if (days === 180) return '🔄 Semestrale';
+                if (days === 365) return '🔄 Annuale';
+                return `🔄 Ogni ${days} giorni`;
+            } else {
+                // Formattazione per SER (Offset)
+                if (days === 0) return '📅 Giorno dell\'intervento';
+                return `📅 Follow-up: T + ${days} giorni`;
+            }
+        }
+
+        function isServiceActive(service) {
+            if (!service) return false;
+            // Legge direttamente la chiave del server (gestendo sia booleani che stringhe)
+            return service.blueprint_ready === true || service.blueprint_ready === 'true';
+        }
+
+        function normalizeVerticalKey(key) {
+            const k = (key || '').toLowerCase().trim();
+            if (k === 'common' || k === 'comune') return 'common';
+            if (k === 'dental' || k === 'dentale') return 'dental';
+            if (k === 'beauty' || k === 'estetica') return 'beauty';
+            if (k === 'food' || k === 'hospitality' || k === 'ristorazione') return 'food';
+            if (k === 'professional' || k === 'ufficio') return 'professional';
+            if (k === 'health' || k === 'sanitario' || k === 'salute') return 'health';
+            if (k === 'hospitality' || k === 'ospitalita' || k === 'ospitalità') return 'hospitality';
+            if (k === 'workshop' || k === 'officina' || k === 'artigianato') return 'workshop';
+            if (k === 'construction' || k === 'cantiere' || k === 'edilizia') return 'construction';
+            return k || 'generic';
+        }
+
+        // ── STATO APPLICAZIONE ─────────────────────────────────────────────────────
+        let catalogActive = [];       // array servizi dal server
+        let productResearch = [];     // array dossier
+        let ownerData = {};           // dati aziendali (Collezione anagrafica)
+        let mitigationControls = [];
+        let serverChecklistState = {}; // Collezione separata di MongoDB con lo stato salvato delle checklist
+        let checklistState = {};      // { [service_sku]: { [chk_id]: bool } } (Stato locale di UI)
+        let currentServiceSku = null; // servizio aperto nel dettaglio
+        let activeCategory = 'ALL';   // tab categoria attiva
+        let currentChecklistItems = []; // checklist items correnti del dettaglio
+
+        // ── INIT ──────────────────────────────────────────────────────────────────
+        window.onload = async () => {
+            if (!ash) {
+                safeAlert("Errore di sessione: parametro 'ash' mancante. Riapri la MiniApp dal bot Telegram.");
+                return;
+            }
+            await loadData();
+        };
+
+        // ── FETCH DATI ────────────────────────────────────────────────────
+        async function loadData() {
+            showLoader('Caricamento dati di sicurezza...');
+            try {
+                const payload = {
+                    _auth: tg.initData,
+                    ash: ash,
+                    action: 'get'
+                };
+
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const rawData = await response.json();
+                const data = Array.isArray(rawData) ? rawData[0] : rawData;
+
+                catalogActive = data.catalog_active || [];
+                productResearch = data.Product_Reserch || [];
+                ownerData = data.owner_data || {};
+                mitigationControls = data.mitigation_control || [];
+
+                // 1. Estrae i dati dal DB (che ora è un Array)
+                const rawServerState = data.checklist_state || data.risk || data.saved_checklists || [];
+
+                // 2. CONVERTE L'ARRAY IN DIZIONARIO PER IL FRONTEND
+                serverChecklistState = {};
+                if (Array.isArray(rawServerState)) {
+                    rawServerState.forEach(item => {
+                        if (item && item.service_sku) {
+                            // Usiamo lo SKU come chiave di memoria interna dell'app
+                            serverChecklistState[item.service_sku] = item;
+                        }
+                    });
+                } else if (typeof rawServerState === 'object') {
+                    // Fallback se per caso arrivasse il vecchio formato
+                    serverChecklistState = rawServerState;
+                }
+
+                // 3. Carica lo stato delle spunte (checkbox)
+                loadChecklistState(serverChecklistState);
+
+                // Aggiorna UI
+                updateHeaderSubtitle();
+                buildCategoryTabs();
+                renderServiceList();
+                updateGlobalProgress();
+
+                hideLoader();
+                document.getElementById('app-content').classList.remove('hidden');
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+
+            } catch (err) {
+                hideLoader();
+                document.getElementById('app-content').classList.remove('hidden');
+                showEmptyState(`Impossibile caricare i dati. Riprova più tardi.\n(${err.message})`);
+            }
+        }
+
+        // ── SALVA CHECKLIST ───────────────────────────────────────────────────────
+        async function saveChecklist() {
+            if (!currentServiceSku) return;
+
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            const btn = document.getElementById('btn-save-checklist');
+            btn.innerHTML = '<div class="loader-spin" style="width:16px;height:16px;border-width:2px;border-top-color:white"></div> Salvataggio...';
+            btn.disabled = true;
+
+            const sku = currentServiceSku;
+            const dossier = getDossierBySku(sku);
+
+            // 1. Estrazione metadati intelligenti dal Catalogo e dal Dossier
+            let serviceName = "";
+            let category = "";
+            let vKey = "comune";
+            let daysVal = null;
+            let isSop = false;
+            let lastExecutedVal = null;
+
+            if (verticalsRegistry[sku]) {
+                serviceName = verticalsRegistry[sku].title;
+                category = "Infrastruttura e Sicurezza Generale";
+                vKey = sku;
+            } else {
+                const service = catalogActive.find(s => s.service_sku === sku) || {};
+                serviceName = service.service_name || "";
+                category = service.categoria_padre || "";
+                vKey = getVerticalForService(service);
+                daysVal = service.days !== undefined && service.days !== null ? service.days : (service.scheduling_interval !== undefined ? service.scheduling_interval : null);
+                isSop = !(category || '').toUpperCase().includes('[SER]');
+            }
+
+            // Calcolo parametri fisici di partenza
+            const param = parametriVerticali[vKey] || { D: 2, C: 1 };
+            const dPartenza = param.D || 2;
+            const cPartenza = param.C || 1;
+            const rPartenza = 4 * dPartenza;
+
+            let serviceDescription = "";
+            let riskWarnings = [];
+            let listItems = [];
+
+            if (dossier && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE) {
+                const comp = dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE;
+                serviceDescription = comp.positioning || "";
+                riskWarnings = comp.risk_warnings || [];
+                listItems = comp.compliance_checklist || [];
+            } else {
+                listItems = [{ id: 'Q1' }, { id: 'Q2' }, { id: 'Q3' }];
+            }
+
+            if (isSop && daysVal !== undefined && daysVal !== null && daysVal > 0) {
+                // Calcola la data dell'ultima esecuzione come la data più recente inserita nei passaggi con schedule attivo
+                const state = checklistState[sku] || {};
+                let latestDate = null;
+                listItems.forEach(item => {
+                    const id = item.id || item.question_id;
+                    const stepDays = getSchedulingIntervalForStep(sku, item);
+                    if (stepDays !== null && stepDays > 0) {
+                        const dateInput = document.getElementById(`date-input-${sku}-${id}`);
+                        const dateVal = dateInput ? dateInput.value : (state[id + '_date'] || null);
+                        if (dateVal) {
+                            if (!latestDate || dateVal > latestDate) {
+                                latestDate = dateVal;
+                            }
+                        }
+                    }
+                });
+                lastExecutedVal = latestDate;
+            }
+
+            // 2. Lettura parametri e giustificazione corrente calcolati a schermo
+            const dCorrente = parseInt(document.getElementById('inail-val-d')?.textContent) || dPartenza;
+            const cCorrente = parseInt(document.getElementById('inail-val-c')?.textContent) || cPartenza;
+            const pCorrente = parseInt(document.getElementById('inail-val-p')?.textContent) || 4;
+            const rCorrente = parseInt(document.getElementById('inail-val-r')?.textContent) || rPartenza;
+            const justEl = document.getElementById('inail-justification');
+            const justCorrente = justEl ? justEl.textContent.trim() : "";
+
+            // 3. Costruzione dello stato checklist dettagliato (Misure comuni vs Servizi del catalogo)
+            const detailedState = {};
+            const state = checklistState[sku] || {};
+
+            if (verticalsRegistry[sku]) {
+                // Se si tratta di un comparto di sede, estrae i testi dal registro delle verticali
+                verticalsRegistry[sku].risks.forEach(risk => {
+                    risk.checklist.forEach(q => {
+                        detailedState[q.question_id] = {
+                            checked: !!state[q.question_id],
+                            label: risk.name,
+                            description: q.text
+                        };
+                    });
+                });
+            } else {
+                // Se si tratta di un servizio del catalogo, estrae i testi dal dossier
+                listItems.forEach(item => {
+                    const id = item.id || item.question_id;
+                    const dateInput = document.getElementById(`date-input-${sku}-${id}`);
+                    const dateVal = dateInput ? (dateInput.value || null) : (state[id + '_date'] || null);
+
+                    detailedState[id] = {
+                        checked: !!state[id],
+                        label: item.area || 'Compliance',
+                        description: item.action || item.text || '',
+                        executed_at: dateVal
+                    };
+                });
+            }
+
+            // 4. Invio del pacchetto completo al Server
+            try {
+                const payload = {
+                    _auth: tg.initData,
+                    ash: ash,
+                    action: 'save_checklist',
+                    service_sku: sku,
+                    service_name: serviceName,
+                    service_category: category,
+                    service_description: serviceDescription,
+                    risk_warnings: riskWarnings,
+                    scheduling_interval: daysVal,
+                    last_executed: lastExecutedVal,
+
+                    // Parametri di partenza
+                    starting_damage: dPartenza,
+                    starting_contamination: cPartenza,
+                    starting_risk: rPartenza,
+
+                    // Parametri finali calcolati a schermo e giustificazione
+                    current_damage: dCorrente,
+                    current_contamination: cCorrente,
+                    current_probability: pCorrente,
+                    current_risk: rCorrente,
+                    current_justification: justCorrente,
+
+                    // Checklist dettagliata
+                    checklist_state: detailedState
+                };
+
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                    btn.innerHTML = '<i class="fas fa-check"></i> Salvato!';
+                    
+                    // Salva nello stato locale serverChecklistState per aggiornare le statistiche istantaneamente
+                    if (!serverChecklistState) serverChecklistState = {};
+                    serverChecklistState[sku] = {
+                        service_sku: sku,
+                        answers: detailedState,
+                        D: dCorrente,
+                        C: cCorrente,
+                        P: pCorrente,
+                        R: rCorrente,
+                        overall_justification: justCorrente,
+                        last_executed: lastExecutedVal
+                    };
+
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="fas fa-shield-alt"></i> Salva Avanzamento';
+                        btn.disabled = false;
+                    }, 2000);
+                } else {
+                    throw new Error('Server error');
+                }
+            } catch (err) {
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+                btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Errore di Connessione';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-shield-alt"></i> Salva Avanzamento';
+                    btn.disabled = false;
+                }, 2500);
+            }
+        }
+
+        // ── PERSISTENZA LOCALE ────────────────────────────────────────────────────
+        function saveLocalChecklistState() {
+            // Disattivata: la persistenza è ora interamente gestita su MongoDB via Webhook
+        }
+
+        function loadChecklistState(serverState) {
+            try {
+                checklistState = {};
+
+                // Inizializza lo stato locale
+                catalogActive.forEach(s => {
+                    checklistState[s.service_sku] = {};
+                });
+                checklistState['common'] = {};
+                checklistState['comune'] = {};
+                if (typeof verticalsRegistry !== 'undefined') {
+                    Object.keys(verticalsRegistry).forEach(key => {
+                        checklistState[key] = {};
+                    });
+                }
+
+                if (serverState && typeof serverState === 'object') {
+                    // Mappa di normalizzazione anti-errori
+                    const skuMap = {};
+                    catalogActive.forEach(s => {
+                        const cleanSku = s.service_sku.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+                        skuMap[cleanSku] = s.service_sku;
+                    });
+
+                    // Applica le spunte dal server all'interfaccia utente
+                    Object.keys(serverState).forEach(dbKey => {
+                        const cleanDbKey = dbKey.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+                        const realSku = skuMap[cleanDbKey] || dbKey;
+
+                        if (!checklistState[realSku]) {
+                            checklistState[realSku] = {};
+                        }
+
+                        const subState = serverState[dbKey] || {};
+                        // Estrae le risposte dal nodo "answers" del nostro nuovo formato
+                        const answersSource = subState.answers || subState;
+
+                        if (answersSource && typeof answersSource === 'object') {
+                            Object.keys(answersSource).forEach(chkId => {
+                                // Evita di confondere i metadati di rischio con le spunte della checklist
+                                if (['D', 'C', 'P', 'R', 'overall_justification', 'service_name', 'service_category', 'service_description', 'risk_warnings', 'starting_damage', 'starting_contamination', 'starting_risk', 'service_sku', 'last_executed'].includes(chkId)) {
+                                    return;
+                                }
+                                const val = answersSource[chkId];
+                                if (val !== null && val !== undefined) {
+                                    if (typeof val === 'object') {
+                                        checklistState[realSku][chkId] = !!(val.checked || val.value);
+                                        if (val.executed_at) {
+                                            checklistState[realSku][chkId + '_date'] = val.executed_at;
+                                        }
+                                    } else {
+                                        checklistState[realSku][chkId] = !!val;
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error("Errore nel caricamento dello stato delle checklist:", e);
+            }
+        }
+
+        // ── HEADER ────────────────────────────────────────────────────────────────
+        function updateHeaderSubtitle() {
+            const name = ownerData.ragione_sociale || ownerData.name || 'Azienda';
+            document.getElementById('header-subtitle').textContent = name;
+        }
+
+        // ── TAB CATEGORIE ─────────────────────────────────────────────────────────
+        function buildCategoryTabs() {
+            const select = document.getElementById('category-dropdown');
+            if (!select) return;
+            select.innerHTML = '';
+
+            const detectedVerticals = [...new Set(catalogActive.map(s => (s.vertical || 'common').toLowerCase().trim()))];
+            const sortedVerticals = detectedVerticals.sort((a, b) => {
+                if (a === 'common') return -1;
+                if (b === 'common') return 1;
+                return a.localeCompare(b);
+            });
+
+            const uniqueList = ['ALL', ...sortedVerticals];
+
+            uniqueList.forEach(key => {
+                const emoji = getVerticalEmoji(key);
+                const label = getVerticalLabel(key);
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.selected = (key === activeCategory);
+                opt.textContent = `${emoji} ${label.toUpperCase()}`;
+                select.appendChild(opt);
+            });
+        }
+
+        function switchCategory(cat) {
+            activeCategory = cat;
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            renderServiceList();
+        }
+
+        function formatCategoryLabel(cat) {
+            return cat.replace(/\[(\w+)\]\s?/, (_, tag) => {
+                const icons = { SOP: '📋', SER: '🔬' };
+                return (icons[tag] || '▸') + ' ';
+            });
+        }
+
+        function toggleCat(el) {
+            const body = el.nextElementSibling;
+            const icon = el.querySelector('.fa-chevron-down');
+            const isOpen = !body.classList.contains('hidden');
+            
+            const grid = el.closest('#services-grid');
+            if (grid) {
+                grid.querySelectorAll('.cat-body').forEach(b => b.classList.add('hidden'));
+                grid.querySelectorAll('.fa-chevron-down').forEach(i => i.classList.remove('rotate-180'));
+            }
+            
+            if (!isOpen) {
+                body.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            }
+        }
+
+        // ── RENDER LISTA SERVIZI ──────────────────────────────────────────────────
+        function renderServiceList() {
+            const grid = document.getElementById('services-grid');
+            grid.innerHTML = '';
+
+            // Se siamo su TUTTI (ALL), mostriamo la card premium per la stampa del Libro DVR completo
+            if (activeCategory === 'ALL') {
+                const printCard = document.createElement('div');
+                printCard.className = 'card-noir p-4 flex items-center justify-between gap-3 bg-black text-white border-black mb-4';
+                printCard.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-neutral-800 flex items-center justify-center text-xl shrink-0">
+                            📚
+                        </div>
+                        <div class="min-w-0">
+                            <h4 class="font-black text-xs uppercase tracking-tight leading-snug">Libro DVR Completo</h4>
+                            <p class="text-[8px] opacity-60 uppercase tracking-wider">Copertina + capitoli attivi</p>
+                        </div>
+                    </div>
+                    <button onclick="printDVR()" class="px-3.5 py-2 bg-white text-black font-black uppercase text-[8px] tracking-widest rounded-xl hover:bg-neutral-100 active:scale-95 transition shrink-0">
+                        <i class="fas fa-print mr-1"></i> Stampa
+                    </button>
+                `;
+                grid.appendChild(printCard);
+            }
+
+            // 1. Filtra i servizi in base al tab attivo
+            let filteredServices = catalogActive;
+            if (activeCategory !== 'ALL') {
+                filteredServices = catalogActive.filter(s => {
+                    const v = (s.vertical || 'common').toLowerCase().trim();
+                    return v === activeCategory.toLowerCase().trim();
+                });
+            }
+
+            // 2. Raggruppa i dati: { verticalKey: { categoryCleanName: [servizi...] } }
+            const groupedData = {};
+            filteredServices.forEach(s => {
+                const vKey = (s.vertical || 'common').toLowerCase().trim();
+                const catName = cleanCategoryName(s.categoria_padre || "Generale");
+
+                if (!groupedData[vKey]) groupedData[vKey] = {};
+                if (!groupedData[vKey][catName]) groupedData[vKey][catName] = [];
+                groupedData[vKey][catName].push(s);
+            });
+
+            // 3. Ordina le chiavi (es. 'common' sempre per primo)
+            const sortedVerticalKeys = Object.keys(groupedData).sort((a, b) => {
+                if (a === 'common') return -1;
+                if (b === 'common') return 1;
+                return a.localeCompare(b);
+            });
+
+            // 4. Renderizza ciclando dinamicamente su sortedVerticalKeys -> categorie -> singoli servizi
+            sortedVerticalKeys.forEach(vKey => {
+                // Se l'utente seleziona il tab "TUTTI" (ALL): i controlli devono essere raggruppati prima per Verticale
+                if (activeCategory === 'ALL') {
+                    const vertHeader = document.createElement('div');
+                    vertHeader.className = 'pt-4 pb-1 border-b border-gray-150 mt-4 mb-2';
+                    vertHeader.innerHTML = `
+                        <span class="label-micro flex items-center gap-1.5 text-black font-black">
+                            <span class="text-sm">${getVerticalEmoji(vKey)}</span>
+                            ${getVerticalLabel(vKey).toUpperCase()}
+                        </span>
+                    `;
+                    grid.appendChild(vertHeader);
+                }
+
+                // Categorie ordinate alfabeticamente
+                const catNames = Object.keys(groupedData[vKey]).sort();
+                catNames.forEach(catName => {
+                    const services = groupedData[vKey][catName];
+                    const activeCount = services.filter(isServiceActive).length;
+
+                    // Creiamo il contenitore card-noir per questa categoria
+                    const catEl = document.createElement("div");
+                    catEl.className = "card-noir overflow-hidden transition-all fade-in-up mb-4";
+
+                    catEl.innerHTML = `
+                        <div class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition select-none" onclick="toggleCat(this)">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 bg-black text-white rounded-lg flex items-center justify-center font-black text-[10px]">
+                                    ${services.length}
+                                </div>
+                                <div class="flex flex-col">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-black text-xs uppercase tracking-tight">${catName}</span>
+                                        ${activeCount > 0 ? `<span class="bg-blue-600 text-white text-[7px] px-1.5 py-0.5 rounded-full font-black shadow-sm">${activeCount}</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down text-[10px] text-gray-200 transition-transform ml-1 mr-2"></i>
+                        </div>
+                        <div class="cat-body border-t border-gray-50 hidden">
+                            <div class="prod-list divide-y divide-gray-50"></div>
+                        </div>
+                    `;
+
+                    const prodList = catEl.querySelector(".prod-list");
+                    services.forEach(service => {
+                        const row = buildCatalogServiceRow(service);
+                        if (row) prodList.appendChild(row);
+                    });
+
+                    grid.appendChild(catEl);
+                });
+            });
+
+            // Aggiorna statistiche globali sulla base dei controlli reali presenti in catalog_active e sullo stato locale
+            updateStatsStrip();
+        }
+
+        // Riga di visualizzazione servizio del catalogo attivo
+        function buildCatalogServiceRow(service) {
+            const vKey = getVerticalForService(service);
+            const emoji = getVerticalEmoji(vKey);
+            const sku = service.service_sku;
+
+            const state = checklistState[sku] || {};
+            const dossier = getDossierBySku(sku);
+            let listItems = [];
+            if (dossier && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE.compliance_checklist) {
+                listItems = dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE.compliance_checklist;
+            } else {
+                listItems = [{ id: 'Q1' }, { id: 'Q2' }, { id: 'Q3' }];
+            }
+
+            const total = listItems.length;
+            const done = listItems.filter(item => state[item.id || item.question_id]).length;
+            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+            const isComplete = total > 0 && done === total;
+
+            let statusClass = 'bg-gray-100 text-gray-400';
+            let statusLabel = 'Da verificare';
+            if (isComplete) { 
+                statusClass = 'bg-green-50 text-green-600'; 
+                statusLabel = 'Certificato ✓'; 
+            } else if (done > 0) { 
+                statusClass = 'bg-orange-50 text-orange-500'; 
+                statusLabel = `${done}/${total} spunte`; 
+            }
+
+            let actionArea = `<i class="fas fa-chevron-right text-gray-200 text-xs group-hover:text-black transition-colors shrink-0"></i>`;
+            
+            const active = isServiceActive(service);
+            if (!active) {
+                statusClass = 'bg-red-50 text-red-500';
+                statusLabel = 'Inattivo';
+                actionArea = `
+                    <button onclick="event.stopPropagation(); activateService('${sku}')" class="px-5 h-10 bg-blue-600 text-white rounded-xl text-[8px] font-black uppercase tracking-widest active:scale-90 transition shadow-sm shrink-0 z-10">
+                        Attiva
+                    </button>
+                `;
+            }
+
+            const isSop = !(service.categoria_padre || '').toUpperCase().includes('[SER]');
+            const schedDays = service.days !== undefined && service.days !== null ? service.days : service.scheduling_interval;
+            const schedulingLabel = formatSchedulingInterval(schedDays, isSop);
+
+            const div = document.createElement('div');
+            const statusBorder = active ? 'border-l-4 border-black bg-white/70' : 'border-l-4 border-gray-200 bg-gray-50/50';
+            div.className = `flex justify-between items-center p-4 transition hover:bg-gray-50 cursor-pointer group ${statusBorder}`;
+            div.onclick = () => {
+                if (!active) {
+                    activateService(sku);
+                } else {
+                    openCatalogServiceDetail(service);
+                }
+            };
+            div.innerHTML = `
+                <div class="flex items-center gap-3 flex-1 min-w-0 pr-4">
+                    <div class="w-10 h-10 rounded-xl bg-gray-100/80 border border-gray-200/50 flex items-center justify-center text-xl shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
+                        ${emoji}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-[11px] uppercase tracking-tight leading-tight truncate text-black">${service.service_name}</h3>
+                        ${active ? `
+                            <div class="flex items-center gap-2 mt-1.5 max-w-[120px]">
+                                <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                                    <div class="h-full bg-black rounded-full progress-fill" style="width: ${pct}%"></div>
+                                </div>
+                                <span class="text-[7px] font-black text-gray-400 shrink-0">${pct}%</span>
+                            </div>
+                        ` : ''}
+                        <div class="mt-1 flex flex-wrap gap-1.5">
+                            <span class="text-[7px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${statusClass}">${statusLabel}</span>
+                            ${schedulingLabel ? `<span class="text-[7px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-50 text-gray-500 border border-gray-200/40">${schedulingLabel}</span>` : ''}
+                            <span class="text-[7px] font-mono text-gray-400 mt-0.5">${sku}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    ${actionArea}
+                </div>
+            `;
+            return div;
+        }
+
+        // Funzione per il reindirizzamento dei servizi inattivi su catalog.html
+        function activateService(sku) {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+
+            // 1. Recupera i parametri di sessione correnti (es. ash)
+            const currentParams = new URLSearchParams(window.location.search);
+            const ashVal = currentParams.get('ash') || '';
+
+            // 2. Costruisce i nuovi parametri per catalog.html
+            const redirectParams = new URLSearchParams();
+            
+            // Preserva la sessione
+            if (ashVal) {
+                redirectParams.set('ash', ashVal);
+            }
+
+            // Imposta il parametro 'msg' per catalog.html
+            redirectParams.set('msg', sku);
+
+            // 3. Esegue il reindirizzamento alla pagina del catalogo (una cartella indietro)
+            const targetUrl = `../catalog.html?${redirectParams.toString()}`;
+            window.location.href = targetUrl;
+        }
+
+        function updateStatsStrip() {
+            let total = 0;
+            let pending = 0;
+            let done = 0;
+
+            catalogActive.forEach(s => {
+                if (isServiceActive(s)) {
+                    total++;
+                    const sku = s.service_sku;
+                    const isSavedOnServer = !!(serverChecklistState && serverChecklistState[sku]);
+                    if (isSavedOnServer) {
+                        done++;
+                    } else {
+                        pending++;
+                    }
+                }
+            });
+
+            document.getElementById('stat-services').textContent = total;
+            document.getElementById('stat-pending').textContent = pending;
+            document.getElementById('stat-done').textContent = done;
+        }
+
+        // ── DETAIL TAB SWITCHER ────────────────────────────────────────────────────
+        function switchDetailTab(tab) {
+            const isChecklist = tab === 'checklist';
+            document.getElementById('detail-tab-checklist').classList.toggle('hidden', !isChecklist);
+            document.getElementById('detail-tab-dvr').classList.toggle('hidden', isChecklist);
+            document.getElementById('dtab-checklist').classList.toggle('active', isChecklist);
+            document.getElementById('dtab-dvr').classList.toggle('active', !isChecklist);
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
+
+
+
+        // ── APRI DETTAGLIO SPECIFICO SERVIZIO CATALOGO ──
+        function openCatalogServiceDetail(service) {
+            currentServiceSku = service.service_sku;
+            const vKey = getVerticalForService(service);
+            const emoji = getVerticalEmoji(vKey);
+            const dossier = getDossierBySku(currentServiceSku);
+
+            switchDetailTab('checklist');
+
+            document.getElementById('detail-category').textContent = service.categoria_padre || 'Servizio Clinico';
+            document.getElementById('detail-service-name').textContent = service.service_name;
+            document.getElementById('detail-sku').textContent = `SKU: ${currentServiceSku} — Settore: ${vKey.toUpperCase()}`;
+            document.getElementById('detail-emoji').textContent = emoji;
+
+            const metaEl = document.getElementById('detail-meta');
+            metaEl.innerHTML = '';
+
+            const isSop = !(service.categoria_padre || '').toUpperCase().includes('[SER]');
+            const schedDays = service.days !== undefined && service.days !== null ? service.days : service.scheduling_interval;
+            const schedulingLabel = formatSchedulingInterval(schedDays, isSop);
+            if (schedulingLabel) {
+                metaEl.innerHTML += `<span class="text-[8px] font-black uppercase bg-black text-white px-2 py-1 rounded-lg shadow-sm">${schedulingLabel}</span>`;
+            }
+
+            if (dossier && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE) {
+                const comp = dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE;
+                if (comp.target_price) {
+                    metaEl.innerHTML += `<span class="text-[8px] font-black uppercase bg-gray-100 text-gray-600 px-2 py-1 rounded-lg">Target: ${comp.target_price}</span>`;
+                }
+                if (comp.positioning) {
+                    metaEl.innerHTML += `<span class="text-[8px] font-black uppercase bg-gray-100 text-gray-600 px-2 py-1 rounded-lg">${comp.positioning}</span>`;
+                }
+            }
+
+            if (metaEl.innerHTML) {
+                metaEl.classList.remove('hidden');
+            } else {
+                metaEl.classList.add('hidden');
+            }
+
+            const sopContainer = document.getElementById('sop-execution-container');
+            if (sopContainer) {
+                sopContainer.classList.add('hidden');
+            }
+
+            // Normative e Leggi
+            let rawLaws = '';
+            if (dossier && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE.regulatory_framework) {
+                const framework = dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE.regulatory_framework;
+                rawLaws = [
+                    framework.medical_device_directive,
+                    framework.professional_liability,
+                    framework.deontology_rules,
+                    framework.deontology_marketing_rules,
+                    framework.gdpr_compliance
+                ].filter(Boolean).join(', ');
+            }
+            if (!rawLaws) {
+                rawLaws = "D.Lgs. 81/08 (T.U. Sicurezza Lavoro), Linee Guida di settore.";
+            }
+            buildRegulatoryGridForVertical(rawLaws);
+
+            // Mostriamo la sezione della valutazione del rischio INAIL
+            const section = document.getElementById('rischio-inail-section');
+            if (section) section.classList.remove('hidden');
+
+            // Caricamento checklist da dossier reale
+            let listItems = [];
+            if (dossier && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE.compliance_checklist) {
+                listItems = dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE.compliance_checklist.map(item => ({
+                    id: item.id,
+                    area: item.area || 'Compliance',
+                    action: item.action || '',
+                    owner: item.owner || 'Operatore'
+                }));
+            } else {
+                listItems = [
+                    { id: 'Q1', area: 'Sicurezza', action: 'Verificare conformità attrezzature e presenza di DPI idonei.', owner: 'Operatore' },
+                    { id: 'Q2', area: 'Procedura', action: 'Eseguire la procedura secondo il protocollo operativo standard approvato.', owner: 'Operatore' },
+                    { id: 'Q3', area: 'Tracciabilità', action: 'Registrare l\'avvenuta operazione sul registro di conformità dello studio.', owner: 'Operatore' }
+                ];
+            }
+
+            currentChecklistItems = listItems;
+            buildChecklist(listItems, currentServiceSku);
+            updateDetailProgress(currentServiceSku, listItems);
+
+            // Inizializziamo il rischio di partenza locale (fallback/starting risk immediato)
+            initializeServiceRiskMatrix(service, listItems);
+
+            // Note regionali e territoriali
+            buildRegionalSectionForVertical(vKey);
+
+            // Avvertenze rischi
+            let warnings = [];
+            if (dossier && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE.risk_warnings) {
+                warnings = dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE.risk_warnings;
+            }
+            buildWarnings(warnings);
+
+            // Documento DVR di singola prestazione
+            buildSingleServiceDVRPage(service, listItems);
+
+            // Switcha view
+            document.getElementById('view-list').classList.add('hidden');
+            document.getElementById('view-detail').classList.remove('hidden');
+            document.getElementById('view-detail').classList.add('view-slide');
+
+            if (tg.BackButton) {
+                tg.BackButton.show();
+                tg.BackButton.onClick(() => goBackToList());
+            }
+
+            document.getElementById('view-detail').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function initializeServiceRiskMatrix(service, listItems) {
+            const sku = service.service_sku;
+            const vKey = getVerticalForService(service);
+
+            // 1. Recupera i parametri fisici di base ereditati dal comparto padre
+            const param = parametriVerticali[vKey] || { D: 2, C: 1, desc_d: '', desc_c: '', normativa_rif: '' };
+            const dPartenza = param.D || 2;
+            const cPartenza = param.C || 1;
+            const rPartenza = 4 * dPartenza;
+
+            // 2. Legge i valori di rischio e giustificazione dalla collezione separata delle checklist
+            const savedSkuData = (serverChecklistState && serverChecklistState[sku]) ? serverChecklistState[sku] : null;
+
+            let d = dPartenza;
+            let c = cPartenza;
+            let p = 4;
+            let r = rPartenza;
+            let justification = "";
+
+            if (savedSkuData && (savedSkuData.D !== undefined || savedSkuData.overall_justification)) {
+                // Se esiste un salvataggio precedente nel DB, carica quei valori esatti
+                d = savedSkuData.D || dPartenza;
+                c = savedSkuData.C || cPartenza;
+                p = savedSkuData.P || 4;
+                r = savedSkuData.R || (d * p);
+                justification = savedSkuData.overall_justification || "";
+            } else {
+                // Fallback locale in assenza di record su DB (calcolo basato sulle risposte locali)
+                const state = checklistState[sku] || {};
+                const total = listItems.length;
+                const checkedCount = listItems.filter(item => state[item.id || item.question_id]).length;
+
+                if (total > 0 && checkedCount > 0) {
+                    const fraction = checkedCount / total;
+                    p = Math.max(1, Math.min(4, Math.round(4 - (3 * fraction))));
+                }
+                r = p * d;
+                justification = `Rischio di partenza valutato a livello di sicurezza di comparto. Livello iniziale massimo pari a R = ${4 * d}. Il rischio attuale calcolato in base alle misure implementate si attesta a R = ${r} (Danno D = ${d}, Probabilità residua P = ${p}). Clicca sulle singole azioni per avviare il ricalcolo analitico in tempo reale su MongoDB.`;
+            }
+
+            // 3. Applica visivamente i dati alla matrice INAIL sul client
+            applyServerRiskAnalysis({
+                D: d,
+                C: c,
+                P: p,
+                R: r,
+                justification: justification
+            });
+        }
+
+        // ── REGULATORY GRID ───────────────────────────────────────────────────────
+        function buildRegulatoryGrid(rf) {
+            const grid = document.getElementById('regulatory-grid');
+            grid.innerHTML = '';
+
+            const fields = [
+                { key: 'medical_device_directive', label: '🏥 Dispositivi Medici', icon: 'fa-notes-medical' },
+                { key: 'professional_liability', label: '⚖️ Responsabilità Prof.', icon: 'fa-balance-scale' },
+                { key: 'deontology_rules', label: '📜 Deontologia', icon: 'fa-gavel' },
+                { key: 'gdpr_compliance', label: '🔒 GDPR Privacy', icon: 'fa-shield-alt' }
+            ];
+
+            let hasContent = false;
+            fields.forEach(f => {
+                if (rf[f.key]) {
+                    hasContent = true;
+                    const el = document.createElement('div');
+                    el.className = 'reg-pill space-y-0.5';
+                    el.innerHTML = `
+                        <p class="font-black text-[8px] uppercase tracking-widest text-gray-400">${f.label}</p>
+                        <p class="text-[10px] text-gray-700 font-medium leading-snug">${rf[f.key]}</p>
+                    `;
+                    grid.appendChild(el);
+                }
+            });
+
+            if (!hasContent) {
+                grid.innerHTML = '<p class="text-[10px] text-gray-400 italic py-2">Nessuna normativa specifica disponibile.</p>';
+            }
+        }
+
+        function getSchedulingIntervalForStep(sku, item) {
+            const itemId = item.id || item.question_id || "";
+            // Gestione dei controlli del comparto Sede / Misure Comuni
+            if (sku === 'common' || sku === 'comune') {
+                if (itemId === 'com_q1' || itemId === 'common-1') return 180; // Semestrale
+                if (itemId === 'com_q2' || itemId === 'common-2') return 730; // Biennale
+                if (itemId === 'com_q3' || itemId === 'common-3') return 365; // Annuale
+            }
+
+            // Ricerca nei controlli di mitigazione del database per i servizi commerciali
+            const mitigationData = (mitigationControls || []).find(m => m && m.service_sku && m.service_sku.toUpperCase() === sku.toUpperCase());
+            if (!mitigationData || !mitigationData.controlli_mitigazione) return null;
+
+            const actionText = (item.action || item.text || "").toLowerCase();
+            let bestMatch = null;
+            let maxOverlap = 0;
+
+            const stopWords = ['e', 'di', 'il', 'la', 'i', 'le', 'un', 'una', 'in', 'con', 'su', 'al', 'ai', 'per', 'da', 'del', 'della', 'degli', 'delle'];
+            const actionWords = actionText.split(/[^a-zA-Z0-9]/).filter(w => w.length > 2 && !stopWords.includes(w));
+
+            mitigationData.controlli_mitigazione.forEach(mit => {
+                const mitText = ((mit.fase_operativa || "") + " " + (mit.check_prestabilito || "")).toLowerCase();
+                const mitWords = mitText.split(/[^a-zA-Z0-9]/).filter(w => w.length > 2 && !stopWords.includes(w));
+
+                let overlap = 0;
+                actionWords.forEach(w => {
+                    if (mitWords.includes(w)) {
+                        overlap++;
+                    }
+                });
+
+                if (overlap > maxOverlap) {
+                    maxOverlap = overlap;
+                    bestMatch = mit;
+                }
+            });
+
+            if (bestMatch && maxOverlap > 0) {
+                return bestMatch.scheduling_interval_days || null;
+            }
+            return null;
+        }
+
+        // ── CHECKLIST ─────────────────────────────────────────────────────────────
+        function buildChecklist(items, sku) {
+            const container = document.getElementById('checklist-container');
+            container.innerHTML = '';
+
+            if (items.length === 0) {
+                container.innerHTML = '<div class="p-5 text-center text-gray-400 text-xs italic">Nessuna azione di conformità definita.</div>';
+                return;
+            }
+
+            const state = checklistState[sku] || {};
+
+            items.forEach(item => {
+                const itemId = item.id || item.question_id;
+                const isChecked = !!state[itemId];
+                
+                // Determina se questa specifica spunta ha necessità di schedule
+                const stepDays = getSchedulingIntervalForStep(sku, item);
+                const hasStepSchedule = stepDays !== null && stepDays > 0;
+
+                // Recupera la data salvata per questa specifica spunta
+                const savedData = (serverChecklistState && serverChecklistState[sku] && serverChecklistState[sku].answers && serverChecklistState[sku].answers[itemId]) ? serverChecklistState[sku].answers[itemId] : {};
+                const savedDate = savedData.executed_at || state[itemId + '_date'] || "";
+
+                const row = document.createElement('div');
+                row.className = `chk-row px-4 py-3.5 flex flex-col gap-2 border-b border-gray-100/50 ${isChecked ? 'done' : ''}`;
+                row.id = `row-${sku}-${itemId}`;
+
+                row.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div class="chk-box mt-0.5 ${isChecked ? 'checked' : ''}" id="chk-${sku}-${itemId}" onclick="toggleCheck('${sku}', '${itemId}')"></div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center flex-wrap gap-1.5 mb-1">
+                                <span class="area-badge">${item.area || 'Azione'}</span>
+                                <span class="label-micro text-gray-300">${itemId}</span>
+                                ${hasStepSchedule ? `<span class="text-[7px] font-black uppercase bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full border border-blue-200/40">${formatSchedulingInterval(stepDays, true)}</span>` : ''}
+                            </div>
+                            <p class="text-xs font-semibold text-gray-700 leading-snug ${isChecked ? 'line-through opacity-50' : ''}" id="action-text-${sku}-${itemId}">${item.action || item.text}</p>
+                            ${item.owner ? `<p class="text-[9px] text-gray-400 font-medium mt-1"><i class="fas fa-user-tie text-[8px] mr-0.5"></i>${item.owner}</p>` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Selettore della data specifico per gli step con schedule (sempre visibile) -->
+                    ${hasStepSchedule ? `
+                        <div id="date-container-${sku}-${itemId}" class="mt-1 pl-8 flex items-center gap-2">
+                            <label for="date-input-${sku}-${itemId}" class="text-[8px] font-black uppercase text-gray-400 shrink-0">Data ultima verifica:</label>
+                            <input type="date" id="date-input-${sku}-${itemId}" value="${savedDate}" class="bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-[10px] font-bold focus:border-black outline-none transition" onchange="updateStepDate('${sku}', '${itemId}', this.value)" />
+                        </div>
+                    ` : ''}
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function updateStepDate(sku, chkId, dateVal) {
+            if (!checklistState[sku]) checklistState[sku] = {};
+            checklistState[sku][chkId + '_date'] = dateVal;
+        }
+
+        async function toggleCheck(sku, chkId) {
+            if (!checklistState[sku]) checklistState[sku] = {};
+
+            // 1. Congela l'intera checklist per evitare click multipli o paralleli su altre caselle
+            const container = document.getElementById('checklist-container');
+            if (container) container.style.pointerEvents = "none";
+
+            // Inseriamo un micro-spinner nero dentro la casella per dare feedback visivo immediato
+            const box = document.getElementById(`chk-${sku}-${chkId}`);
+            if (box) {
+                box.innerHTML = '<i class="fas fa-spinner fa-spin text-[10px] text-black"></i>';
+                box.style.borderColor = "#000000";
+            }
+
+            // Cambiamo lo stato logico locale
+            checklistState[sku][chkId] = !checklistState[sku][chkId];
+            const isChecked = checklistState[sku][chkId];
+
+            // Seleziona il date picker specifico (che è sempre visibile) e precompila se spuntato e vuoto
+            const dateContainer = document.getElementById(`date-container-${sku}-${chkId}`);
+            if (dateContainer) {
+                const inputDate = document.getElementById(`date-input-${sku}-${chkId}`);
+                if (isChecked && inputDate && !inputDate.value) {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    inputDate.value = todayStr;
+                    updateStepDate(sku, chkId, todayStr);
+                }
+            }
+
+            if (!serverChecklistState) serverChecklistState = {};
+            if (!serverChecklistState[sku]) {
+                serverChecklistState[sku] = {
+                    service_sku: sku,
+                    answers: {}
+                };
+            }
+
+            // Stato di caricamento visivo sulla scheda INAIL
+            const pointer = document.getElementById('inail-risk-pointer');
+            if (pointer) pointer.style.opacity = "0.5";
+            const justEl = document.getElementById('inail-justification');
+            if (justEl) justEl.textContent = "Ricalcolo del rischio in corso su MongoDB...";
+
+            // Estrazione dati dal Catalogo e dal Dossier
+            const service = catalogActive.find(s => s.service_sku === sku) || {};
+            const dossier = getDossierBySku(sku);
+
+            const serviceName = service.service_name || "";
+            const category = service.categoria_padre || "";
+            const vKey = getVerticalForService(service);
+
+            // Calcolo parametri di partenza locali da passare al backend
+            const param = parametriVerticali[vKey] || { D: 2, C: 1 };
+            const dPartenza = param.D || 2;
+            const cPartenza = param.C || 1;
+            const rPartenza = 4 * dPartenza; // Il rischio massimo iniziale (con Probabilità = 4)
+
+            let serviceDescription = "";
+            let riskWarnings = [];
+            let listItems = [];
+
+            if (dossier && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE) {
+                const comp = dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE;
+                serviceDescription = comp.positioning || "";
+                riskWarnings = comp.risk_warnings || [];
+                listItems = comp.compliance_checklist || [];
+            } else {
+                listItems = [{ id: 'Q1' }, { id: 'Q2' }, { id: 'Q3' }];
+            }
+
+            const targetItem = listItems.find(item => (item.id || item.question_id) === chkId) || {};
+            const targetLabel = targetItem.area || "Compliance";
+            const targetDescription = targetItem.action || targetItem.text || "";
+
+            // Recupera la giustificazione attualmente visibile a schermo prima dell'aggiornamento
+            const justElText = document.getElementById('inail-justification');
+            const previousJustification = (justElText && justElText.textContent) ? justElText.textContent.trim() : "Non ci sono analisi precedenti.";
+
+            const isSop = !(service.categoria_padre || '').toUpperCase().includes('[SER]');
+            const daysVal = service.days !== undefined && service.days !== null ? service.days : (service.scheduling_interval !== undefined ? service.scheduling_interval : null);
+            let lastExecutedVal = null;
+            if (isSop && daysVal !== undefined && daysVal !== null && daysVal > 0) {
+                const state = checklistState[sku] || {};
+                let latestDate = null;
+                listItems.forEach(item => {
+                    const id = item.id || item.question_id;
+                    const stepDays = getSchedulingIntervalForStep(sku, item);
+                    if (stepDays !== null && stepDays > 0) {
+                        const dateInput = document.getElementById(`date-input-${sku}-${id}`);
+                        const dateVal = dateInput ? dateInput.value : (state[id + '_date'] || null);
+                        if (dateVal) {
+                            if (!latestDate || dateVal > latestDate) {
+                                latestDate = dateVal;
+                            }
+                        }
+                    }
+                });
+                lastExecutedVal = latestDate;
+            }
+
+            let targetExecutedAt = null;
+            const dateInput = document.getElementById(`date-input-${sku}-${chkId}`);
+            if (dateInput) {
+                targetExecutedAt = dateInput.value || null;
+            }
+
+            try {
+                const payload = {
+                    _auth: tg.initData,
+                    ash: ash,
+                    action: 'analyze',
+                    service_sku: sku,
+                    service_name: serviceName,
+                    service_category: category,
+                    service_description: serviceDescription,
+                    risk_warnings: riskWarnings,
+                    scheduling_interval: daysVal,
+                    last_executed: lastExecutedVal,
+
+                    // Dati della specifica spunta in analisi (testi reali)
+                    target_question_id: chkId,
+                    target_checked: isChecked,
+                    target_label: targetLabel,
+                    target_description: targetDescription,
+                    target_executed_at: targetExecutedAt,
+
+                    // Parametri di partenza fisici ereditati dal comparto padre
+                    starting_damage: dPartenza,
+                    starting_contamination: cPartenza,
+                    starting_risk: rPartenza,
+
+                    // Passiamo la giustificazione precedente per consentire la riformulazione cumulativa
+                    previous_justification: previousJustification,
+
+                    // Stato complessivo piatto (solo ID e booleani)
+                    checklist_state: checklistState[sku]
+                };
+
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error("Errore nell'analisi");
+
+                const result = await response.json();
+                applyServerRiskAnalysis(result);
+
+            } catch (err) {
+                console.error("Errore analisi:", err);
+                if (justEl) justEl.textContent = "Impossibile allineare il rischio. Salva per confermare.";
+            } finally {
+                // Ripristiniamo la casella nel suo stato finale (checked o empty)
+                if (box) {
+                    box.innerHTML = ''; // Rimuove lo spinner
+                    box.classList.toggle('checked', isChecked);
+                }
+
+                // Aggiorniamo graficamente la riga cliccata
+                const rowElement = document.getElementById(`row-${sku}-${chkId}`);
+                if (rowElement) {
+                    rowElement.classList.toggle('done', isChecked);
+                    const actionText = document.getElementById(`action-text-${sku}-${chkId}`);
+                    if (actionText) {
+                        actionText.classList.toggle('line-through', isChecked);
+                        actionText.classList.toggle('opacity-50', isChecked);
+                    }
+                }
+
+                // Sblocchiamo l'intera checklist riattivando i click su tutte le caselle
+                if (container) container.style.pointerEvents = "auto";
+            }
+
+            // Aggiorna progressi e anteprima DVR
+            updateDetailProgress(sku, listItems);
+            if (service.service_sku) {
+                buildSingleServiceDVRPage(service, listItems);
+            }
+        }
+
+        function applyServerRiskAnalysis(result) {
+            // Estrae i valori calcolati dal server o imposta fallback ragionevoli
+            const d = result.D || result.Danno || 2;
+            const c = result.C || result.Contaminazione || 1;
+            const p = result.P || result.Probabilita || 2;
+            const r = result.R || result.Rischio || (d * p);
+            const justification = result.justification || result.motivazione || "";
+
+            // Aggiorna i testi dei coefficienti
+            const dEl = document.getElementById('inail-val-d');
+            const cEl = document.getElementById('inail-val-c');
+            const pEl = document.getElementById('inail-val-p');
+            const rEl = document.getElementById('inail-val-r');
+
+            if (dEl) dEl.textContent = d;
+            if (cEl) cEl.textContent = c;
+            if (pEl) pEl.textContent = p;
+            if (rEl) rEl.textContent = r;
+
+            // Aggiorna il badge colorato del rischio
+            const badge = document.getElementById('inail-risk-badge');
+            const label = document.getElementById('inail-risk-label');
+            if (badge && label) {
+                badge.className = 'risk-badge-wrap';
+                let riskLabel = 'BASSO';
+                if (r >= 8) {
+                    badge.classList.add('risk-high');
+                    riskLabel = 'ALTO';
+                } else if (r >= 4) {
+                    badge.classList.add('risk-mid');
+                    riskLabel = 'MEDIO';
+                } else {
+                    badge.classList.add('risk-low');
+                    riskLabel = 'BASSO';
+                }
+                label.textContent = `RISCHIO: ${riskLabel}`;
+            }
+
+            // Riposiziona il cursore visivo sulla barra sfumata basandosi sulla Probabilità (P)
+            const pointer = document.getElementById('inail-risk-pointer');
+            if (pointer) {
+                pointer.style.opacity = "1";
+                // P va da 1 (sicuro, a sinistra) a 4 (pericoloso, a destra)
+                const leftPct = ((p - 1) / 3) * 80 + 10;
+                pointer.style.left = `${leftPct}%`;
+            }
+
+            // Mostra la giustificazione clinica/normativa restituita da Gemini/Server
+            const justEl = document.getElementById('inail-justification');
+            if (justEl) {
+                justEl.textContent = justification;
+                justEl.classList.toggle('hidden', !justification);
+            }
+
+            // Assicuriamoci che la sezione della matrice sia visibile
+            const section = document.getElementById('rischio-inail-section');
+            if (section) section.classList.remove('hidden');
+        }
+
+        function updateDetailProgress(sku, checklist) {
+            const state = checklistState[sku] || {};
+            const done = checklist.filter(c => state[c.id || c.question_id]).length;
+            const total = checklist.length;
+            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+            const bar = document.getElementById('detail-progress-bar');
+            const label = document.getElementById('detail-pct');
+            if (bar) bar.style.width = `${pct}%`;
+            if (label) label.textContent = `${done} / ${total}`;
+        }
+
+        function resetServiceChecklist() {
+            if (!currentServiceSku) return;
+            const sku = currentServiceSku;
+            safeConfirm('Resettare tutte le spunte?', (confirmed) => {
+                if (!confirmed) return;
+                checklistState[sku] = {};
+
+                const service = catalogActive.find(s => s.service_sku === sku);
+                if (!service) return;
+
+                const dossier = getDossierBySku(sku);
+                let listItems = [];
+                if (dossier && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE.compliance_checklist) {
+                    listItems = dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE.compliance_checklist.map(item => ({
+                        id: item.id,
+                        area: item.area || 'Compliance',
+                        action: item.action || '',
+                        owner: item.owner || 'Operatore'
+                    }));
+                } else {
+                    listItems = [
+                        { id: 'Q1', area: 'Sicurezza', action: 'Verificare conformità attrezzature e presenza di DPI idonei.', owner: 'Operatore' },
+                        { id: 'Q2', area: 'Procedura', action: 'Eseguire la procedura secondo il protocollo operativo standard approvato.', owner: 'Operatore' },
+                        { id: 'Q3', area: 'Tracciabilità', action: 'Registrare l\'avvenuta operazione sul registro di conformità dello studio.', owner: 'Operatore' }
+                    ];
+                }
+                buildChecklist(listItems, sku);
+                updateDetailProgress(sku, listItems);
+
+                // Ripristina il rischio massimo di partenza locale dopo il reset delle spunte
+                initializeServiceRiskMatrix(service, listItems);
+
+                buildSingleServiceDVRPage(service, listItems);
+
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+            });
+        }
+
+        // ── RISK WARNINGS ─────────────────────────────────────────────────────────
+        function buildWarnings(warnings) {
+            const section = document.getElementById('warnings-section');
+            const container = document.getElementById('warnings-container');
+            container.innerHTML = '';
+
+            if (warnings.length === 0) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            section.classList.remove('hidden');
+            warnings.forEach(w => {
+                const el = document.createElement('div');
+                el.className = 'risk-tag';
+                el.innerHTML = `<i class="fas fa-exclamation-circle text-red-400 shrink-0 mt-0.5"></i><span>${w}</span>`;
+                container.appendChild(el);
+            });
+        }
+
+        // ── GLOBAL PROGRESS ───────────────────────────────────────────────────────
+        function updateGlobalProgress() {
+            let totalChks = 0;
+            let doneChks = 0;
+
+            // Calcola progressi basati sui singoli servizi attivi
+            catalogActive.forEach(s => {
+                if (!isServiceActive(s)) return; // Salta i servizi non attivi
+
+                const sku = s.service_sku;
+                const dossier = getDossierBySku(sku);
+                let listItems = [];
+                if (dossier && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE.compliance_checklist) {
+                    listItems = dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE.compliance_checklist;
+                } else {
+                    listItems = [{ id: 'Q1' }, { id: 'Q2' }, { id: 'Q3' }];
+                }
+                listItems.forEach(q => {
+                    totalChks++;
+                    if (checklistState[sku] && checklistState[sku][q.id || q.question_id]) {
+                        doneChks++;
+                    }
+                });
+            });
+
+            const pct = totalChks > 0 ? Math.round((doneChks / totalChks) * 100) : 0;
+            const bar = document.getElementById('global-progress-bar');
+            const label = document.getElementById('global-pct');
+            if (bar) bar.style.width = `${pct}%`;
+            if (label) label.textContent = `${pct}%`;
+        }
+
+        function getTenantData() {
+            let activeVerts = ownerData.activeVerticals || ownerData.active_verticals || ownerData.verticals || [];
+            if (activeVerts.length === 0 && ownerData.assessments) {
+                activeVerts = ownerData.assessments.map(a => a.vertical).filter(Boolean);
+            }
+            if (activeVerts.length === 0 && catalogActive.length > 0) {
+                const detected = new Set(catalogActive.map(s => getVerticalForService(s)));
+                activeVerts = ['common', ...detected];
+            }
+            if (!activeVerts.includes('common')) {
+                activeVerts.unshift('common');
+            }
+            activeVerts = [...new Set(activeVerts)];
+
+            const gm = ownerData.securityMetadata || ownerData.security_metadata || ownerData.generalMetadata || ownerData.general_metadata || {};
+
+            const rspp = (gm.rspp || ownerData.rspp || '').trim() || '___________________________';
+            const medicoCompetente = (gm.medicoCompetente || gm.medico_competente || ownerData.medico_competente || '').trim() || '___________________________';
+            const rls = (gm.rls || ownerData.rls || '').trim() || '___________________________';
+
+            let addettiEmergenza = gm.addettiEmergenza || gm.addetti_emergenza || ownerData.addetti_emergenza || '';
+            if (typeof addettiEmergenza === 'string') {
+                addettiEmergenza = addettiEmergenza.split(',').map(s => s.trim()).filter(Boolean);
+            }
+            if (!Array.isArray(addettiEmergenza) || addettiEmergenza.length === 0) {
+                addettiEmergenza = ['___________________________'];
+            }
+
+            return {
+                ragioneSociale: ownerData.ragione_sociale || ownerData.name || 'POLIAMBULATORIO & SPA SAN RAFFAELE S.R.L.',
+                pIva: ownerData.vat_number || ownerData.p_iva || 'N/D',
+                indirizzo: ownerData.indirizzo || ownerData.address || 'N/D',
+                activeVerticals: activeVerts,
+                generalMetadata: {
+                    rspp: rspp,
+                    medicoCompetente: medicoCompetente,
+                    rls: rls,
+                    addettiEmergenza: addettiEmergenza
+                }
+            };
+        }
+
+        function getVerticalForService(service) {
+            if (!service) return 'common';
+            return (service.vertical || 'common').toLowerCase().trim();
+        }
+
+        function getCommonService() {
+            return {
+                service_sku: 'common',
+                service_name: 'Misure Comuni (Sede e Sicurezza Generale)',
+                categoria_padre: 'Infrastruttura',
+                short_name: '🏠 Misure Comuni'
+            };
+        }
+
+        function getCommonDossier() {
+            const bp = FATTORI_RISCHIO_BOILERPLATE.common;
+            const chk = bp.misure_prevenzione.map((text, i) => {
+                let area = 'Prevenzione';
+                if (text.toLowerCase().includes('verifica')) area = 'Verifica';
+                if (text.toLowerCase().includes('formazione') || text.toLowerCase().includes('addestramento')) area = 'Formazione';
+                return {
+                    id: `common-${i + 1}`,
+                    area: area,
+                    action: text,
+                    owner: 'Datore di Lavoro'
+                };
+            });
+
+            // Risolto il bug: rimpiazzata la funzione eliminata con un oggetto statico sicuro
+            const risk = { D: 2, P: 2, R: 4, livello: 'BASSO' };
+
+            return {
+                MODULE_4_PRODUCT_SERVICE_COMPLIANCE: {
+                    item_name: 'Misure Comuni (Sede e Sicurezza Generale)',
+                    target_price: '',
+                    positioning: 'Sicurezza Infrastrutturale',
+                    regulatory_framework: {
+                        medical_device_directive: '',
+                        professional_liability: '',
+                        deontology_rules: '',
+                        gdpr_compliance: bp.riferimento_legislativo
+                    },
+                    compliance_checklist: chk,
+                    regional_specifications: {
+                        local_authority_notes: 'Vigili del Fuoco, ATS territorialmente competente',
+                        waste_disposal: 'Smaltimento rifiuti in conformità al D.Lgs. 152/06'
+                    },
+                    risk_warnings: [
+                        'Verificare costantemente l\'efficienza delle via di esodo e della segnaletica di emergenza.',
+                        'Mantenere sgombre le uscite di sicurezza e le aree antistanti i quadri elettrici.'
+                    ]
+                },
+                Razionale_Matematico: {
+                    D_Danno: { valore: risk.D, motivazione: 'Infortuni o patologie professionali generiche' },
+                    C_Contaminazione: { valore: 1, motivazione: 'Presenza standard nei locali di lavoro' },
+                    P_Probabilita: { valore_risultante: risk.P, motivazione: 'Livello di controllo ordinario delle misure preventive' },
+                    R_Rischio_Finale: {
+                        valore_risultante: risk.R,
+                        css_color: risk.R >= 8 ? 'red' : (risk.R >= 4 ? 'orange' : 'green'),
+                        nota_gemini: 'Il rischio si attesta su livelli accettabili qualora vengano attuate con regolarità tutte le misure di controllo degli impianti e della sicurezza antincendio.'
+                    }
+                }
+            };
+        }
+
+        function getDossierBySku(sku) {
+            if (sku === 'common' || sku === 'comune') {
+                return getCommonDossier();
+            }
+            if (!productResearch || !Array.isArray(productResearch)) return null;
+            
+            // Cerca nell'array gestendo in sicurezza eventuali record nulli o incompleti
+            const entry = productResearch.find(r => {
+                if (!r || !r.session_id) return false;
+                const sessionSku = r.session_id.split('-').slice(1).join('-') || '';
+                return sessionSku.toUpperCase() === sku.toUpperCase() || r.session_id.toUpperCase() === sku.toUpperCase();
+            });
+            return entry?.dossier || null;
+        }
+
+        function showEmptyState(msg) {
+            const grid = document.getElementById('services-grid');
+            grid.innerHTML = `
+                <div class="text-center py-16 space-y-4">
+                    <div class="text-5xl">⚠️</div>
+                    <p class="text-xs font-black uppercase tracking-widest text-gray-400">${msg}</p>
+                    <button onclick="loadData()" class="mt-4 px-6 py-3 bg-black text-white rounded-2xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition">
+                        <i class="fas fa-redo mr-1"></i> Riprova
+                    </button>
+                </div>
+            `;
+        }
+
+        function safeAlert(msg) {
+            if (tg && tg.initData) tg.showAlert(msg);
+            else alert(msg);
+        }
+
+        function safeConfirm(msg, cb) {
+            if (tg && tg.initData) tg.showConfirm(msg, cb);
+            else { const r = confirm(msg); cb(r); }
+        }
+
+        function showLoader(text) {
+            document.getElementById('loader-text').textContent = text || 'Caricamento...';
+            document.getElementById('loader').style.display = 'flex';
+        }
+
+        function hideLoader() {
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        // ── IMPOSTAZIONI OVERLAY FUNCTIONS ─────────────────────────────────────────
+        function openSettingsOverlay() {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+
+            // Popola i campi correnti
+            const gm = ownerData.securityMetadata || ownerData.security_metadata || ownerData.generalMetadata || ownerData.general_metadata || {};
+            document.getElementById('settings-rspp').value = gm.rspp || ownerData.rspp || '';
+            document.getElementById('settings-medico').value = gm.medicoCompetente || gm.medico_competente || ownerData.medico_competente || '';
+            document.getElementById('settings-rls').value = gm.rls || ownerData.rls || '';
+
+            let addetti = gm.addettiEmergenza || gm.addetti_emergenza || ownerData.addetti_emergenza || '';
+            if (Array.isArray(addetti)) {
+                addetti = addetti.join(', ');
+            }
+            document.getElementById('settings-addetti').value = addetti;
+
+            // Mostra lo sfondo
+            const backdrop = document.getElementById('settings-backdrop');
+            backdrop.classList.remove('hidden');
+            setTimeout(() => { backdrop.classList.add('opacity-100'); }, 10);
+
+            // Fai salire il pannello
+            const drawer = document.getElementById('settings-drawer');
+            drawer.classList.remove('translate-y-full');
+            drawer.classList.add('translate-y-0');
+        }
+
+        function closeSettingsOverlay() {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+
+            const backdrop = document.getElementById('settings-backdrop');
+            backdrop.classList.remove('opacity-100');
+            backdrop.classList.add('opacity-0');
+            setTimeout(() => { backdrop.classList.add('hidden'); }, 300);
+
+            const drawer = document.getElementById('settings-drawer');
+            drawer.classList.remove('translate-y-0');
+            drawer.classList.add('translate-y-full');
+        }
+
+        async function saveSettingsOverlayData() {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
+            const btn = document.getElementById('btn-confirm-settings');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="loader-spin" style="width:16px;height:16px;border-width:2px;border-top-color:white"></div> Salvataggio...';
+            btn.disabled = true;
+
+            const rspp = document.getElementById('settings-rspp').value.trim();
+            const medico = document.getElementById('settings-medico').value.trim();
+            const rls = document.getElementById('settings-rls').value.trim();
+            const addetti = document.getElementById('settings-addetti').value.split(',').map(s => s.trim()).filter(Boolean);
+
+            // Recupera le verticali attive direttamente dalla memoria locale senza sovrascriverle
+            let activeVerts = ownerData.activeVerticals || ownerData.active_verticals || ownerData.verticals || ['comune'];
+            activeVerts = activeVerts.map(v => normalizeVerticalKey(v)).filter(Boolean);
+            if (!activeVerts.includes('comune')) {
+                activeVerts.unshift('comune');
+            }
+            activeVerts = [...new Set(activeVerts)];
+
+            const securityMetadata = {
+                rspp: rspp,
+                medico_competente: medico,
+                rls: rls,
+                addetti_emergenza: addetti
+            };
+
+            const payload = {
+                _auth: tg.initData,
+                ash: ash,
+                action: 'save_security_metadata',
+                security_metadata: securityMetadata,
+                active_verticals: activeVerts
+            };
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error('Webhook error');
+
+                // Aggiorna dati locali in memoria
+                ownerData.security_metadata = securityMetadata;
+                ownerData.securityMetadata = {
+                    rspp: rspp,
+                    medicoCompetente: medico,
+                    rls: rls,
+                    addettiEmergenza: addetti
+                };
+                delete ownerData.general_metadata;
+                delete ownerData.generalMetadata;
+
+                ownerData.active_verticals = activeVerts;
+                ownerData.activeVerticals = activeVerts;
+                ownerData.verticals = activeVerts;
+
+                // Forza caricamento checklist se ci sono nuove verticali
+                loadChecklistState(ownerData.checklist_state || null);
+
+                // Aggiorna interfaccia e progresso
+                updateHeaderSubtitle();
+                buildCategoryTabs();
+                renderServiceList();
+                updateGlobalProgress();
+
+                btn.innerHTML = '<i class="fas fa-check"></i> Salvato! ✅';
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    closeSettingsOverlay();
+                }, 1000);
+
+            } catch (err) {
+                console.error(err);
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                safeAlert("Errore nel salvataggio: " + err.message);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // ── 7 FUNZIONI DI SUPPORTO DI SICUREZZA ──
+
+        function goBackToList() {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            document.getElementById('view-detail').classList.add('hidden');
+            document.getElementById('view-list').classList.remove('hidden');
+            currentServiceSku = null;
+            if (tg.BackButton) {
+                tg.BackButton.hide();
+            }
+            renderServiceList();
+            updateGlobalProgress();
+        }
+
+        function printDVR() {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            const tenant = getTenantData();
+            // Aggiunto serverChecklistState alla fine!
+            DVRPrintEngine.generateAndPrint(tenant, catalogActive, checklistState, ownerData, mitigationControls, serverChecklistState);
+        }
+
+        // Generatore dell'anteprima a schermo (tab Documento DVR) per il singolo servizio del catalogo
+        function buildSingleServiceDVRPage(service, listItems) {
+            const body = document.getElementById('dvr-document-body');
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
+
+            const sku = service.service_sku;
+            const state = checklistState[sku] || {};
+            const tenant = getTenantData();
+
+            const vKey = getVerticalForService(service);
+            const param = parametriVerticali[vKey] || { D: 2, C: 1 };
+            const dPartenza = param.D || 2;
+            const rPartenza = 4 * dPartenza;
+
+            const savedSkuData = (serverChecklistState && serverChecklistState[sku]) ? serverChecklistState[sku] : null;
+
+            let d = dPartenza; let p = 4; let r = rPartenza; let justification = "";
+
+            if (savedSkuData && savedSkuData.D !== undefined) {
+                d = savedSkuData.D; p = savedSkuData.P || 4; r = savedSkuData.R || (d * p); justification = savedSkuData.overall_justification || "";
+            } else {
+                const total = listItems.length;
+                const checkedCount = listItems.filter(item => state[item.id || item.question_id]).length;
+                if (total > 0 && checkedCount > 0) p = Math.max(1, Math.min(4, Math.round(4 - (3 * (checkedCount / total)))));
+                r = p * d;
+                justification = "Valutazione elaborata in tempo reale in base alle spunte applicate.";
+            }
+
+            let rLabel = r >= 8 ? "ALTO" : (r >= 4 ? "MEDIO" : "BASSO");
+
+            // Estrai i dati di mitigazione per questo servizio specifico
+            const mitigationData = (mitigationControls || []).find(m => m && m.service_sku && m.service_sku.toUpperCase() === sku.toUpperCase());
+            const mitigations = mitigationData?.controlli_mitigazione || [];
+            const operatoriCoinvolti = mitigationData?.operatori_coinvolti || [];
+            const attrezzatureCoinvolte = mitigationData?.attrezzature_coinvolte || [];
+
+            let html = `
+                <div style="text-align:center;padding-bottom:12px;border-bottom:2px solid #000;margin-bottom:16px">
+                    <div class="dvr-label">Documento di Valutazione dei Rischi</div>
+                    <h2 style="color:#1e3a8a;">SCHEDA PROTOCOLLO</h2>
+                    <div style="font-size:9px;font-weight:700;color:#6b7280;margin-top:4px">Servizio: ${service.service_name.toUpperCase()}</div>
+                    <div style="font-size:8px;color:#a3a3a3;margin-top:2px">Redatto il ${dateStr} — ID: ${sku}</div>
+                </div>
+
+                <div class="dvr-section-title"><i class="fas fa-calculator mr-1"></i>Analisi di Impatto e Mitigazione</div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0;">
+                    <div style="background:#fafafa; border: 1px solid #e5e7eb; border-left: 3px solid #9ca3af; border-radius: 6px; padding: 8px;">
+                        <span style="font-size: 7px; font-weight: 900; text-transform: uppercase; color: #9ca3af;">1. Rischio Iniziale</span>
+                        <div style="font-size: 14px; font-weight: 900; color: #b91c1c;">R = ${rPartenza}</div>
+                        <div style="font-size: 7px; color: #4b5563;">Danno: ${dPartenza} | Prob: 4</div>
+                    </div>
+                    <div style="background:#f0fdf4; border: 1px solid #bbf7d0; border-left: 3px solid #22c55e; border-radius: 6px; padding: 8px;">
+                        <span style="font-size: 7px; font-weight: 900; text-transform: uppercase; color: #16a34a;">2. Rischio Residuo</span>
+                        <div style="font-size: 14px; font-weight: 900; color: ${r >= 8 ? '#b91c1c' : (r >= 4 ? '#d97706' : '#15803d')};">R = ${r}</div>
+                        <div style="font-size: 7px; color: #4b5563;">Danno: ${d} | Prob: ${p}</div>
+                    </div>
+                </div>
+                
+                ${justification ? `<div style="font-size: 8px; color: #0369a1; background: #f0f9ff; padding: 8px; border-radius: 6px; font-style: italic; margin-bottom: 12px;"><strong>Ratio:</strong> ${justification}</div>` : ''}
+
+                <div class="dvr-section-title"><i class="fas fa-tasks mr-1"></i>Stato Conformità (Checklist)</div>
+                ${listItems.map((c, i) => {
+                const isDone = !!state[c.id || c.question_id];
+                return `
+                        <div class="dvr-chk-row">
+                            <span class="dvr-chk-num">${String(i + 1).padStart(2, '0')}.</span>
+                            <div style="flex:1">
+                                <p style="font-weight:600;margin:0;color:#111827;font-size:9px;">${c.action || c.text}</p>
+                                <div style="display:flex;gap:6px;margin-top:4px">
+                                    <span style="font-size:7px;background:#f1f5f9;color:#475569;padding:2px 5px;border-radius:4px;font-weight:bold">${c.area || 'Compliance'}</span>
+                                    <span style="font-size:7px;background:${isDone ? '#dcfce7' : '#fee2e2'};color:${isDone ? '#15803d' : '#b91c1c'};padding:2px 5px;border-radius:4px;font-weight:bold">${isDone ? 'Attuata ✓' : 'In attesa ✗'}</span>
+                                </div>
+                            </div>
+                        </div>`;
+            }).join('')}
+            `;
+
+            // Risorse specifiche (Operatori e Attrezzature)
+            if (operatoriCoinvolti.length > 0 || attrezzatureCoinvolte.length > 0) {
+                html += `<div class="dvr-section-title" style="margin-top:16px;"><i class="fas fa-users-gear mr-1"></i>Risorse Specifiche del Protocollo</div>`;
+                html += `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                        <div style="background: #fafafa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px;">
+                            <div style="font-size: 8px; font-weight: 900; color: #0f172a; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">👥 Operatori e Figure</div>
+                            <ul style="margin: 0; padding-left: 12px; font-size: 8px; color: #334155; line-height: 1.3;">
+                                ${operatoriCoinvolti.map(op => `<li>${op}</li>`).join('')}
+                            </ul>
+                            ${operatoriCoinvolti.length === 0 ? '<div style="font-size: 7.5px; color: #94a3b8; font-style: italic;">Nessun operatore specifico.</div>' : ''}
+                        </div>
+                        <div style="background: #fafafa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px;">
+                            <div style="font-size: 8px; font-weight: 900; color: #0f172a; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">⚙️ Attrezzature di Reparto</div>
+                            <ul style="margin: 0; padding-left: 12px; font-size: 8px; color: #334155; line-height: 1.3;">
+                                ${attrezzatureCoinvolte.map(eq => `<li>${eq}</li>`).join('')}
+                            </ul>
+                            ${attrezzatureCoinvolte.length === 0 ? '<div style="font-size: 7.5px; color: #94a3b8; font-style: italic;">Nessun macchinario specifico.</div>' : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Se ci sono mitigazioni specifiche dal server, le renderizziamo nell'anteprima
+            if (mitigations.length > 0) {
+                html += `<div class="dvr-section-title" style="margin-top:16px;"><i class="fas fa-shield-alt mr-1"></i>Protocollo Operativo di Mitigazione</div>`;
+                html += mitigations.map(mit => `
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 6px;">
+                        <div style="font-size:8px; font-weight:900; color:#1e3a8a; text-transform:uppercase; margin-bottom:2px;">Fase: ${mit.fase_operativa}</div>
+                        <div style="font-size:9px; color:#334155; margin-bottom:4px;"><strong>Controllo:</strong> ${mit.check_prestabilito}</div>
+                        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                            <div style="font-size:7px; color:#16a34a; font-weight:bold; background:#f0fdf4; padding:2px 4px; border-radius:3px;">${mit.criterio_accettazione}</div>
+                            <div style="font-size:7px; color:#64748b; font-weight:bold; background:#f1f5f9; padding:2px 4px; border-radius:3px;"><i class="fas fa-camera mr-1"></i>${mit.tipo_evidenza}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            body.innerHTML = html;
+        }
+
+        // Funzione che gestisce l'evento di click sul bottone di stampa del singolo capitolo
+        function printSingleDVR() {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            const tenant = getTenantData();
+            const sku = currentServiceSku;
+
+            // 1. Cerca prima se è un servizio normale del catalogo
+            let service = catalogActive.find(s => s.service_sku === sku);
+
+            // 2. Se non lo trova, guarda se è un "Comparto" (es. comune, dentale, beauty)
+            if (!service && typeof verticalsRegistry !== 'undefined' && verticalsRegistry[sku]) {
+                service = {
+                    service_sku: sku,
+                    service_name: verticalsRegistry[sku].title,
+                    categoria_padre: "Comparto di Sicurezza e Salute (Sede)"
+                };
+            }
+
+            if (service) {
+                DVRPrintEngine.printSingleService(tenant, service, checklistState, mitigationControls, serverChecklistState);
+            } else {
+                safeAlert("Errore: impossibile identificare il capitolo corrente.");
+            }
+        }
+
+        function buildRegulatoryGridForVertical(lawsString) {
+            const grid = document.getElementById('regulatory-grid');
+            grid.innerHTML = '';
+            if (!lawsString || !lawsString.trim()) {
+                grid.innerHTML = '<p class="text-[10px] text-gray-400 italic py-2">Nessuna normativa specifica disponibile.</p>';
+                return;
+            }
+            const laws = lawsString.split(/[,;]/).map(s => s.trim()).filter(Boolean);
+            laws.forEach(law => {
+                const el = document.createElement('div');
+                el.className = 'reg-pill space-y-0.5';
+                el.innerHTML = `
+                    <p class="font-black text-[8px] uppercase tracking-widest text-gray-400">⚖️ Riferimento Normativo</p>
+                    <p class="text-[10px] text-gray-700 font-medium leading-snug">${law}</p>
+                `;
+                grid.appendChild(el);
+            });
+        }
+
+
+
+        function buildRegionalSectionForVertical(vKey) {
+            const dossier = getDossierBySku(vKey);
+            let localNotes = '';
+            let wasteNotes = '';
+
+            if (dossier && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE && dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE.regional_specifications) {
+                const reg = dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE.regional_specifications;
+                localNotes = reg.local_authority_notes || '';
+                wasteNotes = reg.waste_disposal || '';
+            }
+
+            if (!localNotes) {
+                if (vKey === 'dentale' || vKey === 'dental') {
+                    localNotes = "Notifica obbligatoria di installazione radiologica ad ATS locale e nomina dell'Esperto di Radioprotezione ex D.Lgs 101/2020.";
+                    wasteNotes = "Gestione del Registro carico/scarico per rifiuti sanitari pericolosi a rischio infettivo (CER 180103*). Smaltimento tramite ditta autorizzata con scadenze semestrali.";
+                } else if (vKey === 'health') {
+                    localNotes = "Autorizzazione sanitaria regionale per apertura ambulatorio e conformità ai requisiti strutturali e tecnologici minimi ex Legge Gelli-Bianco.";
+                    wasteNotes = "Presenza di contenitori rigidi a perdere per aghi e taglienti infettivi. Smaltimento periodico certificato.";
+                } else if (vKey === 'beauty' || vKey === 'estetica') {
+                    localNotes = "Conformità delle apparecchiature laser alla scheda tecnica n. 23 del D.M. 206/2015 e nomina del Tecnico Sicurezza Laser (TSL).";
+                    wasteNotes = "Smaltimento di aghi da trucco permanente e lame sgorbie come rifiuti speciali taglienti a rischio infettivo.";
+                } else {
+                    localNotes = "Vigili del Fuoco, ATS territorialmente competente per controlli ordinari e ispezioni igienico-sanitarie.";
+                    wasteNotes = "Smaltimento dei rifiuti ordinari e speciali in conformità al D.Lgs. 152/06 e regolamenti comunali.";
+                }
+            }
+
+            const section = document.getElementById('regional-section');
+            const authEl = document.getElementById('regional-authority');
+            const wasteEl = document.getElementById('regional-waste');
+
+            if (localNotes || wasteNotes) {
+                if (localNotes) {
+                    authEl.innerHTML = `<strong>Autorità Competente:</strong> ${localNotes}`;
+                    authEl.classList.remove('hidden');
+                } else {
+                    authEl.classList.add('hidden');
+                }
+
+                if (wasteNotes) {
+                    wasteEl.innerHTML = `<strong>Gestione Rifiuti & Smaltimento:</strong> ${wasteNotes}`;
+                    wasteEl.classList.remove('hidden');
+                } else {
+                    wasteEl.classList.add('hidden');
+                }
+
+                section.classList.remove('hidden');
+            } else {
+                section.classList.add('hidden');
+            }
+        }
+
+
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="dizionario8108.js"></script>
+    <script src="dvr-print-engine.js"></script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+
+</html>

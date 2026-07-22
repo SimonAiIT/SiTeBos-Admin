@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Modifica Profilo</title>
+  
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="operators.css">
+  <script src="twa_guard.js"></script>
+</head>
+<body>
+
+  <!-- LOADER -->
+  <div id="loader">
+    <div class="spinner-ring"></div>
+    <div style="margin-top:10px; opacity:0.7; text-align:center;">Caricamento...</div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="app-content" class="container hidden fade-in">
+    
+    <div class="dashboard-header">
+      <div class="header-info">
+        <h1>Modifica Profilo</h1>
+        <small>Aggiorna i tuoi dati personali</small>
+      </div>
+    </div>
+
+    <form id="editForm" onsubmit="return false;">
+      
+      <!-- ANAGRAFICA -->
+      <div class="form-section">
+        <div class="form-section-title">Dati Personali</div>
+        
+        <div class="input-group">
+          <label class="required">Nome Completo</label>
+          <input type="text" id="full_name" required>
+        </div>
+        
+        <div class="input-group">
+          <label>Codice Fiscale</label>
+          <input type="text" id="tax_code" disabled style="opacity:0.5;">
+        </div>
+      </div>
+
+      <!-- CONTATTI -->
+      <div class="form-section">
+        <div class="form-section-title">Contatti</div>
+        
+        <div class="input-group">
+          <label class="required">Email</label>
+          <input type="email" id="email" required>
+        </div>
+        
+        <div class="input-group">
+          <label>Telefono</label>
+          <input type="tel" id="phone">
+        </div>
+      </div>
+
+      <!-- INDIRIZZO -->
+      <div class="form-section">
+        <div class="form-section-title">Indirizzo</div>
+        
+        <div class="row">
+          <div class="col" style="flex:3;">
+            <div class="input-group">
+              <label>Via</label>
+              <input type="text" id="address_route" placeholder="es: Via Roma">
+            </div>
+          </div>
+          <div class="col" style="flex:1;">
+            <div class="input-group">
+              <label>Civico</label>
+              <input type="text" id="address_number" placeholder="es: 123">
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col">
+            <div class="input-group">
+              <label>CAP</label>
+              <input type="text" id="address_zip" placeholder="es: 90100">
+            </div>
+          </div>
+          <div class="col">
+            <div class="input-group">
+              <label>Città</label>
+              <input type="text" id="address_city" placeholder="es: Palermo">
+            </div>
+          </div>
+          <div class="col">
+            <div class="input-group">
+              <label>Provincia</label>
+              <input type="text" id="address_province" placeholder="es: PA" maxlength="2" style="text-transform:uppercase;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILO PROFESSIONALE -->
+      <div class="form-section">
+        <div class="form-section-title">Profilo Professionale</div>
+        
+        <div class="input-group">
+          <label>Ruolo Attuale</label>
+          <input type="text" id="current_role" placeholder="es: AI Automation Architect">
+        </div>
+        
+        <div class="input-group">
+          <label>Anni di Esperienza</label>
+          <select id="years_experience">
+            <option value="0-2">0-2 anni</option>
+            <option value="3-5">3-5 anni</option>
+            <option value="5-10">5-10 anni</option>
+            <option value="10-15">10-15 anni</option>
+            <option value="15+">15+ anni</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label><i class="fab fa-linkedin"></i> LinkedIn</label>
+          <input type="url" id="linkedin" placeholder="https://linkedin.com/in/...">
+        </div>
+      </div>
+
+      <div style="height:80px;"></div>
+
+    </form>
+  </div>
+
+  <!-- FAB CONTAINER -->
+  <div class="fab-container">
+    <button class="fab-btn fab-secondary" onclick="goBack()" title="Torna alla Dashboard">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    
+    <button class="fab-btn" id="saveBtn" disabled title="Salva Modifiche">
+      <i class="fas fa-save"></i>
+    </button>
+  </div>
+
+  <script src="edit_operator_logic.js"></script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

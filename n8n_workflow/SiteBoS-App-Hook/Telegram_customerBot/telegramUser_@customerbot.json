@@ -1,0 +1,3296 @@
+{
+  "name": "telegramUser_@customerbot",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -2464,
+        576
+      ],
+      "id": "1117b92b-acb9-42a7-8a4e-d5bb6ac49a9e",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c42a7fe5-232c-4fb0-9860-e34b61b9e3d9",
+              "leftValue": "={{ $json.body.message.text }}",
+              "rightValue": "/start",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "7c17b377-3b41-4fef-8b8e-497623c3f48d",
+              "leftValue": "={{ $json.body.message.entities[0].type }}",
+              "rightValue": "bot_command",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2224,
+        576
+      ],
+      "id": "57c11e39-71ce-461e-8be0-e3690088d0a9",
+      "name": "CustomerStart"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -2032,
+        592
+      ],
+      "id": "1f25479f-ff34-4fc2-98dc-e452ecfe8bdd",
+      "name": "📤 Telegram Manager1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "g_PRO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e32c13f3-621d-4e59-b422-1b33787c2b89"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CAT_Product"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "77981938-f991-46ae-a9a1-4a56f3b3ff64",
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "g_SER",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CAT_Service"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c3d13415-54db-4177-a433-2feec1caf6bd",
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "g_CCare",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Open_Ticket"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9b4a8b40-d7a7-4824-b954-4764914bfe28",
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "m_c_start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Start"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b46254e6-65dc-4122-a452-fa64e111df19",
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "g_SER_DET_",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get_SER"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fbd171a5-1c41-4e59-9f21-01942bc4f159",
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "g_PRO_DET_",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get_PRO"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5712f2cc-a178-4f4c-ad41-390fc0282bbf",
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "g_CCall",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Call"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cfc54c1c-ba3b-4558-bb52-ec2b3a49f804",
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "re_start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Restart"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1facc5d3-3192-426f-9be2-241e375038e3",
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "u_TOGGLE_OFFERS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Broadcast"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fc2d369a-fe42-4b10-9ea8-066a6adc77e8",
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "u_RESET_SESSION",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Reset"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b4c072f2-df59-4804-be5d-5aa240a00444",
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "u_CALC",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Acquista"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1328,
+        704
+      ],
+      "id": "8b31ff90-723b-4681-98e1-b8c86f65fcba",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Welcome (v2.7) - Dynamic Pro & Guest UI (ASH & KEYBOARD FIXED)\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst config = owner.customer_bot_config || {};\nconst msg = item.body.message;\nconst session = item.active_session || {};\nconst stakeholder = item.stakeholder;\nconst isSubscribed = session.preferences?.broadcast_subscribed || false;\n\n// 1. CONFIGURAZIONE SICUREZZA ASH (LOGICA ORIGINALE)\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst WEBHOOK_ID = '8eb69e84-d20d-486e-a70e-9acf31c3da9e';\nconst chatId = msg.chat.id.toString();\nconst timestamp = Date.now().toString();\n\nconst payload = `${owner.chat_id}|${chatId}|${timestamp}|${WEBHOOK_ID}`;\n\nfunction generateSignature(str, key) {\n    let hash = 0;\n    const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        const char = combined.charCodeAt(i);\n        hash = ((hash << 5) - hash) + char;\n        hash = hash & hash; \n    }\n    return Math.abs(hash).toString(16);\n}\n\nconst signature = generateSignature(payload, SECRET_KEY);\nconst ash = `${Buffer.from(payload).toString('base64')}.${signature}`;\nconst registerUrl = `https://dashboard.trinai.it/register?ash=${ash}`;\nconst dashboardUrl = \"https://dashboard.trinai.it/\";\nconst BASE_APP_URL = item.urlMiniApp || \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp\";\nconst ashToken = `?ash=${ash}`;\nconst privacyUrl = (item.urlMiniApp || \"https://dashboard.trinai.it/\") + \"legal.html\";\n\n// 2. TASTO ETICO DINAMICO\nconst offerButton = isSubscribed \n    ? { text: \"🔕 Disattiva Offerte\", callback_data: \"u_TOGGLE_OFFERS\" } \n    : { text: \"🔔 Attiva Offerte\", callback_data: \"u_TOGGLE_OFFERS\" };\n\n// 3. DATI PER IL MESSAGGIO\nconst isPro = !!(stakeholder && stakeholder.metadata && stakeholder.metadata.status !== \"GUEST\");\nconst customerName = stakeholder?.user_ref?.nome || msg.from.first_name || \"Gentile Ospite\";\nconst agentName = config.identity?.agent_name || \"Assistente Virtuale\";\nconst businessDesc = owner.business_description || \"\";\n\n// 4. DIDASCALIA FUNZIONI CORE AI\nconst aiFunctionsDidascalia = `\n📊 <b>Preventivatore:</b> Quotazioni e analisi costi in tempo reale.\n📅 <b>Appuntamenti:</b> Gestione booking e prenotazione consulenze.`;\n\n// 5. COSTRUZIONE DEL MESSAGGIO E TASTIERA DINAMICA (GUEST VS PRO)\nlet messageText = \"\";\nlet inlineKeyboard = [];\n\nif (!isPro) {\n    // ━━━ VERSIONE GUEST ━━━\n    messageText = `👋 <b>Ciao ${customerName}!</b>\\n━━━━━━━━━━━━━━━━━━━━\\nBenvenuto. Sono <b>${agentName}</b>, l'assistente ufficiale di <b>${owner.ragione_sociale}</b>. \\n\\n🎯 <b>Cosa Facciamo?:</b>\\n<i>\\\"${businessDesc}\\\"</i>\\n\\n⚠️ <b>FUNZIONI AI DISABILITATE:</b>\\nLe seguenti funzioni richiedono la registrazione su <b>TrinAi</b>:\\n${aiFunctionsDidascalia}`;\n    \n    // Tasto di attivazione in alto per i Guest\n    inlineKeyboard.push([{ text: \"🚀 Registrati e Attiva AI\", url: registerUrl }]);\n} else {\n    // ━━━ VERSIONE PRO (Stakeholder attivo) ━━━\n    messageText = `✨ <b>Bentornato, ${customerName}!</b>\\n━━━━━━━━━━━━━━━━━━━━\\nIl tuo profilo <b>Pro</b> è attivo.\\n\\n✅ <b>FUNZIONI AI OPERATIVE:</b>\\n${aiFunctionsDidascalia}`;\n    \n    // Tasto Dashboard in alto per i Pro\n    inlineKeyboard.push([{ text: \"🖥️ Dashboard TrinAi (Funzioni Pro)\", url: dashboardUrl }]);\n    \n    // Tasti Operativi PRO (Acquista e Booking MiniApp)\n    inlineKeyboard.push([\n        { text: \"🛒 ACQUISTA\", callback_data: \"u_CALC\" },\n        { text: \"📅 BOOKING\", web_app: { url: `${BASE_APP_URL}/booking.html${ashToken}` } }\n    ]);\n}\n\n// Integrazione Informativa Privacy e Note Legali\nmessageText += `\\n\\n🛡️ <b>PRIVACY:</b>\\nAccetti il trattamento dei dati tecnici secondo l' <a href=\"${privacyUrl}\\\">Informativa Privacy</a>. \\n\\n⚠️ <b>GESTIONE DATI:</b>\\nUsa il tasto Reset in basso per pulire la sessione bot. Per eliminazione completa account e dati sensibili, procedi su <b>TrinAi</b>.`;\n\n// 6. STRUTTURA TASTIERA COMUNE (Navigazione)\ninlineKeyboard.push([\n    { text: \"📦 Prodotti\", callback_data: \"g_PRO\" },\n    { text: \"🛠️ Servizi\", callback_data: \"g_SER\" }\n]);\n\ninlineKeyboard.push([\n    offerButton, \n    { text: \"🎧 Assistenza\", callback_data: \"g_CCare\" }\n]);\n\ninlineKeyboard.push([\n    { text: \"🗑️ Reset Sessione (Privacy)\", callback_data: \"u_RESET_SESSION\" }\n]);\n\n// 7. PAYLOAD PER TELEGRAM\nreturn [{\n    json: {\n        ...item,\n        generated_ash: ash,\n        telegramApiPayload: {\n            method: \"sendMessage\",\n            chat_id: msg.chat.id,\n            text: messageText,\n            parse_mode: \"HTML\",\n            disable_web_page_preview: true,\n            reply_markup: {\n                inline_keyboard: inlineKeyboard\n            }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2224,
+        416
+      ],
+      "id": "42f609f5-05dd-4c0f-837a-8be07b3a682b",
+      "name": "Welcome"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.user_ref.chat_id\": {\n        \"$eq\": {{ $json.body?.message?.chat?.id || $json.body?.callback_query?.from?.id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$stakeholder.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2224,
+        1280
+      ],
+      "id": "d917936e-659b-4ad1-baad-e5ba5063b6d0",
+      "name": "stakeholder",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.stakeholder }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2032,
+        1280
+      ],
+      "id": "fff31b97-13b1-4564-a0d5-3a2d13bdb1b0",
+      "name": "StakeholderExist"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2224,
+        1456
+      ],
+      "id": "ed212a47-525a-40d0-a3cf-df315aebbf37",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "842682a5-1a12-4fc3-ae8b-b656fb8d22db",
+              "name": "stakeholder.type",
+              "value": "UNKOWN",
+              "type": "string"
+            },
+            {
+              "id": "9a3a3be1-f58a-4b0a-be68-82348a106c02",
+              "name": "stakeholder.chat_id",
+              "value": "={{ $json.body.callback_query.from.id }}",
+              "type": "number"
+            },
+            {
+              "id": "1ce0804f-bb1c-4984-bf3d-72b3c9c37125",
+              "name": "stakeholder.name",
+              "value": "={{ $json.body.callback_query.from.first_name }}",
+              "type": "string"
+            },
+            {
+              "id": "113e78cc-8e8d-488c-a1e7-b73237b03858",
+              "name": "body",
+              "value": "={{ $json.body }}",
+              "type": "object"
+            },
+            {
+              "id": "8a3a39f7-c806-43f5-8996-1202e27f5727",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            },
+            {
+              "id": "e0faf5f2-7f31-4c58-bf57-9fd7ffed4fd9",
+              "name": "urlMiniApp",
+              "value": "={{ $json.urlMiniApp }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2032,
+        1456
+      ],
+      "id": "340c185f-ff90-44fb-864d-82baa7cd3756",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2224,
+        1136
+      ],
+      "id": "5957b23f-6914-44eb-97f2-9d32d452960d",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2032,
+        1120
+      ],
+      "id": "ce498a60-7955-4a75-bc27-340b11c1b3f8",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Delete_Telegram_Message\n// DESC: Prepara il payload per eliminare un messaggio specifico\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\n\n// 1. Estrazione dati dal messaggio (body.message)\nconst chatId = item.body.message.chat.id;\nconst messageIdToDelete = item.body.message.message_id;\nconst token = item.owner_data.bot_key;\n// 2. Costruzione Payload per il metodo deleteMessage\nreturn [{\n  json: {\n    telegramApiPayload: {\n      method: \"deleteMessage\",\n      chat_id: chatId,\n      message_id: messageIdToDelete,\n      bot_token: token\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1424,
+        16
+      ],
+      "id": "b1fc07e7-71c6-4e64-bf27-caca8f5544fc",
+      "name": "📝 Prep: Delete Telegram Message"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.telegramApiPayload.bot_token }}/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1248,
+        16
+      ],
+      "id": "5a9aff9e-d5d5-46f7-b453-23457d6193a1",
+      "name": "📤 Telegram Call6",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f2a789cf-4da6-4f73-be83-50beae5d064f",
+              "leftValue": "={{ $json.stakeholder.type }}",
+              "rightValue": "UNKOWN",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "51043e61-be84-4f95-9616-6bbd81f5258c",
+              "leftValue": "={{ $json.body.message.from.is_bot }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1728,
+        32
+      ],
+      "id": "ba490f97-25aa-486f-aa3a-db32d7eb3293",
+      "name": "unkown?"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "service_catalog",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}_setup_ik\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"service_catalog_setup\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1760,
+        656
+      ],
+      "id": "685c11e6-fb36-48ca-af38-6177198b30db",
+      "name": "service_catalog_setup",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d12c796a-4e17-4456-9a7d-022242576163",
+              "leftValue": "={{ $json.service_catalog_setup }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1568,
+        656
+      ],
+      "id": "c75d4774-16c4-49a3-ac8a-ef5bdfe2fa5e",
+      "name": "ServiceCatalog Exist"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1760,
+        1056
+      ],
+      "id": "f78433ff-dc62-4fcb-9bb9-b48a11d9e976",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1568,
+        848
+      ],
+      "id": "41ea7f1c-9ff0-4cc5-8379-b2041f710e73",
+      "name": "Merge7"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Prepare_Catalog_Error_Message\n// DESC: Trasforma il messaggio attuale in errore e ripristina i tasti\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst config = owner.customer_bot_config || {};\nconst body = item.body || {};\n\n// 1. RECUPERO IDENTIFICATIVI (Da Callback Query)\nconst callback = body.callback_query;\nconst chatId = callback.from.id;\nconst messageId = callback.message.message_id;\nconst userLang = callback.from.language_code || 'it';\n\n// 2. RIGENERAZIONE ASH (Per il tasto Registrazione)\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst WEBHOOK_ID = 'e353fd8a-62fb-4203-a2a7-20369d832e00';\nconst timestamp = Date.now().toString();\nconst payload = `${chatId}|${timestamp}|${WEBHOOK_ID}`;\n\nfunction generateSignature(str, key) {\n    let hash = 0;\n    const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        const char = combined.charCodeAt(i);\n        hash = ((hash << 5) - hash) + char;\n        hash = hash & hash; \n    }\n    return Math.abs(hash).toString(16);\n}\n\nconst signature = generateSignature(payload, SECRET_KEY);\nconst ash = `${Buffer.from(payload).toString('base64')}.${signature}`;\nconst registerUrl = `https://dashboard.trinai.it/register?ash=${ash}`;\n\n// 3. DEFINIZIONE TESTO (Italiano + Disclaimer Internazionale se serve)\nconst agentName = config.identity?.agent_name || \"Assistente Virtuale\";\nlet intlDisclaimer = !userLang.startsWith('it') ? \"🌍 <i>Catalog unavailable. Use buttons to retry or register.</i>\\n━━━━━━━━━━━━━━━━━━━━\\n\\n\" : \"\";\n\nconst messageText = `\n${intlDisclaimer}⚠️ <b>Servizio temporaneamente limitato</b>\n━━━━━━━━━━━━━━━━━━━━\nGentile utente, sono <b>${agentName}</b>. \n\nMi scuso, ma al momento non riesco a caricare l'elenco dei Prodotti e Servizi richiesti. Potrebbe trattarsi di un aggiornamento del database in corso.\n\nPuoi riprovare tra qualche istante o procedere ora alla registrazione per attivare le mie funzioni AI avanzate.\n\n━━━━━━━━━━━━━━━━━━━━\n👇 <b>Scegli come procedere:</b>`;\n\n// 4. OUTPUT PER TELEGRAM (editMessageText)\nreturn [{\n    json: {\n        ...item,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: chatId,\n            message_id: messageId, // Fondamentale per l'edit\n            text: messageText,\n            parse_mode: \"HTML\",\n            reply_markup: {\n                inline_keyboard: [\n                    // Riga 1: Registrazione\n                    [{ text: \"🚀 Registrati e Attiva AI\", url: registerUrl }],\n                    // Riga 2: Navigazione (Riprova)\n                    [\n                        { text: \"📦 Prodotti\", callback_data: \"g_PRO\" },\n                        { text: \"🛠️ Servizi\", callback_data: \"g_SER\" }\n                    ],\n                    // Riga 3: Assistenza\n                    [{ text: \"🎧 Assistenza (Ticket)\", callback_data: \"g_CCare\" }]\n                ]\n            }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2032,
+        1840
+      ],
+      "id": "f28907de-2a54-4303-9b41-6fd1cc507fb8",
+      "name": "Prepare_Catalog_Error_Message"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Extract_Pro_Catalog\n// DESC: Navigazione prodotti con gestione dinamica catalogo vuoto\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\nconst catalog = item.service_catalog_setup?.categories || [];\nconst owner = item.owner_data || {};\nconst body = item.body.callback_query || {};\nconst chatId = body.from.id;\nconst messageId = body.message.message_id;\n\n// 1. FILTRAGGIO CHIRURGICO (Macro PRO + Blueprint Ready)\nlet activeProducts = [];\ncatalog.forEach(category => {\n    if (category.macrocategories === \"PRO\" && category.subcategories) {\n        category.subcategories.forEach(sub => {\n            if (sub.blueprint_ready === true) {\n                activeProducts.push({\n                    name: sub.short_name || sub.name,\n                    callback: `g_PRO_DET_${sub.callback_data}`\n                });\n            }\n        });\n    }\n});\n\nconst agentName = owner.customer_bot_config?.identity?.agent_name || \"Assistente\";\nlet msgText = \"\";\nlet inlineKeyboard = [];\n\n// 2. LOGICA DI OUTPUT DIFFERENZIATA\nif (activeProducts.length > 0) {\n    // --- CASO: PRODOTTI DISPONIBILI ---\n    msgText = `\n📦 <b>CATALOGO PRODOTTI</b>\n━━━━━━━━━━━━━━━━━━━━\nGentile utente, sono <b>${agentName}</b>. Ecco le soluzioni pronte all'uso che abbiamo selezionato per te.\n\nSeleziona un elemento per approfondire o richiedere una consulenza dedicata:`;\n\n    // Costruzione tastiera a 2 colonne\n    for (let i = 0; i < activeProducts.length; i += 2) {\n        let row = [];\n        row.push({ text: activeProducts[i].name, callback_data: activeProducts[i].callback });\n        if (activeProducts[i + 1]) {\n            row.push({ text: activeProducts[i + 1].name, callback_data: activeProducts[i + 1].callback });\n        }\n        inlineKeyboard.push(row);\n    }\n} else {\n    // --- CASO: CATALOGO VUOTO (Messaggio \"Caldo\") ---\n    msgText = `\n📦 <b>CATALOGO IN AGGIORNAMENTO</b>\n━━━━━━━━━━━━━━━━━━━━\nGentile utente, sono <b>${agentName}</b>. \n\nIn questo momento stiamo rifinendo i dettagli tecnici dei nostri prodotti per garantirti la massima qualità possibile. \n\n<b>Cosa puoi fare?</b>\n• Torna tra poco per scoprire le novità.\n• Registrati ora per ricevere una notifica non appena il catalogo sarà online.\n• Contattaci direttamente per richieste urgenti.`;\n}\n\n// 3. TASTI DI NAVIGAZIONE FISSI\ninlineKeyboard.push([{ text: \"⬅️ Torna al Menu Principale\", callback_data: \"m_c_start\" }]);\n\n// 4. GENERAZIONE PAYLOAD (editMessageText)\nreturn [{\n    json: {\n        ...item,\n        found_products_count: activeProducts.length,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: chatId,\n            message_id: messageId,\n            text: msgText,\n            parse_mode: \"HTML\",\n            reply_markup: {\n                inline_keyboard: inlineKeyboard\n            }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1328,
+        560
+      ],
+      "id": "7e207fde-a218-49e7-a473-0bdd955373e2",
+      "name": "Extract_Pro_Catalog"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1136,
+        560
+      ],
+      "id": "38b0c70b-2b38-4445-89c1-df3a675d24e4",
+      "name": "📤 Telegram Manager2",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Handle_Back_To_Start\n// VERSIONE: 3.2 - Premium Identity & Dynamic UI (OWNER ASH FIXED + OFFER TOGGLE FIX)\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst config = owner.customer_bot_config || {};\nconst session = item.active_session || {};\nconst stakeholder = item.stakeholder;\nconst callback = item.body.callback_query;\n\n// 1. CONFIGURAZIONE SICUREZZA ASH (OWNER ID - NON CUSTOMER)\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst WEBHOOK_ID = 'e353fd8a-62fb-4203-a2a7-20369d832e00';\n\nconst ownerChatId = (\n  owner.chat_id ||\n  session.owner_chatid\n)?.toString();\n\nif (!ownerChatId) {\n  throw new Error('ASH ERROR: ownerChatId mancante');\n}\n\nconst timestamp = Date.now().toString();\nconst payload = `${ownerChatId}|${callback.from.id}|${timestamp}|${WEBHOOK_ID}`;\n\nfunction generateSignature(str, key) {\n    let hash = 0;\n    const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        const char = combined.charCodeAt(i);\n        hash = ((hash << 5) - hash) + char;\n        hash = hash & hash; \n    }\n    return Math.abs(hash).toString(16);\n}\n\nconst signature = generateSignature(payload, SECRET_KEY);\nconst ash = `${Buffer.from(payload).toString('base64')}.${signature}`;\nconst BASE_APP_URL = item.urlMiniApp || \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp\";\nconst ashToken = `?ash=${ash}`;\n\n// 2. LOGICA DINAMICA PRO / GUEST\nconst isPro = !!(stakeholder && stakeholder.metadata && stakeholder.metadata.status !== \"GUEST\");\nconst customerName = stakeholder?.user_ref?.nome || session.lead_profile?.first_name || \"Ospite\";\n\n// 3. GENERAZIONE SALUTO RANDOM\nconst greetings = [\"Bentornato\", \"Eccoci di nuovo\", \"Sempre operativi\", \"Piacere di rivederti\"];\nconst randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];\n\n// 4. TASTO OFFERTE DINAMICO\nconst isSubscribed = session.preferences?.broadcast_subscribed || false;\nconst offerButton = isSubscribed\n    ? { text: \"🔕 DISATTIVA OFFERTE\", callback_data: \"u_TOGGLE_OFFERS\" }\n    : { text: \"🔔 ATTIVA OFFERTE\", callback_data: \"u_TOGGLE_OFFERS\" };\n\n// 5. COSTRUZIONE DEL MESSAGGIO\nlet messageText = `⚡ <b>${randomGreeting.toUpperCase()}, ${customerName.toUpperCase()}</b>\\n`;\nmessageText += `<i>Hub Digitale di ${owner.ragione_sociale}</i>\\n`;\nmessageText += `━━━━━━━━━━━━━━━━━━━━\\n\\n`;\n\nlet inlineKeyboard = [];\nconst registerUrl = `https://dashboard.trinai.it/register?ash=${ash}`;\nconst dashboardUrl = \"https://dashboard.trinai.it/\";\n\nif (!isPro) {\n    messageText += `💎 <b>POTENZIALE INESPRESSO</b>\\n`;\n    messageText += `Il tuo account è in modalità <b>Discovery</b>. Registrati per sbloccare il motore decisionale AI.\\n\\n`;\n    messageText += `🚀 <i>Sblocca: Preventivi Intelligenti e Booking.</i>`;\n    \n    inlineKeyboard.push([{ text: \"🔥 ATTIVA FUNZIONI AI\", url: registerUrl }]);\n} else {\n    messageText += `✅ <b>MOTORE AI ATTIVO</b>\\n`;\n    messageText += `Bentornato nella tua plancia di comando. I sistemi ad alta precisione sono pronti all'esecuzione.\\n\\n`;\n    messageText += `⚙️ <i>Quale modulo vuoi attivare?</i>`;\n    \n    inlineKeyboard.push([{ text: \"🖥️ Accedi alla Dashboard TrinAi\", url: dashboardUrl }]);\n    \n    inlineKeyboard.push([\n        { text: \"🛒 ACQUISTA\", callback_data: \"u_CALC\" },\n        { text: \"📅 BOOKING\", web_app: { url: `${BASE_APP_URL}/booking.html${ashToken}` } }\n    ]);\n}\n\n// Navigazione Comune\ninlineKeyboard.push([\n    { text: \"📦 PRODOTTI\", callback_data: \"g_PRO\" },\n    { text: \"🛠️ SERVIZI\", callback_data: \"g_SER\" }\n]);\n\ninlineKeyboard.push([\n    offerButton,\n    { text: \"🎧 SUPPORT\", callback_data: \"g_CCare\" }\n]);\n\ninlineKeyboard.push([\n    { text: \"🗑️ RESET SESSIONE\", callback_data: \"u_RESET_SESSION\" }\n]);\n\n// 6. OUTPUT\nreturn [{\n    json: {\n        ...item,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: callback.from.id,\n            message_id: callback.message.message_id,\n            text: messageText,\n            parse_mode: \"HTML\",\n            disable_web_page_preview: true,\n            reply_markup: { inline_keyboard: inlineKeyboard }\n        },\n        callbackAnswer: {\n            method: \"answerCallbackQuery\",\n            callback_query_id: callback.id,\n            text: `🛠️ ${randomGreeting}`\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -832,
+        784
+      ],
+      "id": "ac8993bb-32a8-458d-8676-6bff73b285ec",
+      "name": "Handle_Back_To_Start"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Extract_SER_Catalog\n// DESC: Navigazione SERVIZI - Versione 100% Multitenant\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\nconst catalog = item.service_catalog_setup?.categories || [];\nconst owner = item.owner_data || {};\nconst body = item.body.callback_query || {};\nconst chatId = body.from.id;\nconst messageId = body.message.message_id;\n\n// 1. FILTRAGGIO CHIRURGICO\nlet activeServices = [];\ncatalog.forEach(category => {\n    if (category.macrocategories === \"SER\" && category.subcategories) {\n        category.subcategories.forEach(sub => {\n            if (sub.blueprint_ready === true) {\n                activeServices.push({\n                    name: sub.short_name || sub.name,\n                    callback: `g_SER_DET_${sub.callback_data}`\n                });\n            }\n        });\n    }\n});\n\nconst agentName = owner.customer_bot_config?.identity?.agent_name || \"Assistente\";\n// Recupero nome dinamico del tenant per evitare hardcoding\nconst ownerBusinessName = owner.ragione_sociale || (owner.name + \" \" + owner.surname);\n\nlet msgText = \"\";\nlet inlineKeyboard = [];\n\n// 2. LOGICA DI OUTPUT DIFFERENZIATA\nif (activeServices.length > 0) {\n    msgText = `\n🛠️ <b>CATALOGO SERVIZI</b>\n━━━━━━━━━━━━━━━━━━━━\nGentile utente, sono <b>${agentName}</b>. Di seguito trovi le procedure operative e i servizi di consulenza di <b>${ownerBusinessName}</b>.\n\nSeleziona un servizio per visualizzare i dettagli:`;\n\n    for (let i = 0; i < activeServices.length; i += 2) {\n        let row = [];\n        row.push({ text: activeServices[i].name, callback_data: activeServices[i].callback });\n        if (activeServices[i + 1]) {\n            row.push({ text: activeServices[i + 1].name, callback_data: activeServices[i + 1].callback });\n        }\n        inlineKeyboard.push(row);\n    }\n} else {\n    // --- MESSAGGIO CALDO 100% DINAMICO ---\n    msgText = `\n🛠️ <b>SERVIZI IN FASE DI SETUP</b>\n━━━━━━━━━━━━━━━━━━━━\nGentile utente, sono <b>${agentName}</b>. \n\nAl momento stiamo aggiornando i nostri protocolli operativi per garantirti l'eccellenza che <b>${ownerBusinessName}</b> richiede per ogni suo cliente.\n\n<b>Cosa puoi fare?</b>\n• Torna tra poco per scoprire le novità.\n• Registrati ora per ricevere una notifica di attivazione.\n• Usa la sezione assistenza per richieste urgenti.`;\n}\n\ninlineKeyboard.push([{ text: \"⬅️ Torna al Menu Principale\", callback_data: \"m_c_start\" }]);\n\nreturn [{\n    json: {\n        ...item,\n        found_services_count: activeServices.length,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: chatId,\n            message_id: messageId,\n            text: msgText,\n            parse_mode: \"HTML\",\n            reply_markup: {\n                inline_keyboard: inlineKeyboard\n            }\n        },\n        callbackAnswer: {\n            method: \"answerCallbackQuery\",\n            callback_query_id: body.id,\n            text: activeServices.length > 0 ? \"🛠️ Lista Servizi\" : \"⌛ In Aggiornamento\"\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -608,
+        720
+      ],
+      "id": "4c3c5f8b-57ae-47d3-a0a0-2bb7302a9380",
+      "name": "Extract_SER_Catalog"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "knowledge_fragments",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$regex\": \"{{ $json.owner_data.vat_number }}-{{ $json.body.gost_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"fragment\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"fragment\": \"$fragment.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1072,
+        1440
+      ],
+      "id": "523e69e9-643d-4b5b-a14a-392918cef48d",
+      "name": "Knowledge",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "5pERtRttklNe4fOb",
+          "name": "AssetLake"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1312,
+        1632
+      ],
+      "id": "6215fe7f-b3ce-4fa5-b94a-fe693f614831",
+      "name": "Merge8"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Prepare_Detail_View\n// DESC: Gestione universale Dettaglio PRO e SER con Handoff ID\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\nconst frag = item.fragment || {};\nconst body = item.body || {};\nconst owner = item.owner_data || {};\n\n// 1. IDENTIFICATIVI\nconst chatId = body.callback_query?.from?.id;\nconst messageId = body.callback_query?.message?.message_id;\nconst callbackData = body.callback_query?.data || \"\";\n\n// 2. DETERMINAZIONE TIPO (PRO vs SER)\nconst isProduct = callbackData.startsWith('g_PRO');\nconst typeLabel = isProduct ? \"PRODOTTO\" : \"SERVIZIO\";\nconst typeIcon = isProduct ? \"📦\" : \"🛠️\";\nconst backTarget = isProduct ? \"g_PRO\" : \"g_SER\";\n\n// ESTRAZIONE GHOST_ID (es. SVC_05S3EKTT)\nconst ghost_id = frag.fragment_id.split('-')[1] || frag.fragment_id;\n\n// 3. COSTRUZIONE TESTO DINAMICO\nlet msgText = `${typeIcon} <b>${frag.title.toUpperCase()}</b>\\n`;\nmsgText += `━━━━━━━━━━━━━━━━━━━━\\n\\n`;\n\n// Header variabile basato sul tipo\nconst valueHeader = isProduct ? \"PERCHÉ SCEGLIERLO\" : \"VALORE STRATEGICO\";\nmsgText += `💡 <b>${valueHeader}:</b>\\n<i>${frag.answer_fragment}</i>\\n\\n`;\n\n// Sezione Dettagli (Sections)\nif (frag.sections && frag.sections.length > 0) {\n    const detailLabel = isProduct ? \"SPECIFICHE TECNICHE\" : \"DETTAGLI OPERATIVI\";\n    msgText += `🔍 <b>${detailLabel}:</b>\\n`;\n    \n    frag.sections.forEach((sec, index) => {\n        msgText += `\\n<b>${index + 1}. ${sec.question}</b>\\n`;\n        msgText += `   └ ${sec.answer}\\n`;\n        \n        if (sec.analogy) {\n            const analogyIcon = isProduct ? \"🧩\" : \"⚙️\";\n            msgText += `   ${analogyIcon} <i>Focus: ${sec.analogy}</i>\\n`;\n        }\n    });\n}\n\nmsgText += `\\n━━━━━━━━━━━━━━━━━━━━\\n`;\nmsgText += `✨ <b>IN SINTESI:</b>\\n<i>${frag.summary}</i>`;\n\n// 4. TASTIERA DI CONTROLLO\nconst inlineKeyboard = [\n    // TASTO ASSISTENZA CON ID PRODOTTO/SERVIZIO\n    [{ text: \"🎧 Parla con un esperto\", callback_data: `g_CCall_${ghost_id}` }],\n    // NAVIGAZIONE\n    [\n        { text: \"⬅️ Torna alla Lista\", callback_data: backTarget },\n        { text: \"🏠 Menu\", callback_data: \"m_c_start\" }\n    ]\n];\n\n// 5. OUTPUT PER TELEGRAM\nreturn [{\n    json: {\n        ...item,\n        current_view_type: typeLabel,\n        current_ghost_id: ghost_id,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: chatId,\n            message_id: messageId,\n            text: msgText,\n            parse_mode: \"HTML\",\n            disable_web_page_preview: true,\n            reply_markup: {\n                inline_keyboard: inlineKeyboard\n            }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1072,
+        1632
+      ],
+      "id": "4ec7bb9b-488a-49fe-9228-10d624aefae8",
+      "name": "Prepare_Detail_View"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f453acc0-30bd-463f-9ea0-97d806b2649e",
+              "name": "body.gost_id",
+              "value": "={{ $json.body.callback_query.data.split('_DET_')[1] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1312,
+        1440
+      ],
+      "id": "bbd2ed97-dcf5-40f2-a6df-3dcb5306b0c3",
+      "name": "GetGost"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f453acc0-30bd-463f-9ea0-97d806b2649e",
+              "name": "body.gost_id",
+              "value": "={{ $json.body.callback_query.data.split('_CCall_')[1] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1312,
+        2000
+      ],
+      "id": "2de0ef7b-4ba5-41a6-93b4-38b299d13b65",
+      "name": "GetGost1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d12c796a-4e17-4456-9a7d-022242576163",
+              "leftValue": "={{ $json.product }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1024,
+        2000
+      ],
+      "id": "3b27c9d5-1c9b-4016-8c0e-325b2d69f417",
+      "name": "ServiceCatalog Exist1"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "service_catalog",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}-{{ $json.body.gost_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"product\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1168,
+        2000
+      ],
+      "id": "b01b8fb9-e5be-479e-ae91-aea3968bc54f",
+      "name": "service_catalog_single",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1312,
+        1840
+      ],
+      "id": "352788e3-d432-4747-89a2-13bbb5e608a8",
+      "name": "Merge9"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/{{ $json.payload_customer.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload_customer }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -768,
+        1760
+      ],
+      "id": "d406f86f-c270-47c0-8240-ae1843cff8d0",
+      "name": "📤 Telegram Customer",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/{{ $json.payload_owner.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload_owner }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -768,
+        2000
+      ],
+      "id": "2a9bb2f9-6180-4441-9764-23d505479cc9",
+      "name": "📤 Telegram Owner",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Handover_Trigger (v2.1) - Owner Assignment + OWNER ASH FIX\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst product = item.product || {};\nconst body = item.body.callback_query || {};\nconst stak = item.stakeholder || {};\n\n// --- CONFIGURAZIONE BOT TOKEN ---\nconst OPERATOR_BOT_TOKEN = \"8644939941:AAHPiZM3D9xg6TbHXGSiCfiXbA4q99fyuYQ\"; \nconst VAULT_BOT_TOKEN = owner.bot_key;\n\n// 1. CONFIGURAZIONE SICUREZZA (OWNER ASH)\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst WEBHOOK_ID = 'e353fd8a-62fb-4203-a2a7-20369d832e00';\n\nconst ownerChatId = (\n  owner.chat_id ||\n  item.active_session?.owner_chatid\n)?.toString();\n\nif (!ownerChatId) {\n  throw new Error('ASH ERROR: ownerChatId mancante');\n}\n\nconst timestamp = Date.now().toString();\nconst payload = `${ownerChatId}|${body.from.id}|${timestamp}|${WEBHOOK_ID}`;\n\nfunction generateSignature(str, key) {\n    let hash = 0;\n    const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        const char = combined.charCodeAt(i);\n        hash = ((hash << 5) - hash) + char;\n        hash = hash & hash; \n    }\n    return Math.abs(hash).toString(16);\n}\nconst signature = generateSignature(payload, SECRET_KEY);\nconst ash = `${Buffer.from(payload).toString('base64')}.${signature}`;\n\n// 2. ROUTING BILANCIATO\nconst operators = owner.operators || [];\nconst availableAdmins = operators.filter(op => op.Role === \"Amministrazione\" && op.FreeHandOperator === true && op.OperatorChatID != owner.chat_id);\n\nlet assigned, activeBotToken;\nif (availableAdmins.length > 0) {\n    assigned = availableAdmins[Math.floor(Math.random() * availableAdmins.length)];\n    activeBotToken = OPERATOR_BOT_TOKEN;\n} else {\n    assigned = { OperatorChatID: owner.chat_id, OperatorName: `${owner.name} ${owner.surname} (Owner)`, Role: \"Owner\" };\n    activeBotToken = VAULT_BOT_TOKEN;\n}\n\n// 3. COSTRUZIONE URL HANDOVER\nconst baseUrl = item.urlMiniApp || \"https://simonaiit.github.io/SiteBoS-MiniApp/\";\nconst handoverUrl = `${baseUrl}handover.html?ash=${ash}`;\n\n// 4. PREPARAZIONE DATI COMMERCIALI\nconst isRegistered = stak.document_type === \"STAKEHOLDER_PROFILE\";\nconst pIdent = product.identity || {};\nconst pPrice = product.pricing || {};\n\n// 5. COSTRUZIONE MESSAGGIO EXECUTIVE (HTML)\nconst ownerMsg = `\n⚡ <b>HOT LEAD: RICHIESTA DI HANDOVER</b>\n━━━━━━━━━━━━━━━━━━━━\n🎯 <b>OBIETTIVO COMMERCIALE:</b>\n📦 <b>Item:</b> <b>${pIdent.item_name.toUpperCase()}</b>\n🆔 <b>SKU:</b> <code>${pIdent.item_sku}</code>\n💰 <b>Valore:</b> <b>${pPrice.base_price} ${pPrice.currency}</b>\n\n👤 <b>PROFILO CLIENTE:</b>\n├ <b>Nome:</b> <b>${isRegistered ? stak.user_ref.nome + ' ' + stak.user_ref.cognome : body.from.first_name}</b>\n├ <b>Stato:</b> ${isRegistered ? '🟢 REGISTRATO' : '⚪ LEAD DA QUALIFICARE'}\n├ <b>Tel:</b> <code>${isRegistered ? stak.user_ref.telefono : 'N/D'}</code>\n├ <b>Email:</b> <code>${isRegistered ? stak.user_ref.email : 'N/D'}</code>\n└ <b>User:</b> @${body.from.username || 'N/D'}\n\n⚙️ <b>GESTIONE OPERATIVA:</b>\n├ <b>Assegnato a:</b> ${assigned.OperatorName}\n└ <b>Sessione:</b> <code>${signature}</code>\n\n━━━━━━━━━━━━━━━━━━━━\n👇 <b>AZIONE RICHIESTA:</b>\nAprite la chat per rispondere al cliente in tempo reale.\n`;\n\nconst h_payload = {\n    method: \"sendMessage\",\n    chat_id: assigned.OperatorChatID,\n    bot_token: activeBotToken,\n    text: ownerMsg,\n    parse_mode: \"HTML\",\n    reply_markup: {\n        inline_keyboard: [[{ text: \"🤝 APRI HANDOVER CHAT\", web_app: { url: handoverUrl } }]]\n    }\n};\n\nconst c_payload = {\n    method: \"editMessageText\",\n    chat_id: body.from.id,\n    message_id: body.message.message_id,\n    text: `🎧 <b>RICHIESTA INVIATA</b>\\\\n━━━━━━━━━━━━━━━━━━━━\\\\nCiao ${isRegistered ? stak.user_ref.nome : body.from.first_name}, un nostro esperto dell'area <b>Amministrazione</b> ti risponderà qui su Telegram il prima possibile.`,\n    parse_mode: \"HTML\",\n    reply_markup: { inline_keyboard: [[{ text: \"🏠 Torna al Menu\", callback_data: \"m_c_start\" }]] }\n};\n\nreturn [{\n    json: {\n        ...item,\n        payload_owner: h_payload,\n        payload_customer: c_payload,\n        customer_ash: ash\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1072,
+        1840
+      ],
+      "id": "5657722a-3b2d-4a0d-b47d-66e6c9a72029",
+      "name": "Prepare_Rich_Human_Handoff"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Prepare_Ticket_Invitation\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst stakeholder = item.stakeholder || { type: \"UNKOWN\" };\nconst body = item.body || {};\nconst callback = body.callback_query;\nconst baseUrl = item.urlMiniApp || \"https://simonaiit.github.io/SiteBoS-MiniApp/\";\n\nif (!callback?.from?.id || !callback?.message?.message_id) {\n    throw new Error(\"ASH ERROR: callback Telegram mancante o incompleto\");\n}\n\nconst chatId = callback.from.id;\nconst ownerChatId = (owner.chat_id || item.active_session?.owner_chatid)?.toString();\nif (!ownerChatId) {\n    throw new Error(\"ASH ERROR: ownerChatId mancante\");\n}\n\nconst isUnknown = stakeholder.type === \"UNKOWN\";\nconst customerName = isUnknown\n    ? (callback.from.first_name || \"Ospite\")\n    : (stakeholder.user_ref?.nome || callback.from.first_name || \"Ospite\");\n\n// ASH\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst WEBHOOK_ID = 'e353fa8d-62fb-4203-a2a7-20369d832e00';\nconst timestamp = Date.now().toString();\nconst payload = `${ownerChatId}|${callback.from.id}|${timestamp}|${WEBHOOK_ID}`;\n\nfunction generateSignature(str, key) {\n    let hash = 0;\n    const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        const char = combined.charCodeAt(i);\n        hash = ((hash << 5) - hash) + char;\n        hash = hash & hash;\n    }\n    return Math.abs(hash).toString(16);\n}\n\nconst signature = generateSignature(payload, SECRET_KEY);\nconst ash = `${Buffer.from(payload).toString('base64')}.${signature}`;\nconst ticketUrl = `${baseUrl}ticket.html?ash=${ash}`;\n\n// messaggio\nlet msgText = \"\";\nif (isUnknown) {\n    msgText = `\n🎧 <b>CENTRO ASSISTENZA: ${owner.ragione_sociale}</b>\n━━━━━━━━━━━━━━━━━━━━\nCiao <b>${customerName}</b>! Hai bisogno di aiuto o vuoi segnalare un'anomalia?\n\nPer fornirti un supporto rapido e a norma di legge, ti preghiamo di utilizzare il nostro modulo protetto.\n\n⚖️ <b>NOTA PRIVACY:</b>\nL'invio del ticket richiede l'accettazione del trattamento dati operato da <b>TrinAi srl</b> per scopi di assistenza tecnica e legale (GDPR).\n\n━━━━━━━━━━━━━━━━━━━━\n👇 <b>Clicca sotto per descrivere il problema:</b>`;\n} else {\n    msgText = `\n🎧 <b>CENTRO ASSISTENZA: ${owner.ragione_sociale}</b>\n━━━━━━━━━━━━━━━━━━━━\nBentornato, <b>${customerName}</b>!\n\nSiamo pronti ad assisterti. Poiché il tuo profilo è già verificato nei sistemi <b>TrinAi</b>, la gestione del ticket sarà prioritaria.\n\nPuoi descrivere la tua richiesta o allegare documenti tecnici direttamente nel modulo qui sotto.\n\n━━━━━━━━━━━━━━━━━━━━\n👇 <b>Avvia la richiesta di assistenza:</b>`;\n}\n\nreturn [{\n    json: {\n        ...item,\n        is_unknown_user: isUnknown,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: chatId,\n            message_id: callback.message.message_id,\n            text: msgText,\n            parse_mode: \"HTML\",\n            reply_markup: {\n                inline_keyboard: [\n                    [{ text: \"🎫 APRI TICKET DI ASSISTENZA\", web_app: { url: ticketUrl } }],\n                    [{ text: \"⬅️ Torna al Menu\", callback_data: \"m_c_start\" }]\n                ]\n            }\n        },\n        callback_answer: {\n            method: \"answerCallbackQuery\",\n            callback_query_id: callback.id,\n            text: \"✅ Modulo assistenza pronto\"\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        752
+      ],
+      "id": "a80b91d6-8928-47e7-8314-ce59b0e4d0c7",
+      "name": "Prepare_Ticket_Invitation"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "5gd6YujFW82uNOZC",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/5gd6YujFW82uNOZC",
+          "cachedResultName": "Tlgm_bot NplGate"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -1728,
+        -176
+      ],
+      "id": "611d325b-1b53-4696-a189-e1c3ac544508",
+      "name": "Call 'Tlgm_bot NplGate'"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\n// 1. Identificativi Multitenant\nconst from = item.body?.message?.from || item.body?.callback_query?.from;\nconst customerChatId = from?.id;\nconst ownerChatId = item.query?.user_id; \nconst compositeSessionId = `${customerChatId}-${ownerChatId}`;\n\n// 2. Draft Sessione con Dati Telegram e Opt-in Etico\nlet active_session;\n\nif (!item.active_session) {\n  active_session = {\n    session_id: compositeSessionId,\n    owner_chatid: ownerChatId,\n    customer_chatid: customerChatId,\n    session_status: \"ACTIVE\",\n    lead_profile: {\n      first_name: from?.first_name || \"\",\n      last_name: from?.last_name || \"\",\n      username: from?.username || \"\",\n      language: from?.language_code || \"it\"\n    },\n    preferences: {\n      broadcast_subscribed: false, // OFF di default (Etico)\n      last_preference_update: new Date().toISOString()\n    },\n    prediction_keywords: \"accoglienza, chi siamo, dove siete, cosa fate\",\n    working_memory: { behavioral_log: \"\", funnel_step: \"start\" },\n    telegram: {\n      last_bot_message_id: item.body.message.message_id,\n      last_interaction: new Date().toISOString()\n    }\n  };\n} else {\n  active_session = item.active_session;\n  active_session.owner_chatid = ownerChatId;\n  active_session.stats.message_count += 1;\n  active_session.stats.last_interaction = new Date().toISOString();\n}\n\n// 3. User Request\nconst user_request = {\n  text: item.body?.message?.text || \"\",\n  chat_id: customerChatId,\n  language: from?.language_code || \"it\",\n  timestamp: new Date().toISOString()\n};\n\nreturn [{\n  json: {\n    ...item,\n    user_request: user_request,\n    active_session: active_session\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2224,
+        240
+      ],
+      "id": "2a291d75-61f1-420c-b99d-bd0699671667",
+      "name": "Pragmatic_Session Initializer"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.active_session }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -1856,
+        240
+      ],
+      "id": "ecc780b7-a4b6-478d-9412-78a3137aa133",
+      "name": "Active_Session"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.active_session.session_id }}",
+        "collectionName": "active_sessions",
+        "databaseName": "Telegram_owner_bot"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -1856,
+        336
+      ],
+      "id": "1958a3c8-b200-4121-976f-77240001db37",
+      "name": "MongoDB Chat Memory3",
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "565a9adb-c6de-427b-b42b-4426ccb88d30",
+              "name": "active_session.owner_chatid",
+              "value": "={{ $json.query.user_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2032,
+        240
+      ],
+      "id": "05c6eaab-c2ea-4c90-9396-5f15bae45294",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2032,
+        432
+      ],
+      "id": "21173ce1-e977-40ba-9f49-eb5159001536",
+      "name": "Merge10"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "active_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.customer_chatid\": {\n        \"$eq\": {{ $json.body?.message?.chat?.id || $json.body?.callback_query?.from?.id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"active_session\": \"$stakeholder.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2432,
+        960
+      ],
+      "id": "f028f813-0433-44df-8529-96afe193904a",
+      "name": "active_session",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Session_Error_Handler (Edit Mode)\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst config = owner.customer_bot_config || {};\nconst callback = item.body.callback_query;\n\nconst chatId = callback.from.id;\nconst messageId = callback.message.message_id;\nconst agentName = config.identity?.agent_name || \"Assistente Virtuale\";\n\nconst messageText = `\n⚠️ <b>Sincronizzazione in corso...</b>\n━━━━━━━━━━━━━━━━━━━━\nGentile utente, sono <b>${agentName}</b>. \n\nPer garantirti la massima precisione, ho bisogno di ricollegarmi alla tua sessione di lavoro. Clicca il tasto qui sotto per ripristinare il collegamento e continuare.\n\n━━━━━━━━━━━━━━━━━━━━\n👇 <b>Ripristina ora:</b>`;\n\nreturn [{\n    json: {\n        ...item,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: chatId,\n            message_id: messageId,\n            text: messageText,\n            parse_mode: \"HTML\",\n            reply_markup: {\n                inline_keyboard: [\n                    [{ text: \"🔄 Ripristina Sessione\", callback_data: \"re_start\" }]\n                ]\n            }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2032,
+        1664
+      ],
+      "id": "ef6c7f3f-83f3-40f5-b1d2-04ed2d1d3904",
+      "name": "Session_Error_Handler"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2224,
+        1648
+      ],
+      "id": "0b7b2a86-0a1e-4cc5-b654-34b43c0fc7d3",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Toggle_Broadcast_Logic\nconst item = $input.first().json;\nconst callback = item.body.callback_query;\nconst session = item.active_session || {};\n\n// Safety bootstrap\nif (!session.preferences) session.preferences = {};\n\n// 1. Cambio valore su Active Session\nconst currentStatus = session.preferences.broadcast_subscribed || false;\nconst newStatus = !currentStatus;\n\nsession.preferences.broadcast_subscribed = newStatus;\nsession.preferences.last_preference_update = new Date().toISOString();\n\n// 2. Preparazione UI Telegram\nconst newButtonText = newStatus ? \"🔕 DISATTIVA OFFERTE\" : \"🔔 ATTIVA OFFERTE\";\nconst alertText = newStatus ? \"✅ Notifiche Offerte Attivate\" : \"🔕 Notifiche Offerte Disattivate\";\n\nconst keyboard = callback.message.reply_markup?.inline_keyboard || [];\nkeyboard.forEach(row => {\n    row.forEach(btn => {\n        if (btn.callback_data === \"u_TOGGLE_OFFERS\") {\n            btn.text = newButtonText;\n        }\n    });\n});\n\nreturn [{\n    json: {\n        ...item,\n        active_session: session,\n        telegramApiPayload: {\n            method: \"editMessageReplyMarkup\",\n            chat_id: callback.from.id,\n            message_id: callback.message.message_id,\n            reply_markup: { inline_keyboard: keyboard }\n        },\n        callback_answer: {\n            method: \"answerCallbackQuery\",\n            callback_query_id: callback.id,\n            text: alertText\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        944
+      ],
+      "id": "6d0e5559-44eb-4bbf-96a3-307afa87d120",
+      "name": "Toggle_Broadcast_Logic"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.active_session }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -208,
+        944
+      ],
+      "id": "011aa3fb-5e66-4abc-b62e-9c87ed984a9a",
+      "name": "Active_Session1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.active_session.session_id }}",
+        "collectionName": "active_sessions",
+        "databaseName": "Telegram_owner_bot"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        1040
+      ],
+      "id": "d7308dea-1a5f-4bb8-a555-c6bbaaef060b",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1056,
+        1024
+      ],
+      "id": "a2e7f65b-c21d-446b-afd7-c88bdeafafc6",
+      "name": "Merge11"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2032,
+        816
+      ],
+      "id": "07367422-8572-4a8a-b896-e11e65f1f628",
+      "name": "Merge12"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Chat_Protocol_Rules\n// VERSIONE: 4.0 - Hard Execution (Zio Pino Edition)\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst perms = owner.customer_bot_config?.permissions || { allow_images: false, allow_files: false };\n\n// 1. Logica dinamica permessi media (Solo fatti, nessuna filosofia)\nlet mediaRule = \"1️⃣ <b>SOLO TESTO:</b> Puoi inviare solo messaggi scritti. Foto, video o documenti verranno <u>cancellati istantaneamente</u>.\";\n\nif (perms.allow_images && perms.allow_files) {\n    mediaRule = \"1️⃣ <b>COSA INVIARE:</b> Sono ammessi testo, fotografie e documenti.\";\n} else if (perms.allow_images) {\n    mediaRule = \"1️⃣ <b>COSA INVIARE:</b> Sono ammessi testo e fotografie. I documenti verranno <u>cancellati</u>.\";\n} else if (perms.allow_files) {\n    mediaRule = \"1️⃣ <b>COSA INVIARE:</b> Sono ammessi testo e documenti. Le fotografie verranno <u>cancellate</u>.\";\n}\n\nconst messageText = `\n📜 <b>REGOLE DELLA CHAT - ${owner.ragione_sociale.toUpperCase()}</b>\n\nLeggi bene per evitare che i tuoi messaggi vengano rimossi:\n\n${mediaRule}\n\n2️⃣ <b>NIENTE ALBUM:</b> Invia un solo messaggio alla volta. Se mandi gruppi di foto o album, verranno <u>tutti cancellati automaticamente</u>.\n\n<i>Questo messaggio è pinnato in alto per tua consultazione.</i>`;\n\nreturn [{\n    json: {\n        ...item,\n        telegramApiPayload: {\n            method: \"sendMessage\",\n            chat_id: item.body.message.from.id,\n            text: messageText,\n            parse_mode: \"HTML\",\n            disable_notification: true\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3808,
+        400
+      ],
+      "id": "43105b62-a0bf-4c93-8ea0-9481fde798bf",
+      "name": "Chat_Protocol_Rules"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -3632,
+        400
+      ],
+      "id": "c35e2f56-dfb9-4155-89fd-9fe80e6c5dda",
+      "name": "📤 Telegram Manager",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -3344,
+        400
+      ],
+      "id": "291ebef4-0bf0-4360-9586-1082b02374ac",
+      "name": "Merge13"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/pinChatMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": {{ $json.result.chat.id }},\n  \"message_id\": {{ $json.result.message_id }},\n  \"disable_notification\": true\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -3168,
+        400
+      ],
+      "id": "e58cbc97-99f6-4281-9e7f-9335e8a96685",
+      "name": "📤 Telegram Pin",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2768,
+        400
+      ],
+      "id": "17bf28bd-aa33-4149-8147-a099dd620d56",
+      "name": "Merge14"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2944,
+        384
+      ],
+      "id": "1fcd563c-f125-4200-9741-d6cb20be37f7",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "delete",
+        "deleteMode": "all"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        160,
+        976
+      ],
+      "id": "e39e0c57-5235-4baf-849b-801fc0b67592",
+      "name": "Active_Session2"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.active_session.session_id }}",
+        "collectionName": "active_sessions",
+        "databaseName": "Telegram_owner_bot"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        160,
+        1072
+      ],
+      "id": "40ac5116-7d39-4cc2-9c68-79d4348d7401",
+      "name": "MongoDB Chat Memory4",
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1056,
+        1216
+      ],
+      "id": "23c553cd-c1ea-470d-aa34-d15bcce73093",
+      "name": "Merge15"
+    },
+    {
+      "parameters": {
+        "mode": "delete",
+        "deleteMode": "all"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -816,
+        1216
+      ],
+      "id": "00990782-9fbe-4bc2-9dcf-0f4f0b61b29b",
+      "name": "Chat Memory Manager"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.callback_query.from.id }}",
+        "collectionName": "ingestion_buffers",
+        "databaseName": "Telegram_owner_bot"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -816,
+        1312
+      ],
+      "id": "5055a41c-9c74-4d26-9308-820d48060460",
+      "name": "MongoDB Chat Memory1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.active_session }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2240,
+        960
+      ],
+      "id": "417d9cba-6937-4891-aa98-66c12334b023",
+      "name": "active_session1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\n// 1. Identificativi Multitenant\nconst from = item.body?.message?.from || item.body?.callback_query?.from;\nconst customerChatId = from?.id;\nconst ownerChatId = item.query?.user_id; \nconst compositeSessionId = `${customerChatId}-${ownerChatId}`;\n\n// 2. Draft Sessione con Dati Telegram e Opt-in Etico\nlet active_session;\n\nif (!item.active_session) {\n  active_session = {\n    session_id: compositeSessionId,\n    owner_chatid: ownerChatId,\n    customer_chatid: customerChatId,\n    session_status: \"ACTIVE\",\n    lead_profile: {\n      first_name: from?.first_name || \"\",\n      last_name: from?.last_name || \"\",\n      username: from?.username || \"\",\n      language: from?.language_code || \"it\"\n    },\n    preferences: {\n      broadcast_subscribed: false, // OFF di default (Etico)\n      last_preference_update: new Date().toISOString()\n    },\n    prediction_keywords: \"accoglienza, chi siamo, dove siete, cosa fate\",\n    working_memory: { behavioral_log: \"\", funnel_step: \"start\" },\n    telegram: {\n      last_bot_message_id: item.body.callback_query.message.message_id,\n      last_interaction: new Date().toISOString()\n    }\n  };\n} else {\n  active_session = item.active_session;\n  active_session.owner_chatid = ownerChatId;\n  active_session.stats.message_count += 1;\n  active_session.stats.last_interaction = new Date().toISOString();\n}\n\n// 3. User Request\nconst user_request = {\n  text: item.body?.message?.text || \"\",\n  chat_id: customerChatId,\n  language: from?.language_code || \"it\",\n  timestamp: new Date().toISOString()\n};\n\nreturn [{\n  json: {\n    ...item,\n    user_request: user_request,\n    active_session: active_session\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1328,
+        288
+      ],
+      "id": "b9bdb1fc-f29c-49a3-8241-92216b9d3986",
+      "name": "Pragmatic_Session Initializer1"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.active_session }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -944,
+        288
+      ],
+      "id": "815c0b21-e3c7-439f-b84a-7b1b66e43360",
+      "name": "Active_Session3"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.active_session.session_id }}",
+        "collectionName": "active_sessions",
+        "databaseName": "Telegram_owner_bot"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -944,
+        416
+      ],
+      "id": "962cce1c-2cba-40f6-b2ca-b319cb145bba",
+      "name": "MongoDB Chat Memory5",
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "565a9adb-c6de-427b-b42b-4426ccb88d30",
+              "name": "active_session.owner_chatid",
+              "value": "={{ $json.query.user_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "ignoreConversionErrors": true
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1120,
+        288
+      ],
+      "id": "2828f43c-9a6a-4ac6-a69e-f818a769ca2a",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -800,
+        544
+      ],
+      "id": "b796f03a-555b-4f4b-afab-1aeebbd9facc",
+      "name": "Merge16"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "343aaf71-622f-490b-bd83-e228650a43b1",
+              "name": "stakeholder",
+              "value": "={{ $json.stakeholder }}",
+              "type": "object"
+            },
+            {
+              "id": "2cdb2466-0ece-443f-ae55-245ea3dec641",
+              "name": "body",
+              "value": "={{ $json.body }}",
+              "type": "object"
+            },
+            {
+              "id": "8be4ce43-e66c-4059-890f-a6e3c5986e09",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            },
+            {
+              "id": "7f85ac5e-f35a-4cf8-bbc4-6c19aa8d3fd3",
+              "name": "urlMiniApp",
+              "value": "={{ $json.urlMiniApp }}",
+              "type": "string"
+            },
+            {
+              "id": "79dee00f-44bd-4a17-9bab-858eeb3e1cde",
+              "name": "service_catalog_setup",
+              "value": "={{ $json.service_catalog_setup }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1312,
+        1232
+      ],
+      "id": "fc1fc7d3-bf79-4fe1-a0d6-0dc50cdb8e5f",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2448,
+        1664
+      ],
+      "id": "50b59d8c-ea46-4e07-b2cc-5353589a8c46",
+      "name": "Merge17"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a0ce98cf-c190-454a-a954-5b6e64ac7d1e",
+              "leftValue": "={{ $json.body.callback_query.data }}",
+              "rightValue": "re_start",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1728,
+        1648
+      ],
+      "id": "9dc3daa8-6d5b-403f-8cc4-72e4cc408a48",
+      "name": "restart"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f0a61ecb-9d30-4adb-880a-5c1c8ea51d9b",
+              "leftValue": "={{ $json.body.callback_query.data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1760,
+        816
+      ],
+      "id": "b7c950cd-53f8-4ecc-95a0-634370dfff6d",
+      "name": "Callback?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "567a17d6-f239-4a50-af79-20fe34589fe0",
+              "leftValue": "={{ $json.body.message.from.is_bot }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1760,
+        512
+      ],
+      "id": "50254f71-d84d-4c8a-ab8f-b1276f83bb49",
+      "name": "Bot?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Handle_RE_Start\n// VERSIONE: 3.1 - Premium Reset & Status Sync (OWNER ASH FIX)\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst config = owner.customer_bot_config || {};\nconst session = item.active_session || {};\nconst stakeholder = item.stakeholder;\nconst callback = item.body.callback_query;\n\n// 1. CONFIGURAZIONE SICUREZZA ASH (OWNER CHAT ID - FIX)\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst WEBHOOK_ID = 'e353fd8a-62fb-4203-a2a7-20369d832e00';\n\nconst ownerChatId = (\n  owner.chat_id ||\n  session.owner_chatid\n)?.toString();\n\nif (!ownerChatId) {\n  throw new Error('ASH ERROR: ownerChatId mancante');\n}\n\nconst timestamp = Date.now().toString();\nconst payload = `${ownerChatId}|${callback.from.id}|${timestamp}|${WEBHOOK_ID}`;\n\nfunction generateSignature(str, key) {\n    let hash = 0;\n    const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        const char = combined.charCodeAt(i);\n        hash = ((hash << 5) - hash) + char;\n        hash = hash & hash;\n    }\n    return Math.abs(hash).toString(16);\n}\n\nconst signature = generateSignature(payload, SECRET_KEY);\nconst ash = `${Buffer.from(payload).toString('base64')}.${signature}`;\nconst BASE_APP_URL = item.urlMiniApp || \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp\";\nconst ashToken = `?ash=${ash}`;\n\n// 2. RILEVAMENTO STATO PRO (Chi comanda la tastiera)\nconst isPro = !!(stakeholder && stakeholder.metadata && stakeholder.metadata.status !== \"GUEST\");\nconst customerName = stakeholder?.user_ref?.nome || session.lead_profile?.first_name || \"OSPITE\";\n\n// 3. COSTRUZIONE DEL MESSAGGIO (Visual Tech Style)\nlet messageText = `🔄 <b>SESSIONE RE-INIZIALIZZATA, ${customerName.toUpperCase()}</b>\\n`;\nmessageText += `<i>Hub Digitale di ${owner.ragione_sociale || \"TrinAi\"}</i>\\n`;\nmessageText += `━━━━━━━━━━━━━━━━━━━━\\n\\n`;\n\nlet inlineKeyboard = [];\nconst registerUrl = `https://dashboard.trinai.it/register?ash=${ash}`;\nconst dashboardUrl = \"https://dashboard.trinai.it/\";\n\nif (!isPro) {\n    // --- UI GUEST: Focus sull'Attivazione ---\n    messageText += `💎 <b>MODALITÀ DISCOVERY ATTIVA</b>\\n`;\n    messageText += `I dati temporanei sono stati rimossi. Registrati ora per sbloccare l'intelligenza artificiale di <b>TrinAi</b>.\\n\\n`;\n    messageText += `🚀 <i>Sblocca: 🛒 Acquista e 📅 Booking.</i>`;\n\n    inlineKeyboard.push([\n        { text: \"🔥 ATTIVA FUNZIONI AI\", url: registerUrl }\n    ]);\n} else {\n    // --- UI PRO: Focus sull'Operatività Sbloccata ---\n    messageText += `✅ <b>PROFILO PRO SINCRONIZZATO</b>\\n`;\n    messageText += `Reset completato. La tua identità è stata riconosciuta e tutti i sistemi ad alta precisione sono pronti.\\n\\n`;\n    messageText += `⚙️ <i>Quale modulo vuoi lanciare?</i>`;\n\n    inlineKeyboard.push([\n        { text: \"🖥️ Accedi alla Dashboard TrinAi\", url: dashboardUrl }\n    ]);\n\n    // Tasti operativi PRO\n    inlineKeyboard.push([\n        { text: \"🛒 ACQUISTA\", callback_data: \"u_CALC\" },\n        { text: \"📅 BOOKING\", web_app: { url: `${BASE_APP_URL}/booking.html${ashToken}` } }\n    ]);\n}\n\n// 4. TASTI COMUNI (Navigazione ed Etica)\nconst isSubscribed = session.preferences?.broadcast_subscribed || false;\nconst offerButton = isSubscribed\n    ? { text: \"🔕 DISATTIVA OFFERTE\", callback_data: \"u_TOGGLE_OFFERS\" }\n    : { text: \"🔔 ATTIVA OFFERTE\", callback_data: \"u_TOGGLE_OFFERS\" };\n\ninlineKeyboard.push([\n    { text: \"📦 PRODOTTI\", callback_data: \"g_PRO\" },\n    { text: \"🛠️ SERVIZI\", callback_data: \"g_SER\" }\n]);\n\ninlineKeyboard.push([\n    offerButton,\n    { text: \"🎧 SUPPORT\", callback_data: \"g_CCare\" }\n]);\n\ninlineKeyboard.push([\n    { text: \"🗑️ RESET SESSIONE\", callback_data: \"u_RESET_SESSION\" }\n]);\n\n// 5. OUTPUT FINALE (Edit Mode)\nreturn [{\n    json: {\n        ...item,\n        generated_ash: ash,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: callback.from.id.toString(),  // ← CUSTOMER per Telegram\n            message_id: callback.message.message_id,\n            text: messageText,\n            parse_mode: \"HTML\",\n            disable_web_page_preview: true,\n            reply_markup: { inline_keyboard: inlineKeyboard }\n        },\n        callbackAnswer: {\n            method: \"answerCallbackQuery\",\n            callback_query_id: callback.id,\n            text: \"🔄 Sessione Ripristinata\"\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        912
+      ],
+      "id": "91070d67-e48c-49d5-a5b4-d4b02a44b67b",
+      "name": "Handle_RE_Start"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8d8b6849-4f68-4009-99b5-fe8e34022595",
+              "leftValue": "={{ $json.active_session.session_status }}",
+              "rightValue": "BANNED",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2432,
+        784
+      ],
+      "id": "225af842-9d25-4351-93b6-7974ded55fb7",
+      "name": "BaN"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Handle Acquisti (v1.2) - Commercial Launcher (CHAT_ID NUMBER FIX)\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst session = item.active_session || {};\nconst stakeholder = item.stakeholder;\nconst callback = item.body?.callback_query;\n\nif (!callback) {\n  throw new Error('Callback query non trovata.');\n}\n\n// 1. CONFIGURAZIONE SICUREZZA ASH (OWNER ID)\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst WEBHOOK_ID = 'e353fd8a-62fb-4203-a2a7-20369d832e00';\n\nconst ownerChatId = (\n  owner.chat_id ||\n  session.owner_chatid\n)?.toString();\n\nif (!ownerChatId) {\n  throw new Error('ASH ERROR: ownerChatId mancante');\n}\n\nconst timestamp = Date.now().toString();\nconst payload = `${ownerChatId}|${callback.from.id}|${timestamp}|${WEBHOOK_ID}`;\n\nfunction generateSignature(str, key) {\n    let hash = 0;\n    const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        const char = combined.charCodeAt(i);\n        hash = ((hash << 5) - hash) + char;\n        hash = hash & hash; \n    }\n    return Math.abs(hash).toString(16);\n}\n\nconst signature = generateSignature(payload, SECRET_KEY);\nconst ash = `${Buffer.from(payload).toString('base64')}.${signature}`;\nconst BASE_APP_URL = item.urlMiniApp || \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp\";\nconst ashToken = `?ash=${ash}`;\n\n// 2. DATI UTENTE\nconst customerName = stakeholder?.user_ref?.nome || session.lead_profile?.first_name || \"CLIENTE\";\nconst companyName = owner.ragione_sociale || \"TrinAi\";\n\n// 3. COSTRUZIONE MESSAGGIO\nconst messageText = `\n💰 <b>🛒 PREVENTIVI & ACQUISTI</b>\n━━━━━━━━━━━━━━━━━━━━\n<b>${customerName.toUpperCase()}</b>, benvenuto nel motore commerciale di <b>${companyName}</b>.\n\nScegli il modulo per procedere:\n\n📊 <b>Preventivatore AI:</b> Analisi costi e quotazioni intelligenti.\n🛒 <b>Ecommerce:</b> Acquisto diretto dal catalogo prodotti.\n\n👇 <i>Avvia il flusso desiderato:</i>`;\n\n// 4. TASTIERA COMMERCIALE (2 MiniApp)\nconst inlineKeyboard = [\n    [\n        { text: \"📊 PREVENTIVATORE AI\", web_app: { url: `${BASE_APP_URL}/preventivi.html${ashToken}` } },\n        { text: \"🛒 ACQUISTA DAL CATALOGO\", web_app: { url: `${BASE_APP_URL}/ecommerce.html${ashToken}` } }\n    ],\n    [\n        { text: \"🏠 Torna al Menu Principale\", callback_data: \"m_c_start\" }\n    ]\n];\n\n// 5. OUTPUT (chat_id NUMERO SENZA .toString())\nconst customerChatId = parseInt(callback.from.id);  // ← NUMERO Puro\n\nreturn [{\n    json: {\n        ...item,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: customerChatId,\n            message_id: callback.message.message_id,\n            text: messageText,\n            parse_mode: \"HTML\",\n            disable_web_page_preview: true,\n            reply_markup: { inline_keyboard: inlineKeyboard }\n        },\n        callbackAnswer: {\n            method: \"answerCallbackQuery\",\n            callback_query_id: callback.id,\n            text: \"💰 Motore Commerciale Attivo\"\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        1008
+      ],
+      "id": "96ffcfb4-730b-4ba8-bb97-95c0df54dcd4",
+      "name": "Handle_Acquisti"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.user_ref.chat_id\": {\n        \"$eq\": {{ $json.body?.message?.chat?.id || $json.body?.callback_query?.from?.id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$stakeholder.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2624,
+        432
+      ],
+      "id": "31ca1b77-7638-45e5-80f8-380269a9c3e5",
+      "name": "stakeholder1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2464,
+        416
+      ],
+      "id": "9c2d16f4-a991-4334-8323-f4332dcda933",
+      "name": "Merge18"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "content-length": "1582",
+            "accept-encoding": "gzip, deflate",
+            "content-type": "application/json",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "91.108.5.34",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {
+            "user_id": "8305126267"
+          },
+          "body": {
+            "update_id": 979305754,
+            "callback_query": {
+              "id": "8767784357249299900",
+              "from": {
+                "id": 2041408875,
+                "is_bot": false,
+                "first_name": "Giuseppe",
+                "last_name": "Garofalo",
+                "username": "TrinAi_OperativeChief",
+                "language_code": "it"
+              },
+              "message": {
+                "message_id": 26,
+                "from": {
+                  "id": 8407768207,
+                  "is_bot": true,
+                  "first_name": "centro odontoiatrico buscemi",
+                  "username": "centrobuscemi_bot"
+                },
+                "chat": {
+                  "id": 2041408875,
+                  "first_name": "Giuseppe",
+                  "last_name": "Garofalo",
+                  "username": "TrinAi_OperativeChief",
+                  "type": "private"
+                },
+                "date": 1781870257,
+                "edit_date": 1781870459,
+                "text": "🛠️ CATALOGO SERVIZI\n━━━━━━━━━━━━━━━━━━━━\nGentile utente, sono Arianna. Di seguito trovi le procedure operative e i servizi di consulenza di Centro Odontoiatrico Buscemi srl.\n\nSeleziona un servizio per visualizzare i dettagli:",
+                "entities": [
+                  {
+                    "offset": 4,
+                    "length": 16,
+                    "type": "bold"
+                  },
+                  {
+                    "offset": 63,
+                    "length": 7,
+                    "type": "bold"
+                  },
+                  {
+                    "offset": 141,
+                    "length": 32,
+                    "type": "bold"
+                  }
+                ],
+                "reply_markup": {
+                  "inline_keyboard": [
+                    [
+                      {
+                        "text": "🦷 Impianto Rapido",
+                        "callback_data": "g_SER_DET_SVC_E8QU7ECD"
+                      },
+                      {
+                        "text": "🦴 Rigenerazione",
+                        "callback_data": "g_SER_DET_SVC_9P7XZ7MS"
+                      }
+                    ],
+                    [
+                      {
+                        "text": "🦷 Invisalign",
+                        "callback_data": "g_SER_DET_SVC_CFQX8TSF"
+                      },
+                      {
+                        "text": "🦷 Ortod. Bambini",
+                        "callback_data": "g_SER_DET_SVC_5ZD1XG6Y"
+                      }
+                    ],
+                    [
+                      {
+                        "text": "🦷 Pulizia Denti",
+                        "callback_data": "g_SER_DET_SVC_SOFCOPJ6"
+                      }
+                    ],
+                    [
+                      {
+                        "text": "⬅️ Torna al Menu Principale",
+                        "callback_data": "m_c_start"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "chat_instance": "-2630485095181479968",
+              "data": "m_c_start"
+            }
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/8eb69e84-d20d-486e-a70e-9acf31c3da9e",
+          "executionMode": "production",
+          "urlMiniApp": "https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/telegram_control/",
+          "owner_data": {
+            "user_id": "IT02564250849",
+            "chat_id": 8305126267,
+            "access_token": "3085509e-63ee-463a-ba87-e0de3b975218",
+            "group_id": null,
+            "user_name": "",
+            "vat_number": "IT02564250849",
+            "gemini_key": "AIzaSyAbDReRpDWAg93RXoOxuOmNtCGzIfZmF4Q",
+            "bot_key": "8407768207:AAE8ki9v8DPdcrYYyWDFjPFON6cS-7sehb8",
+            "path": "",
+            "name": "GIUSEPPE",
+            "surname": "BUSCEMI",
+            "email": "giuseppe.buscemi78@gmail.com",
+            "phone": "3934425185",
+            "ragione_sociale": "Centro Odontoiatrico Buscemi srl",
+            "indirizzo": "via tagliavia , 92013 MENFI (AG)",
+            "fiscal_code": "BSCGPP78S29G273C",
+            "sdi_pec": "KRRH6B9",
+            "site": "www.centroodontoiatricobuscemi.com",
+            "linkedin_page": "",
+            "facebook_page": "https://www.facebook.com/profile.php?id=100064938375333",
+            "instagram_page": "https://www.instagram.com/centrodentisticobuscemi/",
+            "twitter_page": "",
+            "sector": "services_personal",
+            "business_description": "ATTIVITà DI ODONTOIATRIA DI ECCELLENZA",
+            "kyc_details": {
+              "professional_questionnaire": {
+                "role": "founder_ceo",
+                "team_size": "6-10",
+                "years_experience": "20+",
+                "hard_skills": [
+                  "ODONTOIATRA SPECIALISTA IN ORTODONZIA",
+                  "IMPRENDITORE",
+                  "DENTAL OFFICE MANAGER",
+                  "ODONTOIATRA SPECIALISTA IN CHIRURGIA",
+                  "ESPERTO DI GNATOLOGIA"
+                ],
+                "certifications": "ALBO DEI MEDICI DI AG NUM 353",
+                "recent_training": "formal_course",
+                "specialization_level": "specialist",
+                "digital_tools": [
+                  "email",
+                  "whatsapp",
+                  "word",
+                  "calendar",
+                  "social",
+                  "crm",
+                  "accounting"
+                ],
+                "client_workflow": "physical_dominant",
+                "document_management": "gestionale",
+                "pain_points": [
+                  "bureaucracy",
+                  "find_clients",
+                  "time_management",
+                  "costs_control",
+                  "scaling"
+                ],
+                "main_goal": "save_time"
+              }
+            },
+            "subscription_plan": "pioneer_free_trial",
+            "subscription_status": "Pending_Activation",
+            "credits_balance": 494754,
+            "model_choice": "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+            "lenguage": "Italiano",
+            "owner_unavailable_time": "21-7",
+            "operator_unavailable_time": "19-9",
+            "operators": [
+              {
+                "OperatorName": "GIUSEPPE BUSCEMI",
+                "OperatorChatID": 8305126267,
+                "OperatorLenguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Owner",
+                "GeminiKey": "AIzaSyBCV2D4FL-1Nww0jYJRJTDBG5QRdm7Kclc",
+                "OperatorLanguage": "Italiano",
+                "Job": "Odontoiatra",
+                "isOwner": true,
+                "contract": "Partita IVA",
+                "level": "",
+                "hours": 40,
+                "salary": 0,
+                "rate_type": "percentage",
+                "rate": 30,
+                "specialization": "Ortodontista",
+                "status": "",
+                "invitation_code": ""
+              },
+              {
+                "OperatorName": "Sara",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Operator",
+                "Job": "Igienista",
+                "isOwner": false,
+                "contract": "Dipendente (CCNL)",
+                "level": "2° Livello",
+                "hours": 40,
+                "salary": 1878.32,
+                "rate_type": "percentage",
+                "rate": 0,
+                "specialization": "Generico / Generalista",
+                "GeminiKey": "",
+                "status": "PENDING",
+                "invitation_code": "INV-IT02564250849-XNUAX",
+                "created_at": "2026-06-16T15:01:37.564Z"
+              },
+              {
+                "OperatorName": "Vita",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Operator",
+                "Job": "ASO (Assistente)",
+                "isOwner": false,
+                "contract": "Dipendente (CCNL)",
+                "level": "5° Livello",
+                "hours": 30,
+                "salary": 1126.64,
+                "rate_type": "percentage",
+                "rate": 0,
+                "specialization": "Generico / Generalista",
+                "GeminiKey": "",
+                "status": "",
+                "invitation_code": ""
+              },
+              {
+                "OperatorName": "Arianna",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Operator",
+                "Job": "ASO (Assistente)",
+                "isOwner": false,
+                "contract": "Dipendente (CCNL)",
+                "level": "4° Livello",
+                "hours": 30,
+                "salary": 1210.59,
+                "rate_type": "percentage",
+                "rate": 0,
+                "specialization": "Generico / Generalista",
+                "GeminiKey": "",
+                "status": "",
+                "invitation_code": ""
+              },
+              {
+                "OperatorName": "Filippo",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "External",
+                "Job": "Odontoiatra",
+                "isOwner": false,
+                "contract": "Partita IVA",
+                "level": "",
+                "hours": 40,
+                "salary": 0,
+                "rate_type": "percentage",
+                "rate": 30,
+                "specialization": "Chirurgo / Implantologo",
+                "GeminiKey": "",
+                "status": "",
+                "invitation_code": ""
+              }
+            ],
+            "payment_preference": "stripe",
+            "terms_accepted": true,
+            "operator_owner": "",
+            "operator_credit": "1",
+            "created_at": "2026-03-24T18:17:36.730Z",
+            "additional_kwargs": {},
+            "response_metadata": {},
+            "subscription_certificator": true,
+            "last_update": "2026-06-16T15:01:37.564Z",
+            "subscription_custombot": true,
+            "customer_bot_config": {
+              "status": "ACTIVE",
+              "activated_at": "2026-04-21T10:46:26.534Z",
+              "last_updated_at": "2026-04-21T10:46:26.534Z",
+              "identity": {
+                "agent_name": "Arianna",
+                "role_persona": "customer_support"
+              },
+              "permissions": {
+                "allow_images": true,
+                "allow_files": true
+              },
+              "personality": {
+                "tone": "friendly",
+                "vibe": "helpful_assistant",
+                "language_style": "casual",
+                "emoji_usage": "moderate",
+                "custom_instructions": ""
+              },
+              "business_logic": {
+                "primary_goal": "lead_generation",
+                "fallback_message": "Al momento non dispongo di questa informazione specifica. Preferisce che inoltri la Sua richiesta a un operatore umano?"
+              },
+              "system_safety_limits": {
+                "max_daily_messages_per_user": 20,
+                "max_tokens_per_chat": 2000
+              }
+            },
+            "vertical": "dental",
+            "machinery": [
+              {
+                "type": "Riunito Odontoiatrico (Fascia Media)",
+                "year": 2024,
+                "ownership": "Proprietà",
+                "value": 18500,
+                "useful_life": 10
+              },
+              {
+                "type": "Riunito Odontoiatrico (Fascia Media)",
+                "year": 2024,
+                "ownership": "Proprietà",
+                "value": 18500,
+                "useful_life": 10
+              },
+              {
+                "type": "Compressore d'Aria Medicale Secco con Essiccatore (2-3 riuniti)",
+                "year": 2026,
+                "ownership": "Proprietà",
+                "value": 1600,
+                "useful_life": 8
+              },
+              {
+                "type": "Sistema di Aspirazione Chirurgica ad Anello Umido",
+                "year": 2025,
+                "ownership": "Proprietà",
+                "value": 2000,
+                "useful_life": 8
+              },
+              {
+                "type": "Radiografico Endorale a Parete (Generatore RX)",
+                "year": 2010,
+                "ownership": "Proprietà",
+                "value": 3000,
+                "useful_life": 8
+              },
+              {
+                "type": "Autoclave di Classe B 18-23 L (Fascia Base)",
+                "year": 2026,
+                "ownership": "Proprietà",
+                "value": 2600,
+                "useful_life": 5
+              },
+              {
+                "type": "Termosigillatrice / Sigillatrice Rotativa",
+                "year": 2026,
+                "ownership": "Proprietà",
+                "value": 900,
+                "useful_life": 5
+              },
+              {
+                "type": "Riunito Odontoiatrico (Fascia Media)",
+                "year": 2024,
+                "ownership": "Proprietà",
+                "value": 18500,
+                "useful_life": 10
+              },
+              {
+                "type": "TAC CBCT (Cone Beam 3D – FOV standard)",
+                "year": 2022,
+                "ownership": "Leasing/Noleggio",
+                "value": 900,
+                "useful_life": 8
+              }
+            ],
+            "financials": {
+              "631.01000": 33706.4,
+              "631.01001": 8676.6,
+              "631.01002": 26029.8,
+              "631.01003": 8676.6,
+              "631.01004": 8676.6,
+              "631.01005": 10516.74,
+              "631.01006": 0,
+              "631.00002": 10516.74,
+              "631.00005": 2503.33,
+              "631.00007": 2050,
+              "631.00008": 3505.58,
+              "631.00009": 2050,
+              "631.00011": 2106.58,
+              "631.00020": 1000,
+              "631.00023": 2103.35,
+              "631.00026": 400,
+              "631.00201": 3828.2,
+              "631.00251": 3828.2,
+              "610.00001": 55930,
+              "610.00021": 10204,
+              "610.00003": 1120,
+              "610.00101": 3450,
+              "610.00201": 900,
+              "610.01000": 0,
+              "612.00001": 3504.66,
+              "612.00005": 72115.69,
+              "606.00001": 3536,
+              "606.00005": 17527.89,
+              "606.00007": 900,
+              "606.00010": 12620.08,
+              "621.00001": 900,
+              "621.00002": 450,
+              "621.00005": 0,
+              "621.00031": 4500,
+              "631.00017": 3003.99,
+              "626.00201": 2500,
+              "626.00202": 750,
+              "632.00001": 1263.95,
+              "632.00002": 2804.46,
+              "632.00005": 3600,
+              "632.00015": 1402.23,
+              "601.00001": 293,
+              "601.00004": 4155,
+              "601.00007": 293,
+              "601.00008": 0,
+              "601.00010": 293,
+              "601.00012": 586,
+              "601.00013": 200,
+              "601.00101": 40,
+              "605.00001": 10800,
+              "605.00061": 540,
+              "631.00016": 1502,
+              "631.00101": 0,
+              "631.00103": 2503.33,
+              "631.00111": 0,
+              "631.00121": 0,
+              "635.00001": 0
+            },
+            "number_of_chairs": 3,
+            "profile_type": "societa_capitali",
+            "advanced_setup": true
+          }
+        },
+        "binary": {},
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "CustomerStart": {
+      "main": [
+        [
+          {
+            "node": "Pragmatic_Session Initializer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Chat_Protocol_Rules",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge13",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Merge14",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "stakeholder",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "Extract_Pro_Catalog",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract_SER_Catalog",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare_Ticket_Invitation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle_Back_To_Start",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GetGost",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GetGost",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GetGost1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle_RE_Start",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pragmatic_Session Initializer1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Toggle_Broadcast_Logic",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Active_Session2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle_Acquisti",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Welcome": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholder": {
+      "main": [
+        [
+          {
+            "node": "StakeholderExist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "StakeholderExist": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "active_session",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Merge12",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "📝 Prep: Delete Telegram Message": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Call6": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "unkown?": {
+      "main": [
+        [
+          {
+            "node": "📝 Prep: Delete Telegram Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'Tlgm_bot NplGate'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "service_catalog_setup": {
+      "main": [
+        [
+          {
+            "node": "ServiceCatalog Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ServiceCatalog Exist": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "Prepare_Catalog_Error_Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge7": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare_Catalog_Error_Message": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract_Pro_Catalog": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Manager2": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "Handle_Back_To_Start": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract_SER_Catalog": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Knowledge": {
+      "main": [
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "📤 Telegram Manager2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge8": {
+      "main": [
+        [
+          {
+            "node": "Prepare_Detail_View",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare_Detail_View": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetGost": {
+      "main": [
+        [
+          {
+            "node": "Knowledge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetGost1": {
+      "main": [
+        [
+          {
+            "node": "service_catalog_single",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ServiceCatalog Exist1": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Prepare_Catalog_Error_Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "service_catalog_single": {
+      "main": [
+        [
+          {
+            "node": "ServiceCatalog Exist1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge9": {
+      "main": [
+        [
+          {
+            "node": "Prepare_Rich_Human_Handoff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare_Rich_Human_Handoff": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Customer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📤 Telegram Owner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare_Ticket_Invitation": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pragmatic_Session Initializer": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Active_Session": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "Active_Session",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Active_Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge10": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "CustomerStart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "active_session": {
+      "main": [
+        [
+          {
+            "node": "active_session1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "restart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Session_Error_Handler": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Toggle_Broadcast_Logic": {
+      "main": [
+        [
+          {
+            "node": "Active_Session1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Active_Session1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge11": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Active_Session1": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge12": {
+      "main": [
+        [
+          {
+            "node": "Callback?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat_Protocol_Rules": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Manager": {
+      "main": [
+        [
+          {
+            "node": "Merge13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge13": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Pin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Pin": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Merge14": {
+      "main": [
+        [
+          {
+            "node": "stakeholder1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge18",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Active_Session2": {
+      "main": [
+        [
+          {
+            "node": "Merge15",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory4": {
+      "ai_memory": [
+        [
+          {
+            "node": "Active_Session2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Chat Memory Manager",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge15": {
+      "main": [
+        [
+          {
+            "node": "Chat Memory Manager",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge17",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "active_session1": {
+      "main": [
+        [
+          {
+            "node": "BaN",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pragmatic_Session Initializer1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory5": {
+      "ai_memory": [
+        [
+          {
+            "node": "Active_Session3",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Active_Session3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Active_Session3": {
+      "main": [
+        [
+          {
+            "node": "Merge16",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge16": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Merge15",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Chat Memory Manager": {
+      "main": [
+        [
+          {
+            "node": "Merge17",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge17": {
+      "main": [
+        [
+          {
+            "node": "Session_Error_Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "restart": {
+      "main": [
+        [
+          {
+            "node": "Callback?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Session_Error_Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Callback?": {
+      "main": [
+        [
+          {
+            "node": "Bot?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "service_catalog_setup",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bot?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "unkown?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle_RE_Start": {
+      "main": [
+        [
+          {
+            "node": "Merge16",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "BaN": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Merge12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle_Acquisti": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholder1": {
+      "main": [
+        [
+          {
+            "node": "Merge18",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge18": {
+      "main": [
+        [
+          {
+            "node": "Welcome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5c082f51-36f7-4dc8-91d7-5577fa22da0f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "zSaxay9LieuBlGP3",
+  "tags": []
+}

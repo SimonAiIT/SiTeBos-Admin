@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Analisi Mercato | SiteBoS</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* SiteBoS Architect Alignment */
+        body { background-color: #fafafa !important; color: #000000 !important; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .card, .section-card, .dark-card { 
+            background: white !important; 
+            border: 1px solid #eeeeee !important; 
+            box-shadow: none !important; 
+        }
+        input:focus, textarea:focus, select:focus { 
+            border-color: #000000 !important; 
+            box-shadow: none !important; 
+            outline: none !important;
+        }
+        .text-primary, .text-black { color: #000000 !important; }
+        .bg-primary, .bg-black { background-color: #000000 !important; color: #ffffff !important; }
+        .border-primary, .border-black { border-color: #000000 !important; }
+        .spinner { border: 2px solid rgba(0,0,0,0.1); border-top-color: #000; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Drawer animation */
+        .drawer {
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .drawer.open {
+            transform: translateY(0);
+        }
+    </style>
+
+    <script>
+        // Blocco di Sicurezza: controlla tg.initData
+        (function() {
+            if (!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)) {
+                document.documentElement.innerHTML = `<body class="bg-black text-white flex items-center justify-center h-screen text-center p-10 font-sans"><div><h1 class="text-6xl mb-4">🚫</h1><h2 class="text-xl font-bold uppercase tracking-widest">Accesso Proibito</h2></div></body>`;
+                window.stop();
+            }
+        })();
+    </script>
+</head>
+<body class="p-5 pb-24 safe-area-inset h-screen flex flex-col overflow-hidden text-sm">
+
+    <!-- LOADER -->
+    <div id="loader" class="fixed inset-0 bg-white/95 z-[9999] flex flex-col items-center justify-center space-y-4 hidden">
+        <div class="spinner"></div>
+        <div id="loader-text" class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Ricerca competitor locali...</div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="max-w-md mx-auto w-full flex-1 flex flex-col overflow-hidden animate-fade-in" id="app-content">
+        
+        <!-- HEADER -->
+        <header class="space-y-1 py-2 text-center border-b border-gray-100 shrink-0">
+            <div class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1">Intelligence</div>
+            <h1 class="text-xl font-black tracking-tighter uppercase leading-none">Analisi di Mercato</h1>
+            <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1 italic">Competitor & Trend Locali</p>
+        </header>
+
+        <!-- VIEW: SEARCH & CONFIG -->
+        <div id="view-search" class="flex-1 overflow-y-auto no-scrollbar py-6 space-y-6">
+            <div class="bg-white rounded-3xl p-5 border border-border shadow-sm text-center">
+                <i class="fas fa-search-location text-3xl text-black mb-3"></i>
+                <h2 class="text-xs font-black uppercase tracking-wider mb-1">Scouting Geogafico</h2>
+                <p class="text-xs text-gray-500 leading-snug">Rileva l'ecosistema logistico, i competitor e le opportunità strategiche nel raggio operativo della tua sede.</p>
+            </div>
+
+            <!-- INDIRIZZO TARGET -->
+            <div class="bg-white border border-border rounded-3xl p-5 space-y-4 shadow-sm">
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black uppercase tracking-widest text-gray-400">Sede Operativa Registrata</label>
+                    <div class="flex items-center gap-2 bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                        <i class="fas fa-map-marker-alt text-black shrink-0"></i>
+                        <input type="text" id="target-address" class="bg-transparent font-bold text-xs flex-1 outline-none text-black" placeholder="Caricamento indirizzo...">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[8px] font-black uppercase tracking-widest text-gray-400">Raggio di Ricerca</label>
+                        <select id="search-radius" class="w-full bg-gray-50 p-3 rounded-2xl border border-gray-100 font-bold text-xs outline-none">
+                            <option value="5">5 km</option>
+                            <option value="10">10 km</option>
+                            <option value="20" selected>20 km</option>
+                            <option value="50">50 km</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[8px] font-black uppercase tracking-widest text-gray-400">Settore di Riferimento</label>
+                        <input type="text" id="target-sector" disabled class="w-full bg-gray-100 p-3 rounded-2xl border border-gray-100 font-bold text-xs text-gray-500 outline-none" value="Studio Medico">
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="startScouting()" class="w-full h-12 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all shadow-md flex items-center justify-center gap-2">
+                <i class="fas fa-globe-europe"></i> Avvia Analisi Competitor
+            </button>
+        </div>
+
+        <!-- VIEW: RESULTS LIST -->
+        <div id="view-results" class="flex-1 overflow-y-auto no-scrollbar py-6 space-y-4 hidden flex flex-col">
+            <div class="flex justify-between items-center shrink-0 mb-2">
+                <h3 class="text-xs font-black uppercase tracking-widest text-gray-500" id="results-count">Competitor Rilevati</h3>
+                <button onclick="resetSearch()" class="text-[9px] font-black uppercase tracking-widest text-black hover:opacity-60 flex items-center gap-1">
+                    <i class="fas fa-redo"></i> Nuova Cerca
+                </button>
+            </div>
+
+            <div id="competitor-list-container" class="space-y-3 flex-1 overflow-y-auto no-scrollbar pr-1">
+                <!-- Competitors cards will go here dynamically -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- DETAILS DRAWER (SLIDE UP) -->
+    <div id="details-drawer" class="drawer fixed inset-x-0 bottom-0 bg-white border-t border-gray-200 z-[1000] rounded-t-[2.5rem] flex flex-col" style="height: 85vh;">
+        <!-- Drag Handle -->
+        <div class="w-full py-3 flex justify-center shrink-0 cursor-pointer" onclick="closeDrawer()">
+            <div class="w-12 h-1 bg-gray-200 rounded-full"></div>
+        </div>
+
+        <!-- Drawer Header -->
+        <div class="px-6 pb-4 border-b border-gray-50 flex justify-between items-center shrink-0">
+            <div>
+                <h2 id="drawer-competitor-name" class="text-lg font-black tracking-tight uppercase">Nome Competitor</h2>
+                <p id="drawer-competitor-info" class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Dettaglio Analisi</p>
+            </div>
+            <button onclick="closeDrawer()" class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 active:scale-90 transition border border-gray-100">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Drawer Content -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+            <!-- Market Verdict -->
+            <div class="bg-black/5 border border-black/5 rounded-3xl p-5 space-y-2">
+                <span class="text-black font-black uppercase text-[8px] tracking-wider block"><i class="fas fa-gavel mr-1"></i> Verdetto AI</span>
+                <p id="detail-verdict" class="text-xs text-gray-700 font-semibold leading-relaxed">...</p>
+            </div>
+
+            <!-- EU Benchmark -->
+            <div class="bg-white border border-border rounded-3xl p-5 space-y-3">
+                <span class="text-gray-400 font-black uppercase text-[8px] tracking-wider block">Confronto Benchmark Europeo</span>
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-chart-line text-xl text-black"></i>
+                    <div class="flex-1">
+                        <p id="detail-benchmark" class="text-xs font-bold text-black leading-snug">...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suppliers & Logistics -->
+            <div class="bg-white border border-border rounded-3xl p-5 space-y-4">
+                <span class="text-gray-400 font-black uppercase text-[8px] tracking-wider block">Fornitori & Infrastrutture Critiche</span>
+                <div id="detail-suppliers" class="space-y-3 text-xs">
+                    <!-- Dynamic -->
+                </div>
+            </div>
+
+            <!-- Strategic Partners -->
+            <div class="bg-white border border-border rounded-3xl p-5 space-y-4">
+                <span class="text-gray-400 font-black uppercase text-[8px] tracking-wider block">Opportunità di Networking & Partner</span>
+                <div id="detail-partners" class="space-y-3 text-xs">
+                    <!-- Dynamic -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Drawer Footer -->
+        <div class="p-5 border-t border-gray-50 bg-white shrink-0">
+            <button onclick="closeDrawer()" class="w-full h-12 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition shadow-sm">
+                Chiudi Analisi
+            </button>
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        'use strict';
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        try { tg.ready(); tg.expand(); } catch(e){}
+
+        const WEBHOOK_URL = 'https://prod.workflow.trinai.it/webhook/75ee6fe5-c223-4aec-b772-b7dbf5070d81';
+
+        const params = new URLSearchParams(window.location.search);
+        const ashToken = params.get('ash');
+
+        let rawCompetitors = [];
+        let ownerData = null;
+
+        window.onload = async () => {
+            if (!ashToken) {
+                tg.showAlert("Errore: parametro 'ash' mancante nell'URL.");
+                return;
+            }
+            await loadInitialConfig();
+        };
+
+        // --- CARICAMENTO CONFIGURAZIONE INIZIALE ---
+        async function loadInitialConfig() {
+            showLoader("Caricamento configurazione...");
+            try {
+                // Chiamata per recuperare i dettagli aziendali (indirizzo, settore) usando l'ASH
+                const payload = {
+                    _auth: tg.initData,
+                    ash: ashToken,
+                    action: "get_initial_profile"
+                };
+
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    ownerData = result.owner_data || {};
+                    
+                    document.getElementById('target-address').value = ownerData.indirizzo || 'Menfi (AG)';
+                    document.getElementById('target-sector').value = ownerData.sector || 'Medicina/Odontoiatria';
+                } else {
+                    throw new Error("Errore nel recupero dati");
+                }
+            } catch (err) {
+                // Fallback in caso di mancata risposta del server
+                document.getElementById('target-address').value = "Via Tagliavia, Menfi (AG)";
+                document.getElementById('target-sector').value = "Servizi Sanitari";
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // --- AVVIA SCOUTING COMPETITOR (STEP 1) ---
+        async function startScouting() {
+            const address = document.getElementById('target-address').value.trim();
+            const radius = document.getElementById('search-radius').value;
+
+            if (!address) {
+                tg.showAlert("Inserisci un indirizzo valido per avviare la ricerca.");
+                return;
+            }
+
+            showLoader("Avvio Scouting AI (Maps & Search)...");
+            try {
+                const payload = {
+                    _auth: tg.initData,
+                    ash: ashToken,
+                    action: "list_competitors",
+                    address: address,
+                    radius_km: radius
+                };
+
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error("Errore del server");
+
+                const result = await response.json();
+                
+                if (result && result.competitors && Array.isArray(result.competitors) && result.competitors.length > 0) {
+                    rawCompetitors = result.competitors;
+                    renderCompetitors();
+                    
+                    document.getElementById('view-search').classList.add('hidden');
+                    document.getElementById('view-results').classList.remove('hidden');
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                } else {
+                    tg.showAlert("Nessun competitor mappato nei dintorni. Prova ad allargare il raggio di ricerca.");
+                }
+
+            } catch (error) {
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                tg.showAlert("Impossibile caricare i dati dei competitor. Riprova più tardi.");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // --- RENDERIZZA LA LISTA ---
+        function renderCompetitors() {
+            const container = document.getElementById('competitor-list-container');
+            container.innerHTML = '';
+
+            document.getElementById('results-count').innerText = `${rawCompetitors.length} Competitor Rilevati`;
+
+            rawCompetitors.forEach((c, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-white border border-border rounded-3xl p-5 shadow-sm space-y-3 flex flex-col animate-fade-in";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="space-y-1">
+                            <h4 class="font-black text-sm uppercase tracking-tight text-black leading-tight">${c.name || 'Competitore locale'}</h4>
+                            <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">${c.sector || 'Settore affine'}</p>
+                        </div>
+                        <span class="px-2 py-0.5 bg-black/5 rounded-full text-[8px] font-black text-black uppercase tracking-wider shrink-0">
+                            Dist: ${c.distance_km ? c.distance_km + ' km' : 'Vicino'}
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-600 leading-snug italic">${c.description || 'Nessuna descrizione estratta.'}</p>
+                    <button onclick="analyzeCompetitor('${idx}')" class="w-full h-10 bg-black/5 hover:bg-black hover:text-white text-black rounded-xl font-black text-[9px] uppercase tracking-widest active:scale-95 transition-all self-end flex items-center justify-center gap-2">
+                        <i class="fas fa-chart-pie"></i> Analisi Dettagliata AI
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- ANALISI APPROFONDITA (STEP 2) ---
+        async function analyzeCompetitor(index) {
+            const competitor = rawCompetitors[index];
+            if (!competitor) return;
+
+            showLoader("Generazione Report Strategico...");
+            try {
+                const payload = {
+                    _auth: tg.initData,
+                    ash: ashToken,
+                    action: "analyze_competitor",
+                    competitor_data: competitor
+                };
+
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error("Errore del server");
+
+                const result = await response.json();
+                
+                if (result && result.intelligence_report) {
+                    populateDrawer(competitor.name, result.intelligence_report);
+                    openDrawer();
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                } else {
+                    tg.showAlert("Impossibile elaborare il report di mercato per questo competitor.");
+                }
+
+            } catch (error) {
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                tg.showAlert("Errore durante l'analisi. Riprova più tardi.");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // --- POPOLA DRAWER DETTAGLI ---
+        function populateDrawer(name, report) {
+            document.getElementById('drawer-competitor-name').innerText = name;
+            document.getElementById('detail-verdict').innerText = report.market_verdict || "Nessun verdetto generato.";
+            document.getElementById('detail-benchmark').innerText = report.eu_benchmark_comparison || "Confronto non disponibile.";
+
+            // Popola fornitori
+            const supContainer = document.getElementById('detail-suppliers');
+            supContainer.innerHTML = '';
+            if (report.technical_suppliers && report.technical_suppliers.length > 0) {
+                report.technical_suppliers.forEach(s => {
+                    const el = document.createElement('div');
+                    el.className = "flex items-start gap-2 border-b border-gray-50 pb-2 last:border-b-0";
+                    el.innerHTML = `
+                        <i class="fas fa-truck-loading text-black mt-0.5 shrink-0"></i>
+                        <div>
+                            <p class="font-bold text-black text-xs uppercase">${s.name || 'Fornitore'}</p>
+                            <p class="text-gray-500 text-[10px] leading-tight">${s.value_add || 'Logistica / Tecnologia'}</p>
+                        </div>
+                    `;
+                    supContainer.appendChild(el);
+                });
+            } else {
+                supContainer.innerHTML = `<p class="text-gray-400 italic">Nessun fornitore critico mappato.</p>`;
+            }
+
+            // Popola partner
+            const partContainer = document.getElementById('detail-partners');
+            partContainer.innerHTML = '';
+            if (report.strategic_partners && report.strategic_partners.length > 0) {
+                report.strategic_partners.forEach(p => {
+                    const el = document.createElement('div');
+                    el.className = "flex items-start gap-2 border-b border-gray-50 pb-2 last:border-b-0";
+                    el.innerHTML = `
+                        <i class="fas fa-handshake text-black mt-0.5 shrink-0"></i>
+                        <div>
+                            <p class="font-bold text-black text-xs uppercase">${p.name || 'Partner'}</p>
+                            <p class="text-gray-500 text-[10px] leading-tight">${p.opportunity || 'Networking / Partnership'}</p>
+                        </div>
+                    `;
+                    partContainer.appendChild(el);
+                });
+            } else {
+                partContainer.innerHTML = `<p class="text-gray-400 italic">Nessun partner strategico mappato.</p>`;
+            }
+        }
+
+        // --- DRAWER CONTROLS ---
+        function openDrawer() {
+            document.getElementById('details-drawer').classList.add('open');
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function closeDrawer() {
+            document.getElementById('details-drawer').classList.remove('open');
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function resetSearch() {
+            document.getElementById('view-results').classList.add('hidden');
+            document.getElementById('view-search').classList.remove('hidden');
+            rawCompetitors = [];
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        }
+
+        // --- LOADER UTILS ---
+        function showLoader(text) {
+            document.getElementById('loader-text').innerText = text;
+            document.getElementById('loader').classList.remove('hidden');
+        }
+
+        function hideLoader() {
+            document.getElementById('loader').classList.add('hidden');
+        }
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

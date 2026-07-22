@@ -1,0 +1,1023 @@
+{
+  "name": "Standard_AcCredit",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -64,
+        896
+      ],
+      "id": "2d07d94e-15fd-4c13-bfaa-1263abf673ef",
+      "name": "OwnerExist"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Balance Updater & Transaction Merger\n// VERSIONE: 2.2 - Explicit Billing Object Reconstruction\n\n// ═══════════════════════════════════════════════════════════════\n// 1. REGISTRO PREZZI CENTRALIZZATO\n// ═══════════════════════════════════════════════════════════════\nconst PRICING_REGISTRY = {\n    // --- Deploy MiniSite & DNA (500 Crediti) ---\n    \"MiniSite Production Engine\": 1000,\n    // --- Pagine Strategiche / Copywriting (250 Crediti) ---\n    \"Blog Production Engine\": 500,\n    // --- Video AI (320 Crediti) ---\n    \"Video Production\": 320,\n    // --- Immagini AI & Rigenerazioni (50 Crediti) ---\n    \"Generazione Immagine\": 50,\n    // --- Attivazione PersonalTelegramBot&Valut (50 Crediti) ---\n    \"Telegram Customer Bot\": 50,\n\n};\n\nconst DEFAULT_FALLBACK_COST = 10; \n\n// ═══════════════════════════════════════════════════════════════\n// 2. ESTRAZIONE DATI ED ELABORAZIONE DINAMICA\n// ═══════════════════════════════════════════════════════════════\nconst item = $input.first().json;\n\n// 1. Estrazione del modello da modelVersion (impostato a monte in Billing_Set)\nconst model = item.modelVersion || \"unknown_model\";\n\n// 2. Estrazione esplicita dei campi nidificati di billing_source\nconst actionUse = String(item.billing_source?.use || \"internal_call\").trim();\nconst actionWebhook = String(item.billing_source?.wh || \"https://prod.workflow.trinai.it/webhook/ef4aece4-9ec0-4026-a7a7-328562bcbdf6\").trim();\n\n// 3. Lookup del prezzo nel registro\nconst creditsToDeduct = PRICING_REGISTRY[actionUse] !== undefined \n    ? PRICING_REGISTRY[actionUse] \n    : DEFAULT_FALLBACK_COST;\n\n// --- 3. DETERMINAZIONE DEL SALDO PRECEDENTE DAL LEDGER ---\nlet currentBalance = 0;\nlet foundInLedger = false;\n\nif (item.last_message && item.last_message.data) {\n    let lastTx = {};\n    const rawData = item.last_message.data;\n    \n    try {\n        if (typeof rawData === 'string') {\n            lastTx = JSON.parse(rawData);\n        } else if (rawData.content) {\n            lastTx = JSON.parse(rawData.content);\n        } else {\n            lastTx = rawData;\n        }\n        \n        if (lastTx && lastTx.final_balance !== undefined) {\n            currentBalance = Number(lastTx.final_balance);\n            foundInLedger = true;\n        }\n    } catch (e) {\n        console.warn(\"Errore durante il parsing di last_message. Procedo con fallback.\");\n    }\n}\n\nif (!foundInLedger) {\n    currentBalance = Number(item.owner_data?.credits_balance || 0);\n}\n\n// --- 4. CALCOLO NUOVO SALDO ---\nconst newBalance = currentBalance - creditsToDeduct;\n\n// --- 5. PREPARAZIONE DELL'OUTPUT UNIFICATO ---\nconst outputItem = { ...item };\n\n// Costruzione esplicita dell'oggetto billing_source con le proprietà separate\noutputItem.transaction_summary = {\n    model: model, \n    is_long_context: false,\n    usage: {\n        in: 0,\n        out: 0,\n        units: actionUse.includes(\"image\") || actionUse.includes(\"photo\") ? 1 : 0\n    },\n    usd_cost: 0, \n    credits_deducted: creditsToDeduct,\n    previous_balance: currentBalance,\n    final_balance: newBalance,\n    timestamp: new Date().toISOString(),\n    billing_source: {\n        use: actionUse,\n        wh: actionWebhook\n    }\n};\n\n// Aggiornamento cache locale del proprietario\nif (outputItem.owner_data) {\n    outputItem.owner_data.credits_balance = newBalance;\n}\n\n// Pulizia chiavi transitorie per il DB\ndelete outputItem.billing;\ndelete outputItem.modelVersion; \ndelete outputItem.billing_source; // Rimuove l'oggetto piatto temporaneo\nif (outputItem.last_message) {\n    delete outputItem.last_message;\n}\n\nreturn [{ json: outputItem }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        672
+      ],
+      "id": "cb9f071f-6560-4d0e-a979-801581baacfe",
+      "name": "Balance Updater",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        512
+      ],
+      "id": "1fd6a99b-377f-4dd3-9a65-37d91f3a5754",
+      "name": "MongoDB Chat Memory5",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "billing_buffers",
+        "databaseName": "MemoryManager",
+        "contextWindowLength": 150
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        224
+      ],
+      "id": "7d6cb5c6-a764-4961-b747-5aed33a4d0a3",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.transaction_summary }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -64,
+        80
+      ],
+      "id": "2605c4d2-019c-4930-8a05-037b5c831374",
+      "name": "billing_buffers",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -64,
+        368
+      ],
+      "id": "1f68c987-fca3-42a7-ade9-e67a5ec7049e",
+      "name": "owner",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        352,
+        224
+      ],
+      "id": "5d6ef82f-9be1-44e2-ac79-b2507f0dfa90",
+      "name": "SaveMerge"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        352,
+        640
+      ],
+      "id": "62dcfab9-4034-4c4c-a966-b967408c535d",
+      "name": "SuccessMerge"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.email }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -64,
+        -128
+      ],
+      "id": "723697c9-8af1-442c-8f2c-e2f353115f92",
+      "name": "stakeholder_owner",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -64,
+        -352
+      ],
+      "id": "54b4c571-e76d-4f62-86bd-dc569a963086",
+      "name": "SuccessMerge1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder_owner.user_ref.email }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -208
+      ],
+      "id": "323bb14c-2185-4586-925e-b467ef100387",
+      "name": "MongoDB Chat Memory6",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.stakeholder_owner }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        320,
+        -352
+      ],
+      "id": "40102e7c-2f6d-4fbf-a58f-ff235229b079",
+      "name": "stakeholeder",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        352,
+        32
+      ],
+      "id": "f3d11431-1890-42cc-9a6f-a540eec41d80",
+      "name": "SaveMerge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * NODO: Update Stakeholder Balance (Minimal)\n */\n\nconst results = [];\n\nfor (const item of $input.all()) {\n    const data = item.json;\n    const stakeholder = data.stakeholder;\n    const summary = data.transaction_summary;\n\n    if (stakeholder && summary) {\n        // 1. Applica il saldo finale calcolato\n        stakeholder.commercial_profile.credit_balance.available_credits = summary.final_balance;\n        \n        // 2. Usa il timestamp del riepilogo per tutto\n        const ts = summary.timestamp; // Es: \"2026-03-02T17:21:41.227Z\"\n        \n        stakeholder.commercial_profile.credit_balance.last_update = ts;\n        stakeholder.commercial_profile.credit_balance.last_transaction_id = ts; // Usiamo il timestamp come ID\n        stakeholder.metadata.last_updated = ts;\n    }\n\n    results.push({\n        stakeholder_owner: stakeholder\n    });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        -352
+      ],
+      "id": "d0d16c34-91d0-401f-8aef-6cb7c3e80cf5",
+      "name": "Update Stakeholder_Owner Balance"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -64,
+        672
+      ],
+      "id": "630276d8-dc58-49b6-bc1d-ad8a92d2ace9",
+      "name": "SuccessMerge3"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "billing_buffers",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": \"{{ $json.owner_data.vat_number }}\"\n    }\n  },\n  {\n    \"$project\": {\n      \"last_message\": {\n        \"$arrayElemAt\": [\"$messages\", -1]\n      },\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        688
+      ],
+      "id": "962af3f5-b1fe-41ff-8297-eeacc989b7b5",
+      "name": "Last_Billing",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -448,
+        896
+      ],
+      "id": "56770da1-e892-4226-883b-e0b980f69ab6",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6e64ff8c-625c-4e91-89c3-a066a19da8dc",
+              "name": "billing_error",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -64,
+        1152
+      ],
+      "id": "b3980372-98fd-41c6-9769-fd5928ee88c3",
+      "name": "BillingError"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        352,
+        1136
+      ],
+      "id": "52fa91ec-f8ff-4fdc-8e1e-1d65edb062f6",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        560,
+        640
+      ],
+      "id": "d81f6a2b-1ddf-48cc-b3e7-4525c702997d",
+      "name": "oscurante"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "billing_source": {
+            "wh": "https://prod.workflow.trinai.it/webhook/20fd95c0-4218-400e-ae2a-cd881a757b80",
+            "use": "Generazione Immagine"
+          },
+          "owner_data": {
+            "user_id": "IT02564250849",
+            "chat_id": 8305126267,
+            "access_token": "3085509e-63ee-463a-ba87-e0de3b975218",
+            "group_id": null,
+            "user_name": "",
+            "vat_number": "IT02564250849",
+            "gemini_key": "AIzaSyAbDReRpDWAg93RXoOxuOmNtCGzIfZmF4Q",
+            "bot_key": "8407768207:AAE8ki9v8DPdcrYYyWDFjPFON6cS-7sehb8",
+            "path": "",
+            "name": "GIUSEPPE",
+            "surname": "BUSCEMI",
+            "email": "giuseppe.buscemi78@gmail.com",
+            "phone": "3934425185",
+            "ragione_sociale": "Centro Odontoiatrico Buscemi srl",
+            "indirizzo": "via tagliavia , 92013 MENFI (AG)",
+            "fiscal_code": "BSCGPP78S29G273C",
+            "sdi_pec": "KRRH6B9",
+            "site": "www.centroodontoiatricobuscemi.com",
+            "linkedin_page": "",
+            "facebook_page": "https://www.facebook.com/profile.php?id=100064938375333",
+            "instagram_page": "https://www.instagram.com/centrodentisticobuscemi/",
+            "twitter_page": "",
+            "sector": "services_personal",
+            "business_description": "ATTIVITà DI ODONTOIATRIA DI ECCELLENZA",
+            "kyc_details": {
+              "professional_questionnaire": {
+                "role": "founder_ceo",
+                "team_size": "6-10",
+                "years_experience": "20+",
+                "hard_skills": [
+                  "ODONTOIATRA SPECIALISTA IN ORTODONZIA",
+                  "IMPRENDITORE",
+                  "DENTAL OFFICE MANAGER",
+                  "ODONTOIATRA SPECIALISTA IN CHIRURGIA",
+                  "ESPERTO DI GNATOLOGIA"
+                ],
+                "certifications": "ALBO DEI MEDICI DI AG NUM 353",
+                "recent_training": "formal_course",
+                "specialization_level": "specialist",
+                "digital_tools": [
+                  "email",
+                  "whatsapp",
+                  "word",
+                  "calendar",
+                  "social",
+                  "crm",
+                  "accounting"
+                ],
+                "client_workflow": "physical_dominant",
+                "document_management": "gestionale",
+                "pain_points": [
+                  "bureaucracy",
+                  "find_clients",
+                  "time_management",
+                  "costs_control",
+                  "scaling"
+                ],
+                "main_goal": "save_time"
+              }
+            },
+            "subscription_plan": "pioneer_free_trial",
+            "subscription_status": "Pending_Activation",
+            "credits_balance": 494856,
+            "model_choice": "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+            "lenguage": "Italiano",
+            "owner_unavailable_time": "21-7",
+            "operator_unavailable_time": "19-9",
+            "operators": [
+              {
+                "OperatorName": "GIUSEPPE BUSCEMI",
+                "OperatorChatID": 8305126267,
+                "OperatorLenguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Owner",
+                "GeminiKey": "AIzaSyBCV2D4FL-1Nww0jYJRJTDBG5QRdm7Kclc",
+                "OperatorLanguage": "Italiano",
+                "Job": "Odontoiatra",
+                "isOwner": true,
+                "contract": "Partita IVA",
+                "level": "",
+                "hours": 40,
+                "salary": 0,
+                "rate_type": "percentage",
+                "rate": 30,
+                "specialization": "Ortodontista",
+                "status": "",
+                "invitation_code": ""
+              },
+              {
+                "OperatorName": "Sara",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Operator",
+                "Job": "Igienista",
+                "isOwner": false,
+                "contract": "Dipendente (CCNL)",
+                "level": "2° Livello",
+                "hours": 40,
+                "salary": 1878.32,
+                "rate_type": "percentage",
+                "rate": 0,
+                "specialization": "Generico / Generalista",
+                "GeminiKey": "",
+                "status": "PENDING",
+                "invitation_code": "INV-IT02564250849-XNUAX",
+                "created_at": "2026-06-16T15:01:37.564Z"
+              },
+              {
+                "OperatorName": "Vita",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Operator",
+                "Job": "ASO (Assistente)",
+                "isOwner": false,
+                "contract": "Dipendente (CCNL)",
+                "level": "5° Livello",
+                "hours": 30,
+                "salary": 1126.64,
+                "rate_type": "percentage",
+                "rate": 0,
+                "specialization": "Generico / Generalista",
+                "GeminiKey": "",
+                "status": "",
+                "invitation_code": ""
+              },
+              {
+                "OperatorName": "Arianna",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Operator",
+                "Job": "ASO (Assistente)",
+                "isOwner": false,
+                "contract": "Dipendente (CCNL)",
+                "level": "4° Livello",
+                "hours": 30,
+                "salary": 1210.59,
+                "rate_type": "percentage",
+                "rate": 0,
+                "specialization": "Generico / Generalista",
+                "GeminiKey": "",
+                "status": "",
+                "invitation_code": ""
+              },
+              {
+                "OperatorName": "Filippo",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "External",
+                "Job": "Odontoiatra",
+                "isOwner": false,
+                "contract": "Partita IVA",
+                "level": "",
+                "hours": 40,
+                "salary": 0,
+                "rate_type": "percentage",
+                "rate": 30,
+                "specialization": "Chirurgo / Implantologo",
+                "GeminiKey": "",
+                "status": "",
+                "invitation_code": ""
+              }
+            ],
+            "payment_preference": "stripe",
+            "terms_accepted": true,
+            "operator_owner": "",
+            "operator_credit": "1",
+            "created_at": "2026-03-24T18:17:36.730Z",
+            "additional_kwargs": {},
+            "response_metadata": {},
+            "subscription_certificator": true,
+            "last_update": "2026-06-16T15:01:37.564Z",
+            "subscription_custombot": true,
+            "customer_bot_config": {
+              "status": "ACTIVE",
+              "activated_at": "2026-04-21T10:46:26.534Z",
+              "last_updated_at": "2026-04-21T10:46:26.534Z",
+              "identity": {
+                "agent_name": "Arianna",
+                "role_persona": "customer_support"
+              },
+              "permissions": {
+                "allow_images": true,
+                "allow_files": true
+              },
+              "personality": {
+                "tone": "friendly",
+                "vibe": "helpful_assistant",
+                "language_style": "casual",
+                "emoji_usage": "moderate",
+                "custom_instructions": ""
+              },
+              "business_logic": {
+                "primary_goal": "lead_generation",
+                "fallback_message": "Al momento non dispongo di questa informazione specifica. Preferisce che inoltri la Sua richiesta a un operatore umano?"
+              },
+              "system_safety_limits": {
+                "max_daily_messages_per_user": 20,
+                "max_tokens_per_chat": 2000
+              }
+            },
+            "vertical": "dental",
+            "machinery": [
+              {
+                "type": "Riunito Odontoiatrico (Fascia Media)",
+                "year": 2024,
+                "ownership": "Proprietà",
+                "value": 18500,
+                "useful_life": 10
+              },
+              {
+                "type": "Riunito Odontoiatrico (Fascia Media)",
+                "year": 2024,
+                "ownership": "Proprietà",
+                "value": 18500,
+                "useful_life": 10
+              },
+              {
+                "type": "Compressore d'Aria Medicale Secco con Essiccatore (2-3 riuniti)",
+                "year": 2026,
+                "ownership": "Proprietà",
+                "value": 1600,
+                "useful_life": 8
+              },
+              {
+                "type": "Sistema di Aspirazione Chirurgica ad Anello Umido",
+                "year": 2025,
+                "ownership": "Proprietà",
+                "value": 2000,
+                "useful_life": 8
+              },
+              {
+                "type": "Radiografico Endorale a Parete (Generatore RX)",
+                "year": 2010,
+                "ownership": "Proprietà",
+                "value": 3000,
+                "useful_life": 8
+              },
+              {
+                "type": "Autoclave di Classe B 18-23 L (Fascia Base)",
+                "year": 2026,
+                "ownership": "Proprietà",
+                "value": 2600,
+                "useful_life": 5
+              },
+              {
+                "type": "Termosigillatrice / Sigillatrice Rotativa",
+                "year": 2026,
+                "ownership": "Proprietà",
+                "value": 900,
+                "useful_life": 5
+              },
+              {
+                "type": "Riunito Odontoiatrico (Fascia Media)",
+                "year": 2024,
+                "ownership": "Proprietà",
+                "value": 18500,
+                "useful_life": 10
+              },
+              {
+                "type": "TAC CBCT (Cone Beam 3D – FOV standard)",
+                "year": 2022,
+                "ownership": "Leasing/Noleggio",
+                "value": 900,
+                "useful_life": 8
+              }
+            ],
+            "financials": {
+              "631.01000": 33706.4,
+              "631.01001": 8676.6,
+              "631.01002": 26029.8,
+              "631.01003": 8676.6,
+              "631.01004": 8676.6,
+              "631.01005": 10516.74,
+              "631.01006": 0,
+              "631.00002": 10516.74,
+              "631.00005": 2503.33,
+              "631.00007": 2050,
+              "631.00008": 3505.58,
+              "631.00009": 2050,
+              "631.00011": 2106.58,
+              "631.00020": 1000,
+              "631.00023": 2103.35,
+              "631.00026": 400,
+              "631.00201": 3828.2,
+              "631.00251": 3828.2,
+              "610.00001": 55930,
+              "610.00021": 10204,
+              "610.00003": 1120,
+              "610.00101": 3450,
+              "610.00201": 900,
+              "610.01000": 0,
+              "612.00001": 3504.66,
+              "612.00005": 72115.69,
+              "606.00001": 3536,
+              "606.00005": 17527.89,
+              "606.00007": 900,
+              "606.00010": 12620.08,
+              "621.00001": 900,
+              "621.00002": 450,
+              "621.00005": 0,
+              "621.00031": 4500,
+              "631.00017": 3003.99,
+              "626.00201": 2500,
+              "626.00202": 750,
+              "632.00001": 1263.95,
+              "632.00002": 2804.46,
+              "632.00005": 3600,
+              "632.00015": 1402.23,
+              "601.00001": 293,
+              "601.00004": 4155,
+              "601.00007": 293,
+              "601.00008": 0,
+              "601.00010": 293,
+              "601.00012": 586,
+              "601.00013": 200,
+              "601.00101": 40,
+              "605.00001": 10800,
+              "605.00061": 540,
+              "631.00016": 1502,
+              "631.00101": 0,
+              "631.00103": 2503.33,
+              "631.00111": 0,
+              "631.00121": 0,
+              "635.00001": 0
+            },
+            "number_of_chairs": 3,
+            "profile_type": "societa_capitali",
+            "advanced_setup": true
+          },
+          "user": {
+            "id": 8305126267
+          },
+          "modelVersion": "gemini-3.1-flash-image"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "OwnerExist": {
+      "main": [
+        [
+          {
+            "node": "Last_Billing",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "SuccessMerge3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "BillingError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Balance Updater": {
+      "main": [
+        [
+          {
+            "node": "owner",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "SuccessMerge",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "stakeholder_owner",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "SuccessMerge1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "billing_buffers",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "BillingError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory5": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "billing_buffers",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "billing_buffers": {
+      "main": [
+        [
+          {
+            "node": "SaveMerge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "BillingError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner": {
+      "main": [
+        [
+          {
+            "node": "SaveMerge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "BillingError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SaveMerge": {
+      "main": [
+        [
+          {
+            "node": "SaveMerge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "stakeholder_owner": {
+      "main": [
+        [
+          {
+            "node": "SuccessMerge1",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "BillingError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SuccessMerge1": {
+      "main": [
+        [
+          {
+            "node": "Update Stakeholder_Owner Balance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory6": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholeder",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholeder": {
+      "main": [
+        [
+          {
+            "node": "SaveMerge1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "BillingError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SaveMerge1": {
+      "main": [
+        [
+          {
+            "node": "SuccessMerge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Stakeholder_Owner Balance": {
+      "main": [
+        [
+          {
+            "node": "stakeholeder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SuccessMerge3": {
+      "main": [
+        [
+          {
+            "node": "Balance Updater",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Last_Billing": {
+      "main": [
+        [
+          {
+            "node": "SuccessMerge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SuccessMerge": {
+      "main": [
+        [
+          {
+            "node": "oscurante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BillingError": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "oscurante": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b05b80a8-2734-4e91-9f92-4f15b61f6785",
+  "meta": {
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "4O56BKsRFw321LD7",
+  "tags": []
+}

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>12. Addestramento IA & Crew Builder | SiTeBoS Guide</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { primary: '#000000', bg: '#ffffff', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #000000;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .content-area {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .prose h1 {
+            font-size: 2.25rem;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        .prose h2 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-top: 3rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid #000;
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .prose p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1.25rem;
+            color: #374151;
+        }
+
+        .prose ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .prose li {
+            position: relative;
+            padding-left: 1.5rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+            color: #4b5563;
+        }
+
+        .prose li::before {
+            content: "•";
+            position: absolute;
+            left: 0.25rem;
+            color: #000000;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body class="no-scrollbar">
+    <main class="content-area prose">
+        
+        <!-- Intestazione -->
+        <div class="mb-8 border-b border-gray-100 pb-4">
+            <span class="text-[9px] font-black text-blue-600 uppercase tracking-widest">Capitolo 12</span>
+            <h1>Addestramento IA & Crew Builder</h1>
+            <p class="text-xs text-gray-500">Ottimizzazione e ingegnerizzazione dei dataset per il fine-tuning dei tuoi agenti specializzati.</p>
+        </div>
+
+        <p>
+            Il modulo <b>Addestramento IA (Crew Builder)</b> rappresenta la stazione di controllo strategica di SiteBoS per l'ingegneria dei dati. Anziché utilizzare un unico assistente generalista, questa interfaccia ti permette di costruire una squadra ("Crew") di agenti LLM verticali basati su <b>Multi-LoRA Serving</b>. Ciascun agente viene addestrato esclusivamente sui dati e sulle istruzioni di sua competenza, massimizzando l'efficacia e riducendo i costi di inferenza.
+        </p>
+
+        
+            
+
+                <!-- Card 2 -->
+                <div onclick="return false;" id="role-sales" class="bg-white border border-gray-150 p-4 rounded-3xl cursor-pointer hover:border-black transition active:scale-95 space-y-2 relative">
+                    <div class="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-black border border-gray-100">
+                        <i class="fas fa-shopping-bag text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black uppercase text-slate-800">Venditore</h4>
+                        <p class="text-[8px] text-gray-400 font-medium leading-tight">Catalogo, prezzi e preventivazione</p>
+                    </div>
+                    <div class="absolute top-2 right-3 text-blue-600 hidden check-icon"><i class="fas fa-check-circle"></i></div>
+                </div>
+
+                <!-- Card 3 -->
+                <div onclick="return false;" id="role-ops" class="bg-white border border-gray-150 p-4 rounded-3xl cursor-pointer hover:border-black transition active:scale-95 space-y-2 relative">
+                    <div class="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-black border border-gray-100">
+                        <i class="fas fa-tasks-alt text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black uppercase text-slate-800">Operations</h4>
+                        <p class="text-[8px] text-gray-400 font-medium leading-tight">SOP, flussi di lavoro e checklist</p>
+                    </div>
+                    <div class="absolute top-2 right-3 text-blue-600 hidden check-icon"><i class="fas fa-check-circle"></i></div>
+                </div>
+
+                <!-- Card 4 -->
+                <div onclick="return false;" id="role-analyst" class="bg-white border border-gray-150 p-4 rounded-3xl cursor-pointer hover:border-black transition active:scale-95 space-y-2 relative">
+                    <div class="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-black border border-gray-100">
+                        <i class="fas fa-chart-pie text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black uppercase text-slate-800">Analista</h4>
+                        <p class="text-[8px] text-gray-400 font-medium leading-tight">Intelligence, scorte e margini</p>
+                    </div>
+                    <div class="absolute top-2 right-3 text-blue-600 hidden check-icon"><i class="fas fa-check-circle"></i></div>
+                </div>
+            </div>
+
+            <!-- DATA READINESS INDEX -->
+            <div class="bg-white border border-gray-150 p-4 rounded-3xl space-y-2">
+                <div class="flex justify-between items-center text-[10px] font-bold">
+                    <span class="text-slate-500 uppercase tracking-wider">Data Readiness Index (Saturazione Dati)</span>
+                    <span id="readiness-pct" class="text-black font-black">85%</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div id="readiness-bar" class="bg-black h-full rounded-full transition-all duration-500" style="width: 85%;"></div>
+                </div>
+                <!-- Warning Soft -->
+                <p id="readiness-warning" class="text-[9px] font-medium text-amber-600 hidden flex items-center gap-1 mt-1">
+                    <i class="fas fa-exclamation-triangle"></i> Attenzione: hai configurato solo 2 procedure su 10 consigliate per questo ruolo. Compila altre SOP per un addestramento ottimale.
+                </p>
+                <p id="readiness-success" class="text-[9px] font-medium text-emerald-600 flex items-center gap-1 mt-1">
+                    <i class="fas fa-check-circle"></i> Dati pronti e sufficienti per iniziare l'addestramento.
+                </p>
+            </div>
+        </section>
+
+        <!-- STEP 2: FUNZIONI & SKILL INTEGRATE -->
+        <section class="space-y-3">
+            <div class="flex justify-between items-center px-1">
+                <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Step 2: Funzioni & Skill (Tool Calling)</h3>
+                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Webhook Schema</span>
+            </div>
+
+            <div class="space-y-2.5">
+                <!-- Skill 1 -->
+                <label class="bg-white border border-gray-150 p-4 rounded-3xl flex items-center justify-between gap-4 cursor-pointer select-none">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-2xl bg-slate-50 flex items-center justify-center text-black border border-gray-100">
+                            <i class="fas fa-calendar-alt text-xs"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <h4 class="text-xs font-black uppercase text-slate-800">Sincronizzazione Agenda</h4>
+                                <span class="text-[7px] bg-slate-100 text-slate-500 font-bold uppercase px-1 py-0.2 rounded">Schema Injected</span>
+                            </div>
+                            <p class="text-[9px] text-gray-400 font-medium">Estrazione regole e slot liberi per prenotazioni</p>
+                        </div>
+                    </div>
+                    <input type="checkbox" checked  class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black">
+                </label>
+
+                <!-- Skill 2 -->
+                <label class="bg-white border border-gray-150 p-4 rounded-3xl flex items-center justify-between gap-4 cursor-pointer select-none">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-2xl bg-slate-50 flex items-center justify-center text-black border border-gray-100">
+                            <i class="fas fa-warehouse text-xs"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <h4 class="text-xs font-black uppercase text-slate-800">Magazzino & Scorte</h4>
+                                <span class="text-[7px] bg-slate-100 text-slate-500 font-bold uppercase px-1 py-0.2 rounded">Schema Injected</span>
+                            </div>
+                            <p class="text-[9px] text-gray-400 font-medium">Lettura giacenze, riordini e tracciamento scorte</p>
+                        </div>
+                    </div>
+                    <input type="checkbox"  class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black">
+                </label>
+
+                <!-- Skill 3 -->
+                <label class="bg-white border border-gray-150 p-4 rounded-3xl flex items-center justify-between gap-4 cursor-pointer select-none">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-2xl bg-slate-50 flex items-center justify-center text-black border border-gray-100">
+                            <i class="fas fa-file-invoice text-xs"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <h4 class="text-xs font-black uppercase text-slate-800">Preventivazione</h4>
+                                <span class="text-[7px] bg-slate-100 text-slate-500 font-bold uppercase px-1 py-0.2 rounded">Schema Injected</span>
+                            </div>
+                            <p class="text-[9px] text-gray-400 font-medium">Iniezione logiche di calcolo e listini commerciali</p>
+                        </div>
+                    </div>
+                    <input type="checkbox"  class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black">
+                </label>
+            </div>
+        </section>
+
+        <!-- STEP 3: PARAMETRI & GENERAZIONE -->
+        <section class="space-y-3">
+            <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Step 3: Parametri & Esportazione</h3>
+            
+            <div class="bg-white border border-gray-150 p-5 rounded-3xl space-y-4">
+                
+                <!-- DROPDOWN FORMATO -->
+                <div class="space-y-1.5">
+                    <label class="text-[9px] font-black uppercase tracking-wider text-slate-500">Formato di Output</label>
+                    <div class="relative">
+                        <select id="export-format"  class="w-full bg-slate-50 border border-gray-150 rounded-2xl px-4 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-black appearance-none cursor-pointer">
+                            <option value="jsonl_unsloth" selected>Standard JSONL (per Unsloth / Hugging Face)</option>
+                            <option value="gemini_format">Gemini Format (Google AI Studio / Vertex AI)</option>
+                            <option value="zip_rag">Pacchetto Markdown .ZIP (per RAG Voiceflow / Botpress)</option>
+                            <option value="pls_eleven">Dizionario di Pronuncia .PLS (per ElevenLabs)</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-500 text-xs">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE ESTIMATION METRICS -->
+                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-2xl text-center border border-gray-100">
+                    <div>
+                        <span class="text-[7px] font-black text-gray-400 uppercase tracking-wider">Conversazioni</span>
+                        <div class="text-xs font-black mt-0.5" id="est-chats">320</div>
+                    </div>
+                    <div>
+                        <span class="text-[7px] font-black text-gray-400 uppercase tracking-wider">Token Stimati</span>
+                        <div class="text-xs font-black mt-0.5" id="est-tokens">64.0K</div>
+                    </div>
+                    <div>
+                        <span class="text-[7px] font-black text-gray-400 uppercase tracking-wider">Stima Costo</span>
+                        <div class="text-xs font-black mt-0.5 text-emerald-600" id="est-cost">€0.48</div>
+                    </div>
+                </div>
+
+                <!-- GENERATE ACTIONS -->
+                <div class="space-y-2 pt-1">
+                    <button onclick="return false;" class="w-full bg-black text-white py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fas fa-cloud-download-alt"></i> Genera & Scarica Dataset (<span id="file-ext">.jsonl</span>)
+                    </button>
+                    <button onclick="return false;" class="w-full bg-white border border-gray-200 text-slate-700 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fas fa-eye"></i> Visualizza Anteprima Live
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <!-- PREVIEW DRAWER (STEP 4) -->
+    <div id="preview-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="return false;">
+        <div id="preview-drawer" class="fixed inset-x-0 bottom-0 max-w-md mx-auto h-[80vh] bg-white rounded-t-4xl shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="return false;">
+            <!-- Drawer Header -->
+            <div class="w-full flex items-center justify-between p-5 border-b border-slate-100 shrink-0 select-none">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                    <span class="text-xs font-black uppercase tracking-widest text-slate-800">Anteprima Dataset (PII-Clean)</span>
+                </div>
+                <button onclick="return false;" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+            
+            <!-- Drawer Body -->
+            <div class="flex-1 w-full overflow-y-auto bg-slate-50 p-5 space-y-4">
+                <p class="text-[10px] text-gray-400 font-semibold leading-relaxed uppercase">
+                    Esempi reali formattati estratti in base alle selezioni (Dati Sensibili rimossi):
+                </p>
+                
+                <!-- Codice Anteprima -->
+                <div class="bg-slate-900 text-slate-200 p-4 rounded-3xl text-[9px] font-mono leading-relaxed overflow-x-auto shadow-inner border border-slate-800 whitespace-pre-wrap" id="preview-code">
+<!-- Riga 1 -->
+{
+  "messages": [
+    {"role": "system", "content": "Sei l'Agente Supporto di SiteBoS. Rispondi con tono professionale."},
+    {"role": "user", "content": "Quali sono i vostri orari di apertura?"},
+    {"role": "assistant", "content": "Siamo aperti dal lunedì al venerdì, dalle 09:00 alle 18:00."}
+  ]
+}
+
+<!-- Riga 2 (Con Tool Calling Schema) -->
+{
+  "messages": [
+    {"role": "system", "content": "Sei l'Agente Supporto. Puoi invocare 'get_booking_slots' per le disponibilità."},
+    {"role": "user", "content": "Vorrei fissare un appuntamento per domani pomeriggio."},
+    {"role": "assistant", "tool_calls": [
+      {
+        "id": "call_abc123",
+        "type": "function",
+        "function": {
+          "name": "get_booking_slots",
+          "arguments": "{\"date\": \"tomorrow_afternoon\"}"
+        }
+      }
+    ]}
+  ]
+}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT INTERATTIVI -->
+    
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+                    </div>
+
+                    <!-- Fade gradient in fondo per nascondere il cutoff -->
+                    <div style="position:absolute; bottom:0; left:0; right:0; height:100px; background:linear-gradient(to bottom, transparent 0%, #f8fafc 90%); pointer-events:none; z-index:10;"></div>
+                </div>
+
+                <!-- Didascalia -->
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig  Addestramento IA — Crew Builder
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════════════════
+                 PREVIEW REALE SANIFICATO: fine-tuning/fine-tuning.html
+                 Estratto automaticamente dall'HTML sorgente della MiniApp.
+                 ═══════════════════════════════════════════════════════════════ -->
+            <div class="my-10 rounded-3xl overflow-hidden border border-slate-200 shadow-xl" id="preview-12_fine_tuning-0" style="background:#f8fafc;">
+
+                <!-- Header dell'anteprima -->
+                <div style="background:#0f172a; padding:0.6rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.4rem; min-width:0;">
+                        <span style="width:9px; height:9px; border-radius:50%; background:#ef4444; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#f59e0b; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#22c55e; flex-shrink:0; display:block;"></span>
+                        <span style="font-size:8px; font-family:ui-monospace,monospace; color:#64748b; margin-left:0.5rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Dataset &amp; Multi-LoRA</span>
+                    </div>
+                    <span style="font-size:7px; font-family:ui-monospace,monospace; color:#3b82f6; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; flex-shrink:0; white-space:nowrap;">SiTeBoS Interface</span>
+                </div>
+
+                <!-- Viewport scalato con touch/scroll pass-through -->
+                <div style="position:relative; overflow:hidden; height:460px; background:#f8fafc;">
+
+                    <style>
+                        #preview-12_fine_tuning-0 .preview-body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
+                        #preview-12_fine_tuning-0 .no-scrollbar::-webkit-scrollbar { display:none; }
+                        
+        #preview-12_fine_tuning-0 .preview-body { font-family: 'Inter', sans-serif; background-color: #fafafa; color: #000; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+                    </style>
+
+                    <div class="preview-body" style="
+                        transform: scale(0.5);
+                        transform-origin: top left;
+                        width: 200%;
+                        position: absolute;
+                        top: 0; left: 0;
+                        pointer-events: none;
+                        user-select: none;
+                        min-height: 920px;
+                        overflow: hidden;
+                    ">
+                        <div class="max-w-md mx-auto space-y-6 animate-fade-in">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-center py-2">
+            <div>
+                <h1 class="text-2xl font-black tracking-tighter uppercase leading-none">🧠 Crew Builder</h1>
+                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Addestramento IA & Multi-LoRA
+                </p>
+            </div>
+            <div class="flex gap-2">
+                <!-- Spazio per i pulsanti guida/audio iniettati -->
+            </div>
+        </header>
+
+        <!-- INTRO HERO -->
+        <div class="bg-black text-white p-6 rounded-3xl space-y-4 shadow-xl relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="inline-block px-2.5 py-0.5 bg-blue-600 text-[8px] font-black uppercase tracking-widest rounded-full">
+                Multi-LoRA Serving
+            </div>
+            <h2 class="text-lg font-black tracking-tight leading-tight uppercase">Crea la tua Crew di Agenti IA</h2>
+            <p class="text-xs text-gray-300 font-medium leading-relaxed">
+                Costruisci una flotta di assistenti specializzati. Scegli il ruolo dell'agente, abilita le skill operative e genera il dataset LoRA pronto per l'addestramento e la verticalizzazione sui tuoi dati di SiteBoS.
+            </p>
+        </div>
+
+        <!-- STEP 1: RUOLO DELL'AGENTE -->
+        <section class="space-y-3">
+            <div class="flex justify-between items-center px-1">
+                <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Step 1: Scopo & Ruolo</h3>
+                <span class="text-[9px] font-bold text-blue-600 uppercase tracking-wider">Multi-LoRA Adapter</span>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3" id="role-container">
+                <!-- Card 1 -->
+                <div  id="role-support" class="bg-white border-2 border-black p-4 rounded-3xl cursor-pointer hover:border-black transition active:scale-95 space-y-2 relative">
+                    <div class="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-black border border-gray-100">
+                        <i class="fas fa-comments text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black uppercase text-slate-800">Supporto</h4>
+                        <p class="text-[8px] text-gray-400 font-medium leading-tight">Chat clienti & ticket di assistenza</p>
+                    </div>
+                    <div class="absolute top-2 right-3 text-blue-600 hidden check-icon"><i class="fas fa-check-circle"></i></div>
+                </div>
+
+                <!-- Card 2 -->
+                <div  id="role-sales" class="bg-white border border-gray-150 p-4 rounded-3xl cursor-pointer hover:border-black transition active:scale-95 space-y-2 relative">
+                    <div class="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-black border border-gray-100">
+                        <i class="fas fa-shopping-bag text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black uppercase text-slate-800">Venditore</h4>
+                        <p class="text-[8px] text-gray-400 font-medium leading-tight">Catalogo, prezzi e preventivazione</p>
+                    </div>
+                    <div class="absolute top-2 right-3 text-blue-600 hidden check-icon"><i class="fas fa-check-circle"></i></div>
+                </div>
+
+                <!-- Card 3 -->
+                <div  id="role-ops" class="bg-white border border-gray-150 p-4 rounded-3xl cursor-pointer hover:border-black transition active:scale-95 space-y-2 relative">
+                    <div class="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-black border border-gray-100">
+                        <i class="fas fa-tasks-alt text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black uppercase text-slate-800">Operations</h4>
+                        <p class="text-[8px] text-gray-400 font-medium leading-tight">SOP, flussi di lavoro e checklist</p>
+                    </div>
+                    <div class="absolute top-2 right-3 text-blue-600 hidden check-icon"><i class="fas fa-check-circle"></i></div>
+                </div>
+
+                <!-- Card 4 -->
+                <div  id="role-analyst" class="bg-white border border-gray-150 p-4 rounded-3xl cursor-pointer hover:border-black transition active:scale-95 space-y-2 relative">
+                    <div class="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-black border border-gray-100">
+                        <i class="fas fa-chart-pie text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black uppercase text-slate-800">Analista</h4>
+                        <p class="text-[8px] text-gray-400 font-medium leading-tight">Intelligence, scorte e margini</p>
+                    </div>
+                    <div class="absolute top-2 right-3 text-blue-600 hidden check-icon"><i class="fas fa-check-circle"></i></div>
+                </div>
+            </div>
+
+            <!-- DATA READINESS INDEX -->
+            <div class="bg-white border border-gray-150 p-4 rounded-3xl space-y-2">
+                <div class="flex justify-between items-center text-[10px] font-bold">
+                    <span class="text-slate-500 uppercase tracking-wider">Data Readiness Index (Saturazione Dati)</span>
+                    <span id="readiness-pct" class="text-black font-black">85%</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div id="readiness-bar" class="bg-black h-full rounded-full transition-all duration-500" style="width: 85%;"></div>
+                </div>
+                <!-- Warning Soft -->
+                <p id="readiness-warning" class="text-[9px] font-medium text-amber-600 hidden flex items-center gap-1 mt-1">
+                    <i class="fas fa-exclamation-triangle"></i> Attenzione: hai configurato solo 2 procedure su 10 consigliate per questo ruolo. Compila altre SOP per un addestramento ottimale.
+                </p>
+                <p id="readiness-success" class="text-[9px] font-medium text-emerald-600 flex items-center gap-1 mt-1">
+                    <i class="fas fa-check-circle"></i> Dati pronti e sufficienti per iniziare l'addestramento.
+                </p>
+            </div>
+        </section>
+
+        <!-- STEP 2: FUNZIONI & SKILL INTEGRATE -->
+        <section class="space-y-3">
+            <div class="flex justify-between items-center px-1">
+                <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Step 2: Funzioni & Skill (Tool Calling)</h3>
+                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Webhook Schema</span>
+            </div>
+
+            <div class="space-y-2.5">
+                <!-- Skill 1 -->
+                <label class="bg-white border border-gray-150 p-4 rounded-3xl flex items-center justify-between gap-4 cursor-pointer select-none">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-2xl bg-slate-50 flex items-center justify-center text-black border border-gray-100">
+                            <i class="fas fa-calendar-alt text-xs"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <h4 class="text-xs font-black uppercase text-slate-800">Sincronizzazione Agenda</h4>
+                                <span class="text-[7px] bg-slate-100 text-slate-500 font-bold uppercase px-1 py-0.2 rounded">Schema Injected</span>
+                            </div>
+                            <p class="text-[9px] text-gray-400 font-medium">Estrazione regole e slot liberi per prenotazioni</p>
+                        </div>
+                    </div>
+                    <input type="checkbox" checked  class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black">
+                </label>
+
+                <!-- Skill 2 -->
+                <label class="bg-white border border-gray-150 p-4 rounded-3xl flex items-center justify-between gap-4 cursor-pointer select-none">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-2xl bg-slate-50 flex items-center justify-center text-black border border-gray-100">
+                            <i class="fas fa-warehouse text-xs"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <h4 class="text-xs font-black uppercase text-slate-800">Magazzino & Scorte</h4>
+                                <span class="text-[7px] bg-slate-100 text-slate-500 font-bold uppercase px-1 py-0.2 rounded">Schema Injected</span>
+                            </div>
+                            <p class="text-[9px] text-gray-400 font-medium">Lettura giacenze, riordini e tracciamento scorte</p>
+                        </div>
+                    </div>
+                    <input type="checkbox"  class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black">
+                </label>
+
+                <!-- Skill 3 -->
+                <label class="bg-white border border-gray-150 p-4 rounded-3xl flex items-center justify-between gap-4 cursor-pointer select-none">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-2xl bg-slate-50 flex items-center justify-center text-black border border-gray-100">
+                            <i class="fas fa-file-invoice text-xs"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <h4 class="text-xs font-black uppercase text-slate-800">Preventivazione</h4>
+                                <span class="text-[7px] bg-slate-100 text-slate-500 font-bold uppercase px-1 py-0.2 rounded">Schema Injected</span>
+                            </div>
+                            <p class="text-[9px] text-gray-400 font-medium">Iniezione logiche di calcolo e listini commerciali</p>
+                        </div>
+                    </div>
+                    <input type="checkbox"  class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black">
+                </label>
+            </div>
+        </section>
+
+        <!-- STEP 3: PARAMETRI & GENERAZIONE -->
+        <section class="space-y-3">
+            <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Step 3: Parametri & Esportazione</h3>
+            
+            <div class="bg-white border border-gray-150 p-5 rounded-3xl space-y-4">
+                
+                <!-- DROPDOWN FORMATO -->
+                <div class="space-y-1.5">
+                    <label class="text-[9px] font-black uppercase tracking-wider text-slate-500">Formato di Output</label>
+                    <div class="relative">
+                        <select id="export-format"  class="w-full bg-slate-50 border border-gray-150 rounded-2xl px-4 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-black appearance-none cursor-pointer">
+                            <option value="jsonl_unsloth" selected>Standard JSONL (per Unsloth / Hugging Face)</option>
+                            <option value="gemini_format">Gemini Format (Google AI Studio / Vertex AI)</option>
+                            <option value="zip_rag">Pacchetto Markdown .ZIP (per RAG Voiceflow / Botpress)</option>
+                            <option value="pls_eleven">Dizionario di Pronuncia .PLS (per ElevenLabs)</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-500 text-xs">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE ESTIMATION METRICS -->
+                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-2xl text-center border border-gray-100">
+                    <div>
+                        <span class="text-[7px] font-black text-gray-400 uppercase tracking-wider">Conversazioni</span>
+                        <div class="text-xs font-black mt-0.5" id="est-chats">320</div>
+                    </div>
+                    <div>
+                        <span class="text-[7px] font-black text-gray-400 uppercase tracking-wider">Token Stimati</span>
+                        <div class="text-xs font-black mt-0.5" id="est-tokens">64.0K</div>
+                    </div>
+                    <div>
+                        <span class="text-[7px] font-black text-gray-400 uppercase tracking-wider">Stima Costo</span>
+                        <div class="text-xs font-black mt-0.5 text-emerald-600" id="est-cost">€0.48</div>
+                    </div>
+                </div>
+
+                <!-- GENERATE ACTIONS -->
+                <div class="space-y-2 pt-1">
+                    <button  class="w-full bg-black text-white py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fas fa-cloud-download-alt"></i> Genera & Scarica Dataset (<span id="file-ext">.jsonl</span>)
+                    </button>
+                    <button  class="w-full bg-white border border-gray-200 text-slate-700 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fas fa-eye"></i> Visualizza Anteprima Live
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <!-- PREVIEW DRAWER (STEP 4) -->
+    <div id="preview-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" >
+        <div id="preview-drawer" class="fixed inset-x-0 bottom-0 max-w-md mx-auto h-[80vh] bg-white rounded-t-4xl shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" >
+            <!-- Drawer Header -->
+            <div class="w-full flex items-center justify-between p-5 border-b border-slate-100 shrink-0 select-none">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                    <span class="text-xs font-black uppercase tracking-widest text-slate-800">Anteprima Dataset (PII-Clean)</span>
+                </div>
+                <button  class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+            
+            <!-- Drawer Body -->
+            <div class="flex-1 w-full overflow-y-auto bg-slate-50 p-5 space-y-4">
+                <p class="text-[10px] text-gray-400 font-semibold leading-relaxed uppercase">
+                    Esempi reali formattati estratti in base alle selezioni (Dati Sensibili rimossi):
+                </p>
+                
+                <!-- Codice Anteprima -->
+                <div class="bg-slate-900 text-slate-200 p-4 rounded-3xl text-[9px] font-mono leading-relaxed overflow-x-auto shadow-inner border border-slate-800 whitespace-pre-wrap" id="preview-code">
+<!-- Riga 1 -->
+{
+  "messages": [
+    {"role": "system", "content": "Sei l'Agente Supporto di SiteBoS. Rispondi con tono professionale."},
+    {"role": "user", "content": "Quali sono i vostri orari di apertura?"},
+    {"role": "assistant", "content": "Siamo aperti dal lunedì al venerdì, dalle 09:00 alle 18:00."}
+  ]
+}
+
+<!-- Riga 2 (Con Tool Calling Schema) -->
+{
+  "messages": [
+    {"role": "system", "content": "Sei l'Agente Supporto. Puoi invocare 'get_booking_slots' per le disponibilità."},
+    {"role": "user", "content": "Vorrei fissare un appuntamento per domani pomeriggio."},
+    {"role": "assistant", "tool_calls": [
+      {
+        "id": "call_abc123",
+        "type": "function",
+        "function": {
+          "name": "get_booking_slots",
+          "arguments": "{\"date\": \"tomorrow_afternoon\"}"
+        }
+      }
+    ]}
+  ]
+}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT INTERATTIVI -->
+    
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+                    </div>
+
+                    <!-- Fade gradient inferiore -->
+                    <div style="position:absolute; bottom:0; left:0; right:0; height:100px; background:linear-gradient(to bottom, transparent 0%, #f8fafc 90%); pointer-events:none; z-index:10;"></div>
+                </div>
+
+                <!-- Didascalia -->
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig  Addestramento IA — Crew Builder
+                </div>
+            </div>
+
+            <h2>1. Step 1: Scopo e Ruolo dell'Agente</h2>
+        <p>
+            Il primo passo consiste nella definizione della specializzazione lavorativa dell'agente. Puoi scegliere tra quattro profili standard pre-impostati:
+        </p>
+        <ul>
+            <li><b>Supporto Clienti</b>: Addestrato sullo storico delle chat di assistenza reale e sulle risposte fornite ai ticket. Ideale per la risoluzione autonoma di problemi comuni.</li>
+            <li><b>Venditore (Sales)</b>: Addestrato sui cataloghi attivi, listini prezzi e logiche di offerta commerciale di SiteBoS. Ottimizzato per guidare il cliente all'acquisto.</li>
+            <li><b>Operations & SOP</b>: Addestrato sulle Procedure Operative Standard (SOP) e agende aziendali. Utile per il coordinamento interno del team.</li>
+            <li><b>Analista Business</b>: Specializzato nell'elaborazione di metriche finanziarie, andamento del magazzino e analisi competitiva.</li>
+        </ul>
+
+        <h3>Data Readiness Index (Saturazione Dati)</h3>
+        <p>
+            Il sistema analizza in tempo reale le informazioni presenti nel database del tuo tenant relative al ruolo selezionato. La barra di saturazione ti avvisa se hai inserito abbastanza dati su SiteBoS per avviare l'addestramento. Se la saturazione è bassa (es. inferiore al 50%), ti verrà mostrato un suggerimento per invitarti a compilare ulteriori dati (es. inserire altre SOP o cataloghi) prima di procedere.
+        </p>
+
+        <h2>2. Step 2: Funzioni e Skill (Tool Calling)</h2>
+        <p>
+            L'agente non deve solo conversare, ma poter agire. Abilitando gli interruttori delle skill (es. *Sincronizzazione Agenda*), il sistema inietta automaticamente nel dataset di addestramento lo schema JSON strutturato (OpenAPI) che istruisce il modello IA su come richiamare i webhook reali di SiteBoS. Questa integrazione è pienamente conforme agli standard richiesti da orchestratori vocali come <b>Vapi</b> e <b>Retell AI</b>.
+        </p>
+
+        <h2>3. Step 3: Formati ed Esportazione</h2>
+        <p>
+            A seconda della piattaforma esterna in cui desideri addestrare o ospitare il modello, SiteBoS adatta la formattazione dei dati esportati:
+        </p>
+        <ul>
+            <li><b>Standard JSONL</b>: Formato nativo OpenAI / Hugging Face per l'addestramento diretto di adattatori LoRA (es. tramite Unsloth o AutoTrain).</li>
+            <li><b>Gemini Format</b>: Struttura dati nativa per Google AI Studio e Vertex AI.</li>
+            <li><b>Pacchetto Markdown .ZIP</b>: File compressi contenenti le informazioni pronte per essere indicizzate in sistemi RAG come Voiceflow o Botpress.</li>
+            <li><b>Dizionario PLS</b>: Dizionari di pronuncia fonetica specifici per ElevenLabs (per cloni vocali accurati).</li>
+        </ul>
+
+        <h2>4. Live Preview & Sanitizzazione</h2>
+        <p>
+            Prima di scaricare il dataset definitivo, puoi aprire il drawer di <b>Anteprima Live</b> per ispezionare visivamente le righe del file. Il motore di esportazione esegue una <b>sanitizzazione automatica PII</b>, escludendo e mascherando preventivamente informazioni personali sensibili (numeri di telefono dei clienti, carte di credito, note sensibili) a tutela del GDPR e della conformità interna.
+        </p>
+
+        <!-- Navigazione Footer -->
+        <div class="mt-16 pt-8 border-t border-gray-100 flex items-center justify-between">
+            <a href="11_agente_sicurezza.html" class="flex flex-col gap-1 items-start group">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Precedente</span>
+                <span class="font-black text-xs uppercase group-hover:underline text-blue-600"><i
+                        class="fas fa-arrow-left mr-1"></i> 11. Agente Sicurezza</span>
+            </a>
+            <a href="index.html" class="flex flex-col gap-1 items-end group text-right">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Indice</span>
+                <span class="font-black text-xs uppercase group-hover:underline text-blue-600">Home Guida <i
+                        class="fas fa-home ml-1"></i></span>
+            </a>
+        </div>
+    </main>
+</body>
+
+</html>

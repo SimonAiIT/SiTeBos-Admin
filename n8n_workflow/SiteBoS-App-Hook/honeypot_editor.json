@@ -1,0 +1,3993 @@
+{
+  "name": "honeypot_editor",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Access Denied or Data Not Found\",\n  \"code\": 500\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1904,
+        1248
+      ],
+      "id": "d5ff4650-1b75-45b2-a839-5686a449fb09",
+      "name": "500"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "48ee3cba-99dc-407a-98af-624e97b1e888",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2208,
+        1824
+      ],
+      "id": "0f6dd1f6-25f6-4cf5-8504-19ec0b286955",
+      "name": "Webhook",
+      "webhookId": "48ee3cba-99dc-407a-98af-624e97b1e888"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e9bc7325-7e76-488a-ab4e-7dbec0d53f15",
+                    "leftValue": "={{ $json.user_request.action }}",
+                    "rightValue": "=get_honeypot_data",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GET"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.user_request.action }}",
+                    "rightValue": "save_honeypot_data",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3b1dcd94-4a92-4d9b-9b1d-b46fbdb82c06"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SAVE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "92ca6f59-fe84-4e1a-8b1f-193218041474",
+                    "leftValue": "={{ $json.user_request.action }}",
+                    "rightValue": "analyze_image_asset",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ANALIZE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2ee27bbf-f499-4536-8605-c20911940814",
+                    "leftValue": "={{ $json.user_request.action }}",
+                    "rightValue": "generate_offer_html",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "OFFER"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c0640a11-a27a-40ae-a699-8419b2fa1627",
+                    "leftValue": "={{ $json.user_request.action }}",
+                    "rightValue": "link_telegram_bot",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "BOT"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -656,
+        1472
+      ],
+      "id": "062e2715-8f0b-452b-b29d-1c1c7ffe9b08",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1408,
+        976
+      ],
+      "id": "681f2909-a203-42dc-ac7d-88f1bbc69920",
+      "name": "ErrorApi5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<role>\nYou are a World-Class Copywriter and HTML Artist specializing in high-conversion Telegram marketing.\nYour goal is to transform a simple user prompt into a visually stunning, persuasive, and perfectly formatted HTML Offer String.\n</role>\n\n<constraints>\n1. **OUTPUT FORMAT:** Return ONLY the raw HTML string. No markdown, no code blocks (```), no conversational filler.\n2. **HTML TAGS ALLOWED:** Only use tags supported by Telegram HTML parse mode: `<b>`, `<i>`, `<u>`, `<s>`, `<a href=\"...\">`, `<code>`, `<pre>`. You CAN use `<br>` for newlines.\n3. **EMOJI USAGE:** Use emojis strategically to create visual hierarchy and excitement (e.g., 🚀, 💎, ✨, 🎁).\n4. **TONE:** Professional yet magnetic, urgent, and exclusive. Use bolding (`<b>`) to highlight key benefits.\n5. **NO PLACEHOLDER LINKS:** Do NOT add the final call-to-action link button. The system will append it later. Just end with a compelling closing hook.\n6. **CONTEXTUALITY:** Use the provided company context (`HoneyPot`) to make the copy relevant to the specific business (e.g., if they do AI, use tech metaphors; if they do food, use sensory language).\n</constraints>\n\n<style_guide>\n- Start with a \"Hook\" line (often with an emoji).\n- Use `<br><br>` to separate paragraphs clearly.\n- Use bullet points (simulated with emojis like 🔸 or ▪️) for benefits.\n- Use **Bold** for the most important keywords.\n- Keep it concise but impactful (max 150-200 words).\n</style_guide>\n\n<example_output>\n💡<br><br>Stiamo selezionando un <b>gruppo ristretto di pionieri</b> per provare in anteprima il nostro <b>SiteBos</b>. Partecipando avrai:<br><br>🎁 <b>Accesso anticipato</b> all'ecosistema<br>💎 <b>2.000 CREDITI</b> omaggio<br><br>🔒 <b>Privacy al Primo Posto</b><br>La tua sicurezza è la nostra priorità.<br><br>✨ <b>Ti interessa essere dei nostri?</b>\n</example_output>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<task>\nGenerate a High-Impact HTML Offer String based on the user's request. If user request is empty try to think something.\n</task>\n\n<company_context>\n**Name:** {{ $json.owner_data.ragione_sociale }}\n**Sector:** {{ $json.owner_data.sector }}\n**Description:** {{ $json.owner_data.business_description }}\n**Mission:** {{ $json.HoneyPot.knowledge_fragments.find(f => f.fragment_id === 'MISSION_PURPOSE_V1')?.summary || '' }}\n**USP:** {{ $json.HoneyPot.knowledge_fragments.find(f => f.fragment_id === 'USP_DIFFERENTIATORS_V1')?.summary || '' }}\n</company_context>\n\n<user_request>\n**Raw Prompt:** \"{{ $json.user_request.user_prompt }}\"\n</user_request>\n\n<instruction>\nWrite a persuasive offer text in **{{ $json.owner_data.lenguage }}**.\nThe offer must be about: \"{{ $json.user_request.user_prompt }}\".\nUse the company context to flavor the copy.\nMake it sound like an exclusive opportunity.\n\n<OUTPUT_FORMAT>\nYou MUST return a valid JSON object with exactly this structure:\n{\n  \"offer_html\": \"YOUR_GENERATED_HTML_STRING_HERE\"\n}\nDo not wrap in markdown code blocks. Just the raw JSON.\n</OUTPUT_FORMAT>\n\n</instruction>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "={{ $json.owner_data.model_choice }}",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "offerText",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.media_items[0].base64_content }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.media_items[0].mime_type }}",
+              "type": "string"
+            },
+            {
+              "id": "960b5380-7939-4f86-aa93-b57d9024b0f7",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "30d498ab-4a27-43e0-a536-fba1b87385da",
+              "name": "billing_source.use",
+              "value": "=Honeypot Editor {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "e076c5f5-0f48-48fb-b276-9bd69fc93039",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/48ee3cba-99dc-407a-98af-624e97b1e888",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1904,
+        976
+      ],
+      "id": "5355e76d-36d3-45d0-b1ff-db5ee35dc96e",
+      "name": "OfferText"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b3e15cb3-d789-4991-835a-2b23186e97ad",
+              "name": "HoneyPot.offer_text",
+              "value": "={{ $json.offerText.offer_html }} \n\n👉 <a href=\"https://simonaiit.github.io/SiteBoS-MiniApp/SiteBos.html?vat={{ $json.owner_data.vat_number }}\"><b>CLICCA QUI PER ACCEDERE</b></a>",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1904,
+        816
+      ],
+      "id": "4289d57c-f158-418f-8836-715fee52457b",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "honeypots",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -1552,
+        816
+      ],
+      "id": "1f87e155-dc38-4413-8a59-966122dfb3bc",
+      "name": "MongoDB Chat Memory3",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1200,
+        800
+      ],
+      "id": "5feccfce-238b-4039-bcbd-13099c14973b",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "da146a5e-4c8a-4dc4-a6a8-8371134b0c05",
+              "name": "status",
+              "value": "success",
+              "type": "string"
+            },
+            {
+              "id": "f9bc674a-80d2-4768-b937-263c13c82a6d",
+              "name": "html_content",
+              "value": "={{ $json.HoneyPot.offer_text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1008,
+        800
+      ],
+      "id": "91174097-6741-4710-a76c-e707a46734dc",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.HoneyPot }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -1552,
+        720
+      ],
+      "id": "75fefc51-c418-45f8-b648-d3734f52f1d8",
+      "name": "Honeypot"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.user_request.vat_number }}",
+        "collectionName": "honeypots",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        288,
+        1824
+      ],
+      "id": "5833493a-e672-4acc-81ba-9a8a46436f81",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.user_request.honeypot_update }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        288,
+        1728
+      ],
+      "id": "d468bef2-25ba-4336-9bf2-6ad31eded41b",
+      "name": "Honeypot1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        320,
+        1040
+      ],
+      "id": "0490fc3a-de63-477c-9cee-e36e68fc4ad3",
+      "name": "ErrorApi"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "honeypots",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        960
+      ],
+      "id": "7eaa77a7-33de-423d-8d14-4a7e7a7ef635",
+      "name": "MongoDB Chat Memory4",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        512,
+        864
+      ],
+      "id": "d4e9f994-86ca-4748-98c1-91a7aebbc01a",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.HoneyPot }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -352,
+        848
+      ],
+      "id": "e7bf9512-05a2-4da0-aa3c-00ebda6b49b1",
+      "name": "Honeypot2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<role>\nYou are a Senior Brand Strategist and Art Director specializing in visual semiotics and color theory.\nYour task is to analyze visual assets (Logos or Corporate Photos) and generate a \"Digital Twin Description\" that captures strategic intent, brand personality, and chromatic identity.\n</role>\n\ntext>\nYou will receive:\n1. An image (Logo or Photo).\n2. The type of asset (`logo` or `photo`).\n3. The company's textual identity (`HoneyPot` summary).\n</context>\n\n<objective>\n1. Analyze visual elements and strategic intent.\n2. Extract the DOMINANT COLOR PALETTE (Hex Codes).\n3. Provide actionable design advice.\n</objective>\n\n<tone>\nAnalytical, professional, insightful. Be specific about colors, shapes, and emotions.\n</tone>\n",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<analysis_context>\n**Asset Type:** {{ $json.user_request.asset_type }}\n**Company:** {{ $json.owner_data.ragione_sociale }}\n**Sector:** {{ $json.owner_data.sector }}\n**Target Language:** {{ $json.owner_data.lenguage }}\n</analysis_context>\n\n<task>\nAct as an Expert Art Director. Analyze the image and provide a strategic evaluation in **{{ $json.owner_data.lenguage }}**.\n\n### 1. VISUAL IMPACT ANALYSIS\n- **Logo:** Analyze psychology, typography, shapes. Does it fit the sector?\n- **Photo:** Analyze subject, lighting, mood, authenticity.\n\n### 2. CHROMATIC EXTRACTION\n- Identify the 2-4 most dominant/significant hex colors from the image.\n- Provide them as a clean list of Hex codes (e.g., [\"#FF5733\", \"#333333\"]).\n\n### 3. PRO TIP\n- Suggest one specific improvement (Scalability, Contrast, Composition, Framing).\n\n---\n<OUTPUT_FORMAT_MANDATORY>\nYou MUST return ONLY a valid JSON object. No markdown, no code blocks.\n\nRequired JSON Structure:\n{\n  \"visual_analysis\": \"String. The strategic evaluation of the impact.\",\n  \"pro_tip\": \"String. The actionable advice.\",\n  \"dominant_colors\": [\"#HEX1\", \"#HEX2\", \"#HEX3\"], \n  \"display_text\": \"String. A combined version for the user. Format: '[Emoji] ANALYSIS: [Analysis] \\n\\n🎨 PALETTE: [Hex1, Hex2...] \\n\\n💡 TIP: [Tip]'\"\n}\n</OUTPUT_FORMAT_MANDATORY>\n\n**CRITICAL:** Output textual content in {{ $json.owner_data.lenguage }}. Colors must be valid HEX codes.\n</task>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "={{ $json.owner_data.model_choice }}",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "Asset",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.file_data }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.mime_type }}",
+              "type": "string"
+            },
+            {
+              "id": "69d7c3b7-7372-466d-939e-bc0fb93325a3",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "f9bd2f81-e76c-4941-978e-094f532c4634",
+              "name": "billing_source.use",
+              "value": "=Honeypot Editor {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "4013c5da-996e-47fd-bd66-f1e2c0d429c8",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/48ee3cba-99dc-407a-98af-624e97b1e888",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -16,
+        1040
+      ],
+      "id": "b530c5ea-c1ba-4cb4-a3d3-c20a01b9cbdc",
+      "name": "Analize_Asset"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: HoneyPot_Asset_Updater (UPDATED: Custom Domain Path)\nconst input = $input.first().json;\n\n// 1. Prepariamo l'oggetto HoneyPot\nlet honeyPot = input.HoneyPot || {};\nif (!honeyPot.assets) honeyPot.assets = {};\n\n// 2. Dati Input\nconst vatNumber = input.owner_data.vat_number;\nconst assetType = input.user_request.asset_type; // es. \"logo\" o \"photo\"\nconst mimeType = input.user_request.mime_type || \"image/jpeg\";\nlet ext = mimeType.split('/')[1] || \"jpg\";\nif (ext === \"jpeg\") ext = \"jpg\"; // Standardizziamo jpeg in jpg se preferisci\n\n// 3. Dati AI\nlet analysisNode = input.Asset || input.output || {};\nlet analysis = analysisNode.Asset || analysisNode;\nif (typeof analysis === 'string') { try { analysis = JSON.parse(analysis); } catch(e){} }\n\n// 4. GENERAZIONE URL PERSONALIZZATO\n// Struttura desiderata: https://dashboard.trinai.it/[vat_number]/[asset_type].[ext]\nconst domain = \"https://dashboard.trinai.it\";\nconst finalUrl = `${domain}/${vatNumber}/${assetType}.${ext}`;\n\n// 5. Definizione percorso per GitHub (se carichi ancora su GitHub)\n// Se il server punta alla repo, il file deve essere salvato come \"vat_number/asset_type.ext\"\nconst ghPath = `${vatNumber}/${assetType}.${ext}`;\n\n// 6. Costruzione Oggetto Asset\nconst assetObj = {\n    url: finalUrl, \n    mime: mimeType,\n    description: analysis.display_text || \"Analisi completata\",\n    meta: {\n        visual_analysis: analysis.visual_analysis,\n        pro_tip: analysis.pro_tip,\n        colors: analysis.dominant_colors || []\n    },\n    updated_at: new Date().toISOString()\n};\n\n// 7. Aggiornamento in memoria\nhoneyPot.assets[assetType] = assetObj;\n\n// 8. Output\nreturn {\n    json: {\n        HoneyPot: honeyPot, \n        owner_data: input.owner_data,\n        FirstAsset: input.FirstAsset,\n        // Payload per l'upload (usiamo ghPath per mantenere la struttura cartelle)\n        gh_upload: {\n            fileName: ghPath, \n            content: input.user_request.file_data\n        },\n        \n        response_data: {\n            url: finalUrl,\n            description: assetObj.description\n        }\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        880
+      ],
+      "id": "13f817c8-1d5b-43cb-9df7-0e91dadede7f",
+      "name": "HoneyPot_Asset_Merger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ddfa56d0-de89-4ce0-b70f-e7459075c7a4",
+              "name": "tokenCliente",
+              "value": "={{ $json.bot_token }}",
+              "type": "string"
+            },
+            {
+              "id": "1c0680fe-0b30-454b-bc38-2d622b3c04bb",
+              "name": "WHPath",
+              "value": "8eb69e84-d20d-486e-a70e-9acf31c3da9e",
+              "type": "string"
+            },
+            {
+              "id": "dabfd8a2-bd31-489d-9bf2-ed214a16a392",
+              "name": "userId",
+              "value": "={{ $json.owner_data.chat_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -656,
+        2464
+      ],
+      "id": "7e90d450-4c4a-4943-ada1-9ef0cad924e8",
+      "name": "AssignBot"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.tokenCliente }}/setWebhook?url=https://prod.workflow.trinai.it/webhook/{{ $json.WHPath }}?user_id={{ $json.userId }}",
+        "options": {}
+      },
+      "id": "8a23c791-7cc8-48f3-be93-1c2110c90818",
+      "name": "TelegramTriggerSet",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -496,
+        2464
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Validate_Bot_Token_API\n// OBIETTIVO: Validare il token ricevuto dalla MiniApp\n\nconst input = $input.first().json;\nconst botToken = input.user_request.bot_token;\nconst vatNumber = input.user_request.vat_number;\n\nif (!botToken) {\n    return { json: { error: \"Token mancante\" } };\n}\n\n// Regex Validazione (ID:SECRET)\nconst tokenRegex = /^(\\d{6,10}):([A-Za-z0-9_-]{30,})$/;\nconst isValid = tokenRegex.test(botToken);\n\nif (!isValid) {\n    return { json: { error: \"Formato token non valido\", valid: false } };\n}\n\nreturn {\n    json: {\n        valid: true,\n        bot_token: botToken,\n        vat_number: vatNumber,\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        2160
+      ],
+      "id": "7e74d8d7-a05d-4de0-8412-0811cd8a9c96",
+      "name": "Validate_Telegram_Bot_Token"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "eb780057-cf55-47e0-9c5c-4223ac738673",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -656,
+        2640
+      ],
+      "id": "ac8dcb53-e1ea-43da-8364-f343043783bb",
+      "name": "If6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3b254504-eb8a-4905-9b31-f8f4e54968d8",
+              "name": "ok",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "877be449-689d-419e-ad06-5b16b5d19259",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -160,
+        2272
+      ],
+      "id": "2548c5e9-670c-4098-9f15-6584c2ea7929",
+      "name": "Edit Fields12"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        128,
+        2464
+      ],
+      "id": "1a6853af-7a9b-4453-92f2-c9f04ea16466",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -656,
+        2000
+      ],
+      "id": "8d4cf4e9-c626-4ef2-9278-aca291992093",
+      "name": "Merge7"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3b254504-eb8a-4905-9b31-f8f4e54968d8",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "877be449-689d-419e-ad06-5b16b5d19259",
+              "name": "description",
+              "value": "Telegram Error",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -160,
+        2480
+      ],
+      "id": "1faf9632-2747-4625-be9a-19fd879adc2b",
+      "name": "Edit Fields13"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3b254504-eb8a-4905-9b31-f8f4e54968d8",
+              "name": "ok",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "877be449-689d-419e-ad06-5b16b5d19259",
+              "name": "description",
+              "value": "Invalid Token Format",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -160,
+        2656
+      ],
+      "id": "3c8cc7e4-1ef5-4147-9491-e62e4d3c3980",
+      "name": "Edit Fields14"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -160,
+        1984
+      ],
+      "id": "4ce9dfa9-cb5d-4483-8f60-33d99f29a8b7",
+      "name": "Merge8"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        224,
+        2256
+      ],
+      "id": "62e9a041-f0e4-41fe-baae-92f909b260f7",
+      "name": "MongoDB Chat Memory5",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2d9e31fb-19eb-467b-a51d-627485129756",
+              "name": "owner_data.bot_key",
+              "value": "={{ $json.bot_token }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        2112
+      ],
+      "id": "f12f226d-bdaa-4937-8bed-d41c6ab8750a",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        512,
+        2496
+      ],
+      "id": "5288b721-616f-4fe4-915f-a958765a1306",
+      "name": "Merge9"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        2112
+      ],
+      "id": "fa50979b-79e7-4ba7-9686-e572cf0c5fd0",
+      "name": "owner3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        512,
+        2000
+      ],
+      "id": "dd0a2cd2-d1d7-48cb-954f-8e494c743af2",
+      "name": "Merge19"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.vat_number }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"pot\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$pot.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1824,
+        1600
+      ],
+      "id": "cb6fb918-ae8f-4c13-88ed-b12f0051dd54",
+      "name": "owner",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1632,
+        1600
+      ],
+      "id": "fb9b65c4-8b61-4bf2-b746-369f17543005",
+      "name": "OwnerExist"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1376,
+        1696
+      ],
+      "id": "faf98bd2-fd7c-4a55-8494-d132338cd352",
+      "name": "Merge22"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "honeypots",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.user_request.vat_number }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"pot\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"HoneyPot\": \"$pot.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1376,
+        1520
+      ],
+      "id": "5eabe6bb-8264-4906-87ce-cafd14b280f6",
+      "name": "HoneyPot",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.HoneyPot }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1216,
+        1520
+      ],
+      "id": "7c31c589-78b8-419f-afe4-3d00fe2e5150",
+      "name": "Honeypot Exist"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1376,
+        1376
+      ],
+      "id": "c1f505cf-8e03-4a89-bd60-568febf33947",
+      "name": "📤 Telegram Call1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1200,
+        1264
+      ],
+      "id": "ca3ebb7a-e144-48ae-a479-cf1537960450",
+      "name": "Merge24"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: System_Error_Collection_Retrieval\n// SCENARIO: Utente \"Fantasma\" (Startato ma dati DB persi/corrotti)\n// OUTPUT: Payload Telegram (Messaggio) + Payload Webhook (JSON Error)\n\n\nconst item = $input.first().json;\nconst body = item.user_request || {};\nconst msg = body.message || {};\nconst owner = item.owner_data || {};\n\n// 1. Recupero Dati Contesto\nconst chatId = owner.chat_id;\nconst userLang = body.lang || 'en';\n\n// 2. Definizione Errore\nconst errorCode = \"CRITICAL_DATA_LOSS\";\nconst errorMessage = \"Owner profile not found despite active session flag.\";\n\n// 3. Dizionario Multilingua (Messaggio per l'Utente)\nconst langMap = { 'it': 'it', 'en': 'en', 'fr': 'fr', 'de': 'de', 'es': 'es', 'pt': 'pt' };\nconst lang = langMap[userLang.slice(0,2)] || 'en';\n\nconst t = {\n  'it': {\n    title: \"⚠️ <b>Errore Critico Profilo</b>\",\n    text: \"Il sistema rileva che dovresti essere un utente attivo, ma non riesce a recuperare il tuo profilo aziendale.\",\n    reason: \"Possibile corruzione dei dati o cancellazione accidentale.\",\n    action: \"Per favore, contatta il supporto tecnico indicando il tuo ID:\",\n    btn: \"🆘 Supporto\"\n  },\n  'en': {\n    title: \"⚠️ <b>Critical Profile Error</b>\",\n    text: \"The system detects you should be an active user, but cannot retrieve your company profile.\",\n    reason: \"Possible data corruption or accidental deletion.\",\n    action: \"Please contact technical support providing your ID:\",\n    btn: \"🆘 Support\"\n  },\n  'fr': {\n    title: \"⚠️ <b>Erreur Critique de Profil</b>\",\n    text: \"Le système détecte que vous devriez être un utilisateur actif, mais ne parvient pas à récupérer votre profil d'entreprise.\",\n    reason: \"Corruption possible des données ou suppression accidentelle.\",\n    action: \"Veuillez contacter le support technique en indiquant votre ID :\",\n    btn: \"🆘 Support\"\n  },\n  'de': {\n    title: \"⚠️ <b>Kritischer Profilfehler</b>\",\n    text: \"Das System erkennt, dass Sie ein aktiver Benutzer sein sollten, kann aber Ihr Firmenprofil nicht abrufen.\",\n    reason: \"Mögliche Datenkorruption oder versehentliche Löschung.\",\n    action: \"Bitte kontaktieren Sie den technischen Support mit Ihrer ID:\",\n    btn: \"🆘 Support\"\n  },\n  'es': {\n    title: \"⚠️ <b>Error Crítico del Perfil</b>\",\n    text: \"El sistema detecta que deberías ser un usuario activo, pero no puede recuperar tu perfil de empresa.\",\n    reason: \"Posible corrupción de datos o eliminación accidental.\",\n    action: \"Por favor, contacta al soporte técnico indicando tu ID:\",\n    btn: \"🆘 Soporte\"\n  },\n  'pt': {\n    title: \"⚠️ <b>Erro Crítico de Perfil</b>\",\n    text: \"O sistema detecta que você deveria ser um usuário ativo, mas não consegue recuperar o perfil da sua empresa.\",\n    reason: \"Possível corrupção de dados ou exclusão acidental.\",\n    action: \"Por favor, contate o suporte técnico fornecendo seu ID:\",\n    btn: \"🆘 Suporte\"\n  }\n}[lang] || { // Fallback EN\n    title: \"⚠️ <b>Critical Profile Error</b>\",\n    text: \"The system detects you should be an active user, but cannot retrieve your company profile.\",\n    reason: \"Possible data corruption or accidental deletion.\",\n    action: \"Please contact technical support providing your ID:\",\n    btn: \"🆘 Support\"\n};\n\n// 4. Costruzione Messaggio Telegram\nconst messageText = \n`${t.title}\n\n${t.text}\n\n🛑 <b>Reason:</b> ${t.reason}\n\n👉 <b>${t.action}</b> de>${chatId}</code>`;\n\nconst telegramPayload = {\n    method: \"sendMessage\",\n    chat_id: chatId,\n    text: messageText,\n    parse_mode: \"HTML\",\n    reply_markup: {\n        inline_keyboard: [[{ text: t.btn, url: \"https://t.me/TrinAi_TecSupport_bot\" }]]\n    }\n};\n\n\n// 6. Return Unificato\nreturn {\n    json: {\n        // Payload per il nodo HTTP (Telegram)\n        telegramApiPayload: telegramPayload,\n        \n        // Flag per logica successiva n8n\n        error_type: \"GHOST_USER\",\n        is_fatal: true\n    }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1584,
+        1248
+      ],
+      "id": "7d305c2b-41f2-4145-b71e-3f5887b388bc",
+      "name": "🆘 System Error Collection"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -944,
+        1680
+      ],
+      "id": "d52ec04b-270a-4a27-a019-045e1947ba2d",
+      "name": "Merge25"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -944,
+        1520
+      ],
+      "id": "e8141414-1fc3-4110-9778-e4f1519b6eb6",
+      "name": "Merge26"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -656,
+        1312
+      ],
+      "id": "3de525ce-1972-4d1a-9dc5-7168aaeeb571",
+      "name": "Respond to Get"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        848
+      ],
+      "id": "70951571-0981-4993-a19e-094548a70ea1",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.response_data }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        720,
+        864
+      ],
+      "id": "1b11fb9f-b5ca-4879-ae49-74531ed4d332",
+      "name": "Respond Asset"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1008,
+        656
+      ],
+      "id": "a302de74-9faf-4fcf-8f5c-2885911ea83f",
+      "name": "Respond to Offer"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1552,
+        1616
+      ],
+      "id": "4afb5ac4-6d77-4201-b908-5a9036de6e74",
+      "name": "Respond Edit"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        688,
+        2496
+      ],
+      "id": "4046353f-ba61-4e7f-86e6-814001e4d118",
+      "name": "Respond to Token"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        656,
+        1616
+      ],
+      "id": "0b107c14-405e-4164-a21e-b4fc9c792c49",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d6220aa-d68e-4302-a312-2a6583c1685d",
+              "name": "HoneyPot",
+              "value": "={{ $json.user_request.honeypot_update }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        1600
+      ],
+      "id": "b575074e-e1f7-40a5-ab3a-003fc3daa8a2",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2aacadbe-44e0-4aa7-a5c5-57ebb4e5a4c3",
+              "name": "FirstAsset",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -352,
+        1168
+      ],
+      "id": "ab51df93-6ecc-4b92-8518-dd6a606f347f",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a6cefd97-dea1-4f53-9a1a-73a4ca8a7211",
+              "leftValue": "={{ $json.HoneyPot.assets?.[$json.user_request.asset_type] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -656,
+        1056
+      ],
+      "id": "bd75af19-b10b-463d-b341-472a904505ea",
+      "name": "If Asset Exists"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3ee6afbc-bb87-447c-bb4e-951e55e6b8ba",
+              "leftValue": "={{ $json.schedules_are_equal }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        16,
+        1488
+      ],
+      "id": "ca2aed8c-fe85-485a-b559-3aabba40501d",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "jsCode": "function deepEqual(obj1, obj2) {\n  if (obj1 === obj2) return true;\n  if (obj1 == null || obj2 == null) return false;\n  if (typeof obj1 !== typeof obj2) return false;\n  if (typeof obj1 !== 'object') return obj1 === obj2;\n  \n  const isArray1 = Array.isArray(obj1);\n  if (isArray1 !== Array.isArray(obj2)) return false;\n  \n  if (isArray1) {\n    if (obj1.length !== obj2.length) return false;\n    return obj1.every((val, i) => deepEqual(val, obj2[i]));\n  }\n  \n  const keys1 = Object.keys(obj1);\n  const keys2 = Object.keys(obj2);\n  \n  if (keys1.length !== keys2.length) return false;\n  return keys1.every(key => keys2.includes(key) && deepEqual(obj1[key], obj2[key]));\n}\n\nconst input = $input.all()[0].json;\n\nconst honeypotSchedule = input.HoneyPot?.availability_schedule || {};\nconst userRequestSchedule = input.user_request?.honeypot_update?.availability_schedule || {};\n\nconst schedulesAreEqual = deepEqual(honeypotSchedule, userRequestSchedule);\n\nreturn {\n  json: {\n    ...input,\n    schedules_are_equal: schedulesAreEqual\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        1488
+      ],
+      "id": "775a262d-d1fc-4564-b558-257823fdbd34",
+      "name": "cange time"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        1392
+      ],
+      "id": "893e92ab-1bcb-465b-b8b7-07db5c6139b3",
+      "name": "ErrorApi1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<role>\nYou are an AI Expert in Business Communication and FAQ Generation.\nYour task is to update the CONTACT_HOURS_V1 knowledge fragment with new Q&A sections that reflect the updated availability schedule.\n</role>\n\ntext>\nYou will receive:\n1. The current CONTACT_HOURS_V1 fragment structure\n2. The NEW availability_schedule with updated business hours\n3. Company context and contact information\n</context>\n\n<objective>\nGenerate updated Q&A sections that accurately reflect the new opening hours and availability information.\nKeep the same fragment structure but update answer_fragment, summary, and sections to match the new schedule.\n</objective>\n\n<tone>\nProfessional, clear, informative. Maintain consistency with the original writing style.\n</tone>\n",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<analysis_context>\n**Fragment ID:** CONTACT_HOURS_V1\n**Company:** {{ $json.HoneyPot.company_context_string }}\n**Contact Phone:** {{ $json.owner_data.phone }}\n**Contact Email:** {{ $json.owner_data.email }}\n**Language:** {{ $json.owner_data.lenguage }}\n</analysis_context>\n\n<new_availability_schedule>\n{{ JSON.stringify($json.user_request.honeypot_update.availability_schedule, null, 2) }}\n</new_availability_schedule>\n\nurrent_fragment_structure>\n{{ JSON.stringify($json.HoneyPot.knowledge_fragments.find(f => f.fragment_id === 'CONTACT_HOURS_V1'), null, 2) }}\n</current_fragment_structure>\n\n<task>\nUpdate the CONTACT_HOURS_V1 fragment with the new availability schedule information.\n\n**REQUIREMENTS:**\n1. Keep the same `fragment_id`, `user_utterances` (add more if relevant)\n2. Update `answer_fragment` to describe the new hours accurately\n3. Update `summary` to reflect new availability\n4. Update all `sections` Q&A pairs to match the new schedule\n5. Include specific days and time ranges from the new schedule\n6. Maintain the same professional tone and structure\n\n---\n<OUTPUT_FORMAT_MANDATORY>\nYou MUST return ONLY a valid JSON object matching this structure. No markdown, no code blocks.\n\n{\n  \"fragment_id\": \"CONTACT_HOURS_V1\",\n  \"user_utterances\": [\"array of typical user questions\"],\n  \"answer_fragment\": \"String. Main answer describing contact methods and NEW availability\",\n  \"summary\": \"String. One-line summary of contact accessibility with NEW hours\",\n  \"sections\": [\n    {\n      \"question\": \"String. Specific question\",\n      \"answer\": \"String. Answer reflecting NEW schedule\"\n    }\n  ]\n}\n</OUTPUT_FORMAT_MANDATORY>\n\n**CRITICAL:** \n- All text MUST be in {{ $json.owner_data.lenguage }}\n- Hours MUST match exactly the new availability_schedule provided\n- Use the phone {{ $json.owner_data.phone }} and email {{ $json.owner_data.email }}\n</task>\n",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "={{ $json.owner_data.model_choice }}",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "TimeCange",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.file_data }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.mime_type }}",
+              "type": "string"
+            },
+            {
+              "id": "61e789a3-33e6-44fb-bea4-13fd2c0101cf",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "08700569-2b69-473f-bdcd-3561eafaaa64",
+              "name": "billing_source.use",
+              "value": "=Honeypot Editor {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "5bc40960-14b9-4466-8f81-445acba4df66",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/48ee3cba-99dc-407a-98af-624e97b1e888",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        1392
+      ],
+      "id": "97bcebd0-064d-40e0-b41b-c6c8a0ea066b",
+      "name": "time analize"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.all()[0].json;\n\n// Prendi il fragment aggiornato da TimeCange\nconst updatedContactHours = input.TimeCange;\n\n// Clona HoneyPot completo\nconst updatedHoneyPot = JSON.parse(JSON.stringify(input.user_request.honeypot_update));\n\n// Trova l'indice del fragment CONTACT_HOURS_V1\nconst fragmentIndex = updatedHoneyPot.knowledge_fragments.findIndex(\n  f => f.fragment_id === 'CONTACT_HOURS_V1'\n);\n\n// Sostituisci o aggiungi il fragment aggiornato\nif (fragmentIndex !== -1) {\n  updatedHoneyPot.knowledge_fragments[fragmentIndex] = updatedContactHours;\n} else {\n  updatedHoneyPot.knowledge_fragments.push(updatedContactHours);\n}\n\n// Restituisci tutto il JSON con HoneyPot aggiornato\nreturn {\n  json: {\n    ...input,\n    HoneyPot: updatedHoneyPot\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        1408
+      ],
+      "id": "f4d5ff68-aa7f-4593-91a0-6bc639585625",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.user_request.vat_number }}",
+        "collectionName": "honeypots",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        1632
+      ],
+      "id": "777362a0-3e86-4404-a9d1-9e241660a20a",
+      "name": "MongoDB Chat Memory1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.HoneyPot }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1184,
+        1536
+      ],
+      "id": "437055ef-b461-407c-90b7-0c1469c8e72f",
+      "name": "Honeypot3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1552,
+        1424
+      ],
+      "id": "3a315be5-fc86-4bf0-b3df-3fe0a40e4880",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "da04c4f2-5349-4013-b1a2-b0d971334780",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "48ee3cba-99dc-407a-98af-624e97b1e888",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1632,
+        1824
+      ],
+      "id": "aaff60f4-9d37-48dd-a76c-f50b8c81554d",
+      "name": "Autorize"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        144,
+        1040
+      ],
+      "id": "fce53dae-cb61-4790-8e47-74f5cd515203",
+      "name": "Call 'GeminiCall'",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        496,
+        1392
+      ],
+      "id": "4ca85332-bfa9-4bb3-93cb-5c7587cddfbf",
+      "name": "Call Gemini",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -1632,
+        976
+      ],
+      "id": "c31a2a50-f499-49c0-91d5-1109abf7722a",
+      "name": "Call GeminiOffer",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5d350f05-bba4-4a24-91b5-a5d0141f61df",
+              "leftValue": "={{ $json.user_request.file_data }}",
+              "rightValue": "generate",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -384,
+        1520
+      ],
+      "id": "5168d993-ffb5-4e84-9220-389bbe3d132d",
+      "name": "Generate?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        512,
+        1024
+      ],
+      "id": "8c03db5b-2dc4-48b6-8fa3-d52fc2f33eae",
+      "name": "Error"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1200,
+        960
+      ],
+      "id": "5d9593cc-7ee7-475b-bc22-6609a3f40aee",
+      "name": "Error1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        672,
+        1248
+      ],
+      "id": "f5c8059d-4535-474e-8988-bb19720afd51",
+      "name": "Error2"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -224,
+        448
+      ],
+      "id": "1a21018c-9236-4814-9846-237f52de14e2",
+      "name": "Call 'GeminiCall'1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a6cefd97-dea1-4f53-9a1a-73a4ca8a7211",
+              "leftValue": "={{ $json.user_request.asset_type }}",
+              "rightValue": "photo",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -656,
+        432
+      ],
+      "id": "091ab12d-c70d-46be-b94a-536f796e078a",
+      "name": "photo?logo"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<role>\nYou are an Elite Art Director and AI Prompt Engineer specialized in Google's \"Gemini 3.1 Flash Image Preview\" text-to-image model.\nYour objective is to read a company's profile and INVENT the perfect, highly representative CORPORATE or CONCEPTUAL PHOTOGRAPH for them.\n</role>\n\n<best_practices_photo>\n1. POSITIVE FRAMING ONLY: Describe what you WANT to see. Do not use negative words.\n2. ADAPTIVE AESTHETIC: Automatically adapt the camera, lighting, and subject to the industry context you read.\n   - Food: \"Macro photography, steam, warm ambient lighting, appetizing, 85mm lens\".\n   - Corporate/Law: \"Bright natural light, professional environment, modern office, depth of field, 35mm lens\".\n   - Tech/Industrial: \"Cinematic lighting, volumetric light, dark mode aesthetic, high contrast, glowing accents\".\n3. REALISM & STORYTELLING: Focus on photorealism, textures, and a scene that tells the story of their specific USP (Unique Selling Proposition).\n4. NO TEXT: Do not ask the AI to generate text in photos to maintain high realism.\n5. JSON OUTPUT ONLY. No markdown, no conversational text.\n</best_practices_photo>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<tenant_context>\n**Brand Name:** {{ $json.owner_data.ragione_sociale }}\n**Industry Sector:** {{ $json.owner_data.sector }}\n**Company Context:** {{ $json.HoneyPot.company_context_string }}\n**Mission:** {{ $json.HoneyPot.knowledge_fragments.find(f => f.fragment_id === 'MISSION_PURPOSE_V1')?.summary || 'Not provided' }}\n**Unique Selling Proposition:** {{ $json.HoneyPot.knowledge_fragments.find(f => f.fragment_id === 'USP_DIFFERENTIATORS_V1')?.summary || 'Not provided' }}\n</tenant_context>\n\n<task>\nAct as a Lead Art Director. The client wants a new hero photograph for their brand, but they didn't specify what it should be. \nYOU must invent the perfect visual concept based ONLY on the <tenant_context> provided.\n\n1. Analyze the 'Industry Sector' and 'Company Context' to determine the best possible subject, setting, and mood.\n2. Write the ultimate English image generation prompt to bring this concept to life.\n3. Apply the correct cinematic lighting, lens types, and color grading for this specific industry.\n4. Ensure the image conceptually captures their \"Mission\" and \"USP\".\n\n<OUTPUT_FORMAT>\nReturn ONLY a valid JSON object matching this structure:\n{\n  \"optimized_image_prompt\": \"Your highly detailed English prompt...\",\n  \"aspect_ratio\": \"16:9\"\n}\n</OUTPUT_FORMAT>\n</task>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "={{ $json.owner_data.model_choice }}",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "Prompt",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "=",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "=",
+              "type": "string"
+            },
+            {
+              "id": "3e4e225a-4a75-4994-9fd3-84bdbe331e22",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "523dc5b6-42c8-4971-a71f-a0ca7396b167",
+              "name": "billing_source.use",
+              "value": "=Honeypot Editor {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "a4f8bc39-83c9-40f4-9028-9ea322249592",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/48ee3cba-99dc-407a-98af-624e97b1e888",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -432,
+        336
+      ],
+      "id": "131d61fc-4959-4066-bf5b-530e66eaf4b4",
+      "name": "PhotoPrompt"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<role>\nYou are an Elite Brand Identity Designer and AI Prompt Engineer specialized in Google's \"Gemini 3.1 Flash Image Preview\" text-to-image model.\nYour objective is to read a company's profile and INVENT the perfect, high-end LOGO concept for them.\n</role>\n\n<best_practices_logo>\n1. POSITIVE FRAMING ONLY: Describe exactly what you want to see.\n2. ADAPTIVE DESIGN: Automatically adapt the design style to the industry context you read.\n   - Food/Hospitality: \"Warm colors, organic shapes, illustrative or vintage emblem style\".\n   - Corporate/Law: \"Serif typography, heraldic or monogram elements, navy blue and gold, authoritative, professional\".\n   - Tech/SaaS/Consulting: \"Minimalist, flat design, negative space, geometric shapes, gradient tech colors, sleek\".\n3. TYPOGRAPHY MASTERY: Gemini 3.1 is excellent at rendering text. You MUST put the brand name in double quotes (e.g., \"BRAND NAME\") and specify the font style (e.g., \"bold modern sans-serif typography\").\n4. **MAXIMUM CANVAS UTILIZATION (CRITICAL): The logo icon and the brand name must occupy at least 90% of the image frame. Do not leave excessive empty white space around the logo. Stretch the composition so the design elements extend near the edges of the square frame.**\n5. JSON OUTPUT ONLY. No markdown, no conversational text.\n</best_practices_logo>\n",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<tenant_context>\n**Brand Name:** {{ $json.owner_data.ragione_sociale }}\n**Industry Sector:** {{ $json.owner_data.sector }}\n**Company Context:** {{ $json.HoneyPot.company_context_string }}\n**Mission:** {{ $json.HoneyPot.knowledge_fragments.find(f => f.fragment_id === 'MISSION_PURPOSE_V1')?.summary || 'Not provided' }}\n**Unique Selling Proposition:** {{ $json.HoneyPot.knowledge_fragments.find(f => f.fragment_id === 'USP_DIFFERENTIATORS_V1')?.summary || 'Not provided' }}\n</tenant_context>\n\n<task>\nAct as a Lead Brand Identity Designer. The client needs a new logo, but they left the creative direction entirely up to you.\nYOU must invent the perfect logo concept based ONLY on the <tenant_context> provided.\n\n1. Analyze the 'Industry Sector' and 'Company Context' to deduce the perfect symbol, color palette, and design style (e.g., minimal, vintage, corporate).\n2. Extract the main, impactful version of the Brand Name.\n3. Write the ultimate English image generation prompt.\n4. You MUST include the exact text to be generated in the prompt using DOUBLE QUOTES (e.g., The logo features the text \"YOUR_BRAND_NAME\" written in...) so the AI renders the text perfectly.\n5. Specify a clean background (e.g., \"on a solid white background\" or \"on a dark slate background\") to make the logo usable.\n\n<OUTPUT_FORMAT>\nReturn ONLY a valid JSON object matching this structure:\n{\n  \"optimized_image_prompt\": \"Your highly detailed English prompt...\",\n  \"aspect_ratio\": \"1:1\"\n}\n</OUTPUT_FORMAT>\n</task>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "={{ $json.owner_data.model_choice }}",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "Prompt",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "=",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "=",
+              "type": "string"
+            },
+            {
+              "id": "b8f75ff9-78d3-4e36-9f01-949f35e7dd56",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "5fd6f61c-f82b-4052-9c5f-05363881ce9c",
+              "name": "billing_source.use",
+              "value": "=Honeypot Editor {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "b405152f-1bf8-4b41-839f-187b11ea4dd1",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/48ee3cba-99dc-407a-98af-624e97b1e888",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -432,
+        528
+      ],
+      "id": "4a86ae82-992c-4587-81b9-a53f13596a23",
+      "name": "LogoPrompt"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.1-flash-image-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.1-flash-image-preview"
+        },
+        "prompt": "={{ $json.Prompt.optimized_image_prompt }}\nAspect Ratio 1:1\nEnsure the logo icon and the text are large, bold, and centered, filling the entire frame as much as possible. Avoid 'floating' small logos in the middle of vast white voids. The logo should feel massive and impactful.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        864,
+        672
+      ],
+      "id": "de16575d-0f79-44f7-9d14-e4922dd88ec4",
+      "name": "Generate an image",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "LR3Q6cuz4wPaBeGk",
+          "name": "TrinAi PayKey"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -48,
+        448
+      ],
+      "id": "07c75e2e-9fc6-43d9-bc39-10aad5d87745",
+      "name": "ErrorApi2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -48,
+        288
+      ],
+      "id": "8e3761f3-e9d2-456b-bc10-6ea2b91e574e",
+      "name": "Error3"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false\n  \"error\": \"imagine non generata\",\n  \"code\": 510\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1104,
+        688
+      ],
+      "id": "191c2a26-2538-44b3-8c94-e6842270f6c9",
+      "name": "Error4"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1104,
+        512
+      ],
+      "id": "4affbac2-47bf-4a24-9cc2-cf44445f599e",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "90a56805-6b0a-4501-8d1b-209b92d3af45",
+              "name": "mime_type",
+              "value": "image/jpeg",
+              "type": "string"
+            },
+            {
+              "id": "a0174bf6-e94f-401f-bfb0-874590601f7f",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1280,
+        512
+      ],
+      "id": "3956c380-0902-47c0-bc1d-58dd610f4bf4",
+      "name": "Edit Fields7"
+    },
+    {
+      "parameters": {
+        "operation": "crop",
+        "width": 1024,
+        "height": 1024,
+        "options": {
+          "format": "jpeg",
+          "quality": 80
+        }
+      },
+      "type": "n8n-nodes-base.editImage",
+      "typeVersion": 1,
+      "position": [
+        864,
+        512
+      ],
+      "id": "706713fc-5328-4c85-ae8f-431f546fc223",
+      "name": "Edit Image"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bb0fd33c-ace5-4593-b7f0-6d214683457a",
+              "name": "asset_type",
+              "value": "={{ $json.user_request.asset_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        688,
+        480
+      ],
+      "id": "5f1a08d0-6096-49f6-b3ab-2f24e648708d",
+      "name": "Edit Fields8"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1472,
+        496
+      ],
+      "id": "d015f137-3613-4b6a-a44e-5da9129654ed",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a6cefd97-dea1-4f53-9a1a-73a4ca8a7211",
+              "leftValue": "={{ $json.user_request.asset_type }}",
+              "rightValue": "photo",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -48,
+        128
+      ],
+      "id": "21337795-68a0-4c89-849a-4684c34f8699",
+      "name": "photo?logo1"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.1-flash-image-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.1-flash-image-preview"
+        },
+        "prompt": "={{ $json.Prompt.optimized_image_prompt }}\nAspect Ratio: 16:9",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        304
+      ],
+      "id": "dd3d5061-8568-4f1f-aefd-44c0c4674b9c",
+      "name": "Generate an image1",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "LR3Q6cuz4wPaBeGk",
+          "name": "TrinAi PayKey"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false\n  \"error\": \"imagine non generata\",\n  \"code\": 510\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1120,
+        320
+      ],
+      "id": "773ebcfa-f586-4b7a-98c9-64fd75976a6e",
+      "name": "Error5"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        144
+      ],
+      "id": "80a633d1-e662-428f-8e81-d41ae53beae7",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "90a56805-6b0a-4501-8d1b-209b92d3af45",
+              "name": "mime_type",
+              "value": "image/jpeg",
+              "type": "string"
+            },
+            {
+              "id": "a0174bf6-e94f-401f-bfb0-874590601f7f",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1296,
+        144
+      ],
+      "id": "2f61ac5c-bff3-48dd-8283-55feddc62495",
+      "name": "Edit Fields9"
+    },
+    {
+      "parameters": {
+        "operation": "crop",
+        "width": 1920,
+        "height": 1080,
+        "options": {
+          "format": "jpeg",
+          "quality": 80
+        }
+      },
+      "type": "n8n-nodes-base.editImage",
+      "typeVersion": 1,
+      "position": [
+        880,
+        144
+      ],
+      "id": "60fbd8ff-56b7-46af-8a59-f9918ac7dc1a",
+      "name": "Edit Image1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bb0fd33c-ace5-4593-b7f0-6d214683457a",
+              "name": "asset_type",
+              "value": "={{ $json.user_request.asset_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        704,
+        112
+      ],
+      "id": "6fcd734f-2ffd-492f-b459-e68c7e2f336b",
+      "name": "Edit Fields10"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1472,
+        128
+      ],
+      "id": "f0fd8ba0-850a-4125-889e-d9c20aad2adb",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1472,
+        336
+      ],
+      "id": "58abaaf5-aa26-45d1-bc7d-b73935606e3c",
+      "name": "Merge10"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1776,
+        432
+      ],
+      "id": "685aac7f-c0e6-4356-b0b6-86fdec5f4483",
+      "name": "Merge11"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "29fd2f56-341f-4cd3-abdb-74ad3cadbc23",
+              "name": "asset_type",
+              "value": "={{ $json.asset_type }}",
+              "type": "string"
+            },
+            {
+              "id": "5aebd3f7-b9f5-4c47-9d9c-f5250e3ce759",
+              "name": "data",
+              "value": "={{ $json.data }}",
+              "type": "string"
+            },
+            {
+              "id": "e0a7af8b-d96f-418c-9a77-8b8ab130ccfe",
+              "name": "mime_type",
+              "value": "={{ $json.mime_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1984,
+        432
+      ],
+      "id": "7792693a-a4fd-4fb4-bf62-1404d3a8642f",
+      "name": "Edit Fields15"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1984,
+        224
+      ],
+      "id": "295f0c7f-f353-4674-824d-66ea47f0239a",
+      "name": "SaveMerge2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2160,
+        224
+      ],
+      "id": "59f588f7-46f0-4cfb-be66-b7c6743b604d",
+      "name": "Respond to Generate"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "86de2ca2-334b-483a-87e1-85f2180bed18",
+              "name": "billing_source.use",
+              "value": "={{ $json.body.action || \"internal_call\" }}",
+              "type": "string"
+            },
+            {
+              "id": "f0ded29d-f99d-454f-9098-5531364cf1e4",
+              "name": "billing_source.wh",
+              "value": "={{ $json.webhookUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2000,
+        1824
+      ],
+      "id": "fdd75514-dfd1-414b-9458-30b5477dfff3",
+      "name": "billing_source"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5f811326-e6aa-4dc4-9e52-661a5749f844",
+              "name": "user_request",
+              "value": "={{ $json.body }}",
+              "type": "object"
+            },
+            {
+              "id": "fa7fe020-df36-4ac1-9481-ea6ee42c7555",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            },
+            {
+              "id": "46a1529c-c00a-4c04-a4b7-9c5e2f006cf0",
+              "name": "billing_source",
+              "value": "={{ $json.billing_source }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1216,
+        1696
+      ],
+      "id": "1dd7b690-09ee-41bf-b3bf-0e53aa0bd622",
+      "name": "Reduce"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"error\": {\n    \"code\": \"501\",\n    \"title\": \"SAVE BILLING FAIL\",\n    \"message\": \"ERRORE NEL SALVATAGIO DEL PAGAMENTO \"\n  }\n}",
+        "options": {
+          "responseCode": 501
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1984,
+        -240
+      ],
+      "id": "4e007ace-0646-4c4c-a46c-ba71dc068029",
+      "name": "BillingFAIL"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "91c4ce69-ff65-4495-9c1e-36b2ca50c870",
+              "name": "billing_source.wh",
+              "value": "=https://prod.workflow.trinai.it/webhook/48ee3cba-99dc-407a-98af-624e97b1e888",
+              "type": "string"
+            },
+            {
+              "id": "358f9459-c678-4ef3-9ca3-e63cb0769f11",
+              "name": "billing_source.use",
+              "value": "=Generazione Immagine",
+              "type": "string"
+            },
+            {
+              "id": "8bd7e1fd-7edf-4559-ba30-092f61ad55e3",
+              "name": "owner_data.credits_balance",
+              "value": "={{ $json.owner_data.credits_balance }}",
+              "type": "number"
+            },
+            {
+              "id": "d441f543-c453-4a4e-a41f-11b877fda1dc",
+              "name": "user.id",
+              "value": "={{ $json.user.id }}",
+              "type": "number"
+            },
+            {
+              "id": "d49a4e17-5f11-4706-ae76-8d7058c65cc5",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            },
+            {
+              "id": "09479d7c-c81f-495e-bf58-2c4eb0ccd7a1",
+              "name": "modelVersion",
+              "value": "gemini-3.1-flash-image",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1584,
+        -64
+      ],
+      "id": "faa33226-8a18-4234-8e10-3883bbd68d5f",
+      "name": "Billing_Set"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4O56BKsRFw321LD7",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4O56BKsRFw321LD7",
+          "cachedResultName": "Standard_AcCredit"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1760,
+        -64
+      ],
+      "id": "e792573d-625f-4a27-9120-500ff4edc337",
+      "name": "Call 'Standard_AcCredit'"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0b0961b9-271d-4fdf-8233-63bc2ea11ebf",
+              "leftValue": "={{ $json.billing_error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1984,
+        -64
+      ],
+      "id": "1919c7fb-917f-4674-92d9-5b8f99ed14f4",
+      "name": "BillingError"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "content-length": "156",
+            "accept": "*/*",
+            "content-type": "application/json",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "46.252.148.106",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https",
+            "accept-encoding": "gzip"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "generate_offer_html",
+            "user_prompt": "",
+            "vat_number": "IT06988830821",
+            "access_token": "pending_69a59a3cecef6",
+            "owner_id": "IT06988830821",
+            "lang": "it"
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/48ee3cba-99dc-407a-98af-624e97b1e888",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "billing_source",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Respond to Get",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "cange time",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OfferText",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Validate_Telegram_Bot_Token",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ErrorApi5": {
+      "main": [
+        [
+          {
+            "node": "Error1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OfferText": {
+      "main": [
+        [
+          {
+            "node": "Call GeminiOffer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Honeypot",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "Honeypot",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Offer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Honeypot": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Honeypot1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Honeypot1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "ErrorApi": {
+      "main": [
+        [
+          {
+            "node": "Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HoneyPot_Asset_Merger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory4": {
+      "ai_memory": [
+        [
+          {
+            "node": "Honeypot2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "Respond Asset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Honeypot2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analize_Asset": {
+      "main": [
+        [
+          {
+            "node": "Call 'GeminiCall'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HoneyPot_Asset_Merger": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Honeypot2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AssignBot": {
+      "main": [
+        [
+          {
+            "node": "TelegramTriggerSet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TelegramTriggerSet": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields12",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate_Telegram_Bot_Token": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "If6": {
+      "main": [
+        [
+          {
+            "node": "AssignBot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields12": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge7": {
+      "main": [
+        [
+          {
+            "node": "If6",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields13": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields14": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge8": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge19",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory5": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner3",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "owner3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge9": {
+      "main": [
+        [
+          {
+            "node": "Respond to Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner3": {
+      "main": [
+        [
+          {
+            "node": "Merge19",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge19": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "owner": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerExist": {
+      "main": [
+        [
+          {
+            "node": "Merge22",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge22": {
+      "main": [
+        [
+          {
+            "node": "Reduce",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HoneyPot": {
+      "main": [
+        [
+          {
+            "node": "Honeypot Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Honeypot Exist": {
+      "main": [
+        [
+          {
+            "node": "Merge26",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge25",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Call1": {
+      "main": [
+        [
+          {
+            "node": "Merge24",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge24": {
+      "main": [
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🆘 System Error Collection": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge24",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge25": {
+      "main": [
+        [
+          {
+            "node": "🆘 System Error Collection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge26": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Respond Edit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "Analize_Asset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Asset Exists": {
+      "main": [
+        [
+          {
+            "node": "Analize_Asset",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "time analize",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Honeypot1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "cange time": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ErrorApi1": {
+      "main": [
+        [
+          {
+            "node": "Error2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "time analize": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Honeypot3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Honeypot3",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Honeypot3": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Respond Edit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "owner",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge22",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'GeminiCall'": {
+      "main": [
+        [
+          {
+            "node": "ErrorApi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Gemini": {
+      "main": [
+        [
+          {
+            "node": "ErrorApi1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call GeminiOffer": {
+      "main": [
+        [
+          {
+            "node": "ErrorApi5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate?": {
+      "main": [
+        [
+          {
+            "node": "photo?logo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If Asset Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "photo?logo": {
+      "main": [
+        [
+          {
+            "node": "PhotoPrompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LogoPrompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PhotoPrompt": {
+      "main": [
+        [
+          {
+            "node": "Call 'GeminiCall'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LogoPrompt": {
+      "main": [
+        [
+          {
+            "node": "Call 'GeminiCall'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'GeminiCall'1": {
+      "main": [
+        [
+          {
+            "node": "ErrorApi2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Edit Image",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ErrorApi2": {
+      "main": [
+        [
+          {
+            "node": "Error3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "photo?logo1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Error4": {
+      "main": [
+        []
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Image": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields7": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields8": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "photo?logo1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields10",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate an image1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields8",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Generate an image1": {
+      "main": [
+        [
+          {
+            "node": "Edit Image1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields9": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Image1": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields10": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge10": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge11": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields15",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Billing_Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields15": {
+      "main": [
+        [
+          {
+            "node": "SaveMerge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "SaveMerge2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Generate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "billing_source": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reduce": {
+      "main": [
+        [
+          {
+            "node": "HoneyPot",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge25",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Merge26",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Billing_Set": {
+      "main": [
+        [
+          {
+            "node": "Call 'Standard_AcCredit'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Standard_AcCredit'": {
+      "main": [
+        [
+          {
+            "node": "BillingError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BillingError": {
+      "main": [
+        [
+          {
+            "node": "BillingFAIL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SaveMerge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "221c67eb-53f0-4bb3-8d42-ca16401dfbbb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "6z1pb0pllJmuZacp",
+  "tags": []
+}

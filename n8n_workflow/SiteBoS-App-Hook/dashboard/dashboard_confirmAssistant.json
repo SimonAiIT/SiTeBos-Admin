@@ -1,0 +1,883 @@
+{
+  "name": "dashboard_confirmAssistant",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -768,
+        -752
+      ],
+      "id": "8be62cf8-343e-480e-a967-3e357491b133",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -544,
+        -1136
+      ],
+      "id": "72c56032-e31f-4d9c-bfe5-f7bc3e5a8a0f",
+      "name": "📤 Telegram Call"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.owner_data_ref.chat_id\": {\n        \"$eq\": {{ $json.owner_data.chat_id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        -624
+      ],
+      "id": "bb944889-9a69-40a6-bbf1-28b7de82a1fa",
+      "name": "Stakeholder",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d12c796a-4e17-4456-9a7d-022242576163",
+              "leftValue": "={{ $json.stakeholder }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        -400
+      ],
+      "id": "7aa74381-8393-4cc7-89b9-4bb150ba6f8c",
+      "name": "Stakeholder Exist"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -368,
+        -992
+      ],
+      "id": "aa0746f5-6705-41df-bd39-e28595dcf41a",
+      "name": "📤 Telegram Call6",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Prepare_Dynamic_Agent_Selection (V7.5 - Business Logic)\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst baseUrl = item.urlMiniApp || \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/telegram_control/\";\nconst credits = owner.credits_balance || 0;\nconst callbackQuery = item.body.callback_query || {};\n\nconst chatId = (item.body.message?.chat.id) || (callbackQuery.message?.chat.id) || owner.chat_id;\nconst messageIdToEdit = (callbackQuery.message?.message_id) || null;\n\n// --- 1. DEFINIZIONE HELPER ASH ---\nfunction generateSignature(str, key) {\n    let hash = 0; const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        const char = combined.charCodeAt(i);\n        hash = ((hash << 5) - hash) + char; hash = hash & hash; \n    }\n    return Math.abs(hash).toString(16);\n}\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst ts = Date.now().toString();\nconst payloadASH = `${chatId}|${ts}|ef4aece4-9ec0-4026-a7a7-328562bcbdf6`;\nconst ash = `${Buffer.from(payloadASH).toString('base64')}.${generateSignature(payloadASH, SECRET_KEY)}`;\n\n// --- 2. PARAMETRI DI BUSINESS ---\nconst COSTO_ATTIVAZIONE_CERT = 1500;\nconst COSTO_USO_CERT = 1;\nconst URL_DASHBOARD = \"https://dashboard.trinai.it/\";\n\n// --- 3. LOCALIZZAZIONE & COPY (Dark-Tech) ---\nconst t = {\n    header: `🛠️ <b>SiteBoS Assistant KeyBord</b>`,\n    entity: `🏢 <b>${(owner.ragione_sociale || 'PRIVATE_TENANT').toUpperCase()}</b>`,\n    user: `👤 OPERATORE: <b>${owner.name} ${owner.surname}</b>`,\n    status: `📊 STATO: <b>OPERATIVO</b>`,\n    balance: `🔋 DISPONIBILITÀ: <b>${credits} CREDITI</b>`,\n    gdpr: `🔐 <b>GDPR:</b> <i>Ogni interazione viene rimossa istantaneamente dai server per garantire la totale riservatezza.</i>`\n}['it'];\n\n// --- 4. COSTRUZIONE TASTIERA DINAMICA 5x2 ---\nlet buttons = [];\n\n// RIGA 1: CERTIFICATORE & INTELLIGENCE\nlet r1 = [];\n// --- LOGICA AGENTE CERTIFICATORE (Ripristinata) ---\nconst subCert = owner.subscription_certificator;\nif (subCert === undefined || subCert === null) {\n  r1.push({ \n    text: (credits >= COSTO_ATTIVAZIONE_CERT ? \"🛡️ ATTIVA CERTIFICATORE\" : \"⚠️ RICARICA (1500)\"), \n    callback_data: \"activate_certifier\",\n    ...(credits < COSTO_ATTIVAZIONE_CERT && { url: URL_DASHBOARD })\n  });\n} else if (subCert === true) {\n  r1.push({ \n    text: (credits >= COSTO_USO_CERT ? \"🛡️ HUB CERTIFICAZIONI\" : \"⚠️ CREDITO INSUF. [Cert]\"), \n    callback_data: \"get_active\",\n    ...(credits < COSTO_USO_CERT && { url: URL_DASHBOARD })\n  });\n} else {\n  r1.push({ text: \"🛑 SOSPESO [Cert]\", url: URL_DASHBOARD });\n}\n\n// --- LOGICA INTELLIGENCE (REPORT AI) ---\nconst subIntelligence = owner.subscription_assistant; // Ex Assistente\nif (subIntelligence === true) {\n    r1.push({ text: \"📊 REPORT AI\", callback_data: \"activate_business_assistant\" });\n} else {\n    r1.push({ text: \"📊 ATTIVA INTELLIGENCE\", callback_data: \"activate_business_assistant\" });\n}\nbuttons.push(r1);\n\n// RIGA 2: TEAM HR & ASSETS\nbuttons.push([\n    { text: \"👥 TEAM HR\", callback_data: \"m_team\" },\n    { text: \"🏗️ ASSET & TOOLS\", callback_data: \"m_assets\" }\n]);\n\n// RIGA 3: MARKETING & CATALOGO (ASH)\nbuttons.push([\n    { text: \"📣 MARKETING HUB\", callback_data: \"m_mkt\" },\n    { text: \"📋 CATALOGO & PROCEDURE\", web_app: { url: `${baseUrl}catalog.html?ash=${ash}` } }\n]);\n\n// RIGA 4: LOGISTICA & ACQUISTI (ASH)\nbuttons.push([\n    { text: \"⏳ LOGISTICA TEMPO\", callback_data: \"tm_menu\" },\n    { text: \"💸 ACQUISTI AI\", web_app: { url: `${baseUrl}new-insert.html?ash=${ash}` } }\n]);\n\n// RIGA 5: SETTINGS (ASH) & RE-SYNC\nbuttons.push([\n    { text: \"⚙️ SETTINGS & API\", web_app: { url: `${baseUrl}edit_owner.html?ash=${ash}` } },\n    { text: \"🔄 RE-SYNC\", callback_data: \"open_agent_control_center\" }\n]);\n\n// --- 5. RITORNO PAYLOAD ---\nconst dashboardMessage = [\n    t.header, \"━━━━━━━━━━━━━━━━━━━━\",\n    t.entity, t.user, t.status, t.balance,\n    \"━━━━━━━━━━━━━━━━━━━━\", t.gdpr\n].join('\\n');\n\nreturn [{\n    json: {\n        ...item,\n        telegramMethod: messageIdToEdit ? \"editMessageText\" : \"sendMessage\",\n        telegramPayload: {\n            chat_id: chatId,\n            ...(messageIdToEdit && { message_id: messageIdToEdit }),\n            text: dashboardMessage,\n            parse_mode: \"HTML\",\n            reply_markup: { inline_keyboard: buttons }\n        }\n    }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -544,
+        -992
+      ],
+      "id": "28141c1e-0f3a-4073-9b8c-2e9f1a6bd0aa",
+      "name": "📝 Prep: Dynamic Agent Selection"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -224,
+        -784
+      ],
+      "id": "3e3d6976-146c-498e-9b48-247657cd5615",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Update_Credits_With_Summary\n// DESC: Sottrae 10 crediti, attiva assistente e genera summary\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\n\n// 1. Configurazione\nconst COSTO_GETTONE = 10;\nconst timestamp = new Date().toISOString();\nconst previousBalance = item.owner_data.credits_balance || 0;\nconst finalBalance = Math.max(0, previousBalance - COSTO_GETTONE);\n\n// 2. Aggiornamento Profili (Owner e Stakeholder)\nitem.owner_data.credits_balance = finalBalance;\nitem.owner_data.subscription_assistant = true; // Attivazione chiave\n\nif (item.stakeholder && item.stakeholder.commercial_profile) {\n    item.stakeholder.commercial_profile.credit_balance.available_credits = finalBalance;\n    item.stakeholder.commercial_profile.credit_balance.last_update = timestamp;\n    \n    if (item.stakeholder.metadata) {\n        item.stakeholder.metadata.last_updated = timestamp;\n    }\n}\n\n// 3. Creazione Transaction Summary (Struttura richiesta)\nitem.transaction_summary = {\n  model: \"assistant_activation_logic_v1\",\n  is_long_context: false,\n  usage: {\n    in: 0,  // Operazione di sistema, non consuma token LLM\n    out: 0\n  },\n  usd_cost: 0, // Costo interno in crediti\n  credits_deducted: COSTO_GETTONE,\n  previous_balance: previousBalance,\n  final_balance: finalBalance,\n  timestamp: timestamp,\n  use: \"assistant_activation\",\n  wh: \"https://prod.workflow.trinai.it/webhook/ef4aece4-9ec0-4026-a7a7-328562bcbdf6\"\n};\n\n// 4. Ritorna l'oggetto completo\nreturn [{\n    json: item\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        -784
+      ],
+      "id": "ee06d24a-c1f4-4451-8969-9a83c469ac56",
+      "name": "BalanceUpdate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2112787d-3137-4342-8d59-a6a3bd40a908",
+              "leftValue": "={{ $json.owner_data.credits_balance }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -496,
+        -752
+      ],
+      "id": "9941be40-b984-48ad-b9ea-d44eab21e23d",
+      "name": "CeckBalance"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Prepare_Critical_Error_Message\n// DESC: Errore grave: Crediti presenti ma Stakeholder mancante\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst chatId = owner.chat_id;\n\n// Rilevamento lingua\nconst rawLang = (owner.lenguage || 'it').toLowerCase();\nlet lang = rawLang.includes('en') ? 'en' : 'it';\n\nconst t = {\n  it: {\n    title: \"🚨 <b>ERRORE CRITICO DI SISTEMA</b>\",\n    msg: \"Si è verificata un'incongruenza grave durante la sincronizzazione del tuo profilo (Stakeholder Missing).\",\n    action: \"L'operazione è stata <b>ANNULLATA</b> e i tuoi crediti sono stati congelati per sicurezza.\\n\\nContatta immediatamente l'assistenza tecnica TrinAi fornendo il tuo ID.\",\n    btn: \"🆘 Contatta Supporto Tecnico\"\n  },\n  en: {\n    title: \"🚨 <b>CRITICAL SYSTEM ERROR</b>\",\n    msg: \"A severe inconsistency occurred while synchronizing your profile (Stakeholder Missing).\",\n    action: \"The operation has been <b>CANCELLED</b> and your credits have been frozen for safety.\\n\\nPlease contact TrinAi technical support immediately providing your ID.\",\n    btn: \"🆘 Contact Tech Support\"\n  }\n}[lang];\n\nreturn [{\n  json: {\n    telegramApiPayload: {\n      method: \"sendMessage\", // Usiamo sendMessage per creare un nuovo alert visibile\n      chat_id: chatId,\n      text: `${t.title}\\n━━━━━━━━━━━━━━━━━━━━\\n\\n${t.msg}\\n\\n${t.action}\\n\\n📍 ID: <code>${chatId}</code>`,\n      parse_mode: \"HTML\",\n      reply_markup: {\n        inline_keyboard: [\n          [{ text: t.btn, url: \"https://t.me/TrinAi_Support\" }] // O il link alla tua assistenza\n        ]\n      }\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        -160
+      ],
+      "id": "285d545a-8472-4582-8bbf-2bf091a2def9",
+      "name": "📝 Prep: Prepare Critical Error Message"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.user_ref.email }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        -416
+      ],
+      "id": "aae70aa7-b8b9-4408-8aa8-f962c9fc1a3a",
+      "name": "MongoDB Chat Memory6",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.stakeholder }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -32,
+        -560
+      ],
+      "id": "8aecf85d-53bd-41b3-b0ea-d5d3ad474616",
+      "name": "stakeholeder",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        176
+      ],
+      "id": "b421552d-cc05-494c-bf86-2e00756f7424",
+      "name": "MongoDB Chat Memory5",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "billing_buffers",
+        "databaseName": "MemoryManager",
+        "contextWindowLength": 150
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        -128
+      ],
+      "id": "27fe9e5a-c49d-4df2-a94b-bc93e2c4e663",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.transaction_summary }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -32,
+        -272
+      ],
+      "id": "3cb8c5e9-9d3d-4c88-b6f8-bd2c7590ef86",
+      "name": "billing_buffers",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -32,
+        32
+      ],
+      "id": "5c8aa798-3a89-429a-89cf-26edbbecacf6",
+      "name": "owner",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -544,
+        -160
+      ],
+      "id": "32932fc0-7cac-4438-aa3c-e579d547d304",
+      "name": "Merge7"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        448,
+        -768
+      ],
+      "id": "dc133388-8225-405c-91f9-91de74b3af0d",
+      "name": "Merge8"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        448,
+        -448
+      ],
+      "id": "da9c8e7e-16c7-488e-9d1c-8f003dd65e53",
+      "name": "Merge9"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        448,
+        -144
+      ],
+      "id": "8581d81b-e491-4726-a3d5-f79505025b7e",
+      "name": "Merge10"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -16,
+        -1120
+      ],
+      "id": "e9b8ce05-52e1-4460-9f38-e1a7d5bd20b8",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "param-action",
+              "name": "action",
+              "value": "=dashboard_confirmAssistant",
+              "type": "string"
+            },
+            {
+              "id": "param-target-col",
+              "name": "target_collection",
+              "value": "service_catalog",
+              "type": "string"
+            },
+            {
+              "id": "param-target-doc",
+              "name": "target_document",
+              "value": "={{ $json.target_document || $json.body?.callback_query?.data || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "param-caller",
+              "name": "caller_chat_id",
+              "value": "={{ $json.caller_chat_id || $json.ids?.caller_chat_id }}",
+              "type": "string"
+            },
+            {
+              "id": "param-owner",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -568,
+        -752
+      ],
+      "id": "5832c66d-8364-4b65-8f36-6fdbfbfd76db",
+      "name": "Prep Lock Params"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "DFYgrC5FBKxua5td",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/DFYgrC5FBKxua5td",
+          "cachedResultName": "Lock-Manager"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        -368,
+        -752
+      ],
+      "id": "22e5b0dc-091d-4f13-8452-49200cc8f215",
+      "name": "Execute Lock-Manager"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "lock-acquired-check",
+              "leftValue": "={{ $json.lockAcquired }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -168,
+        -752
+      ],
+      "id": "32e3d7b6-60d3-4dda-b355-097b2ce90f65",
+      "name": "Lock Free?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data?.bot_key || '8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ' }}/editMessageText",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": \"{{ $json.body.callback_query.message.chat.id }}\",\n  \"message_id\": \"{{ $json.body.callback_query.message.message_id }}\",\n  \"text\": \"⚠️ <b>COLLISIONE DI PROCESSO</b>\\n\\nUn altro collaboratore della tua organizzazione sta eseguendo un'operazione simile o la tua sessione è già attiva.\\n\\nPer favore, attendi il completamento del processo prima di riprovare.\",\n  \"parse_mode\": \"HTML\",\n  \"reply_markup\": {\n    \"inline_keyboard\": [\n      [\n        {\n          \"text\": \"🏠 Torna alla Dashboard\",\n          \"callback_data\": \"agent_selection\"\n        }\n      ]\n    ]\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -168,
+        -572
+      ],
+      "id": "9fa5bc89-45fd-4806-9fae-60f970f44662",
+      "name": "Telegram Lock Collision Msg"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "collection": "active_actions",
+        "query": "={\"sessionId\": \"{{ $json.caller_chat_id || $json.ids?.caller_chat_id }}\"}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        698,
+        -752
+      ],
+      "id": "d814b3ea-7b32-45c5-99d7-b7f102c13722",
+      "name": "Release Lock",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "📤 Telegram Call": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stakeholder": {
+      "main": [
+        [
+          {
+            "node": "Stakeholder Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stakeholder Exist": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Call6": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "📝 Prep: Dynamic Agent Selection": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "BalanceUpdate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BalanceUpdate": {
+      "main": [
+        [
+          {
+            "node": "stakeholeder",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "billing_buffers",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "owner",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CeckBalance": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Stakeholder",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "📝 Prep: Dynamic Agent Selection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Prep: Prepare Critical Error Message": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory6": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholeder",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholeder": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory5": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "billing_buffers",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "billing_buffers": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge7": {
+      "main": [
+        [
+          {
+            "node": "📝 Prep: Prepare Critical Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge8": {
+      "main": [
+        [
+          {
+            "node": "📝 Prep: Dynamic Agent Selection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge9": {
+      "main": [
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge10": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Prep Lock Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Lock Params": {
+      "main": [
+        [
+          {
+            "node": "Execute Lock-Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Lock-Manager": {
+      "main": [
+        [
+          {
+            "node": "Lock Free?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lock Free?": {
+      "main": [
+        [
+          {
+            "node": "CeckBalance",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Lock Collision Msg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Release Lock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "73349ea6-ef94-40d1-977a-dfa1c90e0daf",
+  "meta": {
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "VRM5XUYi0Ztw4Hyj",
+  "tags": []
+}

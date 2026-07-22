@@ -1,0 +1,590 @@
+{
+  "name": "Unified-Authentication",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -672,
+        -1024
+      ],
+      "id": "04e6f875-cbc4-4d4f-8514-b2faf7a507fa",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\n\nconst rawAsh =\n  item.ash ||\n  item.query?.ash ||\n  item.body?.ash ||\n  item.body?.web_app_data?.data ||\n  item.body?.message?.web_app_data?.data;\n\nif (!rawAsh || typeof rawAsh !== \"string\") {\n  throw new Error(\"ASH non trovato nell'input.\");\n}\n\nconst [encodedPayload, signatureReceived] = rawAsh.split(\".\");\nif (!encodedPayload || !signatureReceived) {\n  throw new Error(\"Formato ASH non valido.\");\n}\n\nlet decodedPayload;\ntry {\n    decodedPayload = Buffer.from(encodedPayload, \"base64\").toString(\"utf8\");\n} catch (e) {\n    throw new Error(\"Errore decodifica Base64.\");\n}\n\nfunction verifySignature(payload, secret, receivedSig) {\n    let hash = 0;\n    const combined = payload + secret;\n    for (let i = 0; i < combined.length; i++) {\n        hash = ((hash << 5) - hash) + combined.charCodeAt(i);\n        hash = hash & hash; \n    }\n    const expectedSig = Math.abs(hash).toString(16);\n    return expectedSig === receivedSig;\n}\n\nif (!verifySignature(decodedPayload, SECRET_KEY, signatureReceived)) {\n    throw new Error(\"SECURITY: Firma ASH non valida o manomessa. Accesso negato.\");\n}\n\nconst parts = decodedPayload.split(\"|\");\nlet ids = {};\nlet role = \"\";\n\nif (parts.length === 3) {\n    // Formato Owner: [chatId, timestamp, webhookId]\n    ids = {\n        owner_id: parts[0],\n        caller_chat_id: parts[0],\n        timestamp: parts[1],\n        webhook: parts[2]\n    };\n    role = \"owner\";\n} else if (parts.length === 4) {\n    // Formato Operator o Customer: [owner_id, secondary_id, timestamp, webhook]\n    ids = {\n        owner_id: parts[0],\n        secondary_id: parts[1],\n        operator: parts[1],\n        customer_id: parts[1],\n        caller_chat_id: parts[1],\n        timestamp: parts[2],\n        webhook: parts[3]\n    };\n    role = \"secondary\";\n} else {\n    throw new Error(\"Struttura interna ASH non supportata.\");\n}\n\nconst testers = [\"2041408875\", \"8305126267\"];\nconst urlMiniApp = testers.includes(String(ids.caller_chat_id))\n  ? \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/telegram_control/\"\n  : \"https://telegram.trinai.it/\";\n\nreturn [{ \n    json: {\n        ...item,\n        ash_valid: true,\n        ash_role: role,\n        ids: ids,\n        urlMiniApp: urlMiniApp\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -912
+      ],
+      "id": "8a619032-2d2a-454c-80bb-df2df9f13539",
+      "name": "Ash Decoder"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.chat_id\": {\n        \"$eq\": {{ parseInt($json.ids.owner_id) }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        -912
+      ],
+      "id": "0144473b-d7f4-44d8-894d-01d08bf6b844",
+      "name": "Get Owner Data",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        48,
+        -704
+      ],
+      "id": "ea3a15df-37ad-4382-ba7c-d00cc880cce9",
+      "name": "Merge Owner Data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        -704
+      ],
+      "id": "151a785c-5b98-4cb2-96ee-783513b56234",
+      "name": "Is Valid?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "error-flag-id",
+              "name": "isValid",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "error-flag-err",
+              "name": "error",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "error-msg-id",
+              "name": "message",
+              "value": "Access Denied: Unauthorized User",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -208,
+        -1456
+      ],
+      "id": "5143739e-de70-4cba-8ff8-fda9350a8262",
+      "name": "Set Error Status"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.vat_number }}\"\n      },\n      \"messages.0.data.access_token\": {\n        \"$eq\": \"{{ $json.body.token }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        -1248
+      ],
+      "id": "79fb37b5-a24d-428a-b333-20fc18b64e0b",
+      "name": "owner",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -208,
+        -1248
+      ],
+      "id": "378e4266-ec58-4e08-8dfd-54afe6e7d959",
+      "name": "OwnerExist"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        48,
+        -1152
+      ],
+      "id": "3f697f57-299b-431f-b3f6-84fc2371fba2",
+      "name": "Merge22"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "da04c4f2-5349-4013-b1a2-b0d971334780",
+              "leftValue": "={{ $json.headers.host }}",
+              "rightValue": "prod.workflow.trinai.it",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -208,
+        -1024
+      ],
+      "id": "c8089a59-2433-4f35-8591-53e85cd5834c",
+      "name": "Autorize"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4f48edc9-f642-4b8c-ab09-1fcafbb5ed9c",
+              "leftValue": "={{ $json.body._auth }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "b3affe67-139f-4f53-929a-051bde675f4d",
+              "leftValue": "={{ $json.body.ash }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        48,
+        -896
+      ],
+      "id": "562f3226-42ff-463c-aff8-1e0c5722f6f1",
+      "name": "Telegram"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        48,
+        -1440
+      ],
+      "id": "6e57969a-dfb7-4429-a499-6b1aa62c45c2",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8e9c8979-3197-456c-b541-5911b788b6db",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        592,
+        -912
+      ],
+      "id": "f0c8cf20-9a5a-4777-8196-bcc2171acc58",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- 1. CONFIGURAZIONE & INPUT ---\nconst item = $input.item.json;\nconst initData = item.body?._auth || item.query?._auth || item._auth;\n\nif (!initData) {\n  return {\n    ...item,\n    isValid: false,\n    error: \"Dato _auth di Telegram mancante\"\n  };\n}\n\n// Raccolta dei bot token da testare in ordine di priorit\u00e0\nconst candidateTokens = [];\nif (item.owner_data?.bot_key) {\n    candidateTokens.push({ token: item.owner_data.bot_key, source: \"owner_custom\" });\n}\ncandidateTokens.push({ token: \"8644939941:AAHPiZM3D9xg6TbHXGSiCfiXbA4q99fyuYQ\", source: \"operator_global\" });\ncandidateTokens.push({ token: \"8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ\", source: \"customer_global\" });\n\n// --- 2. LIBRERIA CRIPTOGRAFICA PURE JS (SHA-256 & HMAC) ---\nconst CryptoJS = (function() {\n    function sha256(m) {\n        var h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];\n        var k = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];\n        var b = Array.from(typeof m === 'string' ? new TextEncoder().encode(m) : m);\n        var l = b.length * 8; b.push(0x80);\n        while ((b.length * 8) % 512 !== 448) b.push(0);\n        for (var i = 7; i >= 0; i--) b.push((l / Math.pow(2, i * 8)) & 0xff);\n        for (var i = 0; i < b.length; i += 64) {\n            var w = new Int32Array(64);\n            for (var j = 0; j < 16; j++) w[j] = (b[i + j * 4] << 24) | (b[i + j * 4 + 1] << 16) | (b[i + j * 4 + 2] << 8) | (b[i + j * 4 + 3]);\n            for (var j = 16; j < 64; j++) {\n                var s0 = ((w[j - 15] >>> 7) | (w[j - 15] << 25)) ^ ((w[j - 15] >>> 18) | (w[j - 15] << 14)) ^ (w[j - 15] >>> 3);\n                var s1 = ((w[j - 2] >>> 17) | (w[j - 2] << 15)) ^ ((w[j - 2] >>> 19) | (w[j - 2] << 13)) ^ (w[j - 2] >>> 10);\n                w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;\n            }\n            var [a, c, d, e, f, g, i_h, j_h] = h;\n            var v = [...h];\n            for (var j = 0; j < 64; j++) {\n                var S1 = ((v[4] >>> 6) | (v[4] << 26)) ^ ((v[4] >>> 11) | (v[4] << 21)) ^ ((v[4] >>> 25) | (v[4] << 7));\n                var ch = (v[4] & v[5]) ^ (~v[4] & v[6]);\n                var t1 = (v[7] + S1 + ch + k[j] + w[j]) | 0;\n                var S0 = ((v[0] >>> 2) | (v[0] << 30)) ^ ((v[0] >>> 13) | (v[0] << 19)) ^ ((v[0] >>> 22) | (v[0] << 10));\n                var maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);\n                var t2 = (S0 + maj) | 0;\n                v.unshift((t1 + t2) | 0); v.splice(8); v[4] = (v[4] + t1) | 0;\n            }\n            for (var j = 0; j < 8; j++) h[j] = (h[j] + v[j]) | 0;\n        }\n        return h.reduce((acc, val) => acc.concat([(val >>> 24) & 0xff, (val >>> 16) & 0xff, (val >>> 8) & 0xff, val & 0xff]), []);\n    }\n\n    if (typeof TextEncoder === \"undefined\") {\n        window.TextEncoder = function() {};\n        TextEncoder.prototype.encode = function(s) {\n            return new Uint8Array(unescape(encodeURIComponent(s)).split(\"\").map(c => c.charCodeAt(0)));\n        };\n    }\n\n    return {\n        hmac: function(key, message) {\n            var k = typeof key === 'string' ? Array.from(new TextEncoder().encode(key)) : key;\n            var m = Array.from(new TextEncoder().encode(message));\n            var b = 64;\n            if (k.length > b) k = sha256(k);\n            while (k.length < b) k.push(0);\n            var ipad = k.map(x => x ^ 0x36);\n            var opad = k.map(x => x ^ 0x5c);\n            var inner = sha256(ipad.concat(m));\n            return sha256(opad.concat(inner));\n        }\n    };\n})();\n\n// --- 3. LOGICA PARSING ---\nconst data = {};\ninitData.split('&').forEach(pair => {\n    const [k, v] = pair.split('=');\n    data[k] = decodeURIComponent(v || '');\n});\n\nconst hashReceived = data.hash;\nconst checkString = Object.keys(data)\n    .filter(k => k !== 'hash')\n    .sort()\n    .map(k => k + '=' + data[k])\n    .join('\\n');\n\n// --- 4. CONTROLLO SCADENZA (MAX 1 ORA) ---\nconst now = Math.floor(Date.now() / 1000);\nconst authDate = parseInt(data.auth_date) || 0;\nconst isExpired = (now - authDate) > 3600;\n\n// --- 5. VERIFICA DEI TOKEN IN LOOP ---\nlet isValid = false;\nlet isHashValid = false;\nlet matchedToken = null;\nlet matchedSource = null;\nlet computedHash = '';\n\nfor (const candidate of candidateTokens) {\n    const secretKey = CryptoJS.hmac(\"WebAppData\", candidate.token);\n    const computedHashBytes = CryptoJS.hmac(secretKey, checkString);\n    const currentHash = computedHashBytes.map(b => b.toString(16).padStart(2, '0')).join('');\n    \n    if (currentHash === hashReceived) {\n        isHashValid = true;\n        isValid = !isExpired;\n        matchedToken = candidate.token;\n        matchedSource = candidate.source;\n        computedHash = currentHash;\n        break;\n    }\n    computedHash = currentHash;\n}\n\n// --- 6. RISULTATO FINALE ---\nreturn {\n    ...item,\n    isValid: isValid,\n    isExpired: isExpired,\n    isHashValid: isHashValid,\n    auth_source: matchedSource,\n    matched_token: matchedToken ? (matchedToken.substring(0, 10) + \"...\") : null,\n    user: data.user ? JSON.parse(data.user) : null,\n    auth_date_human: new Date(authDate * 1000).toLocaleString('it-IT'),\n    debug: {\n        time_diff_seconds: now - authDate,\n        computed: computedHash,\n        received: hashReceived\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -704
+      ],
+      "id": "303fe3e2-5c42-4b58-942d-0fce64fc9b6b",
+      "name": "Validator_unified"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0",
+            "content-length": "708",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "it,it-IT;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "content-type": "application/json",
+            "origin": "https://trinaibusinessoperatingsystem.github.io",
+            "priority": "u=1, i",
+            "referer": "https://trinaibusinessoperatingsystem.github.io/",
+            "sec-ch-ua": "\"Not)A;Brand\";v=\"24\", \"Microsoft Edge WebView2\";v=\"149\", \"Microsoft Edge\";v=\"149\", \"Chromium\";v=\"149\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "151.43.71.46",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "GET",
+            "sop_id": "SVC_CFQX8TSF",
+            "ash": "ODMwNTEyNjI2N3wxNzgyMTE0NDgxMzg4fGVmNGFlY2U0LTllYzAtNDAyNi1hN2E3LTMyODU2MmJjYmRmNg==.551495a9",
+            "message_id": "",
+            "_auth": "query_id=AAF7KwZvAwAAAHsrBm_naiHU&user=%7B%22id%22%3A8305126267%2C%22first_name%22%3A%22Giuseppe%22%2C%22last_name%22%3A%22B%22%2C%22language_code%22%3A%22it%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2Fp6piCXvtNSGj4KPd60vozxgOJss0ji-aGRNNX4I7CVNme0ergMr6kC1wUoV60zBY.svg%22%7D&auth_date=1782114487&signature=yZ-AdP86NTa7xzicmJLdu5qOUjOk3DMtv-K7q5kRfYHZ2EI50HVMyapcwCvIHmDExFrMriOnLJh_jKlwsEZKDw&hash=db44c0869d5cceef37cb71514100108bc3ac0531c959a7b669258fd1a7c1e4eb"
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/6333dff0-d886-499c-8000-f3e0266845ed",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ash Decoder": {
+      "main": [
+        [
+          {
+            "node": "Get Owner Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Owner Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Owner Data": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Owner Data": {
+      "main": [
+        [
+          {
+            "node": "Validator_unified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Valid?": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ],
+        [
+          {
+            "node": "Set Error Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerExist": {
+      "main": [
+        [
+          {
+            "node": "Merge22",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Error Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "Merge22",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Error Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram": {
+      "main": [
+        [
+          {
+            "node": "Ash Decoder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "owner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge22": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Set Error Status": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Merge Owner Data",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Set Error Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validator_unified": {
+      "main": [
+        [
+          {
+            "node": "Is Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2f519454-7165-42d7-a107-8022d6f4868e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "I3Wi7RmhugztaU0q",
+  "tags": []
+}

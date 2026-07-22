@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>07. Magazzino AI & Logistica | SiTeBoS Guide</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
+                    colors: { primary: '#000000', bg: '#fafafa', surface: '#ffffff', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #ffffff; color: #000000; -webkit-tap-highlight-color: transparent; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .content-area { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; }
+        
+        .prose h1 { font-size: 2.5rem; font-weight: 900; tracking: -0.04em; line-height: 1.1; margin-bottom: 1.5rem; text-transform: uppercase; font-style: italic; }
+        .prose h2 { font-size: 1.25rem; font-weight: 800; tracking: -0.02em; margin-top: 3rem; margin-bottom: 1rem; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 0.5rem; display: inline-block; }
+        .prose h3 { font-size: 1rem; font-weight: 900; text-transform: uppercase; margin-top: 2rem; color: #4b5563; }
+        .prose p  { font-size: 1rem; line-height: 1.7; color: #374151; margin-bottom: 1.5rem; }
+        .prose b  { font-weight: 800; color: #000; }
+        .prose ul { margin: 0 0 1.4rem 1.5rem; }
+        .prose ul li { font-size: 0.93rem; line-height: 1.65; color: #374151; margin-bottom: 0.4rem; list-style: disc; }
+
+        .feature-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 1rem; margin: 2rem 0; }
+        @media (min-width: 768px) { .feature-grid { grid-template-columns: repeat(2, 1fr); } }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeIn 0.4s ease forwards; }
+
+        /* Shared preview scoped styles */
+        .section-card { background: white !important; border: 1px solid #eeeeee !important; box-shadow: none !important; border-radius: 1.5rem; padding: 1.25rem; }
+        .label-micro { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #6b7280; margin-left: 0.25rem; margin-bottom: 0.25rem; display: block; }
+
+        /* 3D Stack Container MVP */
+        .stack-container-wh-mvp {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            perspective: 1200px;
+            transform-style: preserve-3d;
+            flex-shrink: 0;
+        }
+
+        .platform-card-3d-wh-mvp {
+            position: absolute;
+            top: 5%;
+            left: 10% !important;
+            width: 80% !important;
+            height: 90%;
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 1.5rem;
+            color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            text-align: center;
+            padding: 1.2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01);
+            transform-origin: center center;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease, filter 0.5s ease;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            cursor: pointer;
+        }
+
+        .platform-card-3d-wh-mvp.active {
+            border-color: #cbd5e1;
+            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08);
+        }
+
+        .btn-glass-minimal-wh-mvp {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            color: #64748b;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+    </style>
+</head>
+<body class="safe-area-inset min-h-screen pb-32">
+
+    <!-- TOP NAV -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-5 py-4 flex items-center justify-between">
+        <button onclick="location.href='index.html'" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
+            <i class="fas fa-arrow-left"></i> Index
+        </button>
+        <div class="text-[9px] font-black uppercase tracking-[0.2em] text-blue-600 italic">Capitolo 07</div>
+    </nav>
+
+    <main class="content-area animate-in">
+        <article class="prose">
+
+            <h1>Magazzino AI &amp;<br>Logistica Operativa</h1>
+
+            <p>
+                Il modulo <b>Magazzino AI &amp; Logistica Operativa</b> combina l'acquisizione multimodale delle giacenze con il tracciamento predittivo degli ordini e l'ottimizzazione geografica delle consegne. Automatizza il riordino merci, l'estrazione dati da fatture e lotti, e organizza i piani di lavoro del personale tecnico sul campo.
+            </p>
+
+            <!-- ═══════════════════════════════════════
+                 1. INTELLIGENT WAREHOUSE (intelligent-warehouse.html)
+                 ═══════════════════════════════════════ -->
+            <h2>1. Magazzino Intelligente (IN/OUT)</h2>
+
+            <p>
+                L'applicazione <b>Magazzino Intelligente</b> consente il carico (IN) e lo scarico (OUT) automatizzato delle merci tramite file strutturati XML (Fattura Elettronica SDI), scansione PDF/Foto con IA OCR o la funzione <b>AI LotSnap (Vision 360)</b> per la tracciabilità dei lotti e delle scadenze.
+            </p>
+
+            <!-- PREVIEW REALE INTERATTIVO: agents/intelligent-warehouse.html -->
+            <div class="my-10 rounded-3xl overflow-hidden border border-slate-200 shadow-xl" id="preview-intelligent-warehouse" style="background:#fafafa;">
+                <!-- Shell Header -->
+                <div style="background:#0f172a; padding:0.6rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.4rem; min-width:0;">
+                        <span style="width:9px; height:9px; border-radius:50%; background:#ef4444; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#f59e0b; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#22c55e; flex-shrink:0; display:block;"></span>
+                        <span style="font-size:8px; font-family:ui-monospace,monospace; color:#64748b; margin-left:0.5rem; white-space:nowrap;">Magazzino Intelligente — Menu 3D Live MVP</span>
+                    </div>
+                    <span style="font-size:7px; font-family:ui-monospace,monospace; color:#3b82f6; font-weight:700; text-transform:uppercase;">Interactive Demo</span>
+                </div>
+
+                <!-- Body -->
+                <div class="p-5 max-w-xl mx-auto space-y-4" style="font-family:'Inter',sans-serif; background:#fafafa;">
+
+                    <!-- App Header -->
+                    <header class="flex justify-between items-start pt-1">
+                        <div>
+                            <div class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1 italic">
+                                Logistica AI
+                            </div>
+                            <h3 class="text-base font-black tracking-tighter uppercase text-slate-900 leading-none">Magazzino Intelligente</h3>
+                            <p id="wh-mvp-subtitle" class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">Carico Acquisti (IN)</p>
+                        </div>
+                    </header>
+
+                    <!-- Direction Toggle -->
+                    <div class="w-[80%] mx-auto p-1 bg-white/60 border border-slate-200/80 rounded-2xl shadow-sm shrink-0 flex items-center justify-between">
+                        <button onclick="whMvpSetDirection('IN')" id="wh-mvp-btn-in" class="flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider bg-slate-900 text-white shadow-sm text-center transition-all">
+                            <i class="fas fa-arrow-down mr-1"></i> Carico (IN)
+                        </button>
+                        <button onclick="whMvpSetDirection('OUT')" id="wh-mvp-btn-out" class="flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider text-slate-400 text-center transition-all hover:text-slate-900">
+                            <i class="fas fa-arrow-up mr-1"></i> Scarico (OUT)
+                        </button>
+                    </div>
+
+                    <!-- 3D Viewport Container -->
+                    <div class="relative flex-1 flex flex-col items-center justify-center select-none z-10 w-full py-8 min-h-[250px]">
+                        <!-- Nav Up -->
+                        <button onclick="whMvpNavigate(-1)" class="btn-glass-minimal-wh-mvp absolute top-0 left-1/2 -translate-x-1/2 z-50 w-8 h-8 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900">
+                            <i class="fas fa-chevron-up text-[9px]"></i>
+                        </button>
+
+                        <!-- 3D Card Stack -->
+                        <div id="wh-mvp-stack" class="stack-container-wh-mvp"></div>
+
+                        <!-- Nav Down -->
+                        <button onclick="whMvpNavigate(1)" class="btn-glass-minimal-wh-mvp absolute bottom-0 left-1/2 -translate-x-1/2 z-50 w-8 h-8 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900">
+                            <i class="fas fa-chevron-down text-[9px]"></i>
+                        </button>
+
+                        <!-- Side Dot Indicators -->
+                        <div class="absolute -right-1 top-1/2 -translate-y-1/2 z-50 py-3 px-2 bg-slate-100/90 border border-slate-200 rounded-full shadow-md backdrop-blur-sm select-none">
+                            <div id="wh-mvp-dots" class="flex flex-col gap-2 items-center"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig 7.1 — Magazzino Intelligente: Ingestione multimodale per il carico (IN) e lo scarico (OUT) delle scorte
+                </div>
+            </div>
+
+            <ul>
+                <li><b>Carico (IN) &amp; Scarico (OUT)</b> — Modalità commutabile in un click per registrare acquisti o vendite.</li>
+                <li><b>Fatture XML (SDI)</b> — Importazione istantanea delle righe d'acquisto con associazione automatica ai codici articolo.</li>
+                <li><b>Estrazione AI PDF/Foto</b> — Riconoscimento ottico dei documenti cartacei e delle note spese.</li>
+                <li><b>AI LotSnap (Vision)</b> — Acquisizione fotografica progressiva di lotti e scadenze prima della contabilizzazione.</li>
+            </ul>
+
+            <!-- ═══════════════════════════════════════
+                 2. MONITORAGGIO SCORTE & STOCK
+                 ═══════════════════════════════════════ -->
+            <h2>2. Monitoraggio Scorte &amp; Stock Predittivo</h2>
+
+            <p>
+                L'IA di SiTeBoS monitora costantemente le giacenze di magazzino in base alla velocità di rotazione delle vendite e ai consumi di cantiere. Quando un articolo scende sotto la soglia minima di sicurezza, il sistema invia una notifica e prepara una bozza di <b>Ordine di Acquisto (PO)</b> per i fornitori.
+            </p>
+
+            <!-- PREVIEW REALE: Stock Monitoring -->
+            <div class="my-10 rounded-3xl overflow-hidden border border-slate-200 shadow-xl" id="preview-stock-monitor" style="background:#fafafa;">
+                <!-- Shell Header -->
+                <div style="background:#0f172a; padding:0.6rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.4rem; min-width:0;">
+                        <span style="width:9px; height:9px; border-radius:50%; background:#ef4444; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#f59e0b; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#22c55e; flex-shrink:0; display:block;"></span>
+                        <span style="font-size:8px; font-family:ui-monospace,monospace; color:#64748b; margin-left:0.5rem; white-space:nowrap;">Monitoraggio Scorte Live</span>
+                    </div>
+                    <span style="font-size:7px; font-family:ui-monospace,monospace; color:#3b82f6; font-weight:700; text-transform:uppercase;">SiTeBoS Interface</span>
+                </div>
+
+                <!-- Body -->
+                <div class="p-5 max-w-xl mx-auto space-y-4" style="font-family:'Plus Jakarta Sans',sans-serif; background:#ffffff;">
+
+                    <!-- Status bar -->
+                    <div class="p-3.5 bg-slate-900 text-white rounded-2xl flex justify-between items-center shadow-md">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                            <span class="text-xs font-black uppercase tracking-wider">Status Giacenze: OTTIMALE</span>
+                        </div>
+                        <span class="text-[8px] bg-slate-800 text-slate-300 font-mono font-bold px-2 py-0.5 rounded-full">LIVE FEED</span>
+                    </div>
+
+                    <!-- Gauges grid -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="section-card space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[8px] font-black text-slate-400 uppercase">Cavo FS18OR18 3x2.5</span>
+                                <span class="text-[7.5px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded-full">OK (92%)</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs font-black text-slate-900">
+                                <span>Giacenza</span>
+                                <span>450 m</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                <div class="bg-emerald-500 h-full w-[92%] rounded-full"></div>
+                            </div>
+                        </div>
+
+                        <div class="section-card space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[8px] font-black text-slate-400 uppercase">Inverter Hybrid 6kW</span>
+                                <span class="text-[7.5px] bg-red-100 text-red-800 font-bold px-1.5 py-0.5 rounded-full">Sotto Scorta</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs font-black text-slate-900">
+                                <span>Giacenza</span>
+                                <span>4 pz (Min: 5)</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                <div class="bg-red-500 h-full w-[25%] rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alert Banner -->
+                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-between text-[9px]">
+                        <span class="text-amber-800 font-bold"><i class="fas fa-exclamation-triangle mr-1"></i> Riordino automatico consigliato per Inverter 6kW</span>
+                        <button class="bg-slate-900 text-white px-2.5 py-1 rounded-xl text-[8px] font-black uppercase tracking-wider">Genera PO</button>
+                    </div>
+
+                </div>
+
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig 7.2 — Monitoraggio Scorte: Allarmi di sotto-scorta e calcolo automatico della rotazione
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════
+                 3. ORDINI LIVE & PERCORSI AI
+                 ═══════════════════════════════════════ -->
+            <h2>3. Logistica Operativa &amp; Percorsi AI</h2>
+
+            <p>
+                In sinergia con la sezione operatività, il sistema organizza la catena di evasione degli ordini e calcola i <b>Percorsi Ottimizzati AI</b> per le consegne o gli interventi tecnici, riducendo i tempi di trasporto ed i consumi di carburante.
+            </p>
+
+            <!-- PREVIEW REALE: Orders & Logistics -->
+            <div class="my-10 rounded-3xl overflow-hidden border border-slate-200 shadow-xl" id="preview-logistics-routes" style="background:#fafafa;">
+                <!-- Shell Header -->
+                <div style="background:#0f172a; padding:0.6rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.4rem; min-width:0;">
+                        <span style="width:9px; height:9px; border-radius:50%; background:#ef4444; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#f59e0b; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#22c55e; flex-shrink:0; display:block;"></span>
+                        <span style="font-size:8px; font-family:ui-monospace,monospace; color:#64748b; margin-left:0.5rem; white-space:nowrap;">Ordini Live &amp; Percorsi AI</span>
+                    </div>
+                    <span style="font-size:7px; font-family:ui-monospace,monospace; color:#3b82f6; font-weight:700; text-transform:uppercase;">SiTeBoS Interface</span>
+                </div>
+
+                <!-- Body -->
+                <div class="p-5 max-w-xl mx-auto space-y-4" style="font-family:'Plus Jakarta Sans',sans-serif; background:#ffffff;">
+
+                    <!-- Live Order Card -->
+                    <div class="section-card space-y-2">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                            <span class="text-[9px] font-mono font-bold text-slate-800">#ORD-2026-981</span>
+                            <span class="text-[7.5px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-full border border-blue-100">In Consegna</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h4 class="text-xs font-black text-slate-900 uppercase">Mario Rossi</h4>
+                                <p class="text-[8px] text-slate-500">Impianto Fotovoltaico 6kW • 2 Colli</p>
+                            </div>
+                            <span class="text-xs font-black text-slate-900">€ 4.500</span>
+                        </div>
+                    </div>
+
+                    <!-- AI Route Planner -->
+                    <div class="section-card space-y-2">
+                        <div class="flex justify-between items-center text-[10px] font-bold">
+                            <span class="text-slate-800 uppercase"><i class="fas fa-route text-blue-600 mr-1"></i> Percorsi AI (Itinerario Ottimizzato)</span>
+                            <span class="text-slate-500 text-[8px]">3 Tappe • 18.4 km (-24 min)</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-[9px] font-mono text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                            <span>Sede</span> <i class="fas fa-arrow-right text-[8px] text-slate-300"></i>
+                            <span class="text-slate-900 font-bold">Via Roma 12</span> <i class="fas fa-arrow-right text-[8px] text-slate-300"></i>
+                            <span>Corso Italia 45</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig 7.3 — Logistica Operativa: Gestione ordini in tempo reale ed ottimizzazione itinerari di consegna
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════
+                 4. PIANIFICAZIONE ITINERARI (pianificazione_itinerari.html)
+                 ═══════════════════════════════════════ -->
+            <h2>4. Pianificazione Itinerari &amp; AI Optimizer</h2>
+
+            <p>
+                L'applicazione <b>Pianificazione Itinerari</b> (<code>pianificazione_itinerari.html</code>) consente all'operatore o al titolare di configurare l'agenda giornaliera delle tappe di consegna e degli interventi. Il solver IA calcola automaticamente la combinazione ottimale di tempi, distanze e orari prefissati.
+            </p>
+
+            <!-- PREVIEW REALE: operativita/pianificazione_itinerari.html -->
+            <div class="my-10 rounded-3xl overflow-hidden border border-slate-200 shadow-xl" id="preview-pianificazione-itinerari" style="background:#fafafa;">
+                <!-- Shell Header -->
+                <div style="background:#0f172a; padding:0.6rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.4rem; min-width:0;">
+                        <span style="width:9px; height:9px; border-radius:50%; background:#ef4444; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#f59e0b; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#22c55e; flex-shrink:0; display:block;"></span>
+                        <span style="font-size:8px; font-family:ui-monospace,monospace; color:#64748b; margin-left:0.5rem; white-space:nowrap;">Pianificazione Itinerari — Route Optimizer Engine</span>
+                    </div>
+                    <span style="font-size:7px; font-family:ui-monospace,monospace; color:#3b82f6; font-weight:700; text-transform:uppercase;">SiTeBoS Interface</span>
+                </div>
+
+                <!-- Body -->
+                <div class="p-5 max-w-xl mx-auto space-y-4" style="font-family:'Inter',sans-serif; background:#fafafa;">
+
+                    <!-- App Header -->
+                    <div class="p-4 bg-white border border-slate-100 rounded-2xl flex items-center gap-3 shadow-sm">
+                        <div class="w-9 h-9 bg-black text-white rounded-xl flex items-center justify-center text-xs shadow-md">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-black uppercase tracking-tighter text-slate-900 leading-none">Percorsi</h3>
+                            <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Optimizer Engine</p>
+                        </div>
+                    </div>
+
+                    <!-- Logistica Base -->
+                    <div class="section-card space-y-3">
+                        <span class="label-micro">📍 Logistica Partenza &amp; Rientro</span>
+                        <div class="flex justify-between items-center text-xs font-bold text-slate-800">
+                            <span>Partenza da Sede</span>
+                            <input type="checkbox" checked class="w-4 h-4 accent-black">
+                        </div>
+                        <div class="h-px bg-slate-100 w-full"></div>
+                        <div class="flex justify-between items-center text-xs font-bold text-slate-800">
+                            <span>Rientro in Sede</span>
+                            <input type="checkbox" checked class="w-4 h-4 accent-black">
+                        </div>
+                    </div>
+
+                    <!-- Tappa #1 -->
+                    <div class="section-card space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="label-micro">📍 Tappa #1</span>
+                            <i class="fas fa-trash-alt text-[9px] text-slate-300"></i>
+                        </div>
+                        <div class="flex bg-slate-100 p-1 rounded-xl gap-1 text-[9px] font-black uppercase">
+                            <div class="flex-1 bg-slate-900 text-white text-center py-1.5 rounded-lg">💼 Work</div>
+                            <div class="flex-1 text-slate-400 text-center py-1.5 rounded-lg">📸 Free</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input readonly value="2026-07-21" class="bg-slate-50 border border-slate-100 p-2.5 rounded-xl text-[9px] font-bold text-slate-800">
+                            <input readonly value="10:30" class="bg-slate-50 border border-slate-100 p-2.5 rounded-xl text-[9px] font-bold text-slate-800">
+                        </div>
+                        <input readonly value="Via Roma 12, Palermo (PA)" class="w-full bg-slate-50 border border-slate-100 p-2.5 rounded-xl text-[10px] font-medium text-slate-800">
+                    </div>
+
+                    <!-- Add Stop Button -->
+                    <div class="border-2 border-dashed border-slate-200 py-3 rounded-2xl text-center text-slate-400">
+                        <i class="fas fa-plus text-xs mb-0.5"></i>
+                        <span class="text-[8px] font-black uppercase block tracking-widest">Aggiungi Tappa</span>
+                    </div>
+
+                    <!-- AI Config Box -->
+                    <div class="bg-slate-900 text-white rounded-2xl p-4 space-y-3">
+                        <span class="text-[8px] font-black uppercase tracking-widest text-slate-500">🤖 AI Config</span>
+                        <div class="flex justify-between items-center text-xs font-bold">
+                            <span>Ottimizza Percorso</span>
+                            <input type="checkbox" checked class="w-4 h-4 accent-white">
+                        </div>
+                        <textarea readonly rows="2" style="width:100%; background:#171717; border-radius:10px; padding:8px 10px; font-size:9px; color:#9ca3af; resize:none;">Considera orari di punta e accessi ZTL.</textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button class="w-full py-3.5 bg-slate-950 text-white font-black text-[9px] uppercase tracking-widest rounded-xl shadow-md">
+                        Genera Piano Itinerario
+                    </button>
+
+                </div>
+
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig 7.4 — Pianificazione Itinerari: Modulo di configurazione tappe ed ottimizzazione automatica con AI Solver
+                </div>
+            </div>
+
+            <ul>
+                <li><b>Logistica di Sede</b> — Configurazione automatica di partenza e rientro in sede o indirizzi personalizzati.</li>
+                <li><b>Tappe Multi-Tipologia</b> — Distinzione tra tappe lavorative (Work) ed impegni di servizio con orario prefissato.</li>
+                <li><b>Solver AI</b> — Calcolo in tempo reale dell'itinerario ottimizzato in background inviato via Telegram.</li>
+            </ul>
+
+        </article>
+
+        <!-- PAGINATION -->
+        <div class="flex items-center justify-between mt-20 pt-10 border-t border-gray-100">
+            <a href="06_team.html" class="flex flex-col gap-1 items-start group text-left">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Precedente</span>
+                <span class="font-black text-xs uppercase group-hover:underline"><i class="fas fa-arrow-left mr-1"></i> 06. Team &amp; Missioni</span>
+            </a>
+            <a href="08_security.html" class="flex flex-col gap-1 items-end group text-right">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Successivo</span>
+                <span class="font-black text-xs uppercase group-hover:underline text-blue-600">08. Sicurezza &amp; Firme <i class="fas fa-arrow-right ml-1"></i></span>
+            </a>
+        </div>
+    </main>
+
+    <script>
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            tg.BackButton.show();
+            tg.BackButton.onClick(() => location.href = 'index.html');
+        }
+
+        // --- INTERACTIVE 3D STACK MVP ENGINE FOR MAGAZZINO INTELLIGENTE ---
+        (function() {
+            let currentDir = 'IN';
+            let activeIdx = 0;
+
+            const dataIn = [
+                { id: 'xml', label: 'Fattura XML', desc: 'Importa file XML da fattura elettronica SDI per il carico automatizzato.', icon: 'fa-file-code' },
+                { id: 'pdf', label: 'Fattura PDF / Foto', desc: 'Estrazione automatica dei dati da documento cartaceo con IA OCR.', icon: 'fa-file-pdf' },
+                { id: 'photo', label: 'Ricevuta / Nota Spese', desc: 'Registrazione spese operative da scontrino o ricevuta.', icon: 'fa-receipt' },
+                { id: 'vision', label: 'Ai LotSnap (Vision)', desc: 'Riconoscimento 360 lotti e scadenze con la fotocamera.', icon: 'fa-eye' }
+            ];
+
+            const dataOut = [
+                { id: 'xml_out', label: 'Fattura Attiva XML', desc: 'Scarico giacenza da fatturazione elettronica emessa.', icon: 'fa-file-invoice' },
+                { id: 'pdf_out', label: 'Fattura Paziente PDF', desc: 'Deduzione articoli da fattura sanitaria emessa.', icon: 'fa-file-medical' },
+                { id: 'prod', label: 'Prod. Semilavorati', desc: 'Deduci ricetta distinta base (BOM) per lavorazioni interne.', icon: 'fa-hammer' },
+                { id: 'manual', label: 'Scarico Manuale', desc: 'Inserimento rapido e rettifica manuale delle giacenze.', icon: 'fa-keyboard' }
+            ];
+
+            function getModules() {
+                return currentDir === 'IN' ? dataIn : dataOut;
+            }
+
+            window.whMvpSetDirection = function(dir) {
+                currentDir = dir;
+                activeIdx = 0;
+                const btnIn = document.getElementById('wh-mvp-btn-in');
+                const btnOut = document.getElementById('wh-mvp-btn-out');
+                const subtitle = document.getElementById('wh-mvp-subtitle');
+
+                if (dir === 'IN') {
+                    btnIn.className = "flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider bg-slate-900 text-white shadow-sm text-center transition-all";
+                    btnOut.className = "flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider text-slate-400 text-center transition-all hover:text-slate-900";
+                    subtitle.innerText = "Carico Acquisti (IN)";
+                } else {
+                    btnIn.className = "flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider text-slate-400 text-center transition-all hover:text-slate-900";
+                    btnOut.className = "flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider bg-slate-900 text-white shadow-sm text-center transition-all";
+                    subtitle.innerText = "Scarico Vendite (OUT)";
+                }
+                renderStack();
+            };
+
+            function renderStack() {
+                const container = document.getElementById('wh-mvp-stack');
+                const dots = document.getElementById('wh-mvp-dots');
+                if (!container || !dots) return;
+
+                container.innerHTML = "";
+                dots.innerHTML = "";
+
+                const mods = getModules();
+                mods.forEach((mod, idx) => {
+                    const card = document.createElement('div');
+                    card.className = `platform-card-3d-wh-mvp ${idx === activeIdx ? 'active' : ''}`;
+
+                    card.innerHTML = `
+                        <div class="w-full text-left shrink-0">
+                            <span class="text-[8px] font-black uppercase tracking-widest text-slate-400 italic">Opzione Logistica</span>
+                        </div>
+
+                        <div class="my-auto flex items-center gap-3 w-full px-1 text-left">
+                            <div class="w-10 h-10 bg-slate-950 text-white rounded-2xl flex items-center justify-center text-lg shadow-sm shrink-0">
+                                <i class="fas ${mod.icon}"></i>
+                            </div>
+                            <div class="overflow-hidden min-w-0 flex-1">
+                                <h3 class="text-[11px] font-black tracking-tight text-slate-900 leading-none uppercase mb-1 truncate">${mod.label}</h3>
+                                <p class="text-[9px] text-slate-500 font-bold leading-tight normal-case line-clamp-2">${mod.desc}</p>
+                            </div>
+                        </div>
+
+                        <div class="w-full flex justify-between items-center shrink-0 border-t border-slate-100 pt-1">
+                            <span class="text-[7.5px] font-black uppercase tracking-widest text-slate-400">${currentDir === 'IN' ? 'Carico (IN)' : 'Scarico (OUT)'}</span>
+                            <span class="text-[7.5px] font-black uppercase tracking-wider text-blue-600 flex items-center gap-1">
+                                Apri <i class="fas fa-chevron-right text-[6px]"></i>
+                            </span>
+                        </div>
+                    `;
+
+                    card.onclick = () => {
+                        if (idx === activeIdx) {
+                            alert(`Demo Magazzino Intelligente:\nModulo selezionato -> ${mod.label} (${currentDir})`);
+                        } else {
+                            activeIdx = idx;
+                            updateLayout();
+                        }
+                    };
+
+                    container.appendChild(card);
+
+                    const dot = document.createElement('div');
+                    dot.className = `w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${idx === activeIdx ? 'bg-slate-900 scale-125' : 'bg-slate-300'}`;
+                    dot.onclick = () => { activeIdx = idx; updateLayout(); };
+                    dots.appendChild(dot);
+                });
+
+                updateLayout();
+            }
+
+            function updateLayout() {
+                const mods = getModules();
+                const container = document.getElementById('wh-mvp-stack');
+                const dots = document.getElementById('wh-mvp-dots');
+                if (!container) return;
+
+                const cards = container.querySelectorAll('.platform-card-3d-wh-mvp');
+                cards.forEach((card, idx) => {
+                    const diff = idx - activeIdx;
+                    let translateY = diff * 26;
+                    let translateZ = -Math.abs(diff) * 45;
+                    let rotateX = diff * -5;
+                    let opacity = 1 - Math.abs(diff) * 0.35;
+
+                    if (Math.abs(diff) > 2) opacity = 0;
+
+                    card.style.transform = `translate3d(0, ${translateY}px, ${translateZ}px) rotateX(${rotateX}deg)`;
+                    card.style.opacity = Math.max(0, opacity);
+                    card.style.zIndex = 100 - Math.abs(diff) * 10;
+                    card.style.pointerEvents = diff === 0 ? 'auto' : 'pointer';
+                });
+
+                if (dots) {
+                    const dotEls = dots.querySelectorAll('div');
+                    dotEls.forEach((dot, idx) => {
+                        dot.className = `w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${idx === activeIdx ? 'bg-slate-900 scale-125' : 'bg-slate-300'}`;
+                    });
+                }
+            }
+
+            window.whMvpNavigate = function(dir) {
+                const mods = getModules();
+                const next = activeIdx + dir;
+                if (next >= 0 && next < mods.length) {
+                    activeIdx = next;
+                    updateLayout();
+                }
+            };
+
+            document.addEventListener('DOMContentLoaded', renderStack);
+        })();
+    </script>
+</body>
+</html>

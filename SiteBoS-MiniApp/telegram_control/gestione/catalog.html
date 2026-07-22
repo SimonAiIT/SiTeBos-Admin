@@ -1,0 +1,2065 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="color-scheme" content="light">
+    <title>Service Master | SiteBoS Gestione</title>
+
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PDF Generation & Print Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="catalog-print-engine.js"></script>
+
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #ffffff !important;
+            background: radial-gradient(circle at 50% 50%, #ffffff 0%, #f4f5f8 100%) !important;
+            color: #0f172a !important;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        /* 3D Horizontal Cylinder Carousel for Macro Tabs */
+        .macro-carousel-container {
+            position: relative;
+            width: 100%;
+            height: 44px;
+            perspective: 800px;
+            transform-style: preserve-3d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .macro-tab-item-3d {
+            position: absolute;
+            width: 100px;
+            text-align: center;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), 
+                        opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                        color 0.3s ease;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            backface-visibility: hidden;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 4px;
+        }
+        
+        .macro-tab-item-3d.active {
+            border-bottom-color: #0f172a;
+        }
+
+                /* 3D Stack Container (Rectangular Proportions) */
+        .stack-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            perspective: 1200px;
+            transform-style: preserve-3d;
+            flex-shrink: 0;
+        }
+
+        /* 3D Cards - Shorter Rectangular Style */
+        .platform-card-3d {
+            position: absolute;
+            top: 5%;
+            left: 14% !important;
+            width: 72% !important;
+            height: 90%;
+            background: #ffffff;
+            border: 1.5px solid transparent;
+            border-radius: 1.5rem;
+            color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            text-align: center;
+            padding: 1.2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.005);
+            transform-origin: center center;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+                        opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+                        filter 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                        box-shadow 0.6s ease;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            cursor: pointer;
+        }
+
+        .platform-card-3d.active {
+            border-color: #cbd5e1;
+            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 
+                        0 10px 10px -5px rgba(15, 23, 42, 0.04);
+        }
+
+        .platform-card-3d:active {
+            transform: scale(0.98) !important;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-top-color: #000;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Glassmorphic Minimal Buttons */
+        .btn-glass-minimal {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            color: #64748b; /* slate-500 */
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-glass-minimal:hover {
+            background: #ffffff;
+            color: #1e293b; /* slate-800 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+        }
+        .btn-glass-minimal:active {
+            transform: scale(0.90) !important;
+        }
+        #dot-indicators-wrapper {
+            max-height: 120px;
+            overflow-y: auto;
+            scrollbar-width: none; /* Hide scrollbar in Firefox */
+        }
+        #dot-indicators-wrapper::-webkit-scrollbar {
+            display: none; /* Safari and Chrome */
+        }
+    </style>
+</head>
+
+<body class="flex flex-col justify-between p-6 safe-area-inset pb-10 select-none">
+
+    <!-- LOADER -->
+    <div id="loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center space-y-3">
+        <div class="spinner"></div>
+        <p class="text-[8px] font-black uppercase tracking-widest text-gray-400">Architect Engine...</p>
+        <span id="pdf-progress" class="text-[8px] font-bold text-slate-500 uppercase tracking-wider"></span>
+    </div>
+
+    <!-- MAIN INTERFACE -->
+    <div id="app-content" class="flex flex-col justify-between h-full w-full max-w-md mx-auto space-y-4 hidden">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-start pt-2 shrink-0">
+            <div>
+                <div class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1 italic">
+                    Service Master
+                </div>
+                <h1 class="text-xl font-black tracking-tighter uppercase leading-none text-slate-900">Gestione Aziendale</h1>
+            </div>
+        </header>
+
+        <!-- MACRO SELECTOR CAROUSEL (3D Cylindrical Horizontal) -->
+        <div id="macro-carousel-wrapper" class="w-[72%] select-none z-50 py-1 bg-white/30 border border-slate-100/50 rounded-2xl shadow-sm backdrop-blur-sm shrink-0 flex items-center justify-between mx-auto relative">
+            <button onclick="playTick(750, 0.03, 0.05); navigateMacro(-1)" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-900 transition active:scale-75 shrink-0 z-50">
+                <i class="fas fa-chevron-left text-xs"></i>
+            </button>
+            <div id="macro-carousel" class="macro-carousel-container flex-1 overflow-visible">
+                <button onclick="setMacro('SOP')" id="btn-SOP" class="macro-tab-item-3d text-slate-400">Procedure</button>
+                <button onclick="setMacro('SER')" id="btn-SER" class="macro-tab-item-3d text-slate-400">Servizi</button>
+                <button onclick="setMacro('PRO')" id="btn-PRO" class="macro-tab-item-3d text-slate-400">Prodotti</button>
+            </div>
+            <button onclick="playTick(750, 0.03, 0.05); navigateMacro(1)" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-900 transition active:scale-75 shrink-0 z-50">
+                <i class="fas fa-chevron-right text-xs"></i>
+            </button>
+        </div>
+
+        <!-- POSITION INDICATOR (Shown inside Category/Action Items, transparent and elegant style) -->
+        <div id="submenu-header" onclick="handleTopBack()" class="hidden cursor-pointer w-[72%] mx-auto bg-white/40 border border-slate-200/40 hover:bg-white/60 hover:border-slate-350 transition-all active:scale-[0.99] backdrop-blur-md p-3 rounded-2xl flex items-center justify-between shadow-sm shrink-0 select-none">
+            <div class="flex items-center gap-2">
+                <div class="w-5 h-5 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[9px] shadow-sm">
+                    <i id="submenu-icon" class="fas fa-folder-open"></i>
+                </div>
+                <span id="submenu-title" class="text-[9px] font-black uppercase tracking-widest text-slate-700">Categoria</span>
+            </div>
+            <div class="text-slate-400 flex items-center gap-1">
+                <i class="fas fa-chevron-left text-[8px] text-slate-300"></i>
+                <span id="submenu-back-text" class="hidden">Indietro</span>
+            </div>
+        </div>
+
+        <!-- CAROUSEL VIEWPORT CONTAINER (3D VIEW) -->
+        <main class="relative flex-1 flex flex-col items-center justify-center select-none z-10 w-full py-12" style="min-height: 280px; max-height: calc(100vh - 280px); max-height: calc(100dvh - 280px);">
+            <!-- Desktop/Mobile Nav Up -->
+            <button onclick="playTick(750, 0.03, 0.05); navigateStack(-1)" class="btn-glass-minimal absolute top-2 left-1/2 -translate-x-1/2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900">
+                <i class="fas fa-chevron-up text-[10px]"></i>
+            </button>
+
+            <!-- 3D Card Stack -->
+            <div id="stack-container" class="stack-container">
+                <!-- Rendered dynamically -->
+            </div>
+
+            <!-- Mobile/Desktop Nav Back (Left Side) -->
+            <button id="btn-nav-back" onclick="playTick(750, 0.03, 0.05); handleTopBack()" class="btn-glass-minimal absolute left-1 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900 hidden" style="top: calc(50% - 18px);">
+                <i class="fas fa-chevron-left text-[10px]"></i>
+            </button>
+
+            <!-- Desktop/Mobile Nav Down -->
+            <button onclick="playTick(750, 0.03, 0.05); navigateStack(1)" class="btn-glass-minimal absolute bottom-2 left-1/2 -translate-x-1/2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900">
+                <i class="fas fa-chevron-down text-[10px]"></i>
+            </button>
+
+            <!-- Dynamic Side Dot Indicators with Scrubbing Area -->
+            <div id="dot-indicators-wrapper" class="absolute -right-2 top-1/2 -translate-y-1/2 z-50 py-4 px-2.5 bg-slate-100/90 border border-slate-200 rounded-full shadow-md backdrop-blur-sm select-none touch-none">
+                <div id="dot-indicators" class="flex flex-col gap-2.5 items-center">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+
+            <!-- Float User Guide Button -->
+            <button onclick="playTick(750, 0.03, 0.05); openUserGuide('../userguide/03_catalog.html')" class="btn-glass-minimal absolute -right-2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900" style="top: calc(50% - 200px);" title="Manuale Utente">
+                <i class="fas fa-globe text-[10px]"></i>
+            </button>
+
+            <!-- Float Speech Audio Button -->
+            <button id="btn-nav-audio" onclick="playTick(750, 0.03, 0.05); toggleCatalogAudio()" class="btn-glass-minimal absolute -right-2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900" style="top: calc(50% - 155px);">
+                <i class="fas fa-volume-high text-[10px]"></i>
+            </button>
+
+            <!-- Float Help Gesture Button -->
+            <button onclick="playTick(750, 0.03, 0.05); toggleHelpModal(true)" class="btn-glass-minimal absolute -right-2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900" style="top: calc(50% - 110px);">
+                <i class="fas fa-question text-[10px]"></i>
+            </button>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden text-center py-20">
+                <i class="fas fa-box-open text-4xl text-gray-300 mb-4"></i>
+                <p class="text-[10px] font-black uppercase text-gray-400 tracking-widest">Nessun elemento trovato</p>
+            </div>
+
+        </main>
+
+        <!-- FOOTER STATS & NEW BUTTON -->
+        <footer class="w-[72%] mx-auto space-y-3 shrink-0">
+            <!-- Action Button -->
+            <button id="main-action-btn" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl shadow-lg hover:bg-black transition-all flex items-center justify-center gap-3 active:scale-[0.98] text-[10px] uppercase tracking-widest" onclick="handleNewAction()">
+                <i class="fas fa-plus"></i> <span id="main-action-btn-text">Nuova Categoria</span>
+            </button>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white border border-slate-100 p-4 rounded-2xl flex items-center gap-3 shadow-sm">
+                    <div id="count-ghost" class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center font-black text-xs text-slate-400">0</div>
+                    <div class="text-[7px] font-black text-slate-400 uppercase tracking-widest">Suggeriti</div>
+                </div>
+                <div class="bg-white border border-slate-100 p-4 rounded-2xl flex items-center gap-3 shadow-sm">
+                    <div id="count-active" class="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center font-black text-xs text-white">0</div>
+                    <div class="text-[7px] font-black text-slate-400 uppercase tracking-widest">Attivi</div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- QUICK EDITOR DRAWER (IFRAME) -->
+    <div id="quick-editor-drawer" class="fixed inset-0 bg-white z-[3000] hidden transition-all duration-300 translate-y-full shadow-2xl flex flex-col">
+        <header class="p-4 flex justify-between items-center border-b border-slate-100 shrink-0">
+            <span class="text-xs font-black uppercase tracking-tight text-slate-500 italic">Editor Rapido</span>
+            <button onclick="closeSubEditor()" class="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center active:scale-95 transition">
+                <i class="fas fa-times text-xs text-slate-600"></i>
+            </button>
+        </header>
+        <div class="flex-1 w-full overflow-hidden">
+            <iframe id="quickEditorFrame" src="about:blank" class="w-full h-full border-0"></iframe>
+        </div>
+    </div>
+
+    <!-- Social Viewer migrated to edit-post.html (standalone page) -->
+
+    <!-- MODAL EDIT CATEGORY -->
+    <!-- TAG nascosto per preservare il prefisso database della categoria -->
+    <input type="hidden" id="edit-cat-tag">
+
+    <div id="edit-cat-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[5000] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 border border-slate-150 shadow-2xl">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1 italic">
+                        Categoria
+                    </div>
+                    <h3 class="text-lg font-black tracking-tighter uppercase leading-none">Modifica Categoria</h3>
+                </div>
+                <button onclick="closeEditModal()" class="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center active:scale-90 transition">
+                    <i class="fas fa-times text-xs text-slate-600"></i>
+                </button>
+            </div>
+
+            <!-- Icona + Nome breve (identico al modal voce) -->
+            <div class="grid grid-cols-4 gap-3">
+                <div class="col-span-1 space-y-1">
+                    <label class="text-[8px] font-black text-slate-400 uppercase ml-1">Icona</label>
+                    <input type="text" id="edit-cat-icon" readonly onclick="openEmojiPickerDrawer('cat')" placeholder="📁" class="w-full bg-slate-50 p-3 rounded-xl text-center text-sm font-bold border border-transparent focus:border-black outline-none cursor-pointer transition select-none">
+                </div>
+                <div class="col-span-3 space-y-1">
+                    <label class="text-[8px] font-black text-slate-400 uppercase ml-1">Nome Breve</label>
+                    <input type="text" id="edit-cat-short" placeholder="Nome Categoria" class="w-full bg-slate-50 p-3 rounded-xl text-xs font-bold border border-transparent focus:border-black outline-none transition">
+                </div>
+            </div>
+
+            <!-- Nome Completo -->
+            <div class="space-y-1">
+                <label class="text-[8px] font-black text-slate-400 uppercase ml-1">Nome Completo Descrittivo</label>
+                <input type="text" id="edit-cat-long" class="w-full bg-slate-50 p-3 rounded-xl text-xs font-bold border border-transparent focus:border-black outline-none transition">
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeEditModal()" class="flex-1 py-3 bg-slate-50 text-slate-600 border border-slate-200 rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition">
+                    Annulla
+                </button>
+                <button onclick="saveEditCategory()" class="flex-1 py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition">
+                    Salva
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT PRODUCT -->
+    <div id="edit-prod-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[5000] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 border border-slate-150 shadow-2xl">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1 italic">
+                        Voce
+                    </div>
+                    <h3 class="text-lg font-black tracking-tighter uppercase leading-none">Modifica Voce</h3>
+                </div>
+                <button onclick="closeEditProdModal()" class="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center active:scale-90 transition">
+                    <i class="fas fa-times text-xs text-slate-600"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-4 gap-3">
+                <div class="col-span-1 space-y-1">
+                    <label class="text-[8px] font-black text-slate-400 uppercase ml-1">Icona</label>
+                    <input type="text" id="edit-prod-icon" readonly onclick="openEmojiPickerDrawer()" placeholder="💡" class="w-full bg-slate-50 p-3 rounded-xl text-center text-sm font-bold border border-transparent focus:border-black outline-none cursor-pointer transition select-none">
+                </div>
+                <div class="col-span-3 space-y-1">
+                    <label class="text-[8px] font-black text-slate-400 uppercase ml-1">Etichetta/Descrizione</label>
+                    <input type="text" id="edit-prod-text" placeholder="Nome Servizio" class="w-full bg-slate-50 p-3 rounded-xl text-xs font-bold border border-transparent focus:border-black outline-none transition">
+                </div>
+            </div>
+
+            <!-- EMOJI PRESETS -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center ml-1">
+                    <label class="text-[8px] font-black text-slate-400 uppercase">Icone Consigliate</label>
+                    <button type="button" onclick="openEmojiPickerDrawer()" class="text-[8px] font-black uppercase text-blue-600 hover:text-blue-800 transition flex items-center gap-1">
+                        <i class="fas fa-search text-[8px]"></i> Cerca Altre
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-1.5 p-2 bg-slate-50 rounded-2xl justify-between">
+                    <button type="button" onclick="setPresetEmoji('🦷')" class="w-7 h-7 rounded-lg hover:bg-slate-200 active:scale-90 transition flex items-center justify-center text-sm">🦷</button>
+                    <button type="button" onclick="setPresetEmoji('💰')" class="w-7 h-7 rounded-lg hover:bg-slate-200 active:scale-90 transition flex items-center justify-center text-sm">💰</button>
+                    <button type="button" onclick="setPresetEmoji('📦')" class="w-7 h-7 rounded-lg hover:bg-slate-200 active:scale-90 transition flex items-center justify-center text-sm">📦</button>
+                    <button type="button" onclick="setPresetEmoji('🛠️')" class="w-7 h-7 rounded-lg hover:bg-slate-200 active:scale-90 transition flex items-center justify-center text-sm">🛠️</button>
+                    <button type="button" onclick="setPresetEmoji('📅')" class="w-7 h-7 rounded-lg hover:bg-slate-200 active:scale-90 transition flex items-center justify-center text-sm">📅</button>
+                    <button type="button" onclick="setPresetEmoji('🚨')" class="w-7 h-7 rounded-lg hover:bg-slate-200 active:scale-90 transition flex items-center justify-center text-sm">🚨</button>
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeEditProdModal()" class="flex-1 py-3 bg-slate-50 text-slate-600 border border-slate-200 rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition">
+                    Annulla
+                </button>
+                <button onclick="saveEditProduct()" class="flex-1 py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition">
+                    Salva
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EMOJI PICKER DRAWER -->
+    <div id="emoji-picker-drawer" class="fixed inset-x-0 bottom-0 bg-white rounded-t-[2rem] border-t border-slate-200 z-[6000] hidden transition-all duration-300 translate-y-full shadow-2xl p-5 space-y-4">
+        <div class="flex justify-between items-center">
+            <h4 class="text-xs font-black uppercase text-slate-400">Selettore Emoji</h4>
+            <button onclick="closeEmojiPickerDrawer()" class="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center active:scale-90 transition">
+                <i class="fas fa-times text-xs text-slate-600"></i>
+            </button>
+        </div>
+        <div id="emoji-picker-loader" class="hidden text-center py-10">
+            <div class="spinner mx-auto"></div>
+            <p class="text-[8px] font-bold text-slate-400 uppercase mt-2">Caricamento Libreria...</p>
+        </div>
+        <div id="emoji-picker-container" class="w-full"></div>
+    </div>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        'use strict';
+        const WEBHOOK_URL = "https://prod.workflow.trinai.it/webhook/0fff7fa2-bcb2-4b50-a26b-589b7054952e";
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.ready(); tg.expand();
+
+        // Logica Speech Audio Guide (Play / Stop)
+        let catalogAudio = null;
+        let isAudioPlaying = false;
+
+        function getCatalogAudioFile() {
+            if (currentViewLevel === 'items') {
+                return 'catalog_add-product.wav';
+            }
+            if (currentViewLevel === 'actions') {
+                return 'catalog_edit-product.wav';
+            }
+            return 'catalog.wav';
+        }
+
+        window.stopCatalogAudio = function() {
+            if (isAudioPlaying && catalogAudio) {
+                catalogAudio.pause();
+                catalogAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            catalogAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-[10px]';
+            }
+            if (btn) {
+                btn.classList.remove('bg-slate-900/10', 'text-slate-900');
+            }
+        };
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopCatalogAudio();
+
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.toggleCatalogAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            
+            if (!catalogAudio) {
+                const audioFile = getCatalogAudioFile();
+                catalogAudio = new Audio(audioFile);
+                catalogAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    catalogAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-[10px]';
+                        btn.classList.remove('bg-slate-900/10', 'text-slate-900');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                catalogAudio.pause();
+                catalogAudio.currentTime = 0; // Ripristina all'inizio (Comportamento Stop)
+                isAudioPlaying = false;
+                if (icon) {
+                    icon.className = 'fas fa-volume-high text-[10px]';
+                    btn.classList.remove('bg-slate-900/10', 'text-slate-900');
+                }
+            } else {
+                catalogAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-[10px]';
+                        btn.classList.add('bg-slate-900/10', 'text-slate-900');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+
+        // Gestione Help Overlay Modal
+        window.switchHelpTab = function(tab) {
+            const btnMobile = document.getElementById('tab-btn-mobile');
+            const btnDesktop = document.getElementById('tab-btn-desktop');
+            const contentMobile = document.getElementById('tab-content-mobile');
+            const contentDesktop = document.getElementById('tab-content-desktop');
+            if (!btnMobile || !btnDesktop || !contentMobile || !contentDesktop) return;
+
+            if (tab === 'mobile') {
+                btnMobile.classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+                btnMobile.classList.remove('text-slate-400');
+                btnDesktop.classList.remove('bg-white', 'text-slate-900', 'shadow-sm');
+                btnDesktop.classList.add('text-slate-400');
+                contentMobile.classList.remove('hidden');
+                contentDesktop.classList.add('hidden');
+            } else {
+                btnDesktop.classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+                btnDesktop.classList.remove('text-slate-400');
+                btnMobile.classList.remove('bg-white', 'text-slate-900', 'shadow-sm');
+                btnMobile.classList.add('text-slate-400');
+                contentDesktop.classList.remove('hidden');
+                contentMobile.classList.add('hidden');
+            }
+        };
+
+        window.toggleHelpModal = function(show) {
+            const overlay = document.getElementById('help-overlay');
+            if (!overlay) return;
+            if (show) {
+                // Auto-rilevamento dispositivo all'apertura
+                const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (window.Telegram?.WebApp && window.Telegram.WebApp.platform !== 'unknown' && window.Telegram.WebApp.platform !== 'tdesktop' && window.Telegram.WebApp.platform !== 'weba');
+                window.switchHelpTab(isMobileDevice ? 'mobile' : 'desktop');
+
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                    overlay.querySelector('.modal-content').classList.remove('scale-95');
+                }, 10);
+            } else {
+                overlay.classList.add('opacity-0');
+                overlay.querySelector('.modal-content').classList.add('scale-95');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300);
+            }
+        };
+
+        // Keyboard navigation control for Desktop
+        window.addEventListener('keydown', e => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Escape'].includes(e.key)) {
+                if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+                    return;
+                }
+                e.preventDefault();
+                
+                if (e.key === 'ArrowUp') {
+                    playTick(750, 0.03, 0.05);
+                    navigateStack(-1);
+                } else if (e.key === 'ArrowDown') {
+                    playTick(750, 0.03, 0.05);
+                    navigateStack(1);
+                } else if (e.key === 'ArrowLeft' || e.key === 'Enter') {
+                    playTick(750, 0.03, 0.05);
+                    // Entra ed espande la card attiva
+                    if (typeof handleActiveCardClick === 'function') {
+                        handleActiveCardClick();
+                    }
+                } else if (e.key === 'ArrowRight' || e.key === 'Escape') {
+                    playTick(750, 0.03, 0.05);
+                    // Torna indietro
+                    if (typeof handleTopBack === 'function') {
+                        handleTopBack();
+                    }
+                }
+            }
+        });
+
+        // Configurazione Loader e Stampa
+        window.showLoader = (text) => {
+            const loader = document.getElementById('loader');
+            const loaderText = loader ? loader.querySelector('p') : null;
+            if (loaderText) loaderText.innerText = text || "Caricamento...";
+            if (loader) loader.classList.remove('hidden');
+        };
+
+        window.hideLoader = () => {
+            const loader = document.getElementById('loader');
+            if (loader) loader.classList.add('hidden');
+        };
+
+        window.getVerticalForService = function(service) {
+            if (!service) return 'comune';
+            const cat = (service.categoria_padre || '').toLowerCase();
+            if (cat.includes('odontoiatria') || cat.includes('dentale')) return 'dentale';
+            if (cat.includes('sanitario') || cat.includes('health')) return 'sanitario';
+            return 'comune';
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let ash = urlParams.get('ash');
+        let msg = urlParams.get('msg') || urlParams.get('message_id');
+
+        if (ash && ash.includes('?msg=')) {
+            const parts = ash.split('?msg=');
+            ash = parts[0];
+            if (!msg) msg = parts[1];
+        }
+
+        let fullCatalog = [];
+        let currentMacro = 'SOP';
+        let currentViewLevel = 'categories'; // 'categories', 'items' or 'actions'
+        
+        let activeCategory = null;
+        let activeProduct = null;
+        
+        let modules = [];
+        let activeIdx = 0;
+        
+        let parentCategoryActiveIdx = 0;
+        let parentItemActiveIdx = 0;
+
+        let currentEditingCatId = null;
+        let currentProductData = null;
+        let currentSopId = null;
+        let currentVatNumber = null;
+        let currentSocialData = null;
+        let currentSecurityState = false;
+
+        const container = document.getElementById('stack-container');
+        const dotContainer = document.getElementById('dot-indicators');
+        const dotWrapper = document.getElementById('dot-indicators-wrapper');
+
+        // Audio Sensory Feedback
+        let audioCtx = null;
+        function playTick(freq = 800, dur = 0.03, vol = 0.05) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + dur);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch (e) { console.warn(e); }
+        }
+
+        function cleanLabel(label) {
+            if (!label) return "";
+            return label.replace(/\[SOP\]|\[SER\]|\[PRO\]/gi, "").trim();
+        }
+
+        async function loadCatalog(force = false) {
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('app-content');
+            if (force) loader.classList.remove('hidden');
+
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "get_catalog", _auth: tg.initData, ash: ash, msg: msg })
+                });
+                const raw = await res.json();
+                const data = Array.isArray(raw) ? raw[0] : (raw.catalog || raw);
+                fullCatalog = data.categories || data.catalog?.categories || [];
+                renderCatalog();
+            } catch (e) {
+                console.error("Load Error:", e);
+                tg.HapticFeedback.notificationOccurred("error");
+            } finally {
+                loader.classList.add('hidden');
+                content.classList.remove('hidden');
+            }
+        }
+
+        // Horizontal Macro Tabs Navigation
+        function setMacro(macro) {
+            if (currentMacro === macro && currentViewLevel === 'categories') return;
+            window.stopCatalogAudio();
+            playTick(700, 0.03, 0.05);
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+
+            currentMacro = macro;
+            currentViewLevel = 'categories';
+            activeCategory = null;
+            activeProduct = null;
+            activeIdx = 0;
+
+            renderCatalog();
+        }
+
+        window.navigateMacro = function(direction) {
+            const macros = ['SOP', 'SER', 'PRO'];
+            const currentIdx = macros.indexOf(currentMacro);
+            const targetIdx = currentIdx + direction;
+            if (targetIdx >= 0 && targetIdx < macros.length) {
+                setMacro(macros[targetIdx]);
+            }
+        };
+
+        function updateMacroLayout() {
+            const macros = ['SOP', 'SER', 'PRO'];
+            const activeMacroIdx = macros.indexOf(currentMacro);
+            
+            macros.forEach((macro, idx) => {
+                const el = document.getElementById('btn-' + macro);
+                if (!el) return;
+                
+                const diff = idx - activeMacroIdx;
+                let rotateY = diff * 45; 
+                let translateZ = -Math.abs(diff) * 60; 
+                let translateX = diff * 75; 
+                let opacity = 1 - Math.abs(diff) * 0.55;
+                
+                el.style.transform = `translate3d(${translateX}px, 0, ${translateZ}px) rotateY(${rotateY}deg)`;
+                el.style.opacity = Math.max(0.15, opacity);
+                
+                if (diff === 0) {
+                    el.className = "macro-tab-item-3d active text-slate-900";
+                } else {
+                    el.className = "macro-tab-item-3d text-slate-400";
+                }
+            });
+        }
+
+        function renderCatalog() {
+            container.innerHTML = "";
+            dotContainer.innerHTML = "";
+
+            updateMacroLayout();
+
+            // Toggle 3D Back Button visibility
+            const backBtn3d = document.getElementById('btn-nav-back');
+            if (backBtn3d) {
+                if (currentViewLevel === 'categories') {
+                    backBtn3d.classList.add('hidden');
+                } else {
+                    backBtn3d.classList.remove('hidden');
+                }
+            }
+
+            if (currentViewLevel === 'categories') {
+                document.getElementById('submenu-header').classList.add('hidden');
+                document.getElementById('main-action-btn-text').innerText = "Nuova Categoria";
+                document.getElementById('main-action-btn').classList.remove('hidden');
+                
+                modules = fullCatalog.filter(c => c.macrocategories === currentMacro);
+                
+                let activeTotal = 0, ghostTotal = 0;
+                modules.forEach(cat => {
+                    const sub = cat.subcategories || [];
+                    activeTotal += sub.filter(p => p.blueprint_ready).length;
+                    ghostTotal += sub.filter(p => !p.blueprint_ready).length;
+                });
+                document.getElementById('count-active').innerText = activeTotal;
+                document.getElementById('count-ghost').innerText = ghostTotal;
+            } else if (currentViewLevel === 'items') {
+                document.getElementById('submenu-header').classList.remove('hidden');
+                
+                const categoryShort = activeCategory.short_name || activeCategory.name;
+                const categoryFull = activeCategory.name;
+                const cleanedShort = cleanLabel(categoryShort);
+                const cleanedFull = cleanLabel(categoryFull);
+                
+                const iconBox = document.querySelector('#submenu-header .w-5');
+                if (iconBox) {
+                    iconBox.innerHTML = '<i class="fas fa-folder-open text-[8px]"></i>';
+                }
+                
+                if (cleanedShort !== cleanedFull && cleanedFull) {
+                    document.getElementById('submenu-title').innerHTML = `
+                        <div class="flex flex-col text-left">
+                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-800 leading-tight">${cleanedShort}</span>
+                            <span class="text-[7px] font-semibold text-slate-400 normal-case tracking-normal leading-none mt-0.5">${cleanedFull}</span>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('submenu-title').innerHTML = `
+                        <span class="text-[9px] font-black uppercase tracking-widest text-slate-800 leading-none">${cleanedShort}</span>
+                    `;
+                }
+
+                document.getElementById('submenu-back-text').innerText = "Categorie";
+                document.getElementById('main-action-btn-text').innerText = "Aggiungi Voce";
+                document.getElementById('main-action-btn').classList.remove('hidden');
+                
+                modules = activeCategory.subcategories || [];
+                
+                let activeTotal = modules.filter(p => p.blueprint_ready).length;
+                let ghostTotal = modules.filter(p => !p.blueprint_ready).length;
+                document.getElementById('count-active').innerText = activeTotal;
+                document.getElementById('count-ghost').innerText = ghostTotal;
+            } else { // 'actions'
+                document.getElementById('submenu-header').classList.remove('hidden');
+                
+                const { icon, text: prodShort } = splitShortName(activeProduct.short_name || activeProduct.name || '');
+                const prodFull = activeProduct.name || '';
+                const cleanedShort = cleanLabel(prodShort);
+                const cleanedFull = cleanLabel(prodFull);
+                
+                const displayIcon = icon || '💡';
+                const iconBox = document.querySelector('#submenu-header .w-5');
+                if (iconBox) {
+                    iconBox.innerHTML = displayIcon;
+                    iconBox.className = "w-5 h-5 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs shadow-sm shrink-0 select-none";
+                }
+                
+                if (cleanedShort !== cleanedFull && cleanedFull) {
+                    document.getElementById('submenu-title').innerHTML = `
+                        <div class="flex flex-col text-left">
+                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-800 leading-tight">${cleanedShort}</span>
+                            <span class="text-[7px] font-semibold text-slate-400 normal-case tracking-normal leading-none mt-0.5">${cleanedFull}</span>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('submenu-title').innerHTML = `
+                        <span class="text-[9px] font-black uppercase tracking-widest text-slate-800 leading-none">${cleanedShort}</span>
+                    `;
+                }
+
+                document.getElementById('submenu-back-text').innerText = "Voci";
+                document.getElementById('main-action-btn').classList.add('hidden'); // hidden for action menu
+                
+                modules = compileActionCards();
+            }
+
+            if (modules.length === 0) {
+                document.getElementById("empty-state").classList.remove('hidden');
+                dotWrapper.classList.add('hidden');
+                return;
+            }
+            document.getElementById("empty-state").classList.add('hidden');
+            dotWrapper.classList.remove('hidden');
+
+            if (activeIdx >= modules.length) activeIdx = modules.length - 1;
+            if (activeIdx < 0) activeIdx = 0;
+
+            buildStack();
+        }
+
+        function compileActionCards() {
+            if (!activeProduct || !currentProductData) return [];
+            
+            const list = [];
+            
+            // 1. Informazioni Base (Scheda Info)
+            list.push({
+                id: 'info',
+                label: 'Informazioni Base',
+                desc: 'Modifica i dettagli e le caratteristiche generali del prodotto/servizio.',
+                icon: 'fa-edit',
+                action: () => launchSubEditor('edit-product.html')
+            });
+
+            // 2. Informazioni Avanzate (Avanzate)
+            const isSemi = activeProduct.item_type === 'SEMI_FINISHED' || 
+                           activeProduct.item_type === 'semilavorato' || 
+                           activeProduct.item_type === 'SEMI_FINISHED_PRODUCT' ||
+                           currentProductData.blueprint_type === 'SOP_SEMILAVORATO' ||
+                           (activeProduct.callback_data && activeProduct.callback_data.includes("SEMI"));
+            
+            if (currentMacro !== 'SOP' || isSemi) {
+                list.push({
+                    id: 'advanced',
+                    label: 'Informazioni Avanzate',
+                    desc: 'Gestisci la scomposizione dei costi, ricetta (BOM) e parametri avanzati.',
+                    icon: 'fa-sliders',
+                    action: () => openAdvancedManagement()
+                });
+            }
+
+            // 3. Processo Aziendale (Blueprint SOP)
+            list.push({
+                id: 'blueprint',
+                label: 'Processo Aziendale',
+                desc: 'Configura la logica esecutiva passo-passo e la conformità di processo.',
+                icon: 'fa-diagram-project',
+                action: () => openBlueprintEditor()
+            });
+
+            // 4. Web Blog Page (Blog & Story)
+            const hasBlog = currentProductData.blog_active;
+            list.push({
+                id: 'blog',
+                label: hasBlog ? 'Web Blog Page' : 'Attiva Blog Page',
+                desc: hasBlog ? 'Gestisci e modifica gli articoli generati dall\'IA per la tua vetrina.' : 'Attiva la generazione automatica di articoli per la vetrina con l\'AI.',
+                icon: 'fa-pen-nib',
+                color: hasBlog ? '' : 'text-blue-600',
+                action: () => hasBlog ? launchSubEditor('edit-blog.html') : activateService('blog')
+            });
+
+            // 5. Social Post (Social Posts)
+            const hasSocial = currentProductData.post;
+            list.push({
+                id: 'social',
+                label: hasSocial ? 'Social Post' : 'Attiva Social',
+                desc: hasSocial ? 'Visualizza e ottimizza i post pronti per la condivisione sui canali social.' : 'Attiva la scrittura automatica di post social ottimizzati per il marketing.',
+                icon: 'fa-share-nodes',
+                color: hasSocial ? '' : 'text-blue-600',
+                action: () => hasSocial ? launchSubEditor('edit-post.html') : activateService('social')
+            });
+
+            // 6. Base Conoscenza AI
+            list.push({
+                id: 'knowledge',
+                label: 'Base Conoscenza',
+                desc: 'Istruisci l\'assistente virtuale inserendo FAQ, manuali e materiali di supporto.',
+                icon: 'fa-brain',
+                action: () => launchSubEditor('edit-knowledge.html')
+            });
+
+            // 7. Supervisor Hub
+            list.push({
+                id: 'supervisor',
+                label: 'Supervisor Hub',
+                desc: 'Monitora in tempo reale i task e lo stato di avanzamento operativo di questa voce.',
+                icon: 'fa-user-gear',
+                action: () => launchSubEditor('supervisor_hub.html')
+            });
+
+            // 8. Stampa Documento
+            list.push({
+                id: 'print',
+                label: 'Stampa',
+                desc: 'Genera e stampa il documento tecnico con la scheda del servizio.',
+                icon: 'fa-print',
+                action: async () => {
+                    playTick(900, 0.04, 0.06);
+                    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+                    
+                    window.showLoader("Richiesta dati di stampa...");
+                    try {
+                        const res = await fetch('https://prod.workflow.trinai.it/webhook/0fff7fa2-bcb2-4b50-a26b-589b7054952e', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                action: 'print',
+                                sop_id: currentSopId,
+                                ash: ash,
+                                msg: msg,
+                                _auth: tg.initData
+                            })
+                        });
+                        
+                        if (!res.ok) throw new Error("Errore risposta server");
+                        const payload = await res.json();
+                        
+                        if (!payload || (!payload.service_catalog && !payload.process_blueprints)) {
+                            throw new Error("Dati di stampa incompleti");
+                        }
+                        
+                        // Chiama il print engine per generare e trasmettere il PDF
+                        await CatalogPrintEngine.printSingleService(payload);
+                    } catch (err) {
+                        console.error('Errore durante la stampa:', err);
+                        tg.showAlert("Errore durante la generazione della stampa: " + err.message);
+                    } finally {
+                        window.hideLoader();
+                    }
+                }
+            });
+
+            // 9. Crea la Guida con AI (Solo se Prodotto e categoria "Asset digitali")
+            const isProduct = currentMacro === 'PRO' || (activeProduct && (activeProduct.item_type === 'PRODUCT' || activeProduct.item_type === 'product'));
+            const isAssetDigitali = activeCategory && activeCategory.name && activeCategory.name.toLowerCase().includes('asset digitali');
+            
+            if (isProduct && isAssetDigitali) {
+                list.push({
+                    id: 'create_ai_guide',
+                    label: 'Crea Guida con AI',
+                    desc: 'Genera automaticamente la guida digitale con l\'intelligenza artificiale.',
+                    icon: 'fa-brain',
+                    action: async () => {
+                        playTick(900, 0.04, 0.06);
+                        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+                        
+                        window.showLoader("Generazione Guida con AI...");
+                        try {
+                            // Chiamata di creazione guida
+                            const createRes = await fetch('https://prod.workflow.trinai.it/webhook/ab2f9701-2cf6-42ed-834e-ada69a01b3eb', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    action: 'create',
+                                    sop_id: currentSopId,
+                                    ash: ash,
+                                    msg: msg,
+                                    _auth: tg.initData
+                                })
+                            });
+                            
+                            if (!createRes.ok) throw new Error("Errore durante la creazione della guida.");
+                            const payload = await createRes.json();
+                            
+                            // Genera il PDF in base64 senza forzare il download locale
+                            const base64Data = await CatalogPrintEngine.printAiGuide(payload);
+                            if (!base64Data) throw new Error("Errore durante la compilazione del PDF.");
+                            
+                            window.showLoader("Salvataggio e Invio Guida...");
+                            
+                            // Chiamata di salvataggio sullo stesso webhook
+                            const cleanShort = (activeProduct.short_name || activeProduct.name || 'Guida_AI').replace(/[^a-zA-Z0-9]/g, '_');
+                            const filename = `${cleanShort}_${currentSopId}.pdf`;
+                            
+                            const saveRes = await fetch('https://prod.workflow.trinai.it/webhook/ab2f9701-2cf6-42ed-834e-ada69a01b3eb', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    action: 'save',
+                                    base64: base64Data,
+                                    mimetype: 'application/pdf',
+                                    filename: filename,
+                                    sop_id: currentSopId,
+                                    ash: ash,
+                                    msg: msg,
+                                    _auth: tg.initData
+                                })
+                            });
+                            
+                            if (!saveRes.ok) throw new Error("Errore durante il salvataggio della guida.");
+                            
+                            tg.showAlert("✅ Guida creata con successo e inviata in chat!");
+                        } catch (err) {
+                            console.error('Errore creazione guida AI:', err);
+                            tg.showAlert("Errore: " + err.message);
+                        } finally {
+                            window.hideLoader();
+                        }
+                    }
+                });
+            }
+
+            return list;
+        }
+
+        function buildStack() {
+            container.innerHTML = "";
+            dotContainer.innerHTML = "";
+
+            modules.forEach((mod, idx) => {
+                const card = document.createElement('div');
+                card.id = `card-${idx}`;
+                card.className = `platform-card-3d select-none`;
+                
+                if (currentViewLevel === 'categories') {
+                    // Category Card - Clean rectangular layout
+                    const subcats = mod.subcategories || [];
+                    const activeSubcats = subcats.filter(p => p.blueprint_ready).length;
+                    
+                    card.innerHTML = `
+                        <div class="w-full flex justify-between items-center shrink-0">
+                            <span class="text-[8px] font-black uppercase tracking-widest text-slate-400 italic">Categoria</span>
+                            <div class="flex gap-2">
+                                <button class="w-7 h-7 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-900 transition active:scale-90" onclick="event.stopPropagation(); window.openEditModal('${mod.name}', '${mod.short_name || ''}', '${mod.callback_data}')">
+                                    <i class="fas fa-pen text-[10px]"></i>
+                                </button>
+                                <button class="w-7 h-7 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-600 transition active:scale-90" onclick="event.stopPropagation(); window.deleteCategory('${mod.callback_data}', '${mod.name}')">
+                                    <i class="fas fa-trash text-[10px]"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="my-auto w-full">
+                            ${(() => {
+                                const categoryShort = mod.short_name || mod.name;
+                                const categoryFull = mod.name;
+                                const cleanedShort = cleanLabel(categoryShort);
+                                const cleanedFull = cleanLabel(categoryFull);
+                                if (cleanedShort !== cleanedFull && cleanedFull) {
+                                    return `
+                                        <h2 class="text-sm font-black tracking-tight text-slate-900 leading-snug uppercase px-2">${cleanedShort}</h2>
+                                        <p class="text-[9px] text-slate-500 font-bold leading-tight mt-1 px-4 text-center normal-case line-clamp-2">${cleanedFull}</p>
+                                    `;
+                                } else {
+                                    return `<h2 class="text-sm font-black tracking-tight text-slate-900 leading-snug uppercase px-2">${cleanedShort}</h2>`;
+                                }
+                            })()}
+                            <div class="flex justify-center items-center gap-1.5 mt-2">
+                                <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full text-[8.5px] font-black uppercase tracking-wider">${subcats.length} Voci</span>
+                                ${activeSubcats > 0 ? `<span class="px-2 py-0.5 bg-blue-600 text-white rounded-full text-[8.5px] font-black uppercase tracking-wider shadow-sm">${activeSubcats} Attive</span>` : ''}
+                            </div>
+                        </div>
+
+                        <div class="w-full text-center shrink-0">
+                            <span class="text-[7px] font-black uppercase tracking-widest text-blue-600 flex items-center justify-center gap-1 animate-pulse">
+                                Espandi Categoria <i class="fas fa-chevron-right text-[6px]"></i>
+                            </span>
+                        </div>
+                    `;
+                } else if (currentViewLevel === 'items') {
+                    // Item Card - Rectangular card acting as a trigger
+                    const { icon, text } = splitShortName(mod.short_name || mod.name || '');
+                    const cleanedShort = cleanLabel(text);
+                    const cleanedFull = cleanLabel(mod.name || '');
+                    const isSecurity = mod.show_in_security_assistant === true;
+                    
+                    card.innerHTML = `
+                        <div class="w-full flex justify-between items-center shrink-0">
+                            <span class="text-[8px] font-black uppercase tracking-widest text-slate-400 italic">SKU Voce</span>
+                            <button class="w-7 h-7 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-600 transition active:scale-90" onclick="event.stopPropagation(); window.deleteProduct('${mod.callback_data}', '${mod.name}')">
+                                <i class="fas fa-trash text-[10px]"></i>
+                            </button>
+                        </div>
+
+                        <div class="my-auto flex items-center gap-4 w-full px-2 text-left">
+                            <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-slate-100 shrink-0">
+                                ${icon || '💡'}
+                            </div>
+                            <div class="overflow-hidden">
+                                <h3 class="text-xs font-black tracking-tight text-slate-900 leading-snug uppercase truncate">${cleanedShort}</h3>
+                                ${cleanedShort !== cleanedFull && cleanedFull ? `
+                                <p class="text-[9px] text-slate-500 font-bold leading-tight mt-0.5 normal-case line-clamp-2">${cleanedFull}</p>
+                                ` : ''}
+                                <p class="text-[8px] font-bold text-slate-400 uppercase mt-1 truncate">ID: ${mod.callback_data}</p>
+                            </div>
+                        </div>
+
+                        <div class="w-full flex justify-between items-center shrink-0">
+                            <div class="flex gap-1.5">
+                                <span class="px-2 py-0.5 ${mod.blueprint_ready ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'} rounded-full text-[7.5px] font-black uppercase tracking-widest">
+                                    ${mod.blueprint_ready ? 'Attivo' : 'Suggerito'}
+                                </span>
+                                ${isSecurity ? `
+                                <span class="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-[7.5px] font-black uppercase tracking-widest flex items-center gap-0.5">
+                                    <i class="fas fa-shield-halved text-[6px]"></i> Sicurezza
+                                </span>` : ''}
+                            </div>
+                            <span class="text-[7px] font-black uppercase tracking-wider text-blue-600 flex items-center gap-1 animate-pulse">
+                                ${mod.blueprint_ready ? 'Gestisci' : 'Attiva'} <i class="fas fa-chevron-right text-[6px]"></i>
+                            </span>
+                        </div>
+                    `;
+                } else {
+                    // Action Option Card (Level 3 Sottomenu)
+                    card.innerHTML = `
+                        <div class="w-full text-left shrink-0">
+                            <span class="text-[8px] font-black uppercase tracking-widest text-slate-400 italic">Opzione Gestione</span>
+                        </div>
+
+                        <div class="my-auto flex items-center gap-4 w-full px-2 text-left">
+                            <div class="w-12 h-12 bg-slate-950 text-white rounded-2xl flex items-center justify-center text-xl shadow-sm shrink-0">
+                                <i class="fas ${mod.icon} ${mod.color || ''}"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <h3 class="text-xs font-black tracking-tight text-slate-900 leading-none uppercase mb-1">${mod.label}</h3>
+                                <p class="text-[10px] text-slate-600 font-bold leading-snug mt-1">${mod.desc}</p>
+                            </div>
+                        </div>
+
+                        <div class="w-full text-right shrink-0">
+                            <span class="text-[7px] font-black uppercase tracking-wider text-blue-600 flex items-center justify-end gap-1 animate-pulse">
+                                Apri <i class="fas fa-chevron-right text-[6px]"></i>
+                            </span>
+                        </div>
+                    `;
+                }
+
+                // Gestures trigger
+                let touchStartX = 0;
+                let touchStartY = 0;
+                let isSwipeAction = false;
+
+                card.addEventListener('touchstart', e => {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    isSwipeAction = false;
+                }, { passive: true });
+
+                card.addEventListener('touchmove', e => {
+                    const diffX = Math.abs(e.touches[0].clientX - touchStartX);
+                    const diffY = Math.abs(e.touches[0].clientY - touchStartY);
+                    if (diffX > 10 || diffY > 10) {
+                        isSwipeAction = true;
+                    }
+                }, { passive: true });
+
+                card.addEventListener('click', () => {
+                    if (isSwipeAction) return;
+                    playTick(800, 0.03, 0.05);
+                    if (idx === activeIdx) {
+                        handleActiveCardClick();
+                    } else {
+                        selectIdx(idx);
+                    }
+                });
+
+                container.appendChild(card);
+
+                // Dot indicator
+                const dot = document.createElement('div');
+                dot.id = `dot-${idx}`;
+                dot.className = `w-2.5 h-2.5 rounded-full bg-slate-300 transition-all duration-300 cursor-pointer`;
+                dot.onclick = () => selectIdx(idx);
+                dotContainer.appendChild(dot);
+            });
+
+            updateStackLayout();
+            setupTelegramBackButton();
+        }
+
+        function handleActiveCardClick() {
+            if (currentViewLevel === 'categories') {
+                enterCategory(modules[activeIdx]);
+            } else if (currentViewLevel === 'items') {
+                const prod = modules[activeIdx];
+                if (!prod) return;
+                if (prod.blueprint_ready) {
+                    // Prodotto già attivo → apre il pannello di gestione
+                    enterActions(prod);
+                } else {
+                    // Prodotto suggerito → va alla pagina di attivazione (equivale al vecchio pulsante "Attiva")
+                    playTick(900, 0.04, 0.06);
+                    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+                    location.href = `add-product.html?ash=${ash}&msg=${msg || ''}&catId=${activeCategory.callback_data}&ghostId=${prod.callback_data}`;
+                }
+            } else {
+                // Trigger option's custom action
+                const opt = modules[activeIdx];
+                if (opt && opt.action) {
+                    opt.action();
+                }
+            }
+        }
+
+        function enterCategory(cat) {
+            if (!cat) return;
+            window.stopCatalogAudio();
+            playTick(900, 0.04, 0.06);
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            
+            parentCategoryActiveIdx = activeIdx;
+            activeCategory = cat;
+            currentViewLevel = 'items';
+            activeIdx = 0;
+            renderCatalog();
+        }
+
+        function exitCategory() {
+            window.stopCatalogAudio();
+            playTick(600, 0.04, 0.06);
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
+            currentViewLevel = 'categories';
+            activeCategory = null;
+            activeIdx = parentCategoryActiveIdx;
+            renderCatalog();
+        }
+
+        async function enterActions(prod) {
+            if (!prod) return;
+            window.stopCatalogAudio();
+            playTick(900, 0.04, 0.06);
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
+            parentItemActiveIdx = activeIdx;
+            activeProduct = prod;
+            
+            // Inline loader
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full w-full">
+                    <div class="spinner"></div>
+                    <p class="text-[8px] font-black uppercase tracking-widest text-slate-400 mt-3">Caricamento moduli...</p>
+                </div>
+            `;
+            dotWrapper.classList.add('hidden');
+
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'get_ghost_info', sop_id: prod.callback_data, ash: ash, msg: msg, _auth: tg.initData })
+                });
+                const info = await res.json();
+                const rawInfo = Array.isArray(info) ? info[0] : info;
+                currentProductData = rawInfo;
+                currentVatNumber = rawInfo.vat_number || rawInfo.vatnumber || rawInfo.vat || '';
+                currentSopId = prod.callback_data;
+                currentSecurityState = rawInfo.show_in_security_assistant === true || prod.show_in_security_assistant === true;
+
+                currentViewLevel = 'actions';
+                activeIdx = 0;
+                renderCatalog();
+            } catch (e) {
+                console.error(e);
+                tg.showAlert("Errore durante il caricamento dei dettagli.");
+                currentViewLevel = 'items';
+                renderCatalog();
+            }
+        }
+
+        function exitActions() {
+            window.stopCatalogAudio();
+            playTick(600, 0.04, 0.06);
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
+            currentViewLevel = 'items';
+            activeProduct = null;
+            activeIdx = parentItemActiveIdx;
+            renderCatalog();
+        }
+
+        function handleTopBack() {
+            if (currentViewLevel === 'actions') {
+                exitActions();
+            } else if (currentViewLevel === 'items') {
+                exitCategory();
+            }
+        }
+
+        function selectIdx(idx) {
+            if (idx === activeIdx || idx < 0 || idx >= modules.length) return;
+            playTick(800 + (idx - activeIdx) * 30, 0.02, 0.04);
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+
+            activeIdx = idx;
+            updateStackLayout();
+        }
+
+        window.navigateStack = function(direction) {
+            const targetIdx = activeIdx + direction;
+            if (targetIdx >= 0 && targetIdx < modules.length) {
+                selectIdx(targetIdx);
+            }
+        };
+
+        function updateStackLayout() {
+            modules.forEach((_, idx) => {
+                const card = document.getElementById(`card-${idx}`);
+                const dot = document.getElementById(`dot-${idx}`);
+                if (!card) return;
+
+                const diff = idx - activeIdx;
+                let translateY = diff * 32; 
+                let translateZ = -Math.abs(diff) * 70; 
+                let rotateX = diff * -7; 
+                let scale = 1 - Math.abs(diff) * 0.04; 
+                let opacity = 0;
+                let zIndex = 100 - Math.abs(diff);
+
+                if (diff === 0) {
+                    opacity = 1;
+                    card.style.pointerEvents = 'auto';
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                    card.style.pointerEvents = 'none';
+                    if (Math.abs(diff) === 1) {
+                        opacity = 0.55;
+                    } else {
+                        opacity = 0;
+                    }
+                }
+
+                card.style.transform = `translate3d(0, ${translateY}px, ${translateZ}px) rotateX(${rotateX}deg) scale(${scale})`;
+                card.style.opacity = opacity;
+                card.style.zIndex = zIndex;
+
+                if (dot) {
+                    if (idx === activeIdx) {
+                        dot.className = "w-2.5 h-6 rounded-full bg-slate-900 transition-all duration-300";
+                        setTimeout(() => {
+                            dot.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }, 50);
+                    } else {
+                        dot.className = "w-2.5 h-2.5 rounded-full bg-slate-300 transition-all duration-300";
+                    }
+                }
+            });
+        }
+
+        // Back Button click routing
+        let backButtonHandler = null;
+        function setupTelegramBackButton() {
+            if (!tg.BackButton) return;
+            tg.BackButton.show();
+            if (backButtonHandler) {
+                tg.BackButton.offClick(backButtonHandler);
+            }
+            backButtonHandler = () => {
+                if (currentViewLevel === 'actions') {
+                    exitActions();
+                } else if (currentViewLevel === 'items') {
+                    exitCategory();
+                } else {
+                    window.location.href = `../dashboard/dashboard.html?ash=${ash}&msg=${msg || ''}`;
+                }
+            };
+            tg.BackButton.onClick(backButtonHandler);
+        }
+
+        // Touch Scrubbing for Dot indicators
+        function handleDotScrub(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = dotWrapper.getBoundingClientRect();
+            const relativeY = touch.clientY - rect.top;
+            let ratio = relativeY / rect.height;
+            ratio = Math.max(0, Math.min(0.99, ratio));
+            const targetIdx = Math.floor(ratio * modules.length);
+            if (targetIdx !== activeIdx) {
+                selectIdx(targetIdx);
+            }
+        }
+        dotWrapper.addEventListener('touchstart', handleDotScrub, { passive: false });
+        dotWrapper.addEventListener('touchmove', handleDotScrub, { passive: false });
+
+        // Mouse scrubbing logic for Desktop (Hold click & drag scroll)
+        let isScrubbingMouse = false;
+
+        function handleMouseScrub(e) {
+            if (!isScrubbingMouse) return;
+            const rect = dotWrapper.getBoundingClientRect();
+            const relativeY = e.clientY - rect.top;
+            let ratio = relativeY / rect.height;
+            ratio = Math.max(0, Math.min(0.99, ratio));
+            const targetIdx = Math.floor(ratio * modules.length);
+            if (targetIdx !== activeIdx) {
+                selectIdx(targetIdx);
+            }
+        }
+
+        dotWrapper.addEventListener('mousedown', e => {
+            isScrubbingMouse = true;
+            handleMouseScrub(e);
+        });
+
+        window.addEventListener('mousemove', handleMouseScrub);
+        window.addEventListener('mouseup', () => {
+            isScrubbingMouse = false;
+        });
+
+        // Swipe Scroll gestures (Horizontal and Vertical)
+        let swipeStartX = 0;
+        let swipeStartY = 0;
+        container.addEventListener('touchstart', e => {
+            swipeStartX = e.changedTouches[0].screenX;
+            swipeStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        container.addEventListener('touchend', e => {
+            const endX = e.changedTouches[0].screenX;
+            const endY = e.changedTouches[0].screenY;
+            const diffX = endX - swipeStartX;
+            const diffY = endY - swipeStartY;
+            const threshold = 60;
+
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > threshold) {
+                if (diffX < 0) {
+                    // Swipe Left -> Enter/Expand
+                    handleActiveCardClick();
+                } else {
+                    // Swipe Right -> Go back
+                    if (currentViewLevel === 'actions') {
+                        exitActions();
+                    } else if (currentViewLevel === 'items') {
+                        exitCategory();
+                    } else {
+                        window.location.href = `../dashboard/dashboard.html?ash=${ash}&msg=${msg || ''}`;
+                    }
+                }
+            } else if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > threshold) {
+                if (diffY < 0) {
+                    if (activeIdx < modules.length - 1) selectIdx(activeIdx + 1);
+                } else {
+                    if (activeIdx > 0) selectIdx(activeIdx - 1);
+                }
+            }
+        }, { passive: true });
+
+        // Desktop Mouse Wheel support
+        let wheelDebounce = null;
+        container.addEventListener('wheel', e => {
+            e.preventDefault();
+            if (wheelDebounce) return;
+            wheelDebounce = setTimeout(() => { wheelDebounce = null; }, 200);
+            if (e.deltaY > 0) {
+                if (activeIdx < modules.length - 1) selectIdx(activeIdx + 1);
+            } else if (e.deltaY < 0) {
+                if (activeIdx > 0) selectIdx(activeIdx - 1);
+            }
+        }, { passive: false });
+
+        // Horizontal Swipe for Macro tab Carousel
+        let macroStartX = 0;
+        const macroCarousel = document.getElementById('macro-carousel');
+        const macrosList = ['SOP', 'SER', 'PRO'];
+        macroCarousel.addEventListener('touchstart', e => {
+            macroStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        macroCarousel.addEventListener('touchend', e => {
+            const endX = e.changedTouches[0].screenX;
+            const diffX = endX - macroStartX;
+            const threshold = 40;
+            if (Math.abs(diffX) > threshold) {
+                const currentIdx = macrosList.indexOf(currentMacro);
+                if (diffX < 0) {
+                    if (currentIdx < macrosList.length - 1) setMacro(macrosList[currentIdx + 1]);
+                } else {
+                    if (currentIdx > 0) setMacro(macrosList[currentIdx - 1]);
+                }
+            }
+        }, { passive: true });
+
+        // Create new Category/Item action
+        function handleNewAction() {
+            playTick(900, 0.04, 0.07);
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            if (currentViewLevel === 'categories') {
+                goToAddCategory();
+            } else {
+                goToAddProduct(activeCategory.callback_data);
+            }
+        }
+
+        window.goToAddCategory = () => { location.href = `add-category.html?ash=${ash}&msg=${msg || ''}&macro=${currentMacro}`; };
+        window.goToAddProduct = (catId) => { location.href = `add-product.html?ash=${ash}&msg=${msg || ''}&catId=${catId}`; };
+
+        // Open Sub-page inside quick editor drawer (Iframe)
+        window.openProduct = async (page, pId, catId) => {
+            // Seleziona la pagina corretta in base all'azione
+            if (page === 'edit-blueprint.html') {
+                // Inserita per compatibilità di richiamo da altri editor,
+                // reindirizza al flusso Actions stack 3D
+                const match = modules.find(p => p.callback_data === pId);
+                if (match) {
+                    enterActions(match);
+                }
+                return;
+            }
+            location.href = `${page}?ash=${ash}&msg=${msg || ''}&productId=${pId}&catId=${catId}&ghostId=${pId}`;
+        };
+
+        window.openAdvancedManagement = () => {
+            const match = activeProduct;
+            const itemType = currentProductData?.identity?.item_type || match?.item_type || '';
+            const isSemi = itemType === 'SEMI_FINISHED' || itemType === 'semilavorato' || itemType === 'SEMI_FINISHED_PRODUCT' || currentProductData?.blueprint_type === 'SOP_SEMILAVORATO' || (currentSopId && currentSopId.includes("SEMI"));
+
+            if (currentMacro === 'SOP' && !isSemi) {
+                tg.showAlert("La Gestione Avanzata non è disponibile per le Procedure (SOP).");
+                return;
+            }
+            const isAdvancedReady = (currentProductData?.ui_node_draft?.advanced_ready === true) || (match?.blueprint_ready === true);
+            if (!isAdvancedReady) {
+                launchSubEditor('edit-product.html?open_advanced=true');
+            } else {
+                const page = (currentMacro === 'PRO' || (currentMacro === 'SOP' && isSemi)) ? 'edit-advanced-product.html' : 'edit-advanced.html';
+                launchSubEditor(page);
+            }
+        };
+
+        window.openBlueprintEditor = () => {
+            const page = (currentMacro === 'PRO' || currentMacro === 'SOP') ? 'edit-blueprint-product.html' : 'edit-blueprint.html';
+            launchSubEditor(page);
+        };
+
+        window.activateService = async (type) => {
+            const wh = type === 'blog' ? "https://prod.workflow.trinai.it/webhook/914bd78e-8a41-46d7-8935-7eb73cbbae66" : "https://prod.workflow.trinai.it/webhook/8fc050ca-41cd-4469-989c-269a113a00f9";
+            const cost = 10;
+            const actionValue = type === 'blog' ? 'create' : 'activate_social';
+            tg.showConfirm(`Attivare ${type.toUpperCase()}? (Costo: ${cost} crediti). Il contenuto verrà generato e inviato su Telegram.`, ok => {
+                if (ok) {
+                    fetch(wh, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: actionValue, sop_id: currentSopId, ash: ash, msg: msg, _auth: tg.initData }),
+                        keepalive: true
+                    });
+                    setTimeout(() => { tg.close(); }, 3000);
+                }
+            });
+        };
+
+        // Security toggle UI helper
+        function updateSecurityBtnUI() {
+            const btn = document.getElementById('security-assistant-btn');
+            const dot = btn.querySelector('div');
+            if (currentSecurityState) {
+                btn.className = "w-12 h-7 bg-green-600 rounded-full p-1 transition-colors duration-200 focus:outline-none flex items-center";
+                dot.style.transform = "translateX(20px)";
+            } else {
+                btn.className = "w-12 h-7 bg-slate-200 rounded-full p-1 transition-colors duration-200 focus:outline-none flex items-center";
+                dot.style.transform = "translateX(0px)";
+            }
+        }
+
+        window.toggleSecurityAssistant = async () => {
+            currentSecurityState = !currentSecurityState;
+            updateSecurityBtnUI();
+
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'toggle_security',
+                        product_id: currentSopId,
+                        ash: ash,
+                        msg: msg,
+                        _auth: tg.initData
+                    })
+                });
+                const result = await res.json();
+                if (result && result.status === 'success') {
+                    currentSecurityState = result.new_state === true;
+                    updateSecurityBtnUI();
+                    
+                    if (activeProduct) activeProduct.show_in_security_assistant = currentSecurityState;
+                } else {
+                    currentSecurityState = !currentSecurityState;
+                    updateSecurityBtnUI();
+                    tg.showAlert("Errore durante il salvataggio.");
+                }
+            } catch (e) {
+                console.error(e);
+                currentSecurityState = !currentSecurityState;
+                updateSecurityBtnUI();
+                tg.showAlert("Errore di connessione.");
+            }
+        };
+
+        function launchSubEditor(page) {
+            const drawer = document.getElementById('quick-editor-drawer');
+            const frame = document.getElementById('quickEditorFrame');
+            const separator = page.includes('?') ? '&' : '?';
+            const url = `${page}${separator}ash=${ash}&msg=${msg || ''}&sop_id=${currentSopId}&from_hub=true`;
+
+            frame.src = url;
+            drawer.classList.remove('hidden');
+            setTimeout(() => drawer.classList.remove('translate-y-full'), 10);
+
+            if (tg.BackButton) {
+                tg.BackButton.onClick(closeSubEditor);
+            }
+        }
+
+        function closeSubEditor() {
+            const drawer = document.getElementById('quick-editor-drawer');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                drawer.classList.add('hidden');
+                document.getElementById('quickEditorFrame').src = 'about:blank';
+            }, 300);
+
+            setupTelegramBackButton();
+        }
+
+        // Modals & Emoji Picker
+        // Estrae il tag tecnico [SOP]/[SER]/[PRO] da una stringa e restituisce { tag, clean }
+        function extractDbTag(str) {
+            const match = (str || '').match(/^\[?(SOP|SER|PRO)\]?\s*/i);
+            if (match) return { tag: match[0].trim(), clean: str.slice(match[0].length).trim() };
+            return { tag: '', clean: (str || '').trim() };
+        }
+
+        window.openEditModal = (n, s, id) => {
+            currentEditingCatId = id;
+
+            // Estrai il tag dal nome completo e preservalo
+            const { tag, clean: cleanName } = extractDbTag(n);
+            document.getElementById('edit-cat-tag').value = tag;
+            document.getElementById('edit-cat-long').value = cleanName;
+
+            // Popola icona e nome breve separati
+            const { icon: shortIcon, text: shortText } = splitShortName(s || cleanName);
+            document.getElementById('edit-cat-icon').value = shortIcon;
+            document.getElementById('edit-cat-short').value = shortText;
+
+            document.getElementById('edit-cat-modal').classList.remove('hidden');
+        };
+
+        window.closeEditModal = () => { document.getElementById('edit-cat-modal').classList.add('hidden'); };
+
+        window.saveEditCategory = async () => {
+            const id = currentEditingCatId;
+            const tag = document.getElementById('edit-cat-tag').value;        // es. "[SOP]"
+            const cleanLong = document.getElementById('edit-cat-long').value.trim();
+            const icon = document.getElementById('edit-cat-icon').value.trim();
+            const shortText = document.getElementById('edit-cat-short').value.trim();
+
+            if (!cleanLong) { tg.showAlert("Il nome completo è obbligatorio."); return; }
+
+            // Ricompone nome completo: [TAG] + nome pulito
+            const name = tag ? `${tag} ${cleanLong}` : cleanLong;
+            // Ricompone short_name: icona + nome breve
+            const short_name = icon ? `${icon} ${shortText || cleanLong}` : (shortText || cleanLong);
+
+            playTick(800, 0.03, 0.05);
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "update_category", _auth: tg.initData, ash: ash, msg: msg, category_id: id, name, short_name })
+                });
+                if (res.ok) {
+                    closeEditModal();
+                    loadCatalog(true);
+                }
+            } catch (e) { console.error(e); }
+        };
+
+        let currentEditingProduct = null;
+        function splitShortName(shortName) {
+            if (!shortName) return { icon: '', text: '' };
+            const match = shortName.match(/^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)\s*(.*)$/u);
+            const icon = match ? match[1] : '';
+            const text = match ? match[2] : shortName;
+            return { icon, text: text.trim() };
+        }
+
+        window.openEditProductModal = (prod) => {
+            currentEditingProduct = prod;
+            const { icon, text } = splitShortName(prod.short_name || prod.name || '');
+            document.getElementById('edit-prod-icon').value = icon;
+            document.getElementById('edit-prod-text').value = text;
+            document.getElementById('edit-prod-modal').classList.remove('hidden');
+        };
+
+        window.closeEditProdModal = () => {
+            document.getElementById('edit-prod-modal').classList.add('hidden');
+            currentEditingProduct = null;
+        };
+
+
+        let currentEmojiTarget = 'prod'; // 'prod' | 'cat'
+
+        window.setPresetEmoji = (emoji) => {
+            playTick(700, 0.02, 0.04);
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            const fieldId = currentEmojiTarget === 'cat' ? 'edit-cat-icon' : 'edit-prod-icon';
+            document.getElementById(fieldId).value = emoji;
+        };
+
+
+        let isEmojiPickerScriptLoaded = false;
+        window.openEmojiPickerDrawer = (target) => {
+            currentEmojiTarget = target || 'prod';
+            const drawer = document.getElementById('emoji-picker-drawer');
+            drawer.classList.remove('hidden');
+            setTimeout(() => drawer.classList.remove('translate-y-full'), 10);
+
+            if (isEmojiPickerScriptLoaded) {
+                renderEmojiPicker();
+            } else {
+                document.getElementById('emoji-picker-loader').classList.remove('hidden');
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = 'https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js';
+                script.onload = () => {
+                    isEmojiPickerScriptLoaded = true;
+                    renderEmojiPicker();
+                };
+                document.head.appendChild(script);
+            }
+        };
+
+        window.closeEmojiPickerDrawer = () => {
+            const drawer = document.getElementById('emoji-picker-drawer');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => drawer.classList.add('hidden'), 300);
+        };
+
+        function renderEmojiPicker() {
+            document.getElementById('emoji-picker-loader').classList.add('hidden');
+            const container = document.getElementById('emoji-picker-container');
+            container.innerHTML = '';
+            const picker = document.createElement('emoji-picker');
+            picker.style.width = '100%';
+            picker.style.height = '320px';
+            picker.addEventListener('emoji-click', event => {
+                playTick(850, 0.02, 0.05);
+                if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                const fieldId = currentEmojiTarget === 'cat' ? 'edit-cat-icon' : 'edit-prod-icon';
+                document.getElementById(fieldId).value = event.detail.unicode;
+                closeEmojiPickerDrawer();
+            });
+            container.appendChild(picker);
+        }
+
+        window.saveEditProduct = async () => {
+            if (!currentEditingProduct) return;
+            const icon = document.getElementById('edit-prod-icon').value.trim();
+            const text = document.getElementById('edit-prod-text').value.trim();
+            if (!text) { alert("Testo richiesto"); return; }
+            const combinedShortName = icon ? `${icon} ${text}` : text;
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "update_product",
+                        _auth: tg.initData,
+                        ash: ash,
+                        msg: msg,
+                        product_id: currentEditingProduct.callback_data,
+                        name: currentEditingProduct.name,
+                        short_name: combinedShortName
+                    })
+                });
+                if (res.ok) {
+                    closeEditProdModal();
+                    loadCatalog(true);
+                }
+            } catch (e) { console.error(e); }
+        };
+
+        window.deleteCategory = (id, name) => {
+            tg.showConfirm(`Eliminare categoria ${name}?`, async ok => {
+                if (ok) {
+                    try {
+                        await fetch(WEBHOOK_URL, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ action: "delete_category", _auth: tg.initData, ash: ash, msg: msg, category_id: id })
+                        });
+                        loadCatalog(true);
+                    } catch (e) { console.error(e); }
+                }
+            });
+        };
+
+        window.deleteProduct = (id, name) => {
+            tg.showConfirm(`Eliminare prodotto ${name}?`, async ok => {
+                if (ok) {
+                    try {
+                        await fetch(WEBHOOK_URL, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ action: "delete_product", _auth: tg.initData, ash: ash, msg: msg, product_id: id })
+                        });
+                        loadCatalog(true);
+                    } catch (e) { console.error(e); }
+                }
+            });
+        };
+
+        // Social Hub functions (openSocialViewer, closeSocialViewer, savePrompts, generateImage, generateVideo)
+        // have been migrated to gestione/edit-post.html (standalone page).
+        // catalog.html now calls: launchSubEditor('edit-post.html')
+
+
+        window.copyToClipboard = (elementId) => {
+            const el = document.getElementById(elementId);
+            const text = el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' ? el.value : el.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                tg.showAlert("Copiato negli appunti!");
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            });
+        };
+
+        if (!ash) {
+            document.getElementById('loader').innerHTML = `<div class="font-black text-red-500">ASH MISSING</div>`;
+        } else {
+            document.addEventListener("DOMContentLoaded", () => loadCatalog());
+        }
+    </script>
+    <!-- Help Gestures Modal Overlay -->
+    <div id="help-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-md z-[100] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="modal-content bg-white/90 border border-slate-200/50 p-6 rounded-3xl w-80 max-w-[90%] shadow-2xl backdrop-blur-xl scale-95 transition-transform duration-300 relative text-center">
+            
+            <!-- Close Button -->
+            <button onclick="toggleHelpModal(false)" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 transition">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+
+            <!-- Icon / Title -->
+            <div class="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
+                <i class="fas fa-arrows-up-down-left-right text-lg"></i>
+            </div>
+            <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 mb-4">Guida Interattiva Gestures</h3>
+
+            <!-- Tabs Navigation -->
+            <div class="flex bg-slate-100 p-1 rounded-xl mb-5 text-[9px] font-black uppercase tracking-wider select-none">
+                <button id="tab-btn-mobile" onclick="switchHelpTab('mobile')" class="flex-1 py-2 rounded-lg transition-all">Smartphone</button>
+                <button id="tab-btn-desktop" onclick="switchHelpTab('desktop')" class="flex-1 py-2 rounded-lg transition-all">PC Desktop</button>
+            </div>
+
+            <!-- Tab Content: Mobile -->
+            <div id="tab-content-mobile" class="space-y-4 text-left">
+                <!-- Swipe Up/Down -->
+                <div class="flex items-center gap-3.5 border-b border-slate-100 pb-3">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+                        <i class="fas fa-arrows-up-down text-xs"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Scorrimento Card</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Trascina il dito su/giù per sfogliare la pila 3D</div>
+                    </div>
+                </div>
+
+                <!-- Swipe Left -->
+                <div class="flex items-center gap-3.5 border-b border-slate-100 pb-3">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+                        <i class="fas fa-arrow-left text-xs"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Entra / Seleziona</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Trascina la card verso sinistra per aprire il menu</div>
+                    </div>
+                </div>
+
+                <!-- Swipe Right -->
+                <div class="flex items-center gap-3.5 border-b border-slate-100 pb-3">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+                        <i class="fas fa-arrow-right text-xs"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Torna Indietro</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Trascina la card verso destra per uscire o chiudere</div>
+                    </div>
+                </div>
+
+                <!-- Scrubbing -->
+                <div class="flex items-center gap-3.5 pb-1">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+                        <i class="fas fa-ellipsis-vertical text-xs"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Scorrimento Rapido</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Trascina il dito sulla barra dei dot laterale destra</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Desktop -->
+            <div id="tab-content-desktop" class="space-y-4 text-left hidden">
+                <!-- Keys Up/Down -->
+                <div class="flex items-center gap-3.5 border-b border-slate-100 pb-3">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0 font-black text-xs">
+                        ↑↓
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Frecce Tastiera</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Usa le frecce Su / Giù sulla tastiera per navigare</div>
+                    </div>
+                </div>
+
+                <!-- Enter / Arrow Left -->
+                <div class="flex items-center gap-3.5 border-b border-slate-100 pb-3">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0 font-black text-[9px]">
+                        Enter
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Apri / Seleziona</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Premi Invio o la freccia sinistra (←) per entrare</div>
+                    </div>
+                </div>
+
+                <!-- Esc / Arrow Right -->
+                <div class="flex items-center gap-3.5 border-b border-slate-100 pb-3">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0 font-black text-xs">
+                        Esc
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Esci / Chiudi</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Premi Esc o la freccia destra (→) per tornare indietro</div>
+                    </div>
+                </div>
+
+                <!-- Mouse Scrubbing -->
+                <div class="flex items-center gap-3.5 pb-1">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+                        <i class="fas fa-mouse text-xs"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Trascina Mouse</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Tieni premuto e trascina il mouse sulla barra dot laterale</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <button onclick="toggleHelpModal(false)" class="w-full mt-6 bg-slate-900 hover:bg-black text-white font-black py-3.5 rounded-2xl text-[9px] uppercase tracking-widest shadow-md transition-all active:scale-[0.98]">
+                Ho Capito
+            </button>
+        </div>
+    </div>
+
+    <!-- User Guide Drawer -->
+    <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+        <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+            <!-- Drawer Header / Handle -->
+            <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                    <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                </div>
+                <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+            <!-- Drawer Iframe Content -->
+            <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

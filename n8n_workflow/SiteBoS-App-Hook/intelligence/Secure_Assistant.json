@@ -1,0 +1,1516 @@
+{
+  "name": "Secure_Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "7f254dec-e28f-452a-afb9-2a2a90206cbb",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -368,
+        64
+      ],
+      "id": "fa8cfd2b-2c59-4f16-939e-c4a111bbae14",
+      "name": "Webhook",
+      "webhookId": "7f254dec-e28f-452a-afb9-2a2a90206cbb"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "I3Wi7RmhugztaU0q",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/I3Wi7RmhugztaU0q",
+          "cachedResultName": "Unified-Authentication"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -160,
+        64
+      ],
+      "id": "964f8559-f1ca-4c9a-b433-3938c0b7ef81",
+      "name": "Call 'Unified-Authentication'"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "dccfcecc-dc18-42e0-b219-7be33845cfcc",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        32,
+        64
+      ],
+      "id": "c2e4dac2-23b8-403e-a95b-da17a57a060c",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"error\",\n  \"code\": 403,\n  \"message\": \"⛔️ ACCESS DENIED: Unauthorized User or Invalid Endpoint.\",\n  \"details\": \"Your ID {{ $json.query.user_id || 'Unknown' }} is not in the allowlist.\"\n}",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        32,
+        -96
+      ],
+      "id": "d909f74f-a59d-4dd8-9883-e23c070ef04c",
+      "name": "⛔️ 403 Forbidden"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "37d00406-b213-455b-8afb-9b3e08e91bf8"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "26e9d868-efae-4d82-a708-de9ae51e2ac5",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "save_checklist",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Save"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d1244056-c467-4703-96a4-0c6615ab9271",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "save_security_metadata",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "security"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "73ab89f3-c701-47e5-917a-775e0cf92560",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "document_to_valut",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "send_valut"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "989c05e6-056f-4666-a29a-c59744753a6c",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "analyze",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Analyze"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        272,
+        32
+      ],
+      "id": "7ef45283-f7f0-40af-8e4f-0e88a9018eb6",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "service_catalog",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}_setup_ik\" \n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"service_catalog\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -112,
+        -592
+      ],
+      "id": "bd968336-e22c-4a75-87aa-e934d37134cf",
+      "name": "catalog",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        288,
+        -560
+      ],
+      "id": "61727e17-83ea-4170-8927-570c7b454d8a",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0c475768-9a8d-4eb6-83d2-7127070c14ef",
+              "name": "session_id",
+              "value": "={{ $json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "fa1b2325-70a9-4ce3-b7f5-dc12b49b9027",
+              "name": "dossier",
+              "value": "={{ $json.messages[0].data.enterprise_dossier }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        -352
+      ],
+      "id": "d18846c0-b859-4ad6-942d-3642f1d396a9",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "Product_Reserch",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -352
+      ],
+      "id": "7c2349a3-a95f-4fc3-b938-77c920fa5c8a",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        544,
+        -576
+      ],
+      "id": "e50ae900-6685-4922-ae50-6e9b74ffde52",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const outputCollection = [];\n\nfor (const item of $input.all()) {\n  try {\n    const blueprint = item.json.messages && item.json.messages[0] && item.json.messages[0].data;\n    if (!blueprint) continue;\n\n    const sku = item.json.sessionId ? item.json.sessionId.split('-').slice(1).join('-') : (blueprint.service_sku || \"N/D\");\n    const bpName = blueprint.blueprint_name || \"Protocollo Senza Nome\";\n    \n    const controlliMitigazione = [];\n\n    // --- AGGIUNTA CHIRURGICA 1: Preparo i contenitori per operatori e attrezzature ---\n    const setOperatori = new Set();\n    const setAttrezzature = new Set();\n\n    // Estrae solo gli step con controllo di qualità obbligatorio (la mitigazione)\n    if (blueprint.stages && Array.isArray(blueprint.stages)) {\n      blueprint.stages.forEach(stage => {\n        \n        // Estraiamo il parametro di cadenza della fase (se non definito, di default è 0)\n        const schedulingInterval = (stage.scheduling_interval_days !== undefined) ? stage.scheduling_interval_days : 0;\n\n        if (stage.steps && Array.isArray(stage.steps)) {\n          stage.steps.forEach(step => {\n            \n            // --- AGGIUNTA CHIRURGICA 2: Pesca risorse da ogni step ---\n            if (step.resources_needed) {\n                if (step.resources_needed.labor && step.resources_needed.labor.required_skill_tags) {\n                    step.resources_needed.labor.required_skill_tags.forEach(op => setOperatori.add(op));\n                }\n                if (step.resources_needed.assets && Array.isArray(step.resources_needed.assets)) {\n                    step.resources_needed.assets.forEach(ass => setAttrezzature.add(ass));\n                }\n                if (step.resources_needed.materials && Array.isArray(step.resources_needed.materials)) {\n                    step.resources_needed.materials.forEach(mat => {\n                        if (typeof mat === 'string') setAttrezzature.add(mat);\n                        else if (mat.material_sku) setAttrezzature.add(mat.material_sku.replace('MAT_', '').replace(/_/g, ' '));\n                    });\n                }\n            }\n            // ---------------------------------------------------------\n\n            if (step.quality_check && step.quality_check.is_required) {\n              \n              // Estrae i ruoli responsabili dello step\n              let operatori = [];\n              if (step.resources_needed && step.resources_needed.labor && step.resources_needed.labor.required_skill_tags) {\n                operatori = step.resources_needed.labor.required_skill_tags;\n              }\n\n              // Inserisce le informazioni di mitigazione essenziali\n              controlliMitigazione.push({\n                fase_operativa: step.step_name,\n                operatore_responsabile: operatori.join(\", \"),\n                \n                // Check di mitigazione prestabilito\n                check_prestabilito: step.quality_check.check_description,\n                criterio_accettazione: step.quality_check.acceptance_criteria,\n                tipo_evidenza: step.quality_check.evidence_type,\n\n                // --- INIEZIONE PARAMETRO DI PIANIFICAZIONE RICHIESTO ---\n                scheduling_interval_days: schedulingInterval // Es. 0, 7, 14, 21, 180\n              });\n            }\n          });\n        }\n      });\n    }\n\n    // Crea il record strutturato con SKU e Nome divisi\n    if (controlliMitigazione.length > 0) {\n      outputCollection.push({\n        json: {\n          service_sku: sku,\n          service_name: bpName,\n          // --- AGGIUNTA CHIRURGICA 3: Le chiavi finiscono dentro il json dell'oggetto ---\n          operatori_coinvolti: Array.from(setOperatori),\n          attrezzature_coinvolte: Array.from(setAttrezzature),\n          controlli_mitigazione: controlliMitigazione\n        }\n      });\n    }\n\n  } catch (error) {\n    outputCollection.push({\n      json: {\n        status: \"ERROR\",\n        message: \"Errore durante l'estrazione dei controlli\",\n        details: error.message\n      }\n    });\n  }\n}\n\nreturn outputCollection;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        -736
+      ],
+      "id": "2febb1cd-8f8d-4242-862e-6b29ce6d01d9",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "mitigation_control",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -736
+      ],
+      "id": "060a78ed-9221-4f30-95a7-5d2529f4b0fd",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        496,
+        -928
+      ],
+      "id": "1f6993a7-bf13-4535-9504-84ee4aaaa298",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const catalogActiveArray = [];\n\nfor (const item of $input.all()) {\n  try {\n    const catalog = item.json.service_catalog;\n    if (!catalog || !catalog.categories) continue;\n\n    catalog.categories.forEach(category => {\n      // Normalizzazione della macrocategoria\n      let macro = (category.macrocategories || \"\").toUpperCase().trim();\n      \n      if (!macro) {\n        const catName = (category.name || \"\").toUpperCase();\n        if (catName.includes(\"[SOP]\")) macro = \"SOP\";\n        else if (catName.includes(\"[SER]\")) macro = \"SER\";\n        else if (catName.includes(\"[PRO]\")) macro = \"PRO\";\n      }\n\n      // 1. Elimina le PRO\n      if (macro === \"PRO\") {\n        return; \n      }\n\n      if (category.subcategories && Array.isArray(category.subcategories)) {\n        category.subcategories.forEach(sub => {\n          const flatItem = {\n            service_sku: sub.callback_data,\n            service_name: sub.name,\n            categoria_padre: category.name,\n            short_name: sub.short_name || sub.name,\n            vertical: category.vertical || \"common\",\n            blueprint_ready: sub.blueprint_ready || \"false\"\n          };\n\n          // 2. Se è SOP passa sempre\n          if (macro === \"SOP\") {\n            catalogActiveArray.push(flatItem);\n          }\n          // 3. Se è SER passa solo se attiva (blueprint_ready === true)\n          else if (macro === \"SER\") {\n            if (sub.blueprint_ready === true) {\n              catalogActiveArray.push(flatItem);\n            }\n          }\n        });\n      }\n    });\n\n  } catch (error) {\n    return [{ \n      json: { \n        status: \"ERROR\", \n        message: \"Errore durante l'elaborazione del catalogo\", \n        details: error.message \n      } \n    }];\n  }\n}\n\n// Restituisce l'array piatto originale con i dati corretti\nreturn [{ json: { catalog_active: catalogActiveArray } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        96,
+        -592
+      ],
+      "id": "aeaef888-c056-4d14-b0dd-a289d29ffea0",
+      "name": "catalog_active"
+    },
+    {
+      "parameters": {
+        "collection": "compliance_docs",
+        "options": {},
+        "query": "={\n  \"sessionId\": {\n    \"$regex\": \"{{ $json.owner_data.vat_number }}\"\n  }\n}\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        -352
+      ],
+      "id": "c0801a8f-b034-4482-bf90-f40e85db990b",
+      "name": "Compliance",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "process_blueprints",
+        "options": {},
+        "query": "={\n  \"sessionId\": {\n    \"$regex\": \"{{ $json.owner_data.vat_number }}\"\n  }\n}\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        -736
+      ],
+      "id": "f398df34-5f6d-4bbd-afaf-c017439f620d",
+      "name": "Blueprint",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        -1296
+      ],
+      "id": "7006c659-5179-4993-b8d3-f0d7c4fcb90e",
+      "name": "Gemini_Refuse_Vertical",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<system_instructions>\nSei un Ingegnere della Sicurezza sul Lavoro (RSPP Senior) esperto di conformità sanitaria, D.Lgs. 81/08 (Titolo X - Rischio Biologico) e regolamentazione dispositivi medici (MDR 2017/745).\nIl tuo compito è analizzare i dati forniti nei tag XML sottostanti per calcolare matematicamente il rischio residuo secondo l'algoritmo INAIL: R = P x D.\nEmetti solo ed esclusivamente un output in formato JSON valido, senza blocchi di codice markdown (no ```json).\n</system_instructions>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<service_context>\n  <service_name>{{ $json.body.service_name }}</service_name>\n  <service_category>{{ $json.body.service_category }}</service_category>\n  <risk_warnings>\n    {{ JSON.stringify($json.body.risk_warnings) }}\n  </risk_warnings>\n</service_context>\n\n<evaluated_action> \n  <target_label>{{ $json.body.target_label }}</target_label>\n  <target_description>{{ $json.body.target_description }}</target_description>\n  <target_status>{{ $json.body.target_checked ? \"ATTIVO\" : \"DISATTIVATO\" }}</target_status>\n</evaluated_action>\n\n<starting_parameters>\n  <damage>{{ $json.body.starting_damage }}</damage>\n  <contamination>{{ $json.body.starting_contamination }}</contamination>\n  <risk>{{ $json.body.starting_risk }}</risk>\n</starting_parameters>\n\n<overall_checklist_state>\n  {{ JSON.stringify($json.body.checklist_state) }}\n</overall_checklist_state>\n\n<previous_justification>\n  {{ $json.body.previous_justification }}\n</previous_justification>\n\n<core_analysis_directive>\nDevi valutare se <evaluated_action> e vedere se riduce il rischio di <service_context> ed eseguire le <analysis_instructions> e le <calculation_rules> focalizzati solo ed esclusivamente su <evaluated_action>.\n</core_analysis_directive>\n\n<analysis_instructions>\nValuta attentamente se e come l'azione descritta in <evaluated_action> riduce il rischio iniziale descritto in <starting_parameters> per il servizio descritto in <service_context>.\nEsegui le regole matematiche di calcolo concentrandoti sul peso specifico di <evaluated_action>, ma analizzando l'effetto cumulativo complessivo descritto in <overall_checklist_state>.\n</analysis_instructions>\n\n<calculation_rules>\n1. Danno (D): Corrisponde al valore fisso indicato in <starting_parameters><damage>. Non deve mai essere modificato, in quanto rappresenta la gravità intrinseca intrattabile della prestazione.\n2. Contaminazione (C): Corrisponde al valore fisso indicato in <starting_parameters><contamination>. Rappresenta l'esposizione di base.\n3. Probabilità (P): Scala numerica intera da 1 a 4. Deve essere calcolata in modo CUMULATIVO e SINERGICO analizzando lo stato di tutte le altre misure attive in <overall_checklist_state>:\n   - Se TUTTE le misure in <overall_checklist_state> sono disattivate (false) o assenti: la probabilità P deve essere impostata al valore massimo di 4.\n   - Una singola misura attiva (true) non può MAI abbattere la probabilità da 4 a 1 in un colpo solo. L'attivazione della misura descritta in <evaluated_action> (quando <target_status> è \"ATTIVO\") può ridurre P di massimo 1 punto (es. da 4 a 3).\n   - Per raggiungere la probabilità minima di sicurezza (P=1), l'utente deve aver attivato una combinazione sinergica e bilanciata di più misure critiche all'interno della checklist.\n   - Se l'azione in <evaluated_action> passa a \"DISATTIVATO\", l'indice P deve risalire per riflettere l'aumento di pericolo.\n4. Rischio Residuo finale (R): Moltiplicazione matematica R = P * D.\n</calculation_rules>\n\n<justification_style_rules>\n1. DIVIETO ASSOLUTO DI GERGO INFORMATICO: Non menzionare MAI chiavi di codice, variabili, booleani (es. No \"true\", no \"false\", no \"com_q1\", no \"checklist_state\", no \"payload\").\n2. TU SEI UN RSPP UMANO: Scrivi con un tono altamente formale, autorevole e asettico, tipico di una relazione tecnica firmata e certificata.\n3. RIFORMULAZIONE CUMULATIVA INTELLIGENTE: \n   - Leggi il contenuto di <previous_justification>.\n   - Se contiene un testo generico di default (es. frasi che contengono \"Rischio di partenza\" o \"Non ci sono analisi precedenti\"), ignoralità e scrivi la giustificazione ex-novo basandoti sulle misure attive.\n   - Se invece contiene già un'analisi reale e complessa, non cancellarla: riformulala, espandila e raccordala elegantemente per integrare l'efficacia del nuovo controllo descritto in <evaluated_action>.\n4. EVITA ELENCHI E BULLET POINTS: Il testo risultante deve essere un unico paragrafo narrativo continuo e ben scritto, che illustri come la combinazione delle misure attive attenui il rischio rispetto allo scenario di partenza.\n5. SINTESI: Il paragrafo risultante deve essere denso di informazioni ma conciso (massimo 4-5 frasi).\n</justification_style_rules>\n\n<output_format>\nGenera la risposta esclusivamente in questo formato JSON piatto, senza alcun testo o commento aggiuntivo prima o dopo:\n{\n  \"D\": [Inserisci valore intero 1-4],\n  \"C\": [Inserisci valore intero 1-4],\n  \"P\": [Inserisci valore intero 1-4],\n  \"R\": [Inserisci valore intero 1-16],\n  \"justification\": \"[Scrivi qui la giustificazione formale, clinica e normativa in italiano seguendo rigorosamente le <justification_style_rules>]\"\n}\n</output_format>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "secure_rational",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "3cadacdd-9503-43aa-bf98-77d9cf9f769c",
+              "name": "billing_source.use",
+              "value": "Secure Assistant",
+              "type": "string"
+            },
+            {
+              "id": "872d0280-5adc-489a-a8e7-8e0265fc30e2",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "8dd06aa5-bb9c-4427-8232-64706eb743cc",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/7f254dec-e28f-452a-afb9-2a2a90206cbb",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -112,
+        -1296
+      ],
+      "id": "cc40d10e-0b34-4754-b429-9f228d7bd421",
+      "name": "Secure_Rational"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d9f44ff8-9f9b-4bc2-92da-0c2ac2273a21",
+              "leftValue": "={{ $json.secure_rational }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        288,
+        -1296
+      ],
+      "id": "f4566164-a85e-4bab-99f3-4b50d096ad8b",
+      "name": "Error?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.secure_rational }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        288,
+        -1440
+      ],
+      "id": "7064f0b6-e163-42dc-8be5-bc0b1f0fc78e",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 501
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        512,
+        -1280
+      ],
+      "id": "1b29dacb-725e-4a0a-9892-5974a1130685",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "553e58e6-8412-4830-a551-b699173bebc1",
+              "name": "body",
+              "value": "={{ $json.body }}",
+              "type": "object"
+            },
+            {
+              "id": "cc74f716-b520-4ecd-9345-493702734bd7",
+              "name": "body._auth",
+              "value": "=",
+              "type": "string"
+            },
+            {
+              "id": "a8b40c51-8cb9-4b0b-970d-0429c833c6e8",
+              "name": "body.ash",
+              "value": "=",
+              "type": "string"
+            },
+            {
+              "id": "abf9ee41-addf-4736-b530-17cfa05c6aec",
+              "name": "secure_rational",
+              "value": "={{ $json.secure_rational }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        -1440
+      ],
+      "id": "bdb8ac9e-a619-4a52-9932-723dbfedd6c1",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "risk_managment",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}\" \n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"risk\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        272,
+        528
+      ],
+      "id": "afe30179-7c0d-48e7-a3e6-e393f394af5c",
+      "name": "managment_risk",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        272,
+        368
+      ],
+      "id": "21617b51-cab2-48bf-903f-c90685417e24",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst output = [];\n\nfor (const item of items) {\n    const body = item.json.body || {};\n    const sku = body.service_sku;\n\n    if (!sku) continue; \n\n    // 1. Recupera lo stato storico dal DB\n    let existingData = item.json.risk || item.json.checklist_state || [];\n    \n    // Se per caso era il vecchio formato \"Oggetto\", lo convertiamo in Array al volo\n    if (!Array.isArray(existingData)) {\n        delete existingData.additional_kwargs;\n        delete existingData.response_metadata;\n        \n        let tempArray = [];\n        for (let key in existingData) {\n            let obj = existingData[key];\n            if (typeof obj === 'object') {\n                obj.service_sku = key; // Salviamo la chiave come valore!\n                tempArray.push(obj);\n            }\n        }\n        existingData = tempArray;\n    }\n\n    // Facciamo una Copia Profonda dell'Array\n    let checklistArray = JSON.parse(JSON.stringify(existingData));\n\n    // 2. Costruisce il nuovo Record (Includendo i parametri temporali del frontend)\n    const updatedRecord = {\n        service_sku: sku, // SKU memorizzato come valore interno al record\n        service_name: body.service_name || \"\",\n        service_category: body.service_category || \"\",\n        service_description: body.service_description || \"\",\n        risk_warnings: body.risk_warnings || [],\n        \n        // --- RECUPERO E PERSISTENZA CADENZA TEMPORALE E STORICA ---\n        scheduling_interval: body.scheduling_interval !== undefined ? body.scheduling_interval : 0,\n        last_executed: body.last_executed || null, // <--- SALVATAGGIO ULTIMA DATA DI ESECUZIONE\n\n        starting_damage: body.starting_damage || 2,\n        starting_contamination: body.starting_contamination || 1,\n        starting_risk: body.starting_risk || 8,\n\n        D: body.current_damage || 2,\n        C: body.current_contamination || 1,\n        P: body.current_probability || 4,\n        R: body.current_risk || 8,\n        overall_justification: body.current_justification || \"\",\n\n        answers: body.checklist_state || {}\n    };\n\n    // 3. UPSERT NELL'ARRAY: Cerca se lo SKU esiste già. Se c'è lo sovrascrive, sennò lo aggiunge.\n    let foundIndex = checklistArray.findIndex(el => \n        (el.service_sku && el.service_sku.toUpperCase() === sku.toUpperCase())\n    );\n\n    if (foundIndex >= 0) {\n        checklistArray[foundIndex] = updatedRecord; // Aggiorna\n    } else {\n        checklistArray.push(updatedRecord); // Aggiunge nuovo\n    }\n\n    // 4. Recupera Partita IVA\n    let vat = item.json.owner_data?.vat_number || item.json.vat_number || body.vat_number;\n\n    // 5. Spedisce l'ARRAY aggiornato al DB\n    output.push({\n        json: {\n            vat_number: vat,\n            checklist_state: checklistArray \n        }\n    });\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        368
+      ],
+      "id": "b808cf52-c877-4fd1-956e-19e0c4fada48",
+      "name": "RiskMerger"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "risk_managment",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}\" \n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"checklist_state\": \"$owner.data.checklist_state\", \n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        -928
+      ],
+      "id": "1758f6a6-a1dc-410d-911c-69e68ff21dfd",
+      "name": "managment_risk1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        496,
+        -1088
+      ],
+      "id": "8e84dad3-6027-490f-9617-eae186d47871",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        368
+      ],
+      "id": "c7afa03b-8d61-4bee-bf17-563b5caa6212",
+      "name": "Site_Bord"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.vat_number }}",
+        "collectionName": "risk_managment",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        688,
+        496
+      ],
+      "id": "40ea8b89-eb21-4539-8f9f-534235aca327",
+      "name": "MongoDB Chat Memory4",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        976,
+        368
+      ],
+      "id": "4262cecf-fa8b-480d-8f77-42814c68a243",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        272,
+        768
+      ],
+      "id": "3cf3d529-8caf-4125-b30d-124a0ddbfcd5",
+      "name": "Merge44"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/sendDocument",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "=document",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "chat_id",
+              "value": "={{ $json.owner_data.chat_id }}"
+            },
+            {
+              "name": "caption",
+              "value": "=🛡️ <b>SiteBoS Secure Assistant Generator</b>\n━━━━━━━━━━━━━━━━━━━━\n{{ $json.body.filename }}\n━━━━━━━━━━━━━━━━━━━━\n"
+            },
+            {
+              "name": "parse_mode",
+              "value": "HTML"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        432,
+        768
+      ],
+      "id": "6b65c717-d05c-41d1-841b-05967be3d361",
+      "name": "📤 Telegram User Valut",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "body.base64",
+        "options": {
+          "fileName": "={{ $json.body.filename }}",
+          "mimeType": "={{ $json.body.mimetype }}"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        96,
+        752
+      ],
+      "id": "04e4f118-defb-44ef-a4ea-870f5598d04d",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"Success\": true\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        624,
+        768
+      ],
+      "id": "4800c0e7-5e36-4607-8693-89dddb00ce21",
+      "name": "Respond to Webhook4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "edcb7da9-4a57-43ea-94d2-5821ff7ca4db",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            },
+            {
+              "id": "45d92769-0424-460c-9510-6e081b2d8e20",
+              "name": "owner_data.security_metadata",
+              "value": "={{ $json.body.security_metadata }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        528,
+        80
+      ],
+      "id": "4fb4026d-87b5-42f5-9897-d00657b8ad41",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        704,
+        208
+      ],
+      "id": "36f73903-e78e-4d7a-b4ff-0c5eb50a5337",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        992,
+        80
+      ],
+      "id": "a5b5ddd9-00bf-4ecc-9ac8-ebf5a3106181",
+      "name": "Respond to Webhook5"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        704,
+        80
+      ],
+      "id": "6a0f6d1c-ba02-46f4-9045-7f392177cb32",
+      "name": "Update_Owner"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        864,
+        -1088
+      ],
+      "id": "2ab8d47e-638e-46e4-a203-4dfbe4196dd0",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst sanitizedOutput = [];\n\nfor (const item of items) {\n    // 1. Inizializziamo un nuovo oggetto vuoto per copiare solo i campi strettamente necessari\n    const original = item.json;\n    const safeData = {};\n\n    // 2. catalog_active: Mantiene solo lo SKU, nome, categoria, sezioni, e stato di attivazione\n    if (Array.isArray(original.catalog_active)) {\n        safeData.catalog_active = original.catalog_active.map(cat => {\n            if (!cat) return null;\n            return {\n                service_sku: cat.service_sku,\n                service_name: cat.service_name,\n                categoria_padre: cat.categoria_padre,\n                short_name: cat.short_name || cat.service_name,\n                vertical: cat.vertical || 'common',\n                blueprint_ready: cat.blueprint_ready === true || cat.blueprint_ready === 'true',\n                days: cat.days,\n                scheduling_interval: cat.scheduling_interval\n            };\n        }).filter(Boolean);\n    } else {\n        safeData.catalog_active = [];\n    }\n\n    // 3. Product_Reserch (Dossier): Conserva solo il MODULE_4 (sicurezza e leggi) per ogni dossier, scartando i moduli 1-2-3-5-6-7-8\n    if (Array.isArray(original.Product_Reserch)) {\n        safeData.Product_Reserch = original.Product_Reserch.map(pr => {\n            if (!pr) return null;\n            const cleanPR = {\n                session_id: pr.session_id\n            };\n            if (pr.dossier && pr.dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE) {\n                cleanPR.dossier = {\n                    MODULE_4_PRODUCT_SERVICE_COMPLIANCE: pr.dossier.MODULE_4_PRODUCT_SERVICE_COMPLIANCE\n                };\n            }\n            return cleanPR;\n        }).filter(Boolean);\n    } else {\n        safeData.Product_Reserch = [];\n    }\n\n    // 4. owner_data: Mantiene solo l'anagrafica base per intestazioni e i metadati RSPP/RLS. Scarta salari, dipendenti e chiavi API.\n    if (original.owner_data) {\n        const od = original.owner_data;\n        safeData.owner_data = {\n            ragione_sociale: od.ragione_sociale || od.name || '',\n            name: od.name || od.ragione_sociale || '',\n            vat_number: od.vat_number || od.p_iva || '',\n            p_iva: od.p_iva || od.vat_number || '',\n            indirizzo: od.indirizzo || od.address || '',\n            address: od.address || od.indirizzo || '',\n            verticals: od.verticals || [],\n            activeVerticals: od.activeVerticals || od.active_verticals || od.verticals || [],\n            active_verticals: od.active_verticals || od.activeVerticals || od.verticals || [],\n            assessments: od.assessments || [],\n            securityMetadata: od.securityMetadata || od.security_metadata || od.generalMetadata || od.general_metadata || {},\n            security_metadata: od.security_metadata || od.securityMetadata || od.general_metadata || od.generalMetadata || {}\n        };\n    } else {\n        safeData.owner_data = {};\n    }\n\n    // 5. mitigation_control: Mantiene solo lo SKU e i controlli di mitigazione con i relativi dettagli\n    if (Array.isArray(original.mitigation_control)) {\n        safeData.mitigation_control = original.mitigation_control.map(mit => {\n            if (!mit) return null;\n            return {\n                service_sku: mit.service_sku,\n                controlli_mitigazione: mit.controlli_mitigazione || [],\n                operatori_coinvolti: mit.operatori_coinvolti || [],\n                attrezzature_coinvolte: mit.attrezzature_coinvolte || []\n            };\n        }).filter(Boolean);\n    } else {\n        safeData.mitigation_control = [];\n    }\n\n    // 6. checklist_state: Mantiene solo le risposte, calcoli di rischio e la data dell'ultimo svolgimento\n    let rawState = original.checklist_state || original.risk || original.saved_checklists || [];\n    if (Array.isArray(rawState)) {\n        safeData.checklist_state = rawState.map(st => {\n            if (!st) return null;\n            const cleanSt = {\n                service_sku: st.service_sku,\n                D: st.D,\n                C: st.C,\n                P: st.P,\n                R: st.R,\n                overall_justification: st.overall_justification || '',\n                last_executed: st.last_executed || null,\n                answers: {}\n            };\n            if (st.answers) {\n                Object.keys(st.answers).forEach(qId => {\n                    const ans = st.answers[qId] || {};\n                    cleanSt.answers[qId] = {\n                        checked: ans.checked === true,\n                        label: ans.label || '',\n                        description: ans.description || '',\n                        executed_at: ans.executed_at || null\n                    };\n                });\n            }\n            return cleanSt;\n        }).filter(Boolean);\n    } else {\n        safeData.checklist_state = [];\n    }\n\n    sanitizedOutput.push({ json: safeData });\n}\n\nreturn sanitizedOutput;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        656,
+        -1088
+      ],
+      "id": "2fe99a00-021f-4d00-b67b-07d8bac7bafa",
+      "name": "Minimizing"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0",
+            "content-length": "668",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "it,it-IT;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "content-type": "application/json",
+            "origin": "https://trinaibusinessoperatingsystem.github.io",
+            "priority": "u=1, i",
+            "referer": "https://trinaibusinessoperatingsystem.github.io/",
+            "sec-ch-ua": "\"Not)A;Brand\";v=\"24\", \"Microsoft Edge WebView2\";v=\"149\", \"Microsoft Edge\";v=\"149\", \"Chromium\";v=\"149\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "151.19.254.234",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "_auth": "query_id=AAF7KwZvAwAAAHsrBm-v6tir&user=%7B%22id%22%3A8305126267%2C%22first_name%22%3A%22Giuseppe%22%2C%22last_name%22%3A%22B%22%2C%22language_code%22%3A%22it%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2Fp6piCXvtNSGj4KPd60vozxgOJss0ji-aGRNNX4I7CVNme0ergMr6kC1wUoV60zBY.svg%22%7D&auth_date=1782823463&signature=3pACA162SSMqFPRBb-Zq82As9TA3_o5_rezswqhxCDnyL5ku2kJhHZaYZ0Qb3R0b21sCFhSKwv_oCRHAxYZoDQ&hash=404224276d77ae8ff93f798a948a8be2923bee8ee52a6272d7dcec2bb039a57b",
+            "ash": "ODMwNTEyNjI2N3wxNzgyODIyMzcxNjc3fGVmNGFlY2U0LTllYzAtNDAyNi1hN2E3LTMyODU2MmJjYmRmNg==.628d245e",
+            "action": "get"
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/7f254dec-e28f-452a-afb9-2a2a90206cbb",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Call 'Unified-Authentication'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Unified-Authentication'": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "⛔️ 403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "catalog": {
+      "main": [
+        [
+          {
+            "node": "catalog_active",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "catalog",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Blueprint",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "catalog_active": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compliance": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Blueprint": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Compliance",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "managment_risk",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge44",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Secure_Rational",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "managment_risk1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Secure_Rational": {
+      "main": [
+        [
+          {
+            "node": "Gemini_Refuse_Vertical",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini_Refuse_Vertical": {
+      "main": [
+        [
+          {
+            "node": "Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error?": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "managment_risk": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "RiskMerger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "managment_risk1": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Minimizing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory4": {
+      "ai_memory": [
+        [
+          {
+            "node": "Site_Bord",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RiskMerger": {
+      "main": [
+        [
+          {
+            "node": "Site_Bord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Site_Bord": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge44": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram User Valut",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Merge44",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram User Valut": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Update_Owner",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Update_Owner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update_Owner": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Minimizing": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "319527dd-9f57-4a3e-8bb8-559d6d038b9a",
+  "meta": {
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "IRPK3Zwph3fmSRZX",
+  "tags": []
+}

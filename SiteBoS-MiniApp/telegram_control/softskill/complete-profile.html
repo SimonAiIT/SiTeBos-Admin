@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilo Completo - Soft Skill Analysis</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="twa_guard.js"></script>
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        window.TwaSoftskillGuard?.requireTelegramWebApp?.();
+        window.TwaSoftskillGuard?.requireAsh?.();
+        window.TwaSoftskillGuard?.requireMsgId?.();
+        window.TwaSoftskillGuard?.cleanupUrl?.();
+    </script>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            background-color: #fafafa;
+            color: #000;
+            padding-bottom: 120px;
+        }
+
+        .profile-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .profile-header h1 {
+            font-size: 32px;
+            margin-bottom: 12px;
+            background: #000;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .profile-header .subtitle {
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+
+        .archetype-badge {
+            display: inline-block;
+            background: #000;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            padding: 30px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--primary);
+        }
+
+        .section-title-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title-left i {
+            font-size: 28px;
+        }
+
+        /* SCORE BADGE */
+        .score-badge {
+            background: #000;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 28px;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+
+        .score-badge-label {
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .strengths-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .strength-item {
+            background: rgba(76, 217, 100, 0.1);
+            border-left: 4px solid var(--success);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .strength-item i {
+            color: var(--success);
+            font-size: 20px;
+            margin-top: 2px;
+        }
+
+        .strength-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-main);
+        }
+
+        .areas-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .area-card {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--warning);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .area-header {
+            display: flex;
+            justify-between: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .area-skill {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .area-level {
+            font-size: 12px;
+            padding: 5px 12px;
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border-radius: 15px;
+            font-weight: 600;
+        }
+
+        .area-detail {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+
+        .area-detail strong {
+            color: var(--text-main);
+        }
+
+        /* 🎬 VIDEO CARDS - STILE NOIR AD ALTO CONTRASTO */
+        .videos-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .video-card {
+            background: linear-gradient(135deg, #1e1e24 0%, #121214 100%);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 16px;
+            padding: 25px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .video-priority {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 16px;
+            color: #ffffff;
+        }
+
+        .video-title {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #ffffff;
+            padding-right: 50px;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+        }
+
+        .video-duration {
+            font-size: 13px;
+            color: #a3a3a3;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .video-why {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #e5e5e5;
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .video-improvement {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #ffffff;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .watch-btn {
+            width: 100%;
+            padding: 14px;
+            background: #ffffff;
+            color: #000000;
+            border: 1px solid #000000;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .watch-btn:hover {
+            background: #000000;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        /* KEY TAKEAWAYS DENTRO LE SCHEDE */
+        .video-knowledge-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .video-card-header {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .video-card-header:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .video-card-header h4 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 800;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+        }
+
+        .video-chevron {
+            transition: transform 0.3s;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .video-knowledge-card.open .video-chevron {
+            transform: rotate(180deg);
+        }
+
+        .video-card-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .video-knowledge-card.open .video-card-content {
+            max-height: 1000px;
+        }
+
+        .video-card-body {
+            padding: 15px;
+        }
+
+        .video-takeaway-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid #ffffff;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #e5e5e5;
+        }
+
+        /* 📚 LEARNING HISTORY */
+        .history-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .history-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            transition: all 0.2s;
+        }
+
+        .history-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .history-icon {
+            flex-shrink: 0;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .history-icon.transformational {
+            background: linear-gradient(135deg, var(--success), #3fb755);
+            color: white;
+        }
+
+        .history-icon.standard {
+            background: linear-gradient(135deg, var(--primary), #4a5fc8);
+            color: white;
+        }
+
+        .history-icon.hostile_resistance {
+            background: linear-gradient(135deg, var(--error), #c92a2a);
+            color: white;
+        }
+
+        .history-content {
+            flex: 1;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            gap: 15px;
+        }
+
+        .history-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.3;
+        }
+
+        .history-badge {
+            flex-shrink: 0;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .history-badge.transformational {
+            background: rgba(76, 217, 100, 0.15);
+            color: var(--success);
+        }
+
+        .history-badge.standard {
+            background: rgba(91, 111, 237, 0.15);
+            color: var(--primary);
+        }
+
+        .history-badge.hostile_resistance {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--error);
+        }
+
+        .history-summary {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .history-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .history-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .history-meta-item i {
+            font-size: 14px;
+        }
+
+        /* 🔙 PULSANTE FLOTTANTE INDIETRO (FAB) */
+        .fab-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 9999;
+        }
+
+        .fab-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #000000;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .fab-btn:hover {
+            transform: scale(1.05);
+            background: #222222;
+        }
+
+        /* OVERLAY DI ANALISI */
+        .analysis-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .analysis-overlay.hidden {
+            display: none;
+        }
+
+        .analysis-content {
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .analysis-icon {
+            margin-bottom: 30px;
+        }
+
+        .analysis-icon i {
+            font-size: 64px;
+            color: var(--primary);
+            animation: analysisPulse 2s ease-in-out infinite;
+        }
+
+        .analysis-title {
+            color: #fff;
+            font-size: 28px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .analysis-subtitle {
+            color: var(--text-muted);
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .analysis-progress {
+            background: rgba(255,255,255,0.1);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+
+        .analysis-progress-bar {
+            background: #000;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        @keyframes analysisPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.15); opacity: 0.8; }
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .error-state i {
+            font-size: 64px;
+            color: var(--error);
+            margin-bottom: 20px;
+        }
+
+        .error-state h2 {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .error-state p {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .profile-header h1 {
+                font-size: 24px;
+            }
+
+            .section-card {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 18px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .score-badge {
+                font-size: 24px;
+                padding: 10px 20px;
+            }
+
+            .strengths-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .history-card {
+                flex-direction: column;
+            }
+
+            .history-header {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="analysis-overlay" id="analysisOverlay">
+        <div class="analysis-content">
+            <div class="analysis-icon">
+                <i class="fas fa-user-astronaut"></i>
+            </div>
+            
+            <h2 class="analysis-title">🧠 Analisi Completa in Corso...</h2>
+            
+            <p class="analysis-subtitle">
+                La nostra AI sta elaborando i dati di tutti e 4 i moduli per generare il tuo profilo comportamentale completo e i consigli di crescita personalizzati.
+                <br><strong style="color: var(--primary);">Questo richiede circa 15-30 secondi.</strong>
+            </p>
+            
+            <div class="analysis-progress">
+                <div class="analysis-progress-bar" id="analysisProgressBar"></div>
+            </div>
+            
+            <div class="sponsor-section">
+                <p class="sponsor-label">Nel frattempo, scopri i nostri pacchetti crediti</p>
+                <div id="sponsorCarousel"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-container" id="mainContent" style="display: none;">
+        <div class="profile-header">
+            <div class="archetype-badge" id="archetypeBadge">L'Architetto Resiliente</div>
+            <h1 id="tagline">Sfrutta la tua visione per scalare senza compromessi</h1>
+            <p class="subtitle" id="description">Analisi comportamentale basata su 150 domande e 4 moduli</p>
+        </div>
+
+        <!-- LEARNING HISTORY SECTION -->
+        <div class="section-card" id="learningHistorySection" style="display: none;">
+            <h2 class="section-title">
+                <div class="section-title-left">
+                    <i class="fas fa-graduation-cap"></i>
+                    Il Tuo Percorso di Crescita
+                </div>
+            </h2>
+            <div id="learningHistoryList" class="history-grid"></div>
+        </div>
+
+        <!-- 🌟 SUPER POTERI CON PUNTEGGIO -->
+        <div class="section-card">
+            <h2 class="section-title">
+                <div class="section-title-left">
+                    <i class="fas fa-star"></i>
+                    I Tuoi Super Poteri
+                </div>
+                <div class="score-badge" id="scoreBadge">
+                    <span id="overallScore">0</span>
+                </div>
+            </h2>
+            <div id="strengthsList" class="strengths-grid"></div>
+        </div>
+
+        <div class="section-card">
+            <h2 class="section-title">
+                <div class="section-title-left">
+                    <i class="fas fa-bullseye"></i>
+                    Dove Puoi Crescere
+                </div>
+            </h2>
+            <div id="areasToImprove" class="areas-grid"></div>
+        </div>
+
+        <div class="section-card">
+            <h2 class="section-title">
+                <div class="section-title-left">
+                    <i class="fas fa-play-circle"></i>
+                    I Tuoi Prossimi 3 Video
+                </div>
+            </h2>
+            <p class="subtitle">∼27 minuti totali per sbloccare il tuo potenziale. <strong>La riflessione personale si trova nel video player.</strong></p>
+            <div id="videosList" class="videos-grid"></div>
+        </div>
+    </div>
+
+    <div class="profile-container error-state" id="errorState" style="display: none;">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h2>Profilo Non Disponibile</h2>
+        <p>Completa tutti e 4 i moduli per sbloccare l'analisi completa del tuo profilo.</p>
+        <button class="btn btn-primary" onclick="goBackToDashboard()">
+            <i class="fas fa-arrow-left"></i> Torna alla Dashboard
+        </button>
+    </div>
+
+    <div class="fab-container">
+        <button class="fab-btn fab-secondary" onclick="goBackToDashboard()" title="Torna alla Dashboard">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+    </div>
+
+    <script src="modules-mapping.js"></script>
+    <script src="webhook-handler.js"></script>
+    <script src="../sponsor.js"></script>
+    
+    <script>
+        const webhook = new WebhookHandler();
+        let profileData = null;
+
+        async function loadCompleteAnalysis() {
+            try {
+                showAnalysisOverlay();
+                
+                const response = await fetch(webhook.webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: "get_analysis",
+                        ash: webhook.ash,
+                        msg_id: webhook.msgId,
+                        _auth: webhook._auth,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                if (!response.ok) {
+                    let errorMsg = `Webhook failed: ${response.status}`;
+                    try {
+                        const errData = await response.json();
+                        if (errData && errData.error) errorMsg = errData.error;
+                    } catch(e) {}
+                    throw new Error(errorMsg);
+                }
+
+                const result = await response.json();
+                const analysisData = Array.isArray(result) ? result[0] : result;
+
+                if (!analysisData.success || !analysisData.data) {
+                    throw new Error('Profilo non completo');
+                }
+
+                profileData = analysisData.data;
+                closeAnalysisOverlay();
+
+                setTimeout(() => {
+                    renderProfile(profileData);
+                    document.getElementById('mainContent').style.display = 'block';
+                }, 800);
+
+            } catch (error) {
+                console.error('❌ Errore:', error);
+                closeAnalysisOverlay();
+                setTimeout(() => {
+                    document.getElementById('errorState').style.display = 'block';
+                }, 600);
+            }
+        }
+
+        function showAnalysisOverlay() {
+            const overlay = document.getElementById('analysisOverlay');
+            overlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            const progressBar = document.getElementById('analysisProgressBar');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 90) progress = 90;
+                progressBar.style.width = `${progress}%`;
+            }, 800);
+
+            overlay.dataset.progressInterval = interval;
+
+            if (window.SponsorManager) {
+                window.SponsorManager.inject('#sponsorCarousel', 'loader');
+            }
+        }
+
+        function closeAnalysisOverlay() {
+            const overlay = document.getElementById('analysisOverlay');
+            const progressBar = document.getElementById('analysisProgressBar');
+            
+            if (progressBar) progressBar.style.width = '100%';
+            
+            const intervalId = overlay.dataset.progressInterval;
+            if (intervalId) clearInterval(parseInt(intervalId));
+            
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.body.style.overflow = '';
+            }, 500);
+        }
+
+        function renderProfile(data) {
+            document.getElementById('archetypeBadge').textContent = data.summary?.archetype || 'Profilo Unico';
+            document.getElementById('tagline').textContent = data.summary?.tagline || '';
+            document.getElementById('description').textContent = data.summary?.description || '';
+
+            // 🌟 PUNTEGGIO NEL BADGE
+            document.getElementById('overallScore').textContent = data.stats?.overall_score || '0';
+
+            // 📚 LEARNING HISTORY
+            renderLearningHistory(data.learning_history);
+
+            // STRENGTHS
+            const strengthsList = document.getElementById('strengthsList');
+            if (data.strengths && data.strengths.length > 0) {
+                strengthsList.innerHTML = data.strengths.map(strength => `
+                    <div class="strength-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="strength-text">${strength}</span>
+                    </div>
+                `).join('');
+            } else {
+                strengthsList.innerHTML = '<p style="color: var(--text-muted);">Nessun punto di forza identificato</p>';
+            }
+
+            // AREAS TO IMPROVE
+            const areasToImprove = document.getElementById('areasToImprove');
+            if (data.areas_to_improve && data.areas_to_improve.length > 0) {
+                areasToImprove.innerHTML = data.areas_to_improve.map(area => `
+                    <div class="area-card">
+                        <div class="area-header">
+                            <span class="area-skill">${area.skill}</span>
+                            <span class="area-level">${area.current_level}</span>
+                        </div>
+                        <div class="area-detail"><strong>Perché:</strong> ${area.why}</div>
+                        <div class="area-detail"><strong>Impatto:</strong> ${area.impact}</div>
+                    </div>
+                `).join('');
+            } else {
+                areasToImprove.innerHTML = '<p style="color: var(--text-muted);">Nessuna area di miglioramento identificata</p>';
+            }
+
+            // VIDEOS WITH KEY TAKEAWAYS (CHIUSA)
+            const videosList = document.getElementById('videosList');
+            if (data.recommended_videos && data.recommended_videos.length > 0) {
+                videosList.innerHTML = data.recommended_videos.map((item, index) => `
+                    <div class="video-card">
+                        <div class="video-priority">${item.priority}</div>
+                        <div class="video-title">${item.video.title}</div>
+                        <div class="video-duration">⏱️ ${item.video.duration}</div>
+                        <div class="video-why">${item.why_this}</div>
+                        <div class="video-improvement">💪 ${item.expected_improvement}</div>
+                        
+                        <button class="watch-btn" 
+                                data-url="${item.video.url}" 
+                                data-priority="${item.priority}"
+                                data-title="${encodeURIComponent(item.video.title)}"
+                                data-duration="${item.video.duration}"
+                                data-improvement="${encodeURIComponent(item.expected_improvement)}">
+                            <i class="fas fa-play"></i> Guarda Ora
+                        </button>
+
+                        <!-- KEY TAKEAWAYS CARD (CHIUSA) -->
+                        <div class="video-knowledge-card">
+                            <div class="video-card-header">
+                                <h4><i class="fas fa-lightbulb"></i> Key Takeaways</h4>
+                                <i class="fas fa-chevron-down video-chevron"></i>
+                            </div>
+                            <div class="video-card-content">
+                                <div class="video-card-body">
+                                    <div class="video-takeaway-item">Applica le strategie del video nella tua routine quotidiana</div>
+                                    <div class="video-takeaway-item">Identifica situazioni recenti dove avresti potuto usare questa soft skill</div>
+                                    <div class="video-takeaway-item">Pratica costantemente per trasformare conoscenza in competenza</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // GESTIONE CLICK WATCH BTN
+                videosList.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.watch-btn');
+                    if (btn) {
+                        openVideoPlayer(
+                            btn.dataset.url,
+                            btn.dataset.priority,
+                            btn.dataset.title,
+                            btn.dataset.duration,
+                            btn.dataset.improvement
+                        );
+                    }
+
+                    // ACCORDION TOGGLE
+                    const cardHeader = e.target.closest('.video-card-header');
+                    if (cardHeader) {
+                        cardHeader.parentElement.classList.toggle('open');
+                    }
+                });
+            } else {
+                videosList.innerHTML = '<p style="color: var(--text-muted);">Nessun video raccomandato</p>';
+            }
+        }
+
+        function renderLearningHistory(history) {
+            const section = document.getElementById('learningHistorySection');
+            const list = document.getElementById('learningHistoryList');
+
+            if (!history || !history.videos_completed || history.videos_completed.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+
+            const iconMap = {
+                'transformational': 'fa-rocket',
+                'standard': 'fa-check',
+                'hostile_resistance': 'fa-exclamation-triangle'
+            };
+
+            list.innerHTML = history.videos_completed.map(video => `
+                <div class="history-card">
+                    <div class="history-icon ${video.engagement_level}">
+                        <i class="fas ${iconMap[video.engagement_level] || 'fa-play'}"></i>
+                    </div>
+                    <div class="history-content">
+                        <div class="history-header">
+                            <div class="history-title">${video.video_title}</div>
+                            <div class="history-badge ${video.engagement_level}">${getEngagementLabel(video.engagement_level)}</div>
+                        </div>
+                        <div class="history-summary">${video.reflection_summary}</div>
+                        <div class="history-meta">
+                            <div class="history-meta-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>${formatDate(video.completed_at)}</span>
+                            </div>
+                            <div class="history-meta-item">
+                                <i class="fas fa-chart-line"></i>
+                                <span>${video.score_impact}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getEngagementLabel(level) {
+            const labels = {
+                'transformational': 'Trasformativo',
+                'standard': 'Standard',
+                'hostile_resistance': 'Resistenza'
+            };
+            return labels[level] || level;
+        }
+
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleDateString('it-IT', { 
+                day: 'numeric', 
+                month: 'short', 
+                year: 'numeric' 
+            });
+        }
+
+        function openVideoPlayer(url, priority, title, duration, improvement) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const params = new URLSearchParams();
+            
+            params.set('url', url);
+            params.set('priority', priority);
+            params.set('title', title);
+            params.set('duration', duration);
+            params.set('improvement', improvement);
+            
+            if (urlParams.get('ash')) params.set('ash', urlParams.get('ash'));
+            if (urlParams.get('msg_id')) params.set('msg_id', urlParams.get('msg_id'));
+            
+            // AGGIUNTA FONDAMENTALE: Propaga lo stato standalone aprendo il Video Player
+            if (urlParams.get('alone')) params.set('alone', urlParams.get('alone'));
+            
+            window.location.href = `video-player.html?${params.toString()}`;
+        }
+
+        function goBackToDashboard() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const params = new URLSearchParams();
+            
+            if (urlParams.get('ash')) params.set('ash', urlParams.get('ash'));
+            if (urlParams.get('msg_id')) params.set('msg_id', urlParams.get('msg_id'));
+            
+            // AGGIUNTA FONDAMENTALE: Propaga lo stato standalone tornando indietro alla Dashboard
+            if (urlParams.get('alone')) params.set('alone', urlParams.get('alone'));
+            
+            window.location.href = `index.html?${params.toString()}`;
+        }
+
+        window.addEventListener('DOMContentLoaded', loadCompleteAnalysis);
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

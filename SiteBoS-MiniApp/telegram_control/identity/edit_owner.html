@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Profile Manager | SiteBoS</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        (function () {
+            if (!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)) {
+                document.documentElement.innerHTML = `
+                    <body class="bg-black text-white flex items-center justify-center h-screen text-center p-10 font-sans">
+                        <div><h1 class="text-6xl mb-4">🚫</h1><h2 class="text-xl font-black uppercase tracking-widest">Accesso Proibito</h2></div>
+                    </body>`;
+                window.stop();
+            }
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', surface: '#ffffff', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* SiteBoS Architect Alignment */
+        body { background-color: #fafafa !important; color: #000000 !important; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .card, .section-card { background: white !important; border: 1px solid #eeeeee !important; box-shadow: none !important; border-radius: 1.5rem; padding: 1.25rem; }
+        input:focus, textarea:focus, select:focus { border-color: #000000 !important; box-shadow: none !important; outline: none !important; }
+        input[readonly] { background-color: #f9f9f9 !important; color: #999 !important; cursor: not-allowed; }
+        .label-micro { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #6b7280; margin-left: 0.25rem; margin-bottom: 0.25rem; display: block; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-spin { border: 3px solid #f3f3f3; border-top: 3px solid #000; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+    </style>
+</head>
+<body class="safe-area-inset h-screen flex flex-col overflow-hidden">
+
+    <!-- HEADER -->
+    <header class="p-5 bg-white border-b border-gray-100 flex justify-between items-center z-50 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center text-white">
+                <i class="fas fa-user-shield text-sm"></i>
+            </div>
+            <div>
+                <h1 class="text-[9px] font-black uppercase tracking-widest text-gray-500 leading-none mb-1">Architect Desk</h1>
+                <p class="text-sm font-black tracking-tight">Profilo Owner</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <!-- User Guide Button -->
+            <button onclick="openUserGuide('../userguide/02_onboarding.html')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition" title="Manuale Utente">
+                <i class="fas fa-globe text-xs"></i>
+            </button>
+            <!-- Speech Audio Button -->
+            <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition">
+                <i class="fas fa-volume-high text-xs"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="flex-1 overflow-y-auto p-5 space-y-6 no-scrollbar pb-32">
+        
+        <form id="owner-form" class="space-y-6">
+            
+            <!-- SECTION 1: IDENTITY (READ ONLY) -->
+            <section class="section-card space-y-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="fas fa-id-card text-xs"></i>
+                    <h2 class="font-black uppercase tracking-widest text-[10px]">Identità Verificata</h2>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="label-micro">Nome</label>
+                        <input type="text" name="name" readonly class="w-full bg-gray-50 border border-transparent rounded-xl px-3 py-2.5 text-xs font-bold outline-none">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="label-micro">Cognome</label>
+                        <input type="text" name="surname" readonly class="w-full bg-gray-50 border border-transparent rounded-xl px-3 py-2.5 text-xs font-bold outline-none">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="label-micro">Email</label>
+                    <input type="email" name="email" readonly class="w-full bg-gray-50 border border-transparent rounded-xl px-3 py-2.5 text-xs font-bold outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="label-micro">Codice Fiscale</label>
+                        <input type="text" name="fiscal_code" readonly class="w-full bg-gray-50 border border-transparent rounded-xl px-3 py-2.5 text-xs font-bold outline-none">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="label-micro">P.IVA</label>
+                        <input type="text" name="vat_number" readonly class="w-full bg-gray-50 border border-transparent rounded-xl px-3 py-2.5 text-xs font-bold outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="label-micro">SDI / PEC</label>
+                        <input type="text" name="sdi_pec" readonly class="w-full bg-gray-50 border border-transparent rounded-xl px-3 py-2.5 text-xs font-bold outline-none">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="label-micro">Phone</label>
+                        <input type="text" name="phone" class="w-full bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition">
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-gray-50 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="label-micro !m-0">User ID</span>
+                        <span class="text-[10px] font-mono text-gray-400 select-all" id="display-user-id">...</span>
+                        <input type="hidden" name="user_id">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="label-micro !m-0">Chat ID</span>
+                        <span class="text-[10px] font-mono text-gray-400 select-all" id="display-chat-id">...</span>
+                        <input type="hidden" name="chat_id">
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: BUSINESS PROFILE -->
+            <section class="section-card space-y-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="fas fa-briefcase text-xs"></i>
+                    <h2 class="font-black uppercase tracking-widest text-[10px]">Profilo Aziendale</h2>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="label-micro">Ragione Sociale</label>
+                    <input type="text" name="ragione_sociale" class="w-full bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="label-micro">Settore</label>
+                    <select name="sector" class="w-full bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-[10px] font-black uppercase outline-none appearance-none">
+                        <option value="services_consulting">Servizi & Consulenza</option>
+                        <option value="tech_software">Tech & Software</option>
+                        <option value="retail_ecommerce">Retail & E-commerce</option>
+                        <option value="food_beverage">Food & Beverage</option>
+                        <option value="medical_health">Medical & Health</option>
+                        <option value="other">Altro</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="label-micro">Indirizzo Sede</label>
+                    <input type="text" name="indirizzo" class="w-full bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="label-micro">Descrizione Business / Mission</label>
+                    <textarea name="business_description" rows="4" class="w-full bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-xs font-medium focus:border-black outline-none transition resize-none leading-relaxed"></textarea>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="label-micro">Sito Web</label>
+                    <input type="url" name="site" class="w-full bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition" placeholder="https://...">
+                </div>
+            </section>
+
+            <!-- SECTION 3: SOCIAL CHANNELS -->
+            <section class="section-card space-y-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="fas fa-share-nodes text-xs"></i>
+                    <h2 class="font-black uppercase tracking-widest text-[10px]">Canali Social</h2>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3">
+                    <div class="relative">
+                        <i class="fab fa-linkedin absolute left-3 top-3 text-gray-300"></i>
+                        <input type="url" name="linkedin_page" class="w-full bg-white border border-gray-100 rounded-xl pl-9 pr-3 py-2.5 text-xs font-bold focus:border-black outline-none transition" placeholder="LinkedIn URL">
+                    </div>
+                    <div class="relative">
+                        <i class="fab fa-facebook absolute left-3 top-3 text-gray-300"></i>
+                        <input type="url" name="facebook_page" class="w-full bg-white border border-gray-100 rounded-xl pl-9 pr-3 py-2.5 text-xs font-bold focus:border-black outline-none transition" placeholder="Facebook URL">
+                    </div>
+                    <div class="relative">
+                        <i class="fab fa-instagram absolute left-3 top-3 text-gray-300"></i>
+                        <input type="url" name="instagram_page" class="w-full bg-white border border-gray-100 rounded-xl pl-9 pr-3 py-2.5 text-xs font-bold focus:border-black outline-none transition" placeholder="Instagram URL">
+                    </div>
+                    <div class="relative">
+                        <i class="fab fa-twitter absolute left-3 top-3 text-gray-300"></i>
+                        <input type="url" name="twitter_page" class="w-full bg-white border border-gray-100 rounded-xl pl-9 pr-3 py-2.5 text-xs font-bold focus:border-black outline-none transition" placeholder="Twitter URL">
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: AI ENGINE & KEYS -->
+            <section class="section-card space-y-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="fas fa-microchip text-xs"></i>
+                    <h2 class="font-black uppercase tracking-widest text-[10px]">Motore IA & Chiavi</h2>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="label-micro">Gemini API Key</label>
+                    <div class="flex gap-2">
+                        <input type="password" name="gemini_key" class="flex-1 bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-xs font-mono focus:border-black outline-none transition">
+                        <button type="button" onclick="validateGeminiKey()" class="px-4 bg-black text-white rounded-xl text-[8px] font-black uppercase tracking-widest active:scale-95 transition">Valida</button>
+                    </div>
+                    <p class="text-[8px] text-gray-400 italic ml-1">Verifica fatturazione attiva sul cloud Google.</p>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="label-micro">Telegram Bot Key</label>
+                    <div class="flex gap-2">
+                        <input type="password" name="bot_key" class="flex-1 bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-xs font-mono focus:border-black outline-none transition">
+                        <button type="button" onclick="associateTelegramBot()" class="px-4 bg-black text-white rounded-xl text-[8px] font-black uppercase tracking-widest active:scale-95 transition">Associa</button>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="label-micro">Payment Provider Token</label>
+                    <input type="password" name="payment_provider_token" class="w-full bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-xs font-mono focus:border-black outline-none transition">
+                </div>
+            </section>
+
+            <!-- SECTION 5: PREFERENCES & LIMITS -->
+            <section class="section-card space-y-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="fas fa-sliders text-xs"></i>
+                    <h2 class="font-black uppercase tracking-widest text-[10px]">Preferenze & Orari</h2>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="label-micro">Lingua</label>
+                        <select name="lenguage" class="w-full bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-[10px] font-black uppercase outline-none">
+                            <option value="Italiano">Italiano</option>
+                            <option value="English">English</option>
+                            <option value="Español">Español</option>
+                            <option value="Français">Français</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="label-micro">Pagamento Pref.</label>
+                        <select name="payment_preference" class="w-full bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-[10px] font-black uppercase outline-none">
+                            <option value="wire">Bonifico (Wire)</option>
+                            <option value="stripe">Card (Stripe)</option>
+                            <option value="crypto">Crypto</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="label-micro">Indisponibile (Owner)</label>
+                        <input type="text" name="owner_unavailable_time" class="w-full bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition" placeholder="E.g. 21-7">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="label-micro">Indisponibile (Op.)</label>
+                        <input type="text" name="operator_unavailable_time" class="w-full bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition" placeholder="E.g. 19-9">
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-gray-50 flex justify-between items-center">
+                    <div class="flex flex-col">
+                        <span class="label-micro !m-0">Prezzi Esposti sul Web</span>
+                        <span class="text-[9px] text-gray-400">Mostra i prezzi dei servizi pubblicamente sul sito</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="esposizione_prezzi" class="sr-only peer">
+                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                    </label>
+                </div>
+
+                <div class="pt-2 border-t border-gray-50 flex justify-between items-center">
+                    <div class="flex flex-col">
+                        <span class="label-micro !m-0">Crediti Operatore</span>
+                        <span class="text-xs font-black" id="display-credits">0</span>
+                        <input type="hidden" name="operator_credit">
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <span class="label-micro !m-0">Saldo Crediti</span>
+                        <span class="text-xs font-black text-green-600" id="display-balance">0</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 6: SAFETY & COMPLIANCE -->
+            <section class="section-card space-y-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="fas fa-shield-halved text-xs"></i>
+                    <h2 class="font-black uppercase tracking-widest text-[10px]">Sicurezza e Conformità (D.Lgs. 81/08)</h2>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="label-micro">Responsabile Servizio Prevenzione Protezione (RSPP)</label>
+                    <input type="text" name="rspp" class="w-full bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition" placeholder="Nome RSPP">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="label-micro">Medico Competente Incaricato</label>
+                    <input type="text" name="medico_competente" class="w-full bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition" placeholder="Nome Medico Competente">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="label-micro">Rappresentante Lavoratori Sicurezza (RLS)</label>
+                    <input type="text" name="rls" class="w-full bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition" placeholder="Nome RLS">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="label-micro">Addetti Emergenze ed Evacuazione (separati da virgola)</label>
+                    <textarea name="addetti_emergenza" rows="2" class="w-full bg-white border border-gray-100 rounded-xl px-3 py-2.5 text-xs font-medium focus:border-black outline-none transition resize-none leading-relaxed" placeholder="Sig.ra Anna Neri (Antincendio), Sig. Paolo Blu (Primo Soccorso)"></textarea>
+                </div>
+
+
+            </section>
+
+        </form>
+    </main>
+
+    <!-- FOOTER -->
+    <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-lg border-t border-gray-100 z-50">
+        <div class="max-w-md mx-auto">
+            <button onclick="saveData()" class="w-full h-12 bg-black text-white rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition shadow-sm flex items-center justify-center gap-2">
+                <span>Aggiorna Profilo</span><i class="fas fa-save text-[10px]"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- LOADER -->
+    <div id="global-loader" class="fixed inset-0 bg-white/95 z-[100] hidden flex flex-col items-center justify-center p-10 text-center transition-opacity">
+        <div class="loader-spin mb-4"></div>
+        <h3 id="loader-title" class="text-sm font-black uppercase tracking-tighter mb-1">Syncing...</h3>
+        <p id="loader-msg" class="text-[10px] text-gray-500 font-medium italic">Collegamento ai motori neurali SiteBoS</p>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.expand(); tg.ready();
+
+        if (tg.BackButton) {
+            tg.BackButton.show();
+            tg.BackButton.onClick(() => {
+                location.href = `../dashboard/dashboard.html?ash=${ash}&msg=${msg || ''}&menu=identity_hub`;
+            });
+        }
+
+        const WH_URL = "https://prod.workflow.trinai.it/webhook/83acc670-15ae-4da0-ae0e-3587c85bd5f4";
+        const urlParams = new URLSearchParams(window.location.search);
+        let ash = urlParams.get('ash');
+        let msg = urlParams.get('msg') || urlParams.get('message_id');
+
+        // Robust parsing for dirty ash: TOKEN?msg=ID
+        if (ash && ash.includes('?msg=')) {
+            const parts = ash.split('?msg=');
+            ash = parts[0];
+            if (!msg) msg = parts[1];
+        }
+
+        let ownerData = {};
+
+        console.log("TG: ASH Session", ash);
+
+        function buildEnvelope(payload) { 
+            return { _auth: tg.initData, ash: ash, msg: msg, ...payload };
+        }
+
+        window.onload = async () => {
+            if (!ash) {
+                document.body.innerHTML = `<div class="bg-black text-white flex items-center justify-center h-screen text-center p-10"><div><h1 class="text-6xl mb-4">⚠️</h1><h2 class="text-xl font-black uppercase">ASH MISSING</h2></div></div>`;
+                return;
+            }
+            showLoader("Recupero", "Caricamento profilo...");
+            await fetchOwnerData();
+            hideLoader();
+        };
+
+        function showLoader(title, msg) {
+            document.getElementById('loader-title').innerText = title;
+            document.getElementById('loader-msg').innerText = msg;
+            document.getElementById('global-loader').classList.remove('hidden');
+        }
+        function hideLoader() { document.getElementById('global-loader').classList.add('hidden'); }
+
+        async function fetchOwnerData() {
+            try {
+                const response = await fetch(WH_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(buildEnvelope({ action: 'get_owner_data' }))
+                });
+                const result = await response.json();
+                if (result.status === 'success' && result.owner_data) {
+                    ownerData = result.owner_data;
+                    populateForm(ownerData);
+                }
+            } catch (error) { console.error(error); tg.showAlert("Errore caricamento."); }
+        }
+
+        function populateForm(data) {
+            const form = document.getElementById('owner-form');
+            const fields = ['name', 'surname', 'email', 'fiscal_code', 'vat_number', 'sdi_pec', 'phone', 'ragione_sociale', 'sector', 'indirizzo', 'business_description', 'site', 'linkedin_page', 'facebook_page', 'instagram_page', 'twitter_page', 'gemini_key', 'bot_key', 'lenguage', 'payment_preference', 'owner_unavailable_time', 'operator_unavailable_time', 'operator_credit', 'user_id', 'chat_id', 'payment_provider_token', 'esposizione_prezzi'];
+            
+            fields.forEach(f => {
+                const el = form.elements[f];
+                if (el) {
+                    if (el.type === 'checkbox') {
+                        el.checked = data[f] !== undefined && data[f] !== null ? !!data[f] : true;
+                    } else {
+                        el.value = data[f] || '';
+                    }
+                }
+            });
+
+            document.getElementById('display-user-id').innerText = data.user_id || 'N/A';
+            document.getElementById('display-chat-id').innerText = data.chat_id || 'N/A';
+            document.getElementById('display-credits').innerText = data.operator_credit || '0';
+            document.getElementById('display-balance').innerText = (data.credits_balance || 0).toLocaleString();
+
+            // Populate safety & compliance details
+            const secData = data.security_metadata || data.securityMetadata || data.general_metadata || data.generalMetadata || {};
+            form.elements['rspp'].value = secData.rspp || data.rspp || '';
+            form.elements['medico_competente'].value = secData.medico_competente || secData.medicoCompetente || data.medico_competente || '';
+            form.elements['rls'].value = secData.rls || data.rls || '';
+            
+            let addetti = secData.addetti_emergenza || secData.addettiEmergenza || data.addetti_emergenza || '';
+            if (Array.isArray(addetti)) {
+                addetti = addetti.join(', ');
+            }
+            form.elements['addetti_emergenza'].value = addetti;
+
+
+        }
+
+        function getFormData() {
+            const form = document.getElementById('owner-form');
+            const data = {};
+            // Inviamo solo i campi modificabili per evitare di sovrascrivere dati fissi (int32, ID, etc.)
+            const editableFields = ['phone', 'ragione_sociale', 'sector', 'indirizzo', 'business_description', 'site', 'linkedin_page', 'facebook_page', 'instagram_page', 'twitter_page', 'gemini_key', 'bot_key', 'lenguage', 'payment_preference', 'owner_unavailable_time', 'operator_unavailable_time', 'payment_provider_token', 'esposizione_prezzi'];
+            
+            editableFields.forEach(field => {
+                const el = form.elements[field];
+                if (el) {
+                    if (el.type === 'checkbox') {
+                        data[field] = el.checked;
+                    } else {
+                        data[field] = el.value;
+                    }
+                }
+            });
+
+            // Add safety metadata
+            data['security_metadata'] = {
+                rspp: form.elements['rspp'].value,
+                medico_competente: form.elements['medico_competente'].value,
+                rls: form.elements['rls'].value,
+                addetti_emergenza: form.elements['addetti_emergenza'].value.split(',').map(s => s.trim()).filter(Boolean)
+            };
+
+            // Preserve active verticals from loaded ownerData (avoid UI checkbox dependency)
+            data['active_verticals'] = ownerData.active_verticals || ownerData.activeVerticals || ownerData.verticals || ['comune'];
+
+            return data;
+        }
+
+        async function validateGeminiKey() {
+            const key = document.querySelector('[name="gemini_key"]').value;
+            if (!key) { tg.showAlert("Inserisci una chiave da validare."); return; }
+            showLoader("Validazione", "Verifica Gemini Key...");
+            try {
+                const response = await fetch(WH_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(buildEnvelope({ action: 'analyze', gemini_key: key }))
+                });
+                const result = await response.json();
+                console.log("VALIDATE: Risultato", result);
+                
+                const tier = result["gemini key"];
+                if (tier === "Paid Tier") {
+                    tg.showConfirm("Fatturazione attiva confermata! (Paid Tier). Procedere con l'aggiornamento?");
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                } else if (tier === "Free Tier") {
+                    tg.showAlert("Attenzione: La chiave è in Free Tier (senza fatturazione). Alcune funzioni IA potrebbero essere limitate.");
+                } else {
+                    tg.showAlert("Impossibile determinare il Tier della chiave.");
+                }
+            } catch (e) { 
+                console.error("VALIDATE: Errore", e);
+                tg.showAlert("Errore connessione validazione."); 
+            }
+            finally { hideLoader(); }
+        }
+
+        async function associateTelegramBot() {
+            const key = document.querySelector('[name="bot_key"]').value;
+            if (!key) { tg.showAlert("Inserisci la Bot Key di Telegram."); return; }
+            showLoader("Associazione", "Configurazione Bot Telegram...");
+            try {
+                const response = await fetch(WH_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(buildEnvelope({ action: 'associate_bot', bot_key: key }))
+                });
+                const rawResult = await response.json();
+                console.log("ASSOCIATE: Risultato", rawResult);
+                
+                // La risposta è un array [ { success: true, result: true, description: "..." } ]
+                const result = Array.isArray(rawResult) ? rawResult[0] : rawResult;
+
+                if (result.success && result.result) {
+                    tg.showAlert("Bot Associato: " + (result.description || "Successo!"));
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                } else {
+                    tg.showAlert("Errore Associazione: " + (result.description || "Controlla la chiave del bot."));
+                }
+            } catch (e) { 
+                console.error("ASSOCIATE: Errore", e);
+                tg.showAlert("Errore connessione associazione."); 
+            }
+            finally { hideLoader(); }
+        }
+
+        async function saveData() {
+            showLoader("Salvataggio", "Aggiornamento in corso...");
+            const dataUpdate = getFormData();
+            try {
+                const response = await fetch(WH_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(buildEnvelope({ action: 'save_owner_data', data_update: dataUpdate }))
+                });
+                if (response.ok) {
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                    const btnSpan = document.querySelector('button[onclick="saveData()"] span');
+                    const originalText = btnSpan.innerText;
+                    btnSpan.innerText = "PROFILO AGGIORNATO ✅";
+                    setTimeout(() => btnSpan.innerText = originalText, 3000);
+                }
+            } catch (error) { tg.showAlert("Errore salvataggio."); }
+            finally { hideLoader(); }
+        }
+
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            
+            if (!voiceAudio) {
+                voiceAudio = new Audio('edit_owner.wav');
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+                isAudioPlaying = false;
+                if (icon) {
+                    icon.className = 'fas fa-volume-high text-xs';
+                    btn.classList.remove('bg-black', 'text-white', 'border-black');
+                    btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                }
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            if (typeof window.toggleAudio === 'function' && isAudioPlaying) {
+                window.toggleAudio(); // Toggle off if playing
+            }
+
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+    </script>
+    <!-- User Guide Drawer -->
+    <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+        <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+            <!-- Drawer Header / Handle -->
+            <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                    <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                </div>
+                <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+            <!-- Drawer Iframe Content -->
+            <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,2689 @@
+{
+  "name": "saveProduct_processor",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "20fd95c0-4218-400e-ae2a-cd881a757b80",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        176,
+        240
+      ],
+      "id": "1f920bd7-1e3c-4f49-86a4-73602edd1cb8",
+      "name": "Webhook",
+      "webhookId": "20fd95c0-4218-400e-ae2a-cd881a757b80"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.Product_Reserch }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1184,
+        240
+      ],
+      "id": "5d700ddc-e6fb-41ca-8dd8-7a13c7239b3c",
+      "name": "ErrorApi1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1552,
+        528
+      ],
+      "id": "fad49be3-7320-441b-8fb6-4f0f2df669fe",
+      "name": "ErrorApi"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        512
+      ],
+      "id": "3151848e-8fe0-4d25-bad2-fac1e7170f11",
+      "name": "ErrorApi2"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}_setup_ik",
+        "collectionName": "service_catalog",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1008,
+        1104
+      ],
+      "id": "23ba63ca-15ce-437c-9d60-e465eba97dff",
+      "name": "MongoDB Chat Memory1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1328,
+        896
+      ],
+      "id": "801db60d-a14e-47a3-a5eb-c94cf30f632a",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.Final_Product._id }}",
+        "collectionName": "service_catalog",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1504,
+        1120
+      ],
+      "id": "240f3ea4-cf4c-4d61-9e44-158a6e8165cf",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1824,
+        912
+      ],
+      "id": "7062501d-a78c-41f0-b3b2-561ccc0dc5cc",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.Final_Product }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1504,
+        992
+      ],
+      "id": "60a4e0e8-1237-44df-a08c-977c64ef6a6a",
+      "name": "service_catalog_product"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.Final_Blueprint._id }}",
+        "collectionName": "process_blueprints",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        1136
+      ],
+      "id": "7d561645-8a89-42ba-947a-1181df132a9e",
+      "name": "MongoDB Chat Memory2",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2320,
+        928
+      ],
+      "id": "ba8b30df-40b2-4719-96d2-8a3ec23d8536",
+      "name": "Merge7"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.Final_Blueprint }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        2000,
+        1008
+      ],
+      "id": "2e647352-8585-4483-9616-183a64a18f7a",
+      "name": "process_bluprint"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        800,
+        1200
+      ],
+      "id": "59ddfcec-1a49-48ab-8f3e-a316a51d3cff",
+      "name": "Merge9"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.Final_KB_Fragment.fragment_id }}",
+        "collectionName": "knowledge_fragments",
+        "databaseName": "TbosAssetLake"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        1504
+      ],
+      "id": "4900f35f-8fae-465c-9af7-da4af5978175",
+      "name": "MongoDB Chat Memory3",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2416,
+        1232
+      ],
+      "id": "3ddeb099-414b-409f-9092-73364e4e979b",
+      "name": "Merge8"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.Final_KB_Fragment }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        2080,
+        1376
+      ],
+      "id": "993fdb5a-77fd-46f4-bc60-2edddc560e3d",
+      "name": "KB_Fragment"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1766d5e0-8e34-406c-9839-bb7053ecfcc3",
+              "name": "Final_KB_Fragment.path",
+              "value": "={{ $json.result.path }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1856,
+        1376
+      ],
+      "id": "7da167a5-e731-4bf3-aa1e-db1b7b7180e9",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n    \"status\": \"success\",\n    \"operation\": \"save_product_completed\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2960,
+        1248
+      ],
+      "id": "563c3b4c-5311-48fa-94fa-ac2c560ec0be",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d9f44ff8-9f9b-4bc2-92da-0c2ac2273a21",
+              "leftValue": "={{ $json.product_Compliance }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1760,
+        256
+      ],
+      "id": "3cfe6ba1-dedb-4ead-b663-e1e24c10265c",
+      "name": "ErrorApi3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1648,
+        1216
+      ],
+      "id": "41af2113-dd4d-4f57-ba18-587f1339e8fc",
+      "name": "Merge13"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"error\": {\n    \"code\": \"AI_GLITCH_501\",\n    \"title\": \"AI Generation Failed\",\n    \"message\": \"Il modello AI non ha risposto correttamente. Richiesto nuovo tentativo.\"\n  }\n}",
+        "options": {
+          "responseCode": 501
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        208,
+        880
+      ],
+      "id": "abf5296b-11d6-4dd4-a3f7-a8f23203fcb3",
+      "name": "LLMFail"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.Updated_Service_Catalog }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1008,
+        976
+      ],
+      "id": "70bed376-1247-4b0c-9287-1af8861cc4f1",
+      "name": "save catalog_setup"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n    <Role>TrinAi_KnowledgeArchitect</Role>\n    <Objective>\n        Generare il 'KB_Fragment' strutturato per alimentare il motore di ricerca semantico del Bot (VENOMHEARTH v3.3).\n    </Objective>\n    <Laws>\n        <Law id=\"L1_STRUTTURA_RIGIDA\">\n            Il 'kb_fragment' generato deve rispettare rigorosamente lo schema JSON fornito, includendo sempre i campi 'user_utterances', 'answer_fragment', 'summary' e l'array delle 'sections' contenenti risposte e relative analogie.\n        </Law>\n        <Law id=\"L2_STILE_PERSONA\">\n            Usa un tono empatico, professionale e autorevole. Utilizza analogie visive e concrete (es. Meccanica di precisione, Mattoncini Lego, Chef stellato) per spiegare i processi operativi in modo semplice.\n        </Law>\n        <Law id=\"L3_LOGICA_DUAL_TARGET\">\n            Controlla il campo 'Type' all'interno di TargetProduct:\n            - Se 'SERVICE' o 'PRODUCT': Scrivi per il CLIENTE FINALE. L'obiettivo è vendere, superare obiezioni latenti, giustificare il prezzo e mostrare i vantaggi pratici.\n            - Se 'INTERNAL_PROTOCOL' (SOP): Scrivi per il DIPENDENTE/STAFF. L'obiettivo è formare, spiegare operativamente il processo, descrivere i controlli di qualità e chiarire il perché della regola.\n        </Law>\n\n        <Law id=\"L5_SAM_RETRIEVAL_DISCIPLINE_EXTENDED\">\n            Per ottimizzare l'indicizzazione semantica del modulo VENOMHEARTH, genera almeno 9-12 'user_utterances' distinte. Integra attivamente query relative al servizio base, al problema risolto e alle opzioni extra (se presenti), garantendo una mappatura semantica completa sia sui nuclei principali che su quelli accessori dell'asset.\n        </Law>\n    </Laws>\n    <OutputSchema>\n        {\n          \"kb_fragment\": {\n            \"fragment_id\": \"GENERATE_UPPERCASE_ID_BASED_ON_SKU\",\n            \"title\": \"Titolo Ufficiale dell'Asset\",\n            \"user_utterances\": [\n              \"Query secca principale\",\n              \"Query secca sull'extra\",\n              \"Domanda diretta servizio base\",\n              \"Domanda diretta sull'extra\",\n              \"Sintomo o problema utente 1\",\n              \"Sintomo o problema utente 2\"\n            ],\n            \"answer_fragment\": \"Risposta principale sintetica ed empatica (Max 3-4 righe).\",\n            \"summary\": \"Sintesi strategica dell'asset in una singola frase d'impatto.\",\n            \"sections\": [\n              {\n                \"question\": \"Domanda specifica sulla procedura o sull'offerta?\",\n                \"answer\": \"Risposta dettagliata orientata all'azione.\",\n                \"analogy\": \"Un'analogia chiara e illuminante per chiarire il flusso.\"\n              }\n            ]\n          }\n        }\n    </OutputSchema>\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<GenerationTask>\n    <TargetProduct>\n        <Name>{{ $json.new_product_block.identity.item_name }}</Name>\n        <Description>{{ $json.new_product_block.identity.description.long }}</Description>\n        <Type>{{ $json.new_product_block.identity.item_type }}</Type>\n        <Price>{{ $json.new_product_block.pricing.base_price }} / {{ $json.new_product_block.pricing.unit_of_measure }}</Price>\n        <Booking>{{ $json.new_product_block.operations.requires_booking }}</Booking>\n        <Extras>{{ JSON.stringify($json.new_product_block.commercial_setup.extra_options) }}</Extras>\n    </TargetProduct>\n\n    <ProcessBlueprint>\n        {{ JSON.stringify($json.blueprint || $json) }}\n    </ProcessBlueprint>\n\n    <MarketIntelligence>\n        {{ $json.Product_Reserch }}\n    </MarketIntelligence>\n\n    <StyleReference>\n        {{ JSON.stringify($json.relevant_knowledge_context) }}\n    </StyleReference>\n\n    <Configuration>\n        <Language>{{ $json.owner_data.lenguage || 'it' }}</Language>\n        <PriceExposure>{{ $json.owner_data.esposizione_prezzi }}</PriceExposure>\n    </Configuration>\n\n    <Instructions>\n        <Instruction id=\"UTTERANCES_BALANCING_EXTENDED\">\n            Genera almeno 10-12 'user_utterances' per catturare l'intero spettro semantico dell'asset, del processo e delle sue opzioni. Distribuisci le espressioni secondo questo bilanciamento logico:\n            - 3 Query Secche (parole chiave corte, di cui almeno una focalizzata sull'opzione extra, es: \"costo rigenerazione\", \"procedura rimborsi\", \"sedazione cosciente\").\n            - 3 Domande Dirette (es: \"Quanto costa l'intervento di rigenerazione?\", \"Come faccio la fattura elettronica?\", \"È possibile aggiungere la sedazione?\").\n            - 3 o più Ricerche Implicite o focalizzate su dubbi, problematiche ed extra (es: \"ho paura di sentire dolore durante l'intervento\", \"ho poco osso per l'impianto\", \"posso richiedere il kit post-operatorio\", \"cosa succede se sbaglio la fattura\").\n            Assicurati che almeno 3 delle espressioni totali mappino direttamente l'interesse o le perplessità collegate alle opzioni extra definite nel TargetProduct.\n        </Instruction>\n        \n        <Instruction id=\"ANSWER_FRAGMENT\">\n            Formula la risposta principale in 3 o 4 righe al massimo.\n            - Se il tipo è SERVICE/PRODUCT: Articola un elevator pitch persuasivo che evidenzi i benefici e i risultati concreti.\n            - Se il tipo è INTERNAL_PROTOCOL: Spiega l'utilità organizzativa della procedura e il motivo per cui l'allineamento allo standard tutela l'azienda.\n            Rispetta in modo ferreo la configurazione impostata in PriceExposure.\n        </Instruction>\n        \n        <Instruction id=\"SECTIONS_GENERATION\">\n            Crea da 2 a 4 sezioni di approfondimento nell'array 'sections'. Ogni sezione deve includere una risposta accurata e un'analogia esplicativa.\n            - Se l'asset è commerciale (SER/PRO), affronta: il rapporto Prezzo/Valore, i tempi de erogazione e la gestione dei dubbi più frequenti.\n            - Se l'asset è operativo (SOP), affronta: la gestione dei casi limite o di errore (es. \"cosa fare se un passaggio fallisce\") e la conformità.\n        </Instruction>\n        \n        <Instruction id=\"CHRONOLOGICAL_BLUEPRINT_MAPPING\">\n            Analizza l'array 'stages' nel ProcessBlueprint rispettando la sequenza cronologica indicata dal campo 'stage_order'.\n            Genera almeno una sezione di Domanda/Risposta focalizzata sull'esecuzione pratica di questi passaggi, spiegando all'utente cosa accade durante lo svolgimento del servizio o guidando l'operatore sui requisiti di accettazione dello stage.\n        </Instruction>\n        \n        <Instruction id=\"EXTRAS_EXPANSION\">\n            Esamina il campo Extras in TargetProduct.\n            Per ogni opzione extra inserita, genera una specifica coppia di Domanda e Risposta all'interno di 'sections' per spiegare in cosa consiste, come si integra con il servizio principale e qual è il suo valore, applicando la policy di PriceExposure per la menzione dei costi aggiuntivi.\n        </Instruction>\n\n        <Instruction id=\"ESPOSIZIONE_PREZZI\">\n        Verifica il parametro booleano 'PriceExposure' configurato nel contesto di interazione:\n        \n        - SE PriceExposure è FALSE:\n          * COSA PUÒ FARE (PERMESSO): Usare esclusivamente formule qualitative d'impatto (es. \"investimento su misura\", \"preventivo personalizzato in sede\", \"soluzione sartoriale\", \"valutazione clinica ad hoc\").\n          * COSA NON PUÒ FARE (TASSATIVAMENTE VIETATO): Inserire qualsiasi cifra numerica, percentuale, costo degli extra o simbolo di valuta associato a numeri (es. vietato scrivere \"1.200 €\", \"250 €\", \"80 €\", \"150 €\") in qualsiasi campo di testo ('answer_fragment', 'summary', 'sections').\n          \n        - SE PriceExposure è TRUE:\n          * COSA PUÒ FARE (PERMESSO): Riportare esplicitamente le cifre e i valori numerici del listino base e dei singoli servizi extra, argomentando e giustificando il costo in relazione alla qualità dei materiali e della tecnologia impiegata.\n          * COSA NON PUÒ FARE (TASSATIVAMENTE VIETATO): Essere vago, omettere le cifre ufficiali fornite nel blocco TargetProduct o rimandare genericamente a un preventivo successivo.\n        </Instruction>\n    </Instructions>\n</GenerationTask>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "={{ $json.owner_data.model_choice }}",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "KB_fragment",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.media_items[0].base64_content }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.media_items[0].mime_type }}",
+              "type": "string"
+            },
+            {
+              "id": "141180a3-6d67-45bb-aace-9de04e4e5d28",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1216,
+        528
+      ],
+      "id": "b6d3542b-65e0-4698-9389-137c0c14ca14",
+      "name": "product_KB1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n  <Role>Legal_Compliance_Scout_Italia</Role>\n  <Objective>\n    Produrre un report tecnico-legale sulle normative vigenti (Nazionali e Regionali) relative all'asset analizzato.\n    L'analisi deve essere geo-localizzata sulla sede dell'utente: {{ $json.owner_data.indirizzo }}.\n  </Objective>\n  <Tools>GoogleSearch: ATTIVO (Grounding obbligatorio su fonti ufficiali come Gazzetta Ufficiale, siti Regionali, Garante Privacy)</Tools>\n  <OutputFormat>\n    NON generare JSON. Scrivi un report strutturato per sezioni con titoli chiari. \n    Usa un linguaggio tecnico ma orientato all'azione pratica.\n  </OutputFormat>\n\n  <Mission_Logic>\n    Analizza il campo 'item_type' dell'asset:\n\n    1. SE item_type == 'INTERNAL_PROTOCOL' (SOP):\n       Focus sulla CONFORMITÀ OPERATIVA. Cerca le leggi che impongono come quel processo deve essere svolto (es. Sicurezza sul lavoro D.Lgs 81/08, Norme igienico-sanitarie, Conservazione sostitutiva, Privacy by Design). Verifica se la procedura descritta espone l'azienda a sanzioni.\n\n    2. SE item_type == 'SERVICE' o 'PRODUCT' (SER/PRO):\n       Focus sulla CONFORMITÀ COMMERCIALE. Cerca le normative sulla vendita, la tutela del consumatore (Codice del Consumo), certificazioni obbligatorie, requisiti professionali per l'erogazione o marcatura CE/standard di sicurezza del prodotto.\n  </Mission_Logic>\n</SystemInstruction>\n\n",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<ResearchTask>\n  <Target>\n    Asset Name: \"{{ $json.new_product_block.identity.item_name }}\"\n    Type: \"{{ $json.new_product_block.identity.item_type }}\"\n    Location: {{ $json.owner_data.indirizzo }} (Analizza eventuali leggi della Regione di appartenenza)\n    <![CDATA[\n    Dati Tecnici: {{ JSON.stringify($json.new_product_block) }}\n    Logica KB: {{ JSON.stringify($json.KB_fragment) }}\n    ]]>\n  </Target>\n  <CurrentDate>{{ new Date().toLocaleDateString('it-IT') }}</CurrentDate>\n\n  <Mission>\n    1. Identifica i pilastri normativi (Leggi, Decreti, Regolamenti) applicabili all'asset alla data odierna.\n    2. Per le SOP: Indica quali controlli sono obbligatori per legge e ogni quanto vanno eseguiti.\n    3. Per SER/PRO: Indica quali informative o contratti sono obbligatori verso il cliente.\n    4. Specifica chiaramente l'AZIONE PRATICA (Cosa fare) e il RESPONSABILE (Chi deve farlo).\n    \n    Esempio SOP (Sicurezza): \"Verifica Impianti (D.P.R. 462/01): Il titolare deve far verificare la messa a terra ogni 2 o 5 anni da ente certificato.\"\n    Esempio SER (Privacy): \"Informativa Clienti (GDPR): Il consulente deve far firmare il consenso al trattamento dati prima di acquisire file sensibili.\"\n  </Mission>\n</ResearchTask>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "={{ $json.owner_data.model_choice }}",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "product_Compliance",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.media_items[0].base64_content }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.media_items[0].mime_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1392,
+        256
+      ],
+      "id": "0fc34d49-2e06-40c4-a107-4275b50a6fc4",
+      "name": "product_Compliance"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1376,
+        528
+      ],
+      "id": "ec165a4f-ffaa-48bd-ba0f-2bb5836cdc06",
+      "name": "Call 'GeminiCall'",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "i6kSWyKrKQytzwQlFs92T",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/i6kSWyKrKQytzwQlFs92T",
+          "cachedResultName": "GeminiGoogleSerch"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1584,
+        256
+      ],
+      "id": "effd2d44-15f5-42a6-b307-695d795e777b",
+      "name": "Call GoogleSerch - Compliance",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "i6kSWyKrKQytzwQlFs92T",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/i6kSWyKrKQytzwQlFs92T",
+          "cachedResultName": "GeminiGoogleSerch"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1008,
+        240
+      ],
+      "id": "adee3227-7995-426a-846b-5348bdd7ef34",
+      "name": "Call GoogleSerch - MarketAnalisys",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n  <Role>Senior_Compliance_and_Operations_Analyst_Specialized_In_{{ $json.blueprint_dictionary.system_role }}</Role>\n  <Tools>GoogleSearch: ATTIVO (Grounding obbligatorio su fonti autorevoli, associazioni nazionali o linee guida di settore in base a: {{ $json.blueprint_dictionary.search_guidelines }})</Tools>\n  <Objective>\n    Produrre un report tecnico ed economico dettagliato di Intelligence Operativa e Commerciale sulla prestazione o sul protocollo in esame (TargetAsset).\n  </Objective>\n  <Structure>\n    Genera l'output usando rigorosamente questi tag semantici:\n\n    <CLINICAL_PROTOCOL_GOLD_STANDARD>\n    - Descrivi le fasi operative standard necessarie per eseguire la prestazione presso la postazione principale ({{ $json.blueprint_dictionary.primary_workstation }}).\n    - Elenca i passaggi biologici o operativi essenziali che si svolgono durante il servizio.\n    - Specifica la durata media d'uso (tempo operativo attivo) della postazione principale per la seduta.\n    </CLINICAL_PROTOCOL_GOLD_STANDARD>\n\n    <FOLLOW_UP_AND_RECOVERY_TIMELINE>\n    - Se l'asset è un protocollo interno (SOP): Specifica le frequenze di manutenzione, controllo o aggiornamento previste per legge.\n    - Se l'asset è commerciale (SER/PRO): Indica se il servizio prevede visite di controllo successive, richiami o fasi di monitoraggio successive (follow-up).\n    </FOLLOW_UP_AND_RECOVERY_TIMELINE>\n\n    <INDUSTRY_LANDSCAPE>\n    - Se l'asset è un protocollo interno (SOP): Analizza i costi di conformità e le sanzioni amministrative o legali previste in caso di mancato adempimento.\n    - Se l'asset è commerciale (SER/PRO): Prezzi medi di mercato della prestazione in Italia (regione/provincia del tenant se rilevabile) e cosa includono solitamente i competitor nella tariffa.\n    </INDUSTRY_LANDSCAPE>\n\n    <ACTIONABLE_INSIGHTS>\n    - Suggerimenti pratici e di sicurezza per la preparazione di {{ $json.blueprint_dictionary.primary_workstation }} basati su: {{ $json.blueprint_dictionary.compliance_guidelines }}.\n    </ACTIONABLE_INSIGHTS>\n  </Structure>\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<IntelligenceTask>\n  <TargetAsset>\n    Name: \"{{ $json.new_product_block.identity.item_name }}\"\n    Desc: \"{{ $json.new_product_block.identity.description.long }}\"\n    Price: \"{{ $json.new_product_block.pricing.base_price }} {{ $json.new_product_block.pricing.currency }}\"\n    Type: \"{{ $json.new_product_block.identity.item_type }}\"\n  </TargetAsset>\n\n  <InternalDNA>\n    {{ $json.HoneyPot.company_context_string }}\n  </InternalDNA>\n\n  <Mission>\n    Esegui un 'Reality Check' ancorato al web. Attenzione al parametro 'Type':\n    \n    - SE Type == 'SERVICE' o 'PRODUCT' (SER/PRO):\n      Analizza l'offerta commerciale. Il prezzo impostato è centrato rispetto alla media nazionale? Sii critico sul posizionamento e sulla strutturazione delle tariffe rispetto ai competitor sul territorio.\n      \n    - SE Type == 'INTERNAL_PROTOCOL' (SOP):\n      Ignora il prezzo (è un processo interno a costo zero). Fai un'analisi di Efficienza e Compliance legale. Quali sono le Best Practices di settore per questo specifico processo? Quali sono i colli di bottiglia tipici o gli errori che le aziende affrontano in questo specifico workflow?\n  </Mission>\n</IntelligenceTask>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "Product_Reserch",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.media_items[0].base64_content }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.media_items[0].mime_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        240
+      ],
+      "id": "be0d60d7-4a88-44bd-bf5c-e92131f07ff3",
+      "name": "product_reserch"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        512
+      ],
+      "id": "7b365344-ded5-4d19-ba65-aa097c45dd50",
+      "name": "Call GeminiCall",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        2560,
+        2128
+      ],
+      "id": "11d3efda-583b-4721-a91d-011a717d71b7",
+      "name": "📤 Telegram Call",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b6016479-3f79-4e3e-bb03-90cd0ea341b1",
+              "name": "body.callback_query.message.message_id",
+              "value": "={{ $json.result.message_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2736,
+        2128
+      ],
+      "id": "9f50720c-1fd3-46df-91d3-9ae293fedde3",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2752,
+        1248
+      ],
+      "id": "573689f1-92d4-46fd-a892-bbd5810fe1ca",
+      "name": "Merge10"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "be9c4940-ce13-4ea5-ad0b-a82dff70ae0f",
+              "leftValue": "={{ $json.body.msg_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2400,
+        1920
+      ],
+      "id": "ea8ccad7-9718-4af8-b6ce-cd88274457d9",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Prepare_System_Success_Notification (EDIT_MODE)\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst prod = item.Final_Product?.identity || {};\nconst chatId = owner.chat_id.toString();\nconst messageId = item.body.msg_id; // Recupero obbligatorio dal corpo richiesta\nconst svcId = prod.item_sku;\nconst baseUrl = \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/telegram_control/\";\n\n// --- 1. GENERAZIONE ASH (Security Token) ---\nfunction generateSignature(str, key) {\n    let hash = 0; const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        const char = combined.charCodeAt(i);\n        hash = ((hash << 5) - hash) + char; hash = hash & hash; \n    }\n    return Math.abs(hash).toString(16);\n}\n\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst WEBHOOK_ID = 'ef4aece4-9ec0-4026-a7a7-328562bcbdf6';\nconst ts = Date.now().toString();\nconst payloadASH = `${chatId}|${ts}|${WEBHOOK_ID}`;\nconst ash = `${Buffer.from(payloadASH).toString('base64')}.${generateSignature(payloadASH, SECRET_KEY)}`;\n\n// --- 2. COSTRUZIONE URL MINI APP ---\nconst urlBlueprint = `${baseUrl}edit-blueprint.html?ash=${ash}&sop_id=${svcId}`;\nconst urlProduct = `${baseUrl}edit-product.html?ash=${ash}&sop_id=${svcId}`;\n\n// --- 3. LOCALIZZAZIONE ---\nconst lang = (owner.lenguage || 'it').toLowerCase().includes('en') ? 'en' : 'it';\nconst t = {\n    it: {\n        title: \"✅ <b>DEPLOYMENT COMPLETATO</b>\",\n        body: `L'asset <b>${prod.item_name}</b> è stato correttamente indicizzato.`,\n        log: \"• Blueprint: <code>SYNC_OK</code>\\n• Compliance: <code>CHECK_OK</code>\\n• Knowledge: <code>INDEX_OK</code>\",\n        btn_logic: \"🛠️ EDIT LOGICA (Blueprint)\",\n        btn_struct: \"📦 EDIT STRUTTURA (Asset)\",\n        btn_hub: \"🏠 HUB PRINCIPALE\"\n    },\n    en: {\n        title: \"✅ <b>DEPLOYMENT COMPLETED</b>\",\n        body: `Asset <b>${prod.item_name}</b> has been successfully indexed.`,\n        log: \"• Blueprint: <code>SYNC_OK</code>\\n• Compliance: <code>CHECK_OK</code>\\n• Knowledge: <code>INDEX_OK</code>\",\n        btn_logic: \"🛠️ EDIT LOGIC (Blueprint)\",\n        btn_struct: \"📦 EDIT STRUCTURE (Anagrafica)\",\n        btn_hub: \"🏠 MAIN HUB\"\n    }\n}[lang];\n\nreturn [{\n    json: {\n        telegramApiPayload: {\n            method: \"editMessageText\", // Metodo imposto\n            chat_id: chatId,\n            message_id: messageId, // Usato msg_id in ingresso\n            text: `${t.title}\\n━━━━━━━━━━━━━━━━━━━━\\n${t.body}\\n\\n${t.log}\\n━━━━━━━━━━━━━━━━━━━━\\n📍 <i>Configurazione tecnica pronta:</i>`,\n            parse_mode: \"HTML\",\n            reply_markup: {\n                inline_keyboard: [\n                    [{ text: t.btn_logic, web_app: { url: urlBlueprint } }],\n                    [{ text: t.btn_struct, web_app: { url: urlProduct } }],\n                    [{ text: t.btn_hub, callback_data: \"open_agent_control_center\" }]\n                ]\n            }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        2128
+      ],
+      "id": "5cdfff26-c17f-4f5e-8e04-096e1f0ca59a",
+      "name": "Prepare_System_Success"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        208,
+        1920
+      ],
+      "id": "e2cdf79c-a0e2-4963-a9a1-d741e1b0d0ee",
+      "name": "Merge11"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2752,
+        1952
+      ],
+      "id": "d0c88106-4554-4b2f-a11e-b742a3f307cc",
+      "name": "Merge14"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Final_Data_Cleanser_V4.1_ACTIVATION\n// Rimuove la dipendenza da 'interface' (reliquia)\n\nconst item = $input.first().json;\n\n// 1. CALCOLO ID UNIVOCO\nconst vatNumber = item.owner_data.vat_number;\nconst rawProduct = item.new_product_block;\nconst callbackId = rawProduct.ui_node_draft.callback_data; \nconst UNIVERSAL_ID = `${vatNumber}-${callbackId}`;\n\n// 2. PULIZIA PRODOTTO\nconst cleanProduct = {\n    _id: UNIVERSAL_ID,\n    document_type: rawProduct.document_type,\n    version: rawProduct.version,\n    owner_instance_id: rawProduct.owner_instance_id,\n    metadata: {\n        ...rawProduct.metadata,\n        status: \"ACTIVE\",\n        last_updated_at: new Date().toISOString()\n    },\n    identity: rawProduct.identity,\n    pricing: rawProduct.pricing,\n    commercial_setup: rawProduct.commercial_setup, // AGGIUNGI QUESTA RIGA\n    operations: rawProduct.operations,\n    relations: rawProduct.relations,\n    additional_kwargs: rawProduct.additional_kwargs,\n    response_metadata: rawProduct.response_metadata,\n    ui_node_draft: {\n        ...rawProduct.ui_node_draft,\n        callback_data: callbackId\n    }\n};\n\nconst rawBlueprint = item.Blueprint.blueprint || item.Blueprint;\nconst cleanBlueprint = {\n    ...rawBlueprint,\n    _id: UNIVERSAL_ID,\n    service_sku: callbackId \n};\n\n// 4. PULIZIA KB FRAGMENT\nconst rawKB = item.KB_fragment.kb_fragment || item.KB_fragment;\nconst cleanKB = {\n    ...rawKB,\n    _id: UNIVERSAL_ID,\n    fragment_id: UNIVERSAL_ID \n};\n\n// 5. AGGIORNAMENTO CATALOGO UI\nconst catalogSetup = JSON.parse(JSON.stringify(item.service_catalog_setup));\nconst targetCatId = cleanProduct.identity.category;\n\nconst uiNode = cleanProduct.ui_node_draft; \nuiNode.blueprint_ready = true; // Flag di attivazione\nuiNode.advanced_ready = false;\n\nconst catIndex = catalogSetup.categories.findIndex(c => c.callback_data === targetCatId);\nif (catIndex > -1) {\n    const subCats = catalogSetup.categories[catIndex].subcategories;\n    const existingIndex = subCats.findIndex(s => s.callback_data === uiNode.callback_data);\n    \n    if (existingIndex > -1) {\n        subCats[existingIndex] = uiNode;\n    } else {\n        subCats.push(uiNode);\n    }\n    \n    catalogSetup.metadata = {\n        ...catalogSetup.metadata,\n        last_updated_at: new Date().toISOString(),\n        updated_by: \"SYSTEM_AUTO_PROVISIONING\"\n    };\n}\n\n// 6. OUTPUT (Pulito)\nreturn {\n    json: {\n        Final_Product: cleanProduct,\n        Final_Blueprint: cleanBlueprint,\n        Final_KB_Fragment: cleanKB,\n        Updated_Service_Catalog: catalogSetup,\n        owner_data: item.owner_data // Mantenuto per ogni evenienza\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        880
+      ],
+      "id": "5bc894df-b428-4123-80b0-a676a8bab2df",
+      "name": "Final_Data_Cleanser"
+    },
+    {
+      "parameters": {
+        "operation": "resize",
+        "width": 512,
+        "height": 512,
+        "options": {
+          "fileName": "={{ $json.Final_Product.ui_node_draft.callback_data }}"
+        }
+      },
+      "type": "n8n-nodes-base.editImage",
+      "typeVersion": 1,
+      "position": [
+        3184,
+        912
+      ],
+      "id": "4887498c-3c23-4cbb-8a6f-44f42b32cef2",
+      "name": "Edit gallery1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "264382e2-5b1e-4ed7-b290-bb76e5168b3d",
+              "name": "Prompt",
+              "value": "=Crea un immagine artistica e fotorealistica per generare un'immagine(1:1) per questo servizio:\nNome: {{ $json.Final_Product.identity.item_name }}\nDescrizione: {{ $json.Final_Product.identity.description.short }}\n\nStile: Professionale, pulito, luci cinematografiche, stile Apple/Corporate tech. ",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3440,
+        1328
+      ],
+      "id": "dfdbf23b-c3c1-4462-9d73-bcbc590fdcfc",
+      "name": "PromptG1"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.1-flash-image",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.1-flash-image"
+        },
+        "prompt": "={{ $json.Prompt }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        3808,
+        1168
+      ],
+      "id": "da94f48f-0fb3-4480-a287-28063a449e90",
+      "name": "Generate an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "LR3Q6cuz4wPaBeGk",
+          "name": "TrinAi PayKey"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2960,
+        1488
+      ],
+      "id": "6f1895bf-671d-490c-8095-561c73364c28",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3152,
+        1504
+      ],
+      "id": "f3d323c0-3293-4834-bc07-a6636e3e90a4",
+      "name": "Merge15"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cc9a8217-f587-466f-a6cd-7f4d28ccb987",
+              "leftValue": "={{ $binary.data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3808,
+        976
+      ],
+      "id": "3faada68-3826-4263-8785-23d8977cc53a",
+      "name": "If4"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2960,
+        912
+      ],
+      "id": "d2c54ea3-27d9-4a0a-afde-77b3880fad7c",
+      "name": "Merge17"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "RxcwXGoI6270owQK",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/RxcwXGoI6270owQK",
+          "cachedResultName": "saveProduct_processor_init"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        384,
+        240
+      ],
+      "id": "371631bd-c0e3-4122-aace-d4ea622c4083",
+      "name": "Call 'saveProduct_processor_init'"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://dashboard.trinai.it/api/n8n/json/minisite",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_image\",\n  \"vat_number\": \"{{ $json.owner_data.vat_number }}\",\n  \"asset_type\": \"photo\",\n  \"file_name\": \"{{ $json.Final_Product.ui_node_draft.callback_data }}.jpg\",\n  \"file_data\": \"data:image/jpeg;base64,{{ $json.data }}\",\n  \"mime_type\": \"image/jpeg\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3152,
+        1696
+      ],
+      "id": "64d545c5-5edd-4c8f-bfd4-8a01a1040d3d",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "sVYE3K8BsDbAKshU",
+          "name": "TrinAI Deploy"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {
+          "keepSource": "json"
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        2960,
+        1696
+      ],
+      "id": "7b5c067c-6f44-42f5-b8b9-fe4ebcfef4cd",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "afd59753-a3fa-4590-b805-1b0eb65225e6",
+              "leftValue": "={{ $json.new_product_block.identity.vertical }}",
+              "rightValue": "dental",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3184,
+        1248
+      ],
+      "id": "c4d37f06-4a94-4812-a848-3e6b579c3752",
+      "name": "vertical2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "264382e2-5b1e-4ed7-b290-bb76e5168b3d",
+              "name": "Prompt",
+              "value": "=Crea un immagine artistica e fotorealistica per generare un'immagine(1:1) per questo servizio:\nNome: {{ $json.Final_Product.identity.item_name }}\nDescrizione: {{ $json.Final_Product.identity.description.short }}\n\nStile: Professionale, pulito, luci cinematografiche, stile Apple/Corporate tech. \nNota tassativa: Non mostrare mai sangue, bocche aperte, ferite o interventi chirurgici attivi. Rappresenta il servizio solo tramite tecnologia pulita, studi asettici o elementi di design.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3440,
+        1168
+      ],
+      "id": "122f2ad6-940b-414a-a882-1c40ddaf6bba",
+      "name": "PromptG"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "91c4ce69-ff65-4495-9c1e-36b2ca50c870",
+              "name": "billing_source.wh",
+              "value": "=https://prod.workflow.trinai.it/webhook/20fd95c0-4218-400e-ae2a-cd881a757b80",
+              "type": "string"
+            },
+            {
+              "id": "358f9459-c678-4ef3-9ca3-e63cb0769f11",
+              "name": "billing_source.use",
+              "value": "=Generazione Immagine",
+              "type": "string"
+            },
+            {
+              "id": "8bd7e1fd-7edf-4559-ba30-092f61ad55e3",
+              "name": "owner_data.credits_balance",
+              "value": "={{ $json.owner_data.credits_balance }}",
+              "type": "number"
+            },
+            {
+              "id": "d441f543-c453-4a4e-a41f-11b877fda1dc",
+              "name": "user.id",
+              "value": "={{ $json.owner_data.chat_id }}",
+              "type": "number"
+            },
+            {
+              "id": "d49a4e17-5f11-4706-ae76-8d7058c65cc5",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            },
+            {
+              "id": "d46191d0-881e-4dbf-b592-46762fc18500",
+              "name": "modelVersion",
+              "value": "gemini-3.1-flash-image",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3344,
+        1504
+      ],
+      "id": "d7de67ec-8b25-4772-a6d2-331f36433abd",
+      "name": "Billing_Set"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4O56BKsRFw321LD7",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4O56BKsRFw321LD7",
+          "cachedResultName": "Standard_AcCredit"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3504,
+        1504
+      ],
+      "id": "a43ea91b-510f-498a-b2d3-d8c737422ca2",
+      "name": "Call 'Standard_AcCredit'"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d9f44ff8-9f9b-4bc2-92da-0c2ac2273a21",
+              "leftValue": "={{ $json.oDOSSIER_json }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1152,
+        1600
+      ],
+      "id": "f2f398a7-0302-46a1-8dd0-b0eed0bab387",
+      "name": "Error?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<system_instructions>\n  <persona>\n    Sei \"UniversalIntelligenceParser\", l'architetto dei dati aziendali di SiteBoS. Il tuo compito è prendere i report di intelligence non strutturati (Markdown) relativi alla stessa azienda, analizzarli contemporaneamente e compilarli nell'unico schema JSON unificato denominato \"Unified_Enterprise_Dossier\".\n  </persona>\n  \n  <rules>\n    <rule>\n      L'output deve essere un oggetto JSON valido contenente unicamente la chiave root \"enterprise_dossier\". Non aggiungere testi, introduzioni o blocchi di codice markdown (NO ```json).\n    </rule>\n    \n    <rule>\n      SCOMPOSIZIONE NEI 4 MODULI (MANDATORIA):\n      Analizza i testi in ingresso e distribuisci le informazioni nei rispettivi moduli logici:\n      - MODULE_1_COMPANY_INTELLIGENCE: Dati camerali, fatturato, USP, mission (estratto dal dossier B2B / company_reserch).\n      - MODULE_2_STAKEHOLDER_INTELLIGENCE: Profilo del titolare, attitudini manageriali (estratto dal dossier B2B / company_reserch).\n      - MODULE_3_COEXISTENCE_PAIRING: SCIA, requisiti stanze, rifiuti + Dasi fiscali (IRES, IRAP, TARI) estratti dal report Fiscale Locale.\n      - MODULE_4_PRODUCT_SERVICE_COMPLIANCE: Inquadramento normativo dell'asset (MDR, consensi, privacy) + checklist azioni pratiche ed errori, estratto dal report Conformità Prodotto (product_Compliance).\n    </rule>\n    \n    <rule>\n      ZERO-CRASH POLICY:\n      Se un dato o un intero modulo non trova riscontro nei documenti in ingresso (perché assenti o vuoti), imposta rigorosamente il rispettivo valore a null o ad array vuoto []. Non inventare mai dati e non copiare i testi esplicativi dello schema d'esempio.\n    </rule>\n\n    <rule>\n      COERENZA CHECKLIST (MODULE_4):\n      Estrai la tabella delle azioni pratiche dal report di conformità e convertila in un array strutturato. Ogni oggetto deve avere un ID incrementale (CHK_01, CHK_02), l'area di rischio, l'azione da fare e il responsabile (owner).\n    </rule>\n  </rules>\n</system_instructions>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<prompt>\n  <task>\n    Analizza i documenti forniti ed estrai i dati strutturandoli nel JSON \"enterprise_dossier\".\n  </task>\n\n  <Product_item_identity>\n   {{ JSON.stringify($json.Final_Product?.identity || $json.new_product_block?.identity || '') }}\n  </Product_item_identity>\n\n  <Unstructured_Inputs>\n    <!-- Documento 1: Onboarding e Business Intelligence B2B -->\n    <Company_BI_Dossier>\n      {{ JSON.stringify($json.company_reserch || $json.oDOSSIER_bi || '') }}\n    </Company_BI_Dossier>\n\n    <!-- Documento 2: Studio di Coesistenza e Pairing dei settori -->\n    <Coexistence_Dossier>\n      {{ JSON.stringify($json.oDOSSIER || $json.oDOSSIER_coexistence || '') }}\n    </Coexistence_Dossier>\n\n    <!-- Documento 3: Ricerca Fiscale e Adempimenti Locali -->\n    <Local_Fiscal_Research>\n      {{ JSON.stringify($json.fiscal_reserch_output || '') }}\n    </Local_Fiscal_Research>\n\n    <!-- Documento 4: Analisi Strategica di Mercato dell'Asset -->\n    <Product_Market_Research>\n      {{ JSON.stringify($json.Product_Reserch || '') }}\n    </Product_Market_Research>\n\n    <!-- Documento 5: Report di Conformità Legale del Singolo Servizio -->\n    <Product_Legal_Compliance>\n      {{ JSON.stringify($json.product_Compliance || '') }}\n    </Product_Legal_Compliance>\n  </Unstructured_Inputs>\n\n  <Tenant_Context>\n    Ragione Sociale: {{ $json.owner_data.ragione_sociale }}\n    Partita IVA: {{ $json.owner_data.vat_number }}\n    Indirizzo Sede: {{ $json.owner_data.indirizzo }}\n  </Tenant_Context>\n\n  <output_format>\n    {\n      \"enterprise_dossier\": {\n        \"metadata\": {\n          \"vat_number\": null,\n          \"legal_name\": null,\n          \"dba_name\": null,\n          \"location\": null,\n          \"last_updated\": \"{{ new Date().toISOString() }}\"\n        },\n        \"MODULE_1_COMPANY_INTELLIGENCE\": {\n          \"financial_profile\": {\n            \"incorporation_date\": null,\n            \"legal_form\": null,\n            \"estimated_turnover\": null,\n            \"employee_count\": null,\n            \"ateco_code\": null,\n            \"net_profit_2024\": null\n          },\n          \"brand_reputation\": {\n            \"website\": null,\n            \"digital_rating\": null,\n            \"reputation_summary\": null\n          },\n          \"usp_and_mission\": {\n            \"mission_statement\": null,\n            \"differentiators\": []\n          }\n        },\n        \"MODULE_2_STAKEHOLDER_INTELLIGENCE\": {\n          \"profile\": {\n            \"name\": null,\n            \"role\": null,\n            \"years_experience\": null,\n            \"specializations\": []\n          },\n          \"brand_authority\": {\n            \"social_leadership\": null,\n            \"community_impact\": null,\n            \"managerial_skills\": null\n          }\n        },\n        \"MODULE_3_COEXISTENCE_PAIRING\": {\n          \"feasibility_status\": null,\n          \"risk_level\": null,\n          \"regulatory_pairing\": {\n            \"coexistence_scia\": null,\n            \"sanitary_rules\": null\n          },\n          \"structural_requirements\": {\n            \"physical_space\": null,\n            \"waste_impact\": null\n          },\n          \"local_fiscal_data\": {\n            \"ires_rate\": null,\n            \"irap_rate\": null,\n            \"tari\": {\n              \"quota_fissa\": null,\n              \"quota_variabile\": null,\n              \"tefa_rate\": null,\n              \"total_estimated_per_sqm\": null\n            },\n            \"cciaa_fee\": {\n              \"amount\": null,\n              \"due_date\": null\n            },\n            \"environmental_obligations\": {\n              \"rentri_status\": null,\n              \"rentri_annual_fee\": null,\n              \"special_waste_codes\": [],\n              \"environmental_rules\": null\n            },\n            \"regional_tariffs_permits\": {\n              \"concessione_governativa\": null,\n              \"asp_inspection_fee\": null\n            }\n          }\n        },\n        \"MODULE_4_PRODUCT_SERVICE_COMPLIANCE\": {\n          \"service_id\": null,\n          \"item_name\": null,\n          \"target_price\": null,\n          \"positioning\": null,\n          \"market_positioning\": {\n            \"target_buyer\": null,\n            \"usp_context\": null,\n            \"communication_strategy\": null\n          },\n          \"regulatory_framework\": {\n            \"medical_device_directive\": null,\n            \"professional_liability\": null,\n            \"deontology_rules\": null,\n            \"gdpr_compliance\": null\n          },\n          \"compliance_checklist\": [\n            {\n              \"id\": \"CHK_01\",\n              \"area\": null,\n              \"action\": null,\n              \"owner\": null\n            }\n          ],\n          \"regional_specifications\": {\n            \"local_authority_notes\": null,\n            \"waste_disposal\": null\n          },\n          \"risk_warnings\": []\n        }\n      }\n    }\n  </output_format>\n\n  <instructions>\n    - Estrai i dati reali con rigore analitico.\n    - Se un dato non è menzionato nei documenti di input, impostalo rigorosamente a null o ad array vuoto [] nell'output JSON.\n    - Non copiare mai i testi esplicativi o i segnaposto dell'output_format.\n    - Lingua: Italiano.\n    - Restituisci SOLO il JSON valido.\n  </instructions>\n</prompt>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "oDOSSIER_json",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "3cadacdd-9503-43aa-bf98-77d9cf9f769c",
+              "name": "billing_source.use",
+              "value": "advanced_reserch_Vertical",
+              "type": "string"
+            },
+            {
+              "id": "872d0280-5adc-489a-a8e7-8e0265fc30e2",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "8dd06aa5-bb9c-4427-8232-64706eb743cc",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/958dc50f-87c8-496c-85e4-29ca7d87f2fc",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        1600
+      ],
+      "id": "e2ac3300-2958-40ae-ad5e-f58882ec17c2",
+      "name": "ScomposerDossier1"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.oDOSSIER_json }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1392,
+        1584
+      ],
+      "id": "365bf6c2-ea7a-4d12-9ca5-20d3f481e80a",
+      "name": "SaveReserch1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        976,
+        1600
+      ],
+      "id": "3a6b034f-697f-491a-8828-33af8d664d12",
+      "name": "Gemini_Parse_Resrch1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.Final_Product._id }}",
+        "collectionName": "compliance_docs",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        1712
+      ],
+      "id": "79572516-9454-4aac-af29-19830a9183a4",
+      "name": "MongoDB Chat Memory6",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1168,
+        1232
+      ],
+      "id": "eb949dae-9023-4c20-b8db-d568613a7293",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO n8n: Blueprint_Rules_Injector\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst rawProduct = item.new_product_block || {};\n\n// 1. Lettura della verticale determinata nella fase precedente\nconst rawVertical = (rawProduct.identity?.vertical || owner.vertical || \"generic\").toLowerCase().trim();\n\nconst allowedVerticals = [\n    \"generic\", \"dental\", \"health\", \"beauty\", \"food\", \n    \"hospitality\", \"professional\", \"workshop\", \"construction\"\n];\n\nconst resolvedVertical = allowedVerticals.includes(rawVertical) ? rawVertical : 'generic';\n\n// 2. Dizionario dei parametri di modellazione dei Sottoprocessi e delle Skill\nconst blueprintDictionaries = {\n    dental: {\n        system_role: \"Senior Dental Process Architect\",\n        primary_workstation: \"Riunito Odontoiatrico\",\n        allowed_skills: [\"Medico_Chirurgo_Odontoiatra\", \"Assistente_ASO\", \"Segretaria_Amministrativa\", \"Igienista_Dentale\"],\n        setup_instructions: \"Sanificazione e decontaminazione approfondita del riunito odontoiatrico, sostituzione delle pellicole barriera monouso, verifica visiva del report di sterilizzazione dell'autoclave Classe B e vestizione dei DPI sterili chirurgici.\",\n        evidence_rules: \"Usa SIGNATURE per l'accettazione del Consenso Informato e della privacy, FILE per caricare il PDF del referto radiologico (OPT/CBCT) o il codice UDI dei materiali, VISION per foto intraorale dello stato di guarigione o screenshot del rendering 3D.\",\n        search_guidelines: \"gold standard clinici odontoiatrici in Italia, protocolli chirurgici a quattro mani, tempi biologici di osteointegrazione e guarigione tessuti molli\",\n        compliance_guidelines: \"autorizzazione sanitaria ASP regionale, requisiti di radioprotezione D.Lgs. 101/2020, firma digitale del consenso informato Legge 219/2017 e tracciabilità dispositivi medici (MDR)\"\n    },\n    health: {\n        system_role: \"Senior Clinical Rehabilitation and Medical Process Designer\",\n        primary_workstation: \"Box Terapeutico / Ambulatorio\",\n        allowed_skills: [\"Medico_Specialista\", \"Fisioterapista\", \"Infermiere_Professionale\", \"Segretaria_Medica\"],\n        setup_instructions: \"Igienizzazione del lettino da terapia mediante disinfettante pronto all'uso ad ampio spettro, sostituzione del lenzuolino cartaceo protettivo e decontaminazione degli elettrodi o dei manipoli degli elettromedicali.\",\n        evidence_rules: \"Usa SIGNATURE per l'acquisizione del consenso terapeutico informato, FILE per caricare prescrizioni mediche o referti di diagnostica per immagini in PDF, TEXT per la registrazione di parametri di mobilità.\",\n        search_guidelines: \"linee guida riabilitative nazionali, protocolli fisioterapici strumentali (tecar, onde d'urto) e tempi biologici di riparazione muscolo-scheletrica\",\n        compliance_guidelines: \"applicazione dell'esenzione IVA ex art. 10 DPR 633/72 per prestazioni mediche diagnostiche e terapeutiche certificate, conformità alle autorizzazioni sanitarie regionali all'esercizio e Legge 219/2017 per il consenso medico\"\n    },\n    beauty: {\n        system_role: \"Senior Aesthetic and Wellness Process Architect\",\n        primary_workstation: \"Cabina Estetica\",\n        allowed_skills: [\"Estetista_Specializzata\", \"Assistente_Cabina\", \"Receptionist\", \"Direttore_Tecnico\"],\n        setup_instructions: \"Igienizzazione del lettino da massaggio, ripristino del lenzuolino monouso in TNT teso, preparazione della cabina con elementi di comfort sensoriale (diffusore e musica) e decontaminazione/taratura della testina laser o radiofrequenza.\",\n        evidence_rules: \"Usa SIGNATURE per l'acquisizione del consenso informato al trattamento estetico o laser, VISION per foto pre-post trattamento e screenshot dei parametri impostati sul display del macchinario.\",\n        search_guidelines: \"tecniche di trattamento corpo e viso, protocolli di epilazione laser diodo e radiofrequenza, tempi di riattivazione del microcircolo e rigenerazione cutanea\",\n        compliance_guidelines: \"presentazione SCIA estetica al SUAP comunale, conformità delle apparecchiature al D.M. 206/2015, nomina del Direttore Tecnico Legge 1/90 e trattamento dati personali (GDPR)\"\n    },\n    food: {\n        system_role: \"Senior Food Service and Restaurant Process Engineer\",\n        primary_workstation: \"Tavolo Cliente / Cucina\",\n        allowed_skills: [\"Chef\", \"Cameriere\", \"Cassiere\", \"Lavapiatti\"],\n        setup_instructions: \"Sanificazione della superficie del tavolo con detergente idoneo al contatto alimentare (HACCP), allestimento della mise en place secondo lo standard di sala e controllo delle temperature delle celle frigo.\",\n        evidence_rules: \"Usa TEXT per registrare i lotti di tracciabilità delle materie prime critiche, VISION per foto di conformità visiva del piatto prima del servizio in sala.\",\n        search_guidelines: \"tecniche di cottura e preparazione alimenti, conservazione in catena del freddo, impiattamento professionale e flussi di servizio sala\",\n        compliance_guidelines: \"manuale di autocontrollo igienico-sanitario HACCP, rintracciabilità dei lotti alimentari, gestione degli allergeni alimentari e SCIA commerciale comunale\"\n    },\n    hospitality: {\n        system_role: \"Senior Hospitality & Service Quality Designer\",\n        primary_workstation: \"Camera / Alloggio\",\n        allowed_skills: [\"Direttore_Hotel\", \"Receptionist\", \"Addetto_Camere\", \"Manutentore\"],\n        setup_instructions: \"Aerazione della camera, sanificazione e disinfezione completa del bagno e di tutte le superfici di contatto, sostituzione totale della biancheria e allestimento del set cortesia.\",\n        evidence_rules: \"Usa FILE per caricamento ricevute fiscali o imposte di soggiorno, VISION per foto dell'avvenuta pulizia e ripristino della camera.\",\n        search_guidelines: \"standard di pulizia alberghiera, gestione dell'accoglienza ospiti, cicli di lavaggio e cambio biancheria e flussi di servizio\",\n        compliance_guidelines: \"comunicazione schedine alloggiati alla Questura (Portale Alloggiati), adempimenti imposta di soggiorno comunale e comunicazione flussi turistici ISTAT\"\n    },\n    professional: {\n        system_role: \"Senior Professional Advisory Operations Architect\",\n        primary_workstation: \"Studio / Scrivania\",\n        allowed_skills: [\"Consulente_Senior\", \"Consulente_Junior\", \"Segretaria\", \"Contabile\"],\n        setup_instructions: \"Preparazione della documentazione di base della pratica, configurazione delle cartelle di lavoro digitali protette sul server e allestimento della sala riunioni.\",\n        evidence_rules: \"Usa SIGNATURE per mandati professionali o procure, FILE per contratti o ricevute di invio telematico in PDF.\",\n        search_guidelines: \"best practices di gestione pratiche amministrative, flussi di revisione contrattuale, scadenze fiscali o legali di categoria\",\n        compliance_guidelines: \"regolamento GDPR sul trattamento dei dati personali e riservati, normative antiriciclaggio vigenti e adempimenti di deposito telematico\"\n    },\n    workshop: {\n        system_role: \"Senior Technical Workshop Operations Engineer\",\n        primary_workstation: \"Ponte Sollevatore\",\n        allowed_skills: [\"Meccanico_Specializzato\", \"Aiuto_Meccanico\", \"Accettatore\", \"Gommista\"],\n        setup_instructions: \"Posizionamento in sicurezza del veicolo sulla postazione ponte sollevatore, installazione delle coperture di protezione su sedile e volante e disposizione degli strumenti di lavoro.\",\n        evidence_rules: \"Usa TEXT per registrazione codici ricambi e parametri di autodiagnosi, VISION per foto di collaudo o di parti danneggiate sostituite.\",\n        search_guidelines: \"procedure di riparazione meccanica ed elettronica di categoria, coppie di serraggio, collaudi di sicurezza su strada ed efficienza motoristica\",\n        compliance_guidelines: \"certificato di conformità dell'intervento (Codice del Consumo), sicurezza cantiere D.Lgs. 81/08 e smaltimento oli/batteri esausti in RENTRI\"\n    },\n    construction: {\n        system_role: \"Senior Civil Engineering & Construction Process Planner\",\n        primary_workstation: \"Cantiere / Area Lavoro\",\n        allowed_skills: [\"Capocantiere\", \"Operaio_Specializzato\", \"Manovale\", \"Geometra\"],\n        setup_instructions: \"Delimitazione dell'area di lavoro con barriere e transenne, installazione della segnaletica di cantiere, controllo dei dispositivi di sicurezza (DPI) degli operai e verifica dei ponteggi.\",\n        evidence_rules: \"Usa SIGNATURE per verbali di consegna o collaudo, FILE per caricamento dichiarazioni di conformità impianto o POS, VISION per foto di avanzamento lavori.\",\n        search_guidelines: \"tecniche costruttive edili, norme per l'impiantistica elettrica o idraulica civile, tempi di posa e asciugatura materiali e collaudi statici\",\n        compliance_guidelines: \"elaborazione del Piano Operativo di Sicurezza (POS), adempimenti DURC regolare, sicurezza nei cantieri temporanei e gestione macerie edili\"\n    },\n    generic: {\n        system_role: \"Senior Business Operations and Process Designer\",\n        primary_workstation: \"Postazione Operativa\",\n        allowed_skills: [\"Professionista\", \"Assistente\", \"Amministrativo\"],\n        setup_instructions: \"Preparazione delle attrezzature di lavoro, verifica delle credenziali di accesso e allestimento della postazione d'ufficio.\",\n        evidence_rules: \"Usa SIGNATURE per approvazione termini o firme e FILE per documenti in PDF.\",\n        search_guidelines: \"standard operativi internazionali, benchmark di efficienza e flussi di lavoro di categoria\",\n        compliance_guidelines: \"regolamento europeo GDPR sul trattamento dati, tutele del consumatore e contrattualistica standard di prestazione d'opera\"\n    }\n};\n\nconst selectedDict = blueprintDictionaries[resolvedVertical] || blueprintDictionaries['generic'];\n\nreturn [{\n    json: {\n        ...item,\n        blueprint_dictionary: selectedDict\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        240
+      ],
+      "id": "8d03e017-bea6-45b3-b5d1-18b0c04922f5",
+      "name": "Blueprint_Rules_Injector"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d52c6f09-bcc1-43fa-a957-6f451871f965",
+              "leftValue": "={{ $json.new_product_block.identity.item_type }}",
+              "rightValue": "PRODUCT",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1968,
+        272
+      ],
+      "id": "13863e19-88d5-4f1b-9eb4-aa4b0d837647",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n<Role>Senior_Product_Operations_and_BOM_Architect</Role>\n<CorePersona>\nSei un Ingegnere di Processo. Il tuo compito è analizzare il prodotto fornito (TargetAsset) e generare il suo blueprint operativo (PROCESS_BLUEPRINT) più logico ed efficiente. \nAdatta il processo in base alla natura del prodotto: se è un prodotto fisico, definisci i passaggi di assemblaggio e distinta base (BOM); se è un prodotto digitale, definisci i passaggi di erogazione, configurazione e invio.\n</CorePersona>\n\n<GuidingPrinciples>\n1. ADATTABILITÀ DEL PRODOTTO:\n   - Determina se il prodotto da valutare è fisico o digitale.\n   - Crea il numero di fasi (stages) e passaggi (steps) necessari e logici per quel tipo di prodotto. Non inserire fasi di magazzino o assemblaggio fisico se l'asset è un prodotto digitale (es. e-book o guide).\n   - Associa i materiali corretti negli step solo se il prodotto è fisico e ha una distinta base (BOM) popolata.\n\n2. CONTROLLO QUALITÀ (QUALITY CHECK):\n   - Inserisci controlli di qualità appropriati per il tipo di prodotto (es. verifica fisica degli allineatori per il fisico, o verifica del link di download funzionante per il digitale).\n\n3. ADATTAMENTO ALLA VERTICALE DEL SETTORE:\n   - Identifica la verticale di riferimento del prodotto (es. odontoiatria/dental, estetica/beauty, comune/common).\n   - Adatta coerentemente il linguaggio, la terminologia delle istruzioni e i ruoli richiesti nei singoli passaggi (es. usa figure come \"Assistente ASO\" o \"Odontoiatra\" per la verticale dental, o \"Estetista\" per la verticale beauty).\n</GuidingPrinciples>\n\n<OutputSchema>\n{\n  \"blueprint\": {\n    \"_id\": \"<VAT_NUMBER>-<PRODUCT_SKU>\",\n    \"document_type\": \"PROCESS_BLUEPRINT\",\n    \"version\": \"1.0\",\n    \"owner_instance_id\": \"{{ $json.owner_data.vat_number }}\",\n    \"metadata\": {\n      \"status\": \"ACTIVE\",\n      \"created_at\": \"{{ new Date().toISOString() }}\",\n      \"last_updated_at\": \"{{ new Date().toISOString() }}\"\n    },\n    \"service_sku\": \"{{ $json.new_product_block.identity.item_sku }}\",\n    \"blueprint_name\": \"[PRO] - Blueprint <Nome Prodotto>\",\n    \"blueprint_description\": \"Descrizione del processo per <Nome Prodotto>.\",\n    \"blueprint_type\": \"<PRODUCT_FLOW|DIGITAL_FLOW>\",\n    \"tags\": [\"<Tag_Pertinenti>\"],\n    \"summary\": {\n      \"estimated_total_cost\": \"<COSTO_STIMATO> EUR\",\n      \"estimated_total_time_minutes\": \"<TEMPO_TOTALE>\",\n      \"bill_of_materials_summary\": [\n        // Popolare solo se si tratta di un prodotto fisico con componenti reali\n        { \"material_sku\": \"<SKU>\", \"quantity\": 1, \"unit_of_measure\": \"<U_M>\" }\n      ]\n    },\n    \"stages\": [\n      {\n        \"stage_id\": \"STAGE_01\",\n        \"stage_order\": 1,\n        \"stage_name\": \"<Nome Fase>\",\n        \"description\": \"<Descrizione Fase>\",\n        \"steps\": [\n          {\n            \"step_id\": \"STEP_01_01\",\n            \"step_order\": 1,\n            \"step_name\": \"<Nome Step>\",\n            \"instructions\": \"<Istruzioni operative per lo step coerenti con la verticale>\",\n            \"estimated_time_minutes\": 5,\n            \"resources_needed\": {\n              \"labor\": { \"required_skill_tags\": [\"<Ruolo_Coerente_Con_La_Verticale>\"], \"estimated_work_minutes\": 5 },\n              \"materials\": [],\n              \"assets\": []\n            },\n            \"quality_check\": {\n              \"is_required\": true,\n              \"evidence_type\": \"<SIGNATURE|VISION|FILE|NONE>\",\n              \"check_description\": \"<Descrizione del controllo>\",\n              \"acceptance_criteria\": \"<Criteri>\"\n            },\n            \"logistics_flags\": {\n              \"requires_wip\": false,\n              \"requires_finished\": false\n            }\n          }\n        ]\n      }\n    ]\n  }\n}\n</OutputSchema>\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<DesignTask>\nGenera il Blueprint Operativo Ingegnerizzato per il prodotto TargetAsset, adattandolo alla verticale di riferimento e rispettando rigorosamente le regole e i ruoli definiti nel BlueprintDictionary.\n\n<TargetAsset>\n  Name: {{ $json.new_product_block.identity.item_name }}\n  Type: {{ $json.new_product_block.identity.item_type }}\n  Vertical: {{ $json.new_product_block.identity.vertical }}\n  Desc: {{ $json.new_product_block.identity.description.long }}\n  InternalNotes: {{ $json.new_product_block.identity.description.internal_notes }}\n  BOM: {{ JSON.stringify($json.new_product_block.bom || []) }}\n</TargetAsset>\n\n<BlueprintDictionary>\n  Primary Workstation: {{ $json.blueprint_dictionary?.primary_workstation }}\n  Allowed Skills: {{ JSON.stringify($json.blueprint_dictionary?.allowed_skills || []) }}\n  Setup Instructions: {{ $json.blueprint_dictionary?.setup_instructions }}\n  Evidence Rules: {{ $json.blueprint_dictionary?.evidence_rules }}\n  Compliance Guidelines: {{ $json.blueprint_dictionary?.compliance_guidelines }}\n</BlueprintDictionary>\n\n<Instruction>\n1. CLASSIFICAZIONE E FLUSSO:\n   - Se l'asset è un prodotto digitale (es. E-book), imposta \"blueprint_type\" su \"DIGITAL_FLOW\" e non inserire materiali fisici o passaggi di magazzino.\n   - Se l'asset è un prodotto fisico, imposta \"blueprint_type\" su \"PRODUCT_FLOW\" e mappa i componenti della distinta base (BOM) negli step corretti.\n\n2. REQUISITI DI COERENZA (BLUEPRINT DICTIONARY):\n   - Nei passaggi operativi, assegna solo competenze presenti nell'elenco degli \"Allowed Skills\" (es. usare solo \"Assistente_ASO\", \"Odontoiatra\", \"Igienista_Dentale\", ecc.). Non inventare ruoli esterni a questo dizionario.\n   - Per i controlli di qualità (\"quality_check\"), seleziona l'evidence_type (\"SIGNATURE\", \"VISION\", \"FILE\", \"NONE\") seguendo le logiche indicate in \"Evidence Rules\".\n   - Arricchisci le istruzioni operative e i controlli di conformità integrando, dove necessario, le indicazioni presenti in \"Compliance Guidelines\" (es. tracciabilità MDR o radioprotezione).\n</Instruction>\n</DesignTask>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "Blueprint",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.media_items[0].base64_content }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.media_items[0].mime_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2192,
+        256
+      ],
+      "id": "c2af60ed-cd36-4cb1-bb67-ef840c0049e9",
+      "name": "product_BluePrint"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n  <Role>Senior_Process_Architect_Specialized_In_{{ $json.blueprint_dictionary.system_role }}</Role>\n  <CorePersona>\n    Sei il Direttore Operativo (COO) e l'Ingegnere di Processo dell'attività professionale del tenant. Il tuo compito è trasformare il servizio o la procedura in un PROCESS_BLUEPRINT NoSQL esecutivo, sicuro e ottimizzato.\n  </CorePersona>\n\n  <GuidingPrinciples>\n    1. STRUTTURA DINAMICA DEL PROCESSO (Adattamento per SOP vs Servizi):\n       Non forzare una struttura rigida clinica o complessa su attività ordinarie. Organizza gli Stage in base al tipo di asset:\n       \n       - SE IL PROCESSO È UN PROTOCOLLO INTERNO / SOP (INTERNAL_PROTOCOL):\n         * Avvia il flusso direttamente dallo stage operativo di ispezione, esecuzione o verifica.\n         * Genera uno Stage iniziale di \"Setup/Preparazione\" solo se l'operazione richiede un reale approntamento fisico complesso (es. taratura strumenti pesanti, vestizione DPI biologici speciali, isolamento cantiere). Altrimenti, inizia direttamente dallo Stage operativo, escludendo passaggi preliminari fittizi o banali (es. lavarsi le mani o accendere il tablet, a meno che non siano requisiti critici e normati).\n         * Escludi tassativamente fasi di consensi commerciali, firme dei clienti o registrazioni di accoglienza.\n         * Inserisci uno Stage finale di Validazione/Archiviazione con checklist e firma digitale o approvazione del supervisore per garantire conformità operativa e data certa.\n         \n       - SE IL PROCESSO È UN SERVIZIO O PRODOTTO COMMERCIALE (SERVICE_DELIVERY / PRODUCT_MANUFACTURING):\n         * STAGE PREPARATORIO (Setup): Se previsto dalla verticale, mappa la preparazione fisica, igienizzazione o taratura di {{ $json.blueprint_dictionary.primary_workstation }} usando: \"{{ $json.blueprint_dictionary.setup_instructions }}\".\n         * STAGE INGRESSO & CONFORMITÀ (Accoglienza, Consensi o Firme): Gestisci l'accettazione del cliente, l'acquisizione di firme su mandati, contratti o informative di sicurezza/consenso informato in linea con: \"{{ $json.blueprint_dictionary.compliance_guidelines }}\".\n         * STAGE EROGAZIONE ATTIVA: Scomponi la prestazione principale o la lavorazione del bene in passaggi logici e ordinati eseguiti presso la postazione principale ({{ $json.blueprint_dictionary.primary_workstation }}).\n         * STAGE FOLLOW-UP / MONITORAGGIO: Se previsto dal report (<FOLLOW_UP_AND_RECOVERY_TIMELINE>), genera fasi successive (controlli, manutenzioni, verifiche intermedie) distanziate temporalmente.\n\n    2. CERTIFICAZIONE DELLA COMPLIANCE (EVIDENCE_TYPE):\n       {{ $json.blueprint_dictionary.evidence_rules }}\n\n    3. ASSOCIAZIONE RIGIDA DELLE SKILL DI SISTEMA (FONDAMENTALE):\n       - Per associare lo staff negli step operativi (\"required_skill_tags\"), devi utilizzare TASSATIVAMENTE ed ESCLUSIVAMENTE uno o più dei seguenti identificativi di sistema, evitando varianti, sinonimi o nomi propri:\n         {{ JSON.stringify($json.blueprint_dictionary.allowed_skills) }}\n       - Qualsiasi altro ruolo non incluso in questo elenco è severamente vietato.\n  </GuidingPrinciples>\n\n  <OutputSchema>\n  {\n    \"blueprint\": {\n      \"_id\": \"GENERATE_UNIQUE_ID\",\n      \"document_type\": \"PROCESS_BLUEPRINT\",\n      \"version\": \"1.0\",\n      \"owner_instance_id\": \"{{ $json.owner_data.vat_number }}\",\n      \"metadata\": {\n        \"status\": \"ACTIVE\",\n        \"created_at\": \"{{ new Date().toISOString() }}\",\n        \"last_updated_at\": \"{{ new Date().toISOString() }}\"\n      },\n      \"service_sku\": \"{{ $json.new_product_block.identity.item_sku }}\",\n      \"blueprint_name\": \"[SOP|SER|PRO] - Titolo Esecutivo\",\n      \"blueprint_description\": \"Spiegazione tecnica e normativa dell'obiettivo del processo.\",\n      \"blueprint_type\": \"SERVICE_DELIVERY | INTERNAL_PROTOCOL | PRODUCT_MANUFACTURING\",\n      \"tags\": [\"string\"],\n      \"summary\": {\n        \"estimated_total_cost\": \"Costo interno di produzione calcolato\",\n        \"estimated_total_time_minutes\": 0,\n        \"bill_of_materials_summary\": [\n          { \"material_sku\": \"string\", \"quantity\": 1, \"unit_of_measure\": \"unit\" }\n        ]\n      },\n      \"stages\": [\n      {\n        \"stage_id\": \"STAGE_01\",\n        \"stage_order\": 1,\n        \"stage_name\": \"string\",\n        \"description\": \"Obiettivo della fase o della procedura interna\",\n        \"scheduling_interval_days\": numerico Se SER/PRO = Giorni di ritardo dall'avvio (es. 0=giorno stesso, 7=follow-up a 7gg). Se SOP = Ricorrenza periodica in giorni (es. 1=ripetere ogni giorno, 7=ripetere ogni settimana), \n        \"steps\": [\n            {\n              \"step_id\": \"STEP_01_01\",\n              \"step_order\": 1,\n              \"step_name\": \"Azione (Verbo Imperativo)\",\n              \"instructions\": \"Dettaglio tecnico operativo chiaro e atomico\",\n              \"estimated_time_minutes\": 15,\n              \"resources_needed\": {\n                \"labor\": { \"required_skill_tags\": [\"Skill\"], \"estimated_work_minutes\": 15 },\n                \"materials\": [],\n                \"assets\": []\n              },\n              \"quality_check\": {\n                \"is_required\": true,\n                \"evidence_type\": \"NONE | TEXT | FILE | VISION | SIGNATURE\",\n                \"check_description\": \"Cosa deve essere verificato e registrato\",\n                \"acceptance_criteria\": \"Parametro tecnico o legale rigido di accettazione\"\n              },\n              \"logistics_flags\": {\n                \"requires_wip\": false,\n                \"requires_finished\": false\n              }\n            }\n          ]\n        }\n      ]\n    }\n  }\n  </OutputSchema>\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<DesignTask>\n  <TargetAsset>\n    Name: \"{{ $json.new_product_block.identity.item_name }}\"\n    Type: \"{{ $json.new_product_block.identity.item_type }}\"\n    Desc: \"{{ $json.new_product_block.identity.description.long }}\"\n    Booking: {{ $json.new_product_block.operations.requires_booking }}\n    Extras: {{ JSON.stringify($json.new_product_block.commercial_setup.extra_options) }}\n  </TargetAsset>\n\n  <SalesPromises>\n    Promesse commerciali e informazioni della KB:\n    {{ JSON.stringify($json.KB_fragment?.kb_fragment?.answer_fragment || {}) }}\n    {{ JSON.stringify($json.KB_fragment?.kb_fragment?.sections || {}) }}\n  </SalesPromises>\n\n  <MarketIntelligence>\n    Rapporto di ricerca e Protocolli scansionati:\n    {{ $json.Product_Reserch }}\n  </MarketIntelligence>\n\n  <ComplianceAudit>\n    Vincoli legali, autorizzativi e di sicurezza del territorio:\n    {{ $json.product_Compliance }}\n  </ComplianceAudit>\n\n  <Instruction>\n    1. CLASSIFICAZIONE DEL PROCESSO:\n       - Se l'asset è \"INTERNAL_PROTOCOL\" (SOP), imposta blueprint_type su \"INTERNAL_PROTOCOL\". Se è un servizio commerciale rivolto al cliente, imposta \"SERVICE_DELIVERY\". Se è un processo di produzione di beni fisici, imposta \"PRODUCT_MANUFACTURING\".\n    \n    2. ARCHITETTURA DELLO STAGE DI SETUP (STAGE 0):\n       - Se l'asset è un servizio commerciale (SERVICE_DELIVERY / PRODUCT_MANUFACTURING), genera lo Stage 0 focalizzato sulla preparazione o sul setup di {{ $json.blueprint_dictionary.primary_workstation }}, inserendo le istruzioni di contesto: \"{{ $json.blueprint_dictionary.setup_instructions }}\".\n       - Se l'asset è un protocollo interno (INTERNAL_PROTOCOL), genera uno Stage 0 di preparazione fisica solo se esiste una reale ed esplicita necessità tecnica (es. calibrazione strumenti, DPI speciali). Altrimenti, inizia direttamente con l'azione operativa principale, evitando step di preparazione generici o ridondanti.\n       \n    3. INTEGRAZIONE DEL DISCIPLINARE OPERATIVO ED ESCLUSIONE FILE INCOMPATIBILI:\n       - Analizza le sezioni operative del report di ricerca (es. <CLINICAL_PROTOCOL_GOLD_STANDARD> o standard di settore equivalenti).\n       - Genera gli step operativi descrivendo con precisione i passaggi tecnici di scomposizione.\n       - Se un passaggio prevede l'uso o l'acquisizione di file digitali non elaborabili direttamente dall'AI (es. file CAD/3D, radiografie raw, file di diagnostica proprietari), NON richiedere come evidenza il caricamento del file raw stesso. Configura invece il caricamento di una foto dello schermo/dispositivo (VISION), l'apposizione di una firma digitale (SIGNATURE) o il caricamento di una relazione di sintesi in formato standard PDF (FILE).\n\n    4. GESTIONE DEI TEMPI E DELLE RICORRENZE (\"scheduling_interval_days\"):\n      Analizza attentamente la natura dell'asset per impostare con precisione il valore numerico del campo \"scheduling_interval_days\" all'interno di ciascuna macro-fase (stage):\n      \n      - SE IL PROCESSO È UN PROTOCOLLO INTERNO (SOP / INTERNAL_PROTOCOL):\n        Il campo rappresenta la frequenza di ripetizione periodica obbligatoria del controllo o dell'attività. Imposta il valore numerico espresso in giorni in base alle seguenti ricorrenze standard di conformità:\n        * Imposta 1 per attività a ricorrenza GIORNALIERA (es. riordino, chiusure contabili giornaliere, sanificazioni di fine turno).\n        * Imposta 7 per attività a ricorrenza SETTIMANALE (es. pulizie profonde dei filtri, backup di sicurezza dei dati, verifiche hardware settimanali).\n        * Imposta 30 per attività a ricorrenza MENSILE (es. inventario di magazzino, controllo scorte e presidi di primo soccorso/valigetta).\n        * Imposta 180 per attività a ricorrenza SEMESTRALE (es. verifiche antincendio periodiche, controlli semestrali di sicurezza).\n        * Imposta 365 per attività a ricorrenza ANNUALE o BIENNALE (es. manutenzioni straordinarie con tecnici abilitati, tarature certificate dei macchinari).\n        \n      - SE IL PROCESSO È UN SERVIZIO O PRODOTTO COMMERCIALE (SER/PRO / SERVICE_DELIVERY):\n        Il campo rappresenta lo scostamento temporale (scheduling offset) espresso in giorni rispetto al giorno di avvio (Giorno 0) della prestazione:\n        * Imposta 0 per tutte le fasi eseguite il giorno stesso dell'erogazione attiva (es. accoglienza, esecuzione pratica su {{ $json.blueprint_dictionary.primary_workstation }}, dimissione/consegna).\n        * Imposta il numero intero di giorni di attesa previsti per le macro-fasi successive di verifica, monitoraggio o controllo (es. imposta 7 o 10 per la prima verifica a una settimana, o 30 per il monitoraggio finale a un mese), basandoti rigorosamente sulla timeline desunta dal report di ricerca.\n  </Instruction>\n</DesignTask>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "Blueprint",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.media_items[0].base64_content }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.media_items[0].mime_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        592,
+        512
+      ],
+      "id": "8a739da8-572a-456b-9ae5-4e30454cc382",
+      "name": "SerSop_BluePrint"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0",
+            "content-length": "3379",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "it,it-IT;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "content-type": "application/json",
+            "origin": "https://trinaibusinessoperatingsystem.github.io",
+            "priority": "u=1, i",
+            "referer": "https://trinaibusinessoperatingsystem.github.io/",
+            "sec-ch-ua": "\"Chromium\";v=\"150\", \"Not;A=Brand\";v=\"8\", \"Microsoft Edge\";v=\"150\", \"Microsoft Edge WebView2\";v=\"150\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "151.47.173.145",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "_auth": "query_id=AAF7KwZvAwAAAHsrBm_wrAOh&user=%7B%22id%22%3A8305126267%2C%22first_name%22%3A%22Giuseppe%22%2C%22last_name%22%3A%22B%22%2C%22language_code%22%3A%22it%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ftelegram.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2Fp6piCXvtNSGj4KPd60vozxgOJss0ji-aGRNNX4I7CVNme0ergMr6kC1wUoV60zBY.svg%22%7D&auth_date=1784017840&signature=4RmcS6d41LQGNXJkBWMFLX--imT5nRc52XQjG1CFKJpXfICHYGmDyZeYOpbXtgZ1yuPmRaWaDuop4C9E8fyxBw&hash=53591806a88ce372f03818a7b955838025f8a17b1233319887e1885b4a3cb856",
+            "ash": "ODMwNTEyNjI2N3wxNzg0MDE3ODM2MzMyfGVmNGFlY2U0LTllYzAtNDAyNi1hN2E3LTMyODU2MmJjYmRmNg==.794d1d18",
+            "msg": "682",
+            "msg_id": "682",
+            "category_id": "CAT_4FT5AWO6",
+            "new_product_block": {
+              "success": true,
+              "document_type": "CATALOG_ITEM",
+              "version": "1.0",
+              "owner_instance_id": "IT02564250849",
+              "metadata": {
+                "status": "DRAFT",
+                "source": "CHAT_INFERENCE",
+                "created_at": "2026-07-14T08:31:12.177Z",
+                "is_duplicate": false,
+                "duplicate_of": null
+              },
+              "identity": {
+                "item_name": "E-Book: Guida Alla Convivenza Con L'Apparecchio Invisibile",
+                "item_sku": "SVC_TQ83LRQZ",
+                "item_type": "PRODUCT",
+                "description": {
+                  "short": "Scopri come gestire il tuo apparecchio invisibile con i consigli clinici dei nostri esperti.",
+                  "long": "Affrontare un trattamento ortodontico con allineatori invisibili richiede consapevolezza e cura quotidiana per garantire il successo della terapia. Questa guida, redatta dal team del Centro Odontoiatrico Buscemi, accompagna il paziente passo dopo passo nella corretta igiene orale, nelle strategie per migliorare il comfort durante le fasi di cambio allineatore e nel mantenimento dei risultati ottenuti. Uno strumento indispensabile per vivere il percorso ortodontico con serenità e sicurezza, garantendo la salute dei tessuti e l'efficacia del trattamento.",
+                  "internal_notes": "Asset digitale informativo per pazienti in trattamento ortodontico o candidati all'invisibile."
+                },
+                "category": "CAT_4FT5AWO6",
+                "tags": [
+                  "ortodonzia",
+                  "allineatori",
+                  "invisibile",
+                  "igiene orale",
+                  "guida paziente",
+                  "salute dentale",
+                  "ebook",
+                  "dentista"
+                ],
+                "keywords": [
+                  "ortodonzia",
+                  "apparecchio invisibile",
+                  "allineatori",
+                  "igiene dentale",
+                  "salute orale",
+                  "guida clinica",
+                  "trattamento ortodontico"
+                ],
+                "vertical": "dental"
+              },
+              "pricing": {
+                "base_price": 29.9,
+                "currency": "EUR",
+                "unit_of_measure": "item",
+                "tax_info": {
+                  "taxable": true,
+                  "tax_rate_percentage": 22
+                },
+                "pricing_rules_engine": {
+                  "is_dynamic_price": true,
+                  "rules_ids": [],
+                  "notes": "Dynamic price based on extra options."
+                },
+                "cost_of_goods": null
+              },
+              "commercial_setup": {
+                "extra_options": [
+                  {
+                    "name": "Consulenza ortodontica di approfondimento (15 min)",
+                    "price": 45
+                  },
+                  {
+                    "name": "Kit di pulizia professionale per allineatori",
+                    "price": 25
+                  },
+                  {
+                    "name": "Voucher sconto per la prima visita ortodontica",
+                    "price": 0
+                  }
+                ],
+                "allow_customer_notes": true
+              },
+              "operations": {
+                "requires_booking": false,
+                "requires_inventory_check": false,
+                "process_blueprint_id": null,
+                "fulfillment_time": {
+                  "value": null,
+                  "unit": null
+                },
+                "provider_info": {
+                  "required_skill_tags": [
+                    "ortodonzia",
+                    "comunicazione paziente"
+                  ],
+                  "specific_provider_ids": []
+                }
+              },
+              "relations": {
+                "related_items": [],
+                "marketing_info": {
+                  "is_featured": false,
+                  "target_audience_tags": [
+                    "pazienti ortodontici",
+                    "nuovi pazienti"
+                  ]
+                }
+              },
+              "additional_kwargs": {},
+              "response_metadata": {},
+              "ui_node_draft": {
+                "name": "E-Book: 'Guida alla convivenza con l'apparecchio invisibile'",
+                "short_name": "📖 Guida Allineatori",
+                "callback_data": "SVC_TQ83LRQZ"
+              },
+              "is_duplicate": false,
+              "duplicate_id": null
+            }
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/20fd95c0-4218-400e-ae2a-cd881a757b80",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Call 'saveProduct_processor_init'",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "ErrorApi1": {
+      "main": [
+        [
+          {
+            "node": "LLMFail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "product_Compliance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ErrorApi": {
+      "main": [
+        [
+          {
+            "node": "LLMFail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Final_Data_Cleanser",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "ErrorApi2": {
+      "main": [
+        [
+          {
+            "node": "LLMFail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "product_KB1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "save catalog_setup",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "service_catalog_product",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "service_catalog_product",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "process_bluprint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "service_catalog_product": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "process_bluprint",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge7": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "process_bluprint": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge9": {
+      "main": [
+        [
+          {
+            "node": "Merge13",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ScomposerDossier1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "KB_Fragment",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge8": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KB_Fragment": {
+      "main": [
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "KB_Fragment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ErrorApi3": {
+      "main": [
+        [
+          {
+            "node": "LLMFail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge13": {
+      "main": [
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save catalog_setup": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "product_Compliance": {
+      "main": [
+        [
+          {
+            "node": "Call GoogleSerch - Compliance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'GeminiCall'": {
+      "main": [
+        [
+          {
+            "node": "ErrorApi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call GoogleSerch - Compliance": {
+      "main": [
+        [
+          {
+            "node": "ErrorApi3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call GoogleSerch - MarketAnalisys": {
+      "main": [
+        [
+          {
+            "node": "ErrorApi1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "product_reserch": {
+      "main": [
+        [
+          {
+            "node": "Call GoogleSerch - MarketAnalisys",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "product_KB1": {
+      "main": [
+        [
+          {
+            "node": "Call 'GeminiCall'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call GeminiCall": {
+      "main": [
+        [
+          {
+            "node": "ErrorApi2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Call": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge14",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge10": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Prepare_System_Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLMFail": {
+      "main": [
+        []
+      ]
+    },
+    "Prepare_System_Success": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge11": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge14": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Final_Data_Cleanser": {
+      "main": [
+        [
+          {
+            "node": "save catalog_setup",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit gallery1": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "PromptG1": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Merge15",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge15": {
+      "main": [
+        [
+          {
+            "node": "Billing_Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "Merge17",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge17": {
+      "main": [
+        [
+          {
+            "node": "Edit gallery1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        [
+          {
+            "node": "Merge17",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "vertical2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'saveProduct_processor_init'": {
+      "main": [
+        [
+          {
+            "node": "Blueprint_Rules_Injector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Merge15",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "vertical2": {
+      "main": [
+        [
+          {
+            "node": "PromptG",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "PromptG1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PromptG": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Billing_Set": {
+      "main": [
+        [
+          {
+            "node": "Call 'Standard_AcCredit'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error?": {
+      "main": [
+        [
+          {
+            "node": "SaveReserch1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "ScomposerDossier1": {
+      "main": [
+        [
+          {
+            "node": "Gemini_Parse_Resrch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SaveReserch1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini_Parse_Resrch1": {
+      "main": [
+        [
+          {
+            "node": "Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory6": {
+      "ai_memory": [
+        [
+          {
+            "node": "SaveReserch1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Merge13",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Blueprint_Rules_Injector": {
+      "main": [
+        [
+          {
+            "node": "product_reserch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "product_BluePrint",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SerSop_BluePrint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "product_BluePrint": {
+      "main": [
+        [
+          {
+            "node": "Call GeminiCall",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerSop_BluePrint": {
+      "main": [
+        [
+          {
+            "node": "Call GeminiCall",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "78533837-0a7a-4fff-b72f-d05e9384ac54",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "q89w7G5LlTHKyACV",
+  "tags": []
+}

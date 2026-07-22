@@ -1,0 +1,1072 @@
+{
+  "name": "dashboard_certFromApp",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -4416,
+        1568
+      ],
+      "id": "1ee44b0e-e5db-4078-894d-0fa12ef18f24",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.manager_report }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -2080,
+        1376
+      ],
+      "id": "91daa7cd-3427-43f9-aedd-325c2ffbb241",
+      "name": "📤 Telegram Manager",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2240,
+        1216
+      ],
+      "id": "31c9b262-14fd-40b4-8675-996062fdfe5f",
+      "name": "Merge35"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "96d78e95-8dcd-46d1-bf0b-ef5577ef7486",
+              "name": "telegramApiPayload.text",
+              "value": "={{ $json.telegramApiPayload.text }}\n\n\nAttenzione: <b>\"Il tuo Bot di Telegram Risulta inragiungibile ricordati di ATTIVARLO per ricevere tutte le evidenze\"</b>\n",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2080,
+        1216
+      ],
+      "id": "3d135f3a-d568-40a6-bf12-cc228fb19fbd",
+      "name": "Edit Fields9"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2240,
+        848
+      ],
+      "id": "5512fff0-49a2-4308-8aec-3cc33058064a",
+      "name": "Merge36"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2240,
+        1008
+      ],
+      "id": "52fd0663-6234-4dc2-93a3-8edeb0ef47d4",
+      "name": "Edit Fields10"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Prepare_Manager_Executive_Report_v4\n// DESC: Dashboard Executive con terminologia tecnica e logica SiteBoS\n// ═══════════════════════════════════════════════════════════════\n\nconst input = $input.first().json;\n\n// 1. RECUPERO DATI CORE\nconst doc = input.final_certification_doc || {};\nconst owner = input.owner_data || {};\nconst bObj = input.Final_Blueprint || {};\n\n// --- LOGICA DI CATEGORIZZAZIONE FERREA ---\nconst name = (doc.blueprint_info.name || \"\").toUpperCase();\nconst sku = (doc.sop_id || \"\").toUpperCase();\n\nlet typeLabel = \"DOCUMENTO\";\nlet typeIcon = \"📄\";\n\nif (name.includes(\"[SOP]\") || sku.startsWith(\"SOP_\")) {\n    typeLabel = \"[SOP] PROCEDURA OPERATIVA\";\n    typeIcon = \"📋\";\n} else if (name.includes(\"[SER]\") || sku.startsWith(\"SER_\") || sku.startsWith(\"SVC_\")) {\n    typeLabel = \"[SER] SERVIZIO\";\n    typeIcon = \"🛠️\";\n} else if (name.includes(\"[PRO]\") || sku.startsWith(\"PRO_\") || sku.startsWith(\"PRD_\")) {\n    typeLabel = \"[PRO] PRODOTTO\";\n    typeIcon = \"📦\";\n}\n\n// 2. ANALISI METRICHE KPI\nconst totalSteps = doc.total_steps_executed;\nconst aiSteps = doc.audit_trail.filter(s => s.method.includes(\"AI\")).length;\nconst healthScore = Math.round((aiSteps / totalSteps) * 100);\nconst healthBar = \"🟩\".repeat(Math.floor(healthScore/10)) + \"⬜\".repeat(10 - Math.floor(healthScore/10));\n\nconst actualTime = doc.timing.duration_minutes;\nconst estimatedTime = bObj.summary?.estimated_total_time_minutes || 0;\nconst timePerformance = actualTime <= estimatedTime ? \"🟢 OTTIMALE\" : \"🔴 OVER-TIME\";\n\n// 3. RICOSTRUZIONE LOG EVENTI\nlet auditTrailHtml = \"\";\ndoc.audit_trail.forEach((step) => {\n    const time = new Date(step.timestamp).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });\n    const methodIcon = step.method.includes(\"AI\") ? \"🤖\" : \"✍️\";\n    auditTrailHtml += ` ├ <code>${time}</code> ${methodIcon} ${step.step_name}\\n`;\n});\n\n// 4. COSTRUZIONE EXECUTIVE DASHBOARD (HTML)\nconst reportMessage = `\n🏛️ <b>SITEBOS - EXECUTIVE AUDIT REPORT</b>\n━━━━━━━━━━━━━━━━━━━━\n🏷️ <b>CATEGORIA:</b> <code>${typeLabel}</code>\n📝 <b>ATTIVITÀ:</b> <b>${doc.blueprint_info.name}</b>\n🆔 <b>SESSIONE:</b> <code>${doc.execution_id}</code>\n\n🎯 <b>OBIETTIVO STRATEGICO</b>\n<i>\"${doc.blueprint_info.description}\"</i>\n\n📊 <b>PERFORMANCE OPERATIVA</b>\n────────────────────\n⏱️ <b>Tempo Totale:</b> <code>${actualTime} min</code> (Target: ${estimatedTime}m)\n📈 <b>Efficienza:</b> <code>${timePerformance}</code>\n✅ <b>Integrità:</b> <code>${healthScore}% AI-Validated</code>\n   ${healthBar}\n\n📝 <b>LOG DI ESECUZIONE</b>\n────────────────────\n${auditTrailHtml}\n └ 🏁 <i>Sessione chiusa e certificata.</i>\n\n━━━━━━━━━━━━━━━━━━━━\n🔐 <b>INTEGRITÀ:</b> <code>VERIFIED</code>\n🛡️ <b>ARCHIVIAZIONE:</b> <code>VAULT SECURE SITEBOS</code>`;\n\n// 5. OUTPUT PAYLOAD\nreturn [{\n    json: {\n        ...input,\n        manager_report: {\n            bot_token: owner.bot_key,\n            chat_id: owner.chat_id,\n            text: reportMessage,\n            parse_mode: \"HTML\"\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2240,
+        1376
+      ],
+      "id": "1dc4381a-c6a5-422b-80a3-8d7b30df5313",
+      "name": "Prepare_Manager_Executive_Report"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -4032,
+        1568
+      ],
+      "id": "0608329b-8ef6-4a99-a3b8-7413a2735c17",
+      "name": "GeminiError1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3ae6e344-f0d2-43d3-a93f-bbadb3ae6ec8",
+              "leftValue": "={{ $json.Evicence_Rational_Log.success }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -3792,
+        1456
+      ],
+      "id": "85a5ca4d-c0fb-4f96-bce0-59297f6b7eb6",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fItem = $input.first().json;\nconst bObj = fItem.Final_Blueprint || fItem.Blueprint;\nconst oInfo = fItem.owner_data;\nconst body = fItem.body;\n\nconst sopId = body.sop_id;\nconst execId = body.ei;\nconst stepId = body.step_id;\nconst vat = oInfo.vat_number;\nconst tracking_report_id = `${vat}_${sopId}_${execId}`;\n\nlet allSteps = [];\nbObj.stages.forEach((stg, sIndex) => {\n    stg.steps.forEach(stp => {\n        allSteps.push({ ...stp, stageNum: sIndex + 1 });\n    });\n});\n\nconst currentIdx = allSteps.findIndex(s => s.step_id === stepId);\nconst currentStep = allSteps[currentIdx];\nconst nextStep = allSteps[currentIdx + 1];\n\nconst manualCallback = nextStep ? `ge_si=${sopId}&ei=${execId}&sti=${nextStep.step_id}` : `ge_close_${tracking_report_id}`;\nconst webAppUrl = `https://simonaiit.github.io/SiteBoS-MiniApp/certificator.html?sop_id=${sopId}&step_id=${stepId}&message_id=${body.message_id}&evidence_type=${body.evidence_type}&ei=${execId}&vat=${vat}&chat_id=${body.chat_id}&SBS=true`;\n\nconst msgText = `⚠️ <b>AI TEMPORANEAMENTE OFFLINE</b>\\nNessun credito scalato. Riprova o procedi manualmente.\\n━━━━━━━━━━━━━━━━━━━━\\n<b>[STEP ${currentIdx + 1} di ${allSteps.length}]</b>\\n⚙️ STEP: <b>${currentStep.step_name}</b>\\n\\n📖 ISTRUZIONI:\\n${currentStep.instructions}\\n━━━━━━━━━━━━━━━━━━━━\\n🆔 Sessione: <code>${execId}</code>`;\n\nreturn [{\n  json: {\n    ...fItem,\n    telegramApiPayload: {\n      method: \"editMessageText\",\n      chat_id: oInfo.chat_id,\n      message_id: body.message_id,\n      text: msgText,\n      parse_mode: \"HTML\",\n      reply_markup: {\n        inline_keyboard: [[\n            { text: \"✍️ Autocertifica\", callback_data: manualCallback },\n            { text: \"🔄 Riprova AI\", web_app: { url: webAppUrl } }\n        ]]\n      }\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3792,
+        1664
+      ],
+      "id": "22359adf-18b7-4662-a1ec-4866e619c98a",
+      "name": "Prepare System Error Message1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -4176,
+        816
+      ],
+      "id": "464fd29e-1acb-446f-9e1a-a7c51dcda3f4",
+      "name": "📤 Telegram Call8"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fItem = $input.first().json;\nconst bObj = fItem.Final_Blueprint || fItem.Blueprint;\nconst oInfo = fItem.owner_data;\nconst body = fItem.body;\nconst aiLog = fItem.Evicence_Rational_Log;\n\nconst sopId = body.sop_id;\nconst execId = body.ei;\nconst stepId = body.step_id;\nconst vat = oInfo.vat_number;\nconst tracking_report_id = `${vat}_${sopId}_${execId}`;\n\nlet allSteps = [];\nbObj.stages.forEach((stg, sIndex) => {\n    stg.steps.forEach(stp => {\n        allSteps.push({ ...stp, stageName: stg.stage_name, stageDesc: stg.description, stageNum: sIndex + 1 });\n    });\n});\n\nconst currentIdx = allSteps.findIndex(s => s.step_id === stepId);\nconst currentStep = allSteps[currentIdx];\nconst nextStep = allSteps[currentIdx + 1];\n\n// Tracking Report: Fallimento AI\nlet tracking_report = {\n    report_id: tracking_report_id,\n    exec_id: execId,\n    timestamp: new Date().toISOString(),\n    event_type: \"AI_REJECTION\",\n    status: \"LOCKED\",\n    details: aiLog.rationale\n};\n\n// Callback Manuale (passa al prossimo o chiude)\nconst manualCallback = nextStep ? `ge_si=${sopId}&ei=${execId}&sti=${nextStep.step_id}` : `ge_close_${tracking_report_id}`;\nconst webAppUrl = `https://simonaiit.github.io/SiteBoS-MiniApp/certificator.html?sop_id=${sopId}&step_id=${stepId}&message_id=${body.message_id}&evidence_type=${body.evidence_type}&ei=${execId}&vat=${vat}&chat_id=${body.chat_id}&SBS=true`;\n\nconst msgText = `🛑 <b>EVIDENZA RESPINTA</b>\\n❌ <b>MOTIVO:</b> <i>${aiLog.rationale}</i>\\n💡 <b>AZIONE:</b> ${aiLog.strategic_insight}\\n━━━━━━━━━━━━━━━━━━━━\\n<b>[STEP ${currentIdx + 1} di ${allSteps.length}]</b>\\n⚙️ STEP: <b>${currentStep.step_name}</b>\\n\\n📖 ISTRUZIONI:\\n${currentStep.instructions}\\n\\n✅ VALIDAZIONE:\\n• <i>${currentStep.quality_check.check_description}</i>\\n━━━━━━━━━━━━━━━━━━━━\\n🆔 Sessione: <code>${execId}</code>`;\n\nreturn [{\n  json: {\n    ...fItem,\n    tracking_report: tracking_report,\n    telegramApiPayload: {\n      method: \"editMessageText\",\n      chat_id: oInfo.chat_id,\n      message_id: body.message_id,\n      text: msgText,\n      parse_mode: \"HTML\",\n      reply_markup: {\n        inline_keyboard: [[\n            { text: \"✍️ Autocertifica\", callback_data: manualCallback },\n            { text: \"📸 Riprova AI\", web_app: { url: webAppUrl } }\n        ]]\n      }\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3568,
+        1568
+      ],
+      "id": "0d542dad-1635-428f-879c-f5950129ffc2",
+      "name": "Prepare Evidence Rejected Message1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fItem = $input.first().json;\n\n// 1. RECUPERO BASI DATI (Allineato a v4.4 e Final Document)\nconst bObj = fItem.Final_Blueprint || fItem.Blueprint;\nconst oInfo = fItem.owner_data;\nconst body = fItem.body; // Dati dal Webhook Mini App (sop_id, ei, step_id)\nconst aiLog = fItem.Evicence_Rational_Log;\nconst history = fItem.messages || fItem.Cert_Step || []; // Storico per Audit Trail\n\nconst sopId = body.sop_id;\nconst execId = body.ei;\nconst vat = oInfo.vat_number;\nconst tracking_report_id = `${vat}_${sopId}_${execId}`;\nconst operator = fItem.user; \n\n// 2. COSTRUZIONE SEQUENZA STEP COMPLETA (Flattening)\nlet allSteps = [];\nbObj.stages.forEach((stg, sIndex) => {\n    stg.steps.forEach(stp => {\n        allSteps.push({ \n            ...stp, \n            stageName: stg.stage_name, \n            stageDesc: stg.description,\n            stageNum: sIndex + 1\n        });\n    });\n});\n\n// 3. INDIVIDUAZIONE POSIZIONI\nconst completedIdx = allSteps.findIndex(s => s.step_id === body.step_id);\nconst isFinalStep = (completedIdx === allSteps.length - 1); // <--- IL TUO SEMAFORO\n\nconst currentStepToDisplay = allSteps[completedIdx + 1]; // Il prossimo da mostrare (se esiste)\nconst nextStepAfterThat = allSteps[completedIdx + 2];    // Serve per il callback manuale del prossimo step\n\n// 4. GENERAZIONE TRACKING REPORT (Certificazione dello step appena fatto)\nlet tracking_report = {\n    report_id: tracking_report_id,\n    exec_id: execId,\n    sop_id: sopId,\n    vat: vat,\n    timestamp: new Date().toISOString(),\n    event_type: \"STEP_COMPLETED\",\n    status: isFinalStep ? \"COMPLETED\" : \"IN_PROGRESS\",\n    completed_step: {\n        id: body.step_id,\n        name: allSteps[completedIdx].step_name,\n        method: \"AI_CERTIFIED - \" + (aiLog.rationale || \"Nessun dettaglio fornito\"),\n        operator_chat_id: body.chat_id\n    }\n};\n\nconst L = (oInfo.lenguage || 'it').toLowerCase().includes('en') ? 'en' : 'it';\nfunction clean(t) { return t ? String(t).replace(/<(?!b|i|u|code|a|pre|\\/b|\\/i|\\/u|\\/code|\\/a|\\/pre)[^>]+>/gi, '') : ''; }\n\n// =============================================================================\n// CASO A: NON È L'ULTIMO STEP (Mostra Rich UI v4.4 dello step successivo)\n// =============================================================================\nif (!isFinalStep) {\n    const t = {\n        it: { procedure: \"📂 PROCEDURA:\", stage: \"📍 FASE ATTUALE:\", stepInfo: \"⚙️ DETTAGLI STEP:\", instr: \"📖 ISTRUZIONI OPERATIVE:\", check: \"✅ CRITERI DI VALIDAZIONE:\", btn_man: \"✍️ Autocertifica\", btn_ai: \"Certificazione AI\" },\n        en: { procedure: \"📂 PROCEDURE:\", stage: \"📍 CURRENT STAGE:\", stepInfo: \"⚙️ STEP DETAILS:\", instr: \"📖 OPERATIONAL INSTRUCTIONS:\", check: \"✅ VALIDATION CRITERIA:\", btn_man: \"✍️ Self-Certify\", btn_ai: \"AI Certification\" }\n    }[L];\n\n    const evType = (currentStepToDisplay.quality_check?.evidence_type || \"VISION\").toUpperCase();\n    const evIcon = evType === \"VISION\" ? \"📸\" : (evType === \"FILE\" ? \"📄\" : \"📝\");\n    \n    // Callback manuale: se c'è uno step dopo quello che stiamo visualizzando vai a quello, altrimenti ge_close\n    const manualCallback = nextStepAfterThat \n        ? `ge_si=${sopId}&ei=${execId}&sti=${nextStepAfterThat.step_id}` \n        : `ge_close_${tracking_report_id}`;\n\n    const webAppUrl = `https://simonaiit.github.io/SiteBoS-MiniApp/certificator.html?sop_id=${sopId}&step_id=${currentStepToDisplay.step_id}&message_id=${body.message_id}&evidence_type=${evType}&ei=${execId}&SBS=true`;\n\n    const msgText = `\n✅ <b>STEP PRECEDENTE VALIDATO CON AI</b>\n━━━━━━━━━━━━━━━━━━━━\n<b>[STEP ${completedIdx + 2} di ${allSteps.length}]</b>\n━━━━━━━━━━━━━━━━━━━━\n${t.procedure}\n<b>${bObj.blueprint_name}</b>\n\n${t.stage}\n<b>${currentStepToDisplay.stageNum}. ${currentStepToDisplay.stageName}</b>\n<i>${currentStepToDisplay.stageDesc}</i>\n\n━━━━━━━━━━━━━━━━━━━━\n${t.stepInfo}\n<b>${currentStepToDisplay.step_name}</b>\n⏱️ Tempo: <code>${currentStepToDisplay.estimated_time_minutes || 'N/D'} min</code>\n\n${t.instr}\n${currentStepToDisplay.instructions}\n\n${t.check}\n• <i>${currentStepToDisplay.quality_check.check_description}</i>\n• <b>Target:</b> ${currentStepToDisplay.quality_check.acceptance_criteria}\n\n━━━━━━━━━━━━━━━━━━━━\n👤 Operatore: <b>${operator.first_name}</b>\n🆔 Sessione: <code>${execId}</code>`;\n\n    return [{\n      json: {\n        ...fItem,\n        is_final_step: false,\n        tracking_report: tracking_report,\n        telegramApiPayload: {\n          method: \"editMessageText\",\n          chat_id: oInfo.chat_id,\n          message_id: body.message_id,\n          text: msgText,\n          parse_mode: \"HTML\",\n          reply_markup: {\n            inline_keyboard: [[\n                { text: t.btn_man, callback_data: manualCallback },\n                { text: `${evIcon} ${t.btn_ai}`, web_app: { url: webAppUrl } }\n            ]]\n          }\n        }\n      }\n    }];\n\n} \n// =============================================================================\n// CASO B: ERA L'ULTIMO STEP (Genera Documento Finale e Chiudi)\n// =============================================================================\nelse {\n    const startData = history.length > 0 ? (history[0].kwargs || history[0]) : {};\n    const startAt = startData.timestamp || new Date().toISOString(); \n    const closedAt = new Date().toISOString();\n\n    let execution_log = [];\n    history.forEach((msg) => {\n        const k = msg.kwargs || msg;\n        if (k.event_type === \"STEP_COMPLETED\") {\n            execution_log.push({ step_id: k.completed_step.id, step_name: k.completed_step.name, method: k.completed_step.method, timestamp: k.timestamp });\n        }\n    });\n    // Inseriamo l'ultimo step (quello attuale)\n    execution_log.push({\n        step_id: body.step_id,\n        step_name: allSteps[completedIdx].step_name,\n        method: \"AI_VISION_CERTIFIED\",\n        timestamp: closedAt\n    });\n\n    const final_certification_doc = {\n        document_type: \"CERTIFICATION_RECORD\",\n        version: \"1.0\",\n        certification_id: tracking_report_id,\n        execution_id: execId,\n        sop_id: sopId,\n        company_info: { vat: vat, operator_chat_id: oInfo.chat_id },\n        blueprint_info: { name: bObj.blueprint_name, description: bObj.blueprint_description },\n        status: \"COMPLETED\",\n        timing: {\n            started_at: startAt,\n            closed_at: closedAt,\n            duration_minutes: Math.round((new Date(closedAt) - new Date(startAt)) / 60000)\n        },\n        total_steps_executed: execution_log.length,\n        audit_trail: execution_log\n    };\n\n    const tF = {\n        it: { title: \"📜 <b>CERTIFICATO EMESSO</b>\", body: `Procedura: <b>\"${bObj.blueprint_name}\"</b>`, start: \"🏁 Inizio:\", end: \"✅ Fine:\", btn_man: \"✍️ Autocertifica\" },\n        en: { title: \"📜 <b>CERTIFICATE ISSUED</b>\", body: `Procedure: <b>\"${bObj.blueprint_name}\"</b>`, start: \"🏁 Started:\", end: \"✅ Completed:\", btn_man: \"✍️ Self-Certify\" }\n    }[L];\n\n    const fmtTime = (iso) => new Date(iso).toLocaleTimeString(L === 'it' ? 'it-IT' : 'en-US', { hour: '2-digit', minute: '2-digit' });\n\n    const finalMsgText = `\n${tF.title}\n━━━━━━━━━━━━━━━━━━━━\n${tF.body}\n\n🆔 Sessione: <code>${execId}</code>\n${tF.start} <code>${fmtTime(startAt)}</code>\n${tF.end} <code>${fmtTime(closedAt)}</code>\n\n📊 Totale Step: <b>${execution_log.length}</b>\n━━━━━━━━━━━━━━━━━━━━\n🛡️ <i>Documento archiviato e validato con AI.</i>\n👉 Clicca sotto per finalizzare l'invio.`;\n\n    return [{\n      json: {\n        ...fItem,\n        is_final_step: true, \n        tracking_report: tracking_report\n          }\n    }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3568,
+        1344
+      ],
+      "id": "1e5a58f0-cbd8-4fbf-9d9b-7a30e06af034",
+      "name": "Prepare Evidence Accepted Message1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d16bfc7d-4cb0-4153-905b-4ea956ffe023",
+              "leftValue": "={{ $json.is_final_step }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -3360,
+        1344
+      ],
+      "id": "c5859de4-5a71-4732-b2e4-222d46f65cee",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.tracking_report.report_id }}",
+        "collectionName": "evidence_logs",
+        "databaseName": "TbosAssetLake",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -4176,
+        1232
+      ],
+      "id": "7e877098-306a-495d-b73c-8fece865ee75",
+      "name": "MongoDB Chat Memory14",
+      "credentials": {
+        "mongoDb": {
+          "id": "5pERtRttklNe4fOb",
+          "name": "AssetLake"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -3680,
+        1088
+      ],
+      "id": "14673333-e9ca-449d-9a36-54eeafd60b5d",
+      "name": "Merge37"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.tracking_report }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -4176,
+        1088
+      ],
+      "id": "2ea7bf26-0a48-4c65-8576-fdab95064e4c",
+      "name": "CertLog1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.tracking_report.report_id }}",
+        "collectionName": "evidence_logs",
+        "databaseName": "TbosAssetLake",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -3152,
+        1504
+      ],
+      "id": "ff92f85a-ea28-405a-a18e-5a8a976ff87c",
+      "name": "MongoDB Chat Memory15",
+      "credentials": {
+        "mongoDb": {
+          "id": "5pERtRttklNe4fOb",
+          "name": "AssetLake"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "simplifyOutput": false,
+        "options": {
+          "groupMessages": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -3152,
+        1360
+      ],
+      "id": "c32ad1f8-139e-465a-90a1-69c384765ff8",
+      "name": "Get_Cert1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -3376,
+        832
+      ],
+      "id": "75f6191c-fd32-4f17-8e60-3a77c55271b3",
+      "name": "Merge38"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fItem = $input.first().json;\n\n// 1. RECUPERO DATI CORE\nconst bObj = fItem.Final_Blueprint || fItem.Blueprint || {};\nconst oInfo = fItem.owner_data || {};\nconst body = fItem.body || {};\nconst history = fItem.messages || []; \nconst currentTrack = fItem.tracking_report || {};\n\nconst sopId = body.sop_id;\nconst execId = body.ei;\nconst vat = oInfo.vat_number;\nconst tracking_report_id = `${vat}_${sopId}_${execId}`;\n\n// 2. ESTRAZIONE ORARIO INIZIO (Dalla history)\nconst openEvent = history.find(m => m.kwargs && m.kwargs.event_type === \"INSTANCE_OPEN\");\nconst startAt = openEvent ? openEvent.kwargs.timestamp : new Date().toISOString();\nconst closedAt = new Date().toISOString();\n\n// 3. COSTRUZIONE AUDIT TRAIL (Merging History + Current Step)\nlet execution_log = [];\n\nhistory.forEach((msg) => {\n    const k = msg.kwargs || {};\n    if (k.event_type === \"STEP_COMPLETED\") {\n        execution_log.push({\n            step_id: k.completed_step.id,\n            step_name: k.completed_step.name,\n            method: k.completed_step.method,\n            timestamp: k.timestamp\n        });\n    }\n});\n\nif (currentTrack.completed_step) {\n    execution_log.push({\n        step_id: currentTrack.completed_step.id,\n        step_name: currentTrack.completed_step.name,\n        method: currentTrack.completed_step.method,\n        timestamp: currentTrack.timestamp\n    });\n}\n\n// 4. GENERAZIONE DOCUMENTO FINALE PER MONGODB\nconst final_certification_doc = {\n    document_type: \"CERTIFICATION_RECORD\",\n    version: \"1.0\",\n    certification_id: tracking_report_id,\n    execution_id: execId,\n    sop_id: sopId,\n    company_info: {\n        vat: vat,\n        operator_chat_id: body.chat_id\n    },\n    blueprint_info: {\n        name: bObj.blueprint_name,\n        description: bObj.blueprint_description\n    },\n    status: \"COMPLETED\",\n    timing: {\n        started_at: startAt,\n        closed_at: closedAt,\n        duration_minutes: Math.round((new Date(closedAt) - new Date(startAt)) / 60000)\n    },\n    total_steps_executed: execution_log.length,\n    audit_trail: execution_log\n};\n\n// 5. PREPARAZIONE MESSAGGIO TELEGRAM (CON IL TUO PULSANTE ORIGINALE)\nconst L = (oInfo.lenguage || 'it').toLowerCase().includes('en') ? 'en' : 'it';\nconst t = {\n    it: {\n        title: \"📜 <b>CERTIFICATO EMESSO</b>\",\n        body: `Procedura: <b>\"${bObj.blueprint_name}\"</b>`,\n        start: \"🏁 Inizio:\",\n        end: \"✅ Fine:\",\n        btn: \"⬅️ Torna alla Procedura\"\n    },\n    en: {\n        title: \"📜 <b>CERTIFICATE ISSUED</b>\",\n        body: `Procedure: <b>\"${bObj.blueprint_name}\"</b>`,\n        start: \"🏁 Started:\",\n        end: \"✅ Completed:\",\n        btn: \"⬅️ Back to Procedure\"\n    }\n}[L];\n\nconst fmtTime = (iso) => new Date(iso).toLocaleTimeString(L === 'it' ? 'it-IT' : 'en-US', { hour: '2-digit', minute: '2-digit' });\n\nconst msgText = `\n${t.title}\n━━━━━━━━━━━━━━━━━━━━\n${t.body}\n\n🆔 Sessione: <code>${execId}</code>\n${t.start} <code>${fmtTime(startAt)}</code>\n${t.end} <code>${fmtTime(closedAt)}</code>\n\n📊 Totale Step: <b>${execution_log.length}</b>\n━━━━━━━━━━━━━━━━━━━━\n🛡️ <i>Documento archiviato nel Registro SiteBoS.</i>`;\n\nreturn [{\n  json: {\n    ...fItem,\n    final_certification_doc: final_certification_doc,\n    is_final_step: true,\n    telegramApiPayload: {\n      method: \"editMessageText\",\n      chat_id: oInfo.chat_id,\n      message_id: body.message_id,\n      text: msgText,\n      parse_mode: \"HTML\",\n      reply_markup: {\n        inline_keyboard: [[\n            { text: t.btn, callback_data: `get_active_sop_${sopId}` }\n        ]]\n      }\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2944,
+        832
+      ],
+      "id": "25e70343-e0de-4861-abe2-e10ca8d77da0",
+      "name": "Prepare Final Certification1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.final_certification_doc.certification_id }}",
+        "collectionName": "evidence_docs",
+        "databaseName": "TbosAssetLake",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -2928,
+        1200
+      ],
+      "id": "17e261b2-af3c-44a2-8040-d92ca5d64061",
+      "name": "MongoDB Chat Memory16",
+      "credentials": {
+        "mongoDb": {
+          "id": "5pERtRttklNe4fOb",
+          "name": "AssetLake"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2752,
+        848
+      ],
+      "id": "7a440981-13af-4f34-8ac8-0232650a4efb",
+      "name": "Merge39"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.final_certification_doc }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -2928,
+        1056
+      ],
+      "id": "79e30fcf-5c76-43cb-b7c9-f1f66bed5579",
+      "name": "CertDoc1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.tracking_report.report_id }}",
+        "collectionName": "evidence_logs",
+        "databaseName": "TbosAssetLake",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -2752,
+        1408
+      ],
+      "id": "100a422d-161d-4f32-9ddd-3cf0e8c4f507",
+      "name": "MongoDB Chat Memory17",
+      "credentials": {
+        "mongoDb": {
+          "id": "5pERtRttklNe4fOb",
+          "name": "AssetLake"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "delete",
+        "deleteMode": "all"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -2752,
+        1264
+      ],
+      "id": "dd62a8bc-1e77-4bfc-a359-95bf0386a135",
+      "name": "Del_Cert_log1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2544,
+        864
+      ],
+      "id": "78d8afc8-8146-48b0-8649-dc1327603a51",
+      "name": "Merge40"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "param-action",
+              "name": "action",
+              "value": "=dashboard_certFromApp",
+              "type": "string"
+            },
+            {
+              "id": "param-target-col",
+              "name": "target_collection",
+              "value": "service_catalog",
+              "type": "string"
+            },
+            {
+              "id": "param-target-doc",
+              "name": "target_document",
+              "value": "={{ $json.target_document || $json.body?.callback_query?.data || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "param-caller",
+              "name": "caller_chat_id",
+              "value": "={{ $json.caller_chat_id || $json.ids?.caller_chat_id }}",
+              "type": "string"
+            },
+            {
+              "id": "param-owner",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4216,
+        1568
+      ],
+      "id": "1b5bd76b-1bca-40fc-bdaa-2dd6042b11ad",
+      "name": "Prep Lock Params"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "DFYgrC5FBKxua5td",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/DFYgrC5FBKxua5td",
+          "cachedResultName": "Lock-Manager"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        -4016,
+        1568
+      ],
+      "id": "95cb6d8c-ba87-41cc-8c1d-2531a13a7fcd",
+      "name": "Execute Lock-Manager"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "lock-acquired-check",
+              "leftValue": "={{ $json.lockAcquired }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -3816,
+        1568
+      ],
+      "id": "abb32b94-1932-48c1-ae46-e61ff6bf6cba",
+      "name": "Lock Free?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data?.bot_key || '8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ' }}/editMessageText",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": \"{{ $json.body.callback_query.message.chat.id }}\",\n  \"message_id\": \"{{ $json.body.callback_query.message.message_id }}\",\n  \"text\": \"⚠️ <b>COLLISIONE DI PROCESSO</b>\\n\\nUn altro collaboratore della tua organizzazione sta eseguendo un'operazione simile o la tua sessione è già attiva.\\n\\nPer favore, attendi il completamento del processo prima di riprovare.\",\n  \"parse_mode\": \"HTML\",\n  \"reply_markup\": {\n    \"inline_keyboard\": [\n      [\n        {\n          \"text\": \"🏠 Torna alla Dashboard\",\n          \"callback_data\": \"agent_selection\"\n        }\n      ]\n    ]\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3816,
+        1748
+      ],
+      "id": "a35369a2-53ee-4c70-acfb-568b70ccb0ef",
+      "name": "Telegram Lock Collision Msg"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "collection": "active_actions",
+        "query": "={\"sessionId\": \"{{ $json.caller_chat_id || $json.ids?.caller_chat_id }}\"}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1830,
+        1568
+      ],
+      "id": "793cb609-8a30-4911-9eab-088d4db62ee8",
+      "name": "Release Lock",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Prep Lock Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Manager": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields10",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge35",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge35": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields10": {
+      "main": [
+        [
+          {
+            "node": "Merge36",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare_Manager_Executive_Report": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GeminiError1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare System Error Message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Prepare Evidence Accepted Message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Evidence Rejected Message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare System Error Message1": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Call8": {
+      "main": [
+        [
+          {
+            "node": "Release Lock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Evidence Rejected Message1": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Evidence Accepted Message1": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Merge37",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "CertLog1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get_Cert1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge38",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory14": {
+      "ai_memory": [
+        [
+          {
+            "node": "CertLog1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge37": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CertLog1": {
+      "main": [
+        [
+          {
+            "node": "Merge37",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory15": {
+      "ai_memory": [
+        [
+          {
+            "node": "Get_Cert1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get_Cert1": {
+      "main": [
+        [
+          {
+            "node": "Merge38",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge38": {
+      "main": [
+        [
+          {
+            "node": "Prepare Final Certification1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Final Certification1": {
+      "main": [
+        [
+          {
+            "node": "CertDoc1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge39",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory16": {
+      "ai_memory": [
+        [
+          {
+            "node": "CertDoc1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge39": {
+      "main": [
+        [
+          {
+            "node": "Del_Cert_log1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge40",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CertDoc1": {
+      "main": [
+        [
+          {
+            "node": "Merge39",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory17": {
+      "ai_memory": [
+        [
+          {
+            "node": "Del_Cert_log1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Del_Cert_log1": {
+      "main": [
+        [
+          {
+            "node": "Merge40",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge40": {
+      "main": [
+        [
+          {
+            "node": "Prepare_Manager_Executive_Report",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge36",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Merge35",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields9": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge36": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Lock Params": {
+      "main": [
+        [
+          {
+            "node": "Execute Lock-Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Lock-Manager": {
+      "main": [
+        [
+          {
+            "node": "Lock Free?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lock Free?": {
+      "main": [
+        [
+          {
+            "node": "GeminiError1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Lock Collision Msg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "237234b0-a79f-406a-a480-025a70d8c521",
+  "meta": {
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "YcqSQFWjr6eieC4u",
+  "tags": []
+}

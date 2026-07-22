@@ -1,0 +1,1767 @@
+{
+  "name": "editProduct",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "2c6416b1-32c6-4661-bd8f-b175d24fd035",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2928,
+        768
+      ],
+      "id": "f87929d5-1fc7-4128-b9de-fca0d328d12c",
+      "name": "Webhook",
+      "webhookId": "2c6416b1-32c6-4661-bd8f-b175d24fd035"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.catalog_item ? { catalog_item: $json.catalog_item } : $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1344,
+        208
+      ],
+      "id": "e12e1cb5-db50-40b9-800d-e44fd775b22c",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "07efa643-802f-4b6d-9e93-1e3ebbcc4f50",
+              "name": "user_request",
+              "value": "={{ $json.body }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1552,
+        416
+      ],
+      "id": "e88522e7-20d7-49b0-a484-9fac0c5b733b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "service_catalog",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.user_request.vat }}-{{ $json.user_request.productId }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"catalog_item\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1344,
+        416
+      ],
+      "id": "9ca859ff-2840-4861-bf48-b336fb847c9b",
+      "name": "product",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "07efa643-802f-4b6d-9e93-1e3ebbcc4f50",
+              "name": "user_request",
+              "value": "={{ $json.body }}",
+              "type": "object"
+            },
+            {
+              "id": "ffbfdc85-709d-4271-9447-d87aba9fdbb8",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1328,
+        752
+      ],
+      "id": "9db5777a-0cd1-45df-9c4a-09847056e86b",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "service_catalog",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.user_request.vat }}-{{ $json.user_request.productId }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"catalog\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1120,
+        848
+      ],
+      "id": "5c80204a-8c24-4e9a-ac58-651301d430a1",
+      "name": "product1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -944,
+        768
+      ],
+      "id": "eb099500-30cf-4e0f-84f9-0ce3304e4228",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.delta_update }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        16,
+        416
+      ],
+      "id": "8a50fb96-835b-4849-8d6a-c4715ea4812d",
+      "name": "ErrorApi3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -544,
+        608
+      ],
+      "id": "3bc61c1f-ebc3-4d92-8453-212bc5e2791f",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -544,
+        416
+      ],
+      "id": "cb81c178-dd08-4a7d-9d5e-f5b995feeeee",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "process_blueprints",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.original_catalog._id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"blueprint\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -768,
+        624
+      ],
+      "id": "b14a2fb4-97a2-4fd0-b430-55a47dc3712f",
+      "name": "blueprint",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "knowledge_fragments",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.original_catalog._id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"KbFragment\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -768,
+        432
+      ],
+      "id": "c071d8fb-0ba4-484d-83e2-6ce5073516fd",
+      "name": "KbFragment",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "5pERtRttklNe4fOb",
+          "name": "AssetLake"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Detect_Changes_And_Prepare_Sync\n// ═══════════════════════════════════════════════════════════════\n\nconst payload = $json.user_request.payload;\nconst original = $json.catalog;\nconst owner = $json.owner_data;\n\nconst hasChanged = (a, b) => JSON.stringify(a) !== JSON.stringify(b);\n\n// 1. MAPPATURA INTEGRALE 1:1\nconst diff = {\n  identity: {\n    name: hasChanged(payload.identity.item_name, original.identity.item_name),\n    desc_short: hasChanged(payload.identity.description.short, original.identity.description.short),\n    desc_long: hasChanged(payload.identity.description.long, original.identity.description.long)\n  },\n  pricing: {\n    price: hasChanged(payload.pricing.base_price, original.pricing.base_price)\n  },\n  commercial: {\n    extras: hasChanged(payload.commercial_setup?.extra_options, original.commercial_setup?.extra_options)\n  },\n  operations: {\n    booking: hasChanged(payload.operations.requires_booking, original.operations.requires_booking),\n    // QUESTO È QUELLO CHE CAMBIA NEL TUO JSON (False -> True)\n    inventory: hasChanged(payload.operations.requires_inventory_check, original.operations.requires_inventory_check)\n  }\n};\n\n// 2. DECISIONE LOGICA\n// Qualsiasi modifica deve far proseguire il workflow per salvare sul DB\nconst has_changes = diff.identity.name || diff.identity.desc_short || diff.identity.desc_long || \n                    diff.pricing.price || diff.commercial.extras || \n                    diff.operations.booking || diff.operations.inventory;\n\n// Solo le modifiche \"semantiche\" richiedono l'IA (Gemini)\nconst needs_ai_sync = diff.identity.name || diff.identity.desc_long || \n                      diff.pricing.price || diff.commercial.extras;\n\n// 3. PREPARA IL SOMMARIO PER IL LOG / IA\nconst summary = [];\nif (diff.identity.name) summary.push(\"Nome prodotto\");\nif (diff.pricing.price) summary.push(\"Prezzo base\");\nif (diff.commercial.extras) summary.push(\"Opzioni Extra/Add-ons\");\nif (diff.operations.inventory) summary.push(\"Stato Inventario (Update Tecnico)\");\n\nreturn [{\n  json: {\n    owner_data: owner,\n    modified_catalog: payload,\n    original_catalog: original,\n    changes_detail: diff,\n    changes_summary: summary,\n    has_changes: has_changes,      // Sarà TRUE (perché l'inventario è cambiato)\n    needs_sync: needs_ai_sync,    // Sarà FALSE (se è cambiato SOLO l'inventario)\n    item_sku: payload.identity.item_sku,\n    catalog_session_id: $json.user_request.chat_id\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -768,
+        768
+      ],
+      "id": "bbc3901b-24ff-470a-8db4-23e74230c585",
+      "name": "Detect_Changes_And_Prepare_Sync"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n<Role>TrinAi_SemanticDelta_SyncEngine</Role>\n\n<Objective>\nGenerare un JSON di aggiornamento (MongoDB-style update syntax) deterministico per sincronizzare modifiche da un CATALOG_ITEM verso un KB_FRAGMENT e un PROCESS_BLUEPRINT.\n</Objective>\n\n<InputContext>\nRiceverai un oggetto contenente:\n1. 'modified_catalog': Il nuovo stato dell'item.\n2. 'blueprint': Il documento di processo originale.\n3. 'KbFragment': Il frammento di conoscenza originale.\n</InputContext>\n\n<StandardizedAliases>\nDEVI usare ESCLUSIVAMENTE questi alias per gli array filters per garantire la parsabilità:\n- Per KB Sections: \"$[kb_sec]\"\n- Per Blueprint Stages: \"$[bp_stage]\"\n- Per Blueprint Steps: \"$[bp_step]\"\n- Per Blueprint BOM Items: \"$[bp_mat]\"\n</StandardizedAliases>\n\n<MatchingStrategy>\nPer identificare l'elemento corretto in un array, usa SEMPRE questa priorità di ancoraggio nel blocco 'array_filters':\n1. Blueprint Stages: Usa {\"bp_stage.stage_id\": \"ID_ORIGINALE\"}\n2. Blueprint Steps: Usa {\"bp_step.step_id\": \"ID_ORIGINALE\"}\n3. KB Sections: Usa {\"kb_sec.question\": \"TESTO_DOMANDA_ORIGINALE\"} (Cerca la corrispondenza esatta della stringa presente nel documento PRIMA della modifica)\n</MatchingStrategy>\n\n<UpdateLogic>\n1. **Rilevamento Delta**: Confronta il catalog modificato con i valori presenti nei testi di KB e Blueprint.\n2. **Scope Analysis**:\n   - Se cambia il prezzo (pricing.base_price): Aggiorna tutti i riferimenti testuali al prezzo e ricalcola i totali nel blueprint (es. summary.estimated_total_cost).\n   - Se cambia il nome (identity.item_name): Aggiorna titoli e riferimenti nel testo.\n   - Se cambia la descrizione: Aggiorna summary e answer_fragment.\n3. **Sostituzione Chirurgica**:\n   - NON riscrivere l'intero paragrafo se non strettamente necessario.\n   - Sostituisci il vecchio valore con il nuovo mantenendo il contesto sintattico.\n   - Esempio: \"Il costo è 0 euro\" -> \"Il costo è 30 euro\" (Mantiene \"Il costo è...\").\n\n4. **Regola del Ricalcolo (Prezzi)**:\n   - Se 'pricing.base_price' cambia e 'pricing.unit_of_measure' è 'month':\n   - Nuovo 'estimated_total_cost' nel Blueprint = (Nuovo Prezzo * Durata Stimata in Mesi). Se la durata non è esplicita, usa il moltiplicatore implicito nel vecchio costo (es. Vecchio Costo / Vecchio Prezzo = Moltiplicatore).\n\n</UpdateLogic>\n\n<Laws>\n<L1>L'output DEVE essere un JSON valido. Nessun testo prima o dopo.</L1>\n<L2>Se non ci sono modifiche per un documento, restituisci 'null' per quella chiave (non un oggetto vuoto).</L2>\n<L3>Non inventare ID o campi non esistenti nella struttura originale.</L3>\n<L4>I path devono essere assoluti partendo dalla radice del documento (es. \"stages.$[bp_stage].steps.$[bp_step].description\").</L4>\n</Laws>\n\n<OutputSchema>\n{\n  \"kb_fragment_updates\": {\n    \"updates\": {\n      \"campo_radice\": \"Nuovo Valore\",\n      \"sections.$[kb_sec].answer\": \"Testo aggiornato con il nuovo valore...\"\n    },\n    \"array_filters\": [\n      { \"kb_sec.question\": \"La domanda originale esatta che identifica la sezione\" }\n    ]\n  } | null,\n  \n  \"blueprint_updates\": {\n    \"updates\": {\n      \"summary.estimated_total_cost\": 123,\n      \"stages.$[bp_stage].steps.$[bp_step].instructions\": \"Istruzione aggiornata...\"\n    },\n    \"array_filters\": [\n      { \"bp_stage.stage_id\": \"STAGE_XX\" },\n      { \"bp_step.step_id\": \"STEP_XX_YY\" }\n    ]\n  } | null,\n  \n  \"sync_summary\": {\n    \"reasoning\": \"Spiegazione concisa della logica usata (es. Prezzo cambiato da 0 a 30, ricalcolato costo totale su base 5 mesi)\",\n    \"impact_level\": \"HIGH\" | \"MEDIUM\" | \"LOW\"\n  }\n}\n</OutputSchema>\n</SystemInstruction>\n",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<DeltaSyncRequest>\n<Context>\nÈ stato rilevato un aggiornamento in un CATALOG_ITEM. \nIl tuo compito è sincronizzare semanticamente il KB_FRAGMENT e il PROCESS_BLUEPRINT associati, usando la sintassi di aggiornamento MongoDB definita nelle System Instructions.\n</Context>\n\n<SourceData>\n  <ModifiedCatalog>\n  <![CDATA[\n  {{ JSON.stringify($json.modified_catalog, null, 2) }}\n  ]]>\n  </ModifiedCatalog>\n\n  <ChangeLog>\n  MODIFICHE RILEVATE:\n  {{ $json.changes_summary.join('\\n  • ') }}\n\n  DETTAGLIO TECNICO:\n  {{ JSON.stringify($json.changes_detail, null, 2) }}\n  </ChangeLog>\n</SourceData>\n\n<TargetDocuments>\n  <CurrentKbFragment>\n  <![CDATA[\n  {{ JSON.stringify($json.KbFragment, null, 2) }}\n  ]]>\n  </CurrentKbFragment>\n\n  <CurrentBlueprint>\n  <![CDATA[\n  {{ JSON.stringify($json.blueprint, null, 2) }}\n  ]]>\n  </CurrentBlueprint>\n</TargetDocuments>\n\n<ExecutionChecklist>\n1. MAPPING: Collega ogni modifica nel 'ChangeLog' ai punti corrispondenti nei 'TargetDocuments'.\n2. ALIAS ENFORCEMENT:\n   - Usa \"$[kb_sec]\" per le sezioni del KB.\n   - Usa \"$[bp_stage]\" e \"$[bp_step]\" per il Blueprint.\n3. ANCHORING:\n   - Nel KB, ancora tramite la domanda originale esatta (\"kb_sec.question\").\n   - Nel Blueprint, ancora tramite ID stabili (\"bp_stage.stage_id\", \"bp_step.step_id\").\n4. SAFETY:\n   - Se un campo modificato nel catalogo NON è menzionato nel testo del KB o del Blueprint, ignoralo (restituisci null per quel documento).\n   - Non inventare testo: sostituisci solo i valori obsoleti (prezzi, nomi, durate).\n</ExecutionChecklist>\n\n<OutputRequirement>\nGenera ESCLUSIVAMENTE il JSON finale (senza blocchi markdown ```json o commenti).\n</OutputRequirement>\n</DeltaSyncRequest>\n",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "={{ $json.owner_data.model_choice }}",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "delta_update",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.media_items[0].base64_content }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.media_items[0].mime_type }}",
+              "type": "string"
+            },
+            {
+              "id": "5bcd6276-06a5-42ec-bc00-f3b0d06a0d6f",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "bf72d7cf-faf6-4602-9083-44e164d1f2a6",
+              "name": "billing_source.use",
+              "value": "=Product Editor {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "6a96f16c-fafa-4856-a992-52ff7f13a5be",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/2c6416b1-32c6-4661-bd8f-b175d24fd035",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -352,
+        416
+      ],
+      "id": "3ba6d103-9a03-489e-9447-c5c44e7865e0",
+      "name": "product_edit"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1664,
+        480
+      ],
+      "id": "7ec26b4f-cc10-40cd-ade2-c72499439ebc",
+      "name": "Merge8"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.Final_KB_Fragment }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1360,
+        560
+      ],
+      "id": "3851009f-a632-4548-b625-7de4d551e091",
+      "name": "KB_Fragment"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.Final_KB_Fragment.fragment_id }}",
+        "collectionName": "knowledge_fragments",
+        "databaseName": "TbosAssetLake"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        688
+      ],
+      "id": "ebd2f308-d6e0-4770-900f-93f1a522e63e",
+      "name": "MongoDB Chat Memory3",
+      "credentials": {
+        "mongoDb": {
+          "id": "5pERtRttklNe4fOb",
+          "name": "AssetLake"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.Final_Blueprint }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        544
+      ],
+      "id": "a37334dc-b773-4d7e-852d-f10ccb8ef272",
+      "name": "process_bluprint"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1184,
+        464
+      ],
+      "id": "214dd606-b967-447b-b240-b85803cd70eb",
+      "name": "Merge7"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.Final_Blueprint._id }}",
+        "collectionName": "process_blueprints",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        880,
+        672
+      ],
+      "id": "9d6051df-6ad1-48a2-bf68-595f33e7704d",
+      "name": "MongoDB Chat Memory2",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.Final_Product }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        432,
+        528
+      ],
+      "id": "1efd9d7b-bee3-4f23-b732-d1a6ec2aff8c",
+      "name": "service_catalog_product"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        704,
+        448
+      ],
+      "id": "5cfbd0a5-68ec-4bda-b3e0-1ac48f588c38",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.Final_Product._id }}",
+        "collectionName": "service_catalog",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        432,
+        656
+      ],
+      "id": "4c5b7e97-d482-4ac3-bcd2-c9b9b8368708",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1bea084f-d05d-4189-929a-990e0761848a",
+              "leftValue": "={{ $json.needs_sync }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -544,
+        768
+      ],
+      "id": "77af4e1b-4036-41c7-82a9-33ae6bc78aa5",
+      "name": "canges"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"message\": \"Product updated successfully\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1664,
+        800
+      ],
+      "id": "9329c9ae-5dad-44ef-8672-b1a7aee5dbc1",
+      "name": "Respond to Save"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"error\": {\n    \"code\": \"AI_GLITCH_501\",\n    \"title\": \"AI Generation Failed\",\n    \"message\": \"Il modello AI non ha risposto correttamente. Richiesto nuovo tentativo.\"\n  }\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        16,
+        672
+      ],
+      "id": "6f1bce74-1d99-49b6-961a-d56b9e927932",
+      "name": "LLMFail"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "71c125e4-0fd9-4f1e-93aa-35596d769427",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "SAVE",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1552,
+        768
+      ],
+      "id": "99fe71bf-acab-45a2-bb8b-7dac757f709b",
+      "name": "Action"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4fced2cf-09aa-4ff8-a700-3834cac2ebff",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "2c6416b1-32c6-4661-bd8f-b175d24fd035",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2656,
+        768
+      ],
+      "id": "283834ee-3209-4eab-aef4-1af91aae661a",
+      "name": "Autorize"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"error\",\n  \"code\": 403,\n  \"message\": \"⛔️ ACCESS DENIED: Unauthorized User or Invalid Endpoint.\",\n  \"details\": \"Your ID {{ $json.query.user_id || $json.body.chat_id }} is not in the allowlist.\"\n}",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -2656,
+        1024
+      ],
+      "id": "1a6b8bc8-f44d-4e17-84db-592a1fefd7c7",
+      "name": "⛔️ 403 Forbidden"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- 1. CONFIGURAZIONE ---\nconst BOT_TOKEN = \"8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ\";\nconst initData = $input.item.json.body._auth;\n\nif (!initData) return { isValid: false, error: \"Dato _auth mancante\" };\n\n// --- 2. LIBRERIA CRIPTOGRAFICA PURE JS (SHA-256 & HMAC) ---\nconst CryptoJS = (function() {\n    function sha256(m) {\n        var h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];\n        var k = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];\n        var b = Array.from(typeof m === 'string' ? new TextEncoder().encode(m) : m);\n        var l = b.length * 8; b.push(0x80);\n        while ((b.length * 8) % 512 !== 448) b.push(0);\n        for (var i = 7; i >= 0; i--) b.push((l / Math.pow(2, i * 8)) & 0xff);\n        for (var i = 0; i < b.length; i += 64) {\n            var w = new Int32Array(64);\n            for (var j = 0; j < 16; j++) w[j] = (b[i + j * 4] << 24) | (b[i + j * 4 + 1] << 16) | (b[i + j * 4 + 2] << 8) | (b[i + j * 4 + 3]);\n            for (var j = 16; j < 64; j++) {\n                var s0 = ((w[j - 15] >>> 7) | (w[j - 15] << 25)) ^ ((w[j - 15] >>> 18) | (w[j - 15] << 14)) ^ (w[j - 15] >>> 3);\n                var s1 = ((w[j - 2] >>> 17) | (w[j - 2] << 15)) ^ ((w[j - 2] >>> 19) | (w[j - 2] << 13)) ^ (w[j - 2] >>> 10);\n                w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;\n            }\n            var [a, c, d, e, f, g, i_h, j_h] = h;\n            var v = [...h];\n            for (var j = 0; j < 64; j++) {\n                var S1 = ((v[4] >>> 6) | (v[4] << 26)) ^ ((v[4] >>> 11) | (v[4] << 21)) ^ ((v[4] >>> 25) | (v[4] << 7));\n                var ch = (v[4] & v[5]) ^ (~v[4] & v[6]);\n                var t1 = (v[7] + S1 + ch + k[j] + w[j]) | 0;\n                var S0 = ((v[0] >>> 2) | (v[0] << 30)) ^ ((v[0] >>> 13) | (v[0] << 19)) ^ ((v[0] >>> 22) | (v[0] << 10));\n                var maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);\n                var t2 = (S0 + maj) | 0;\n                v.unshift((t1 + t2) | 0); v.splice(8); v[4] = (v[4] + t1) | 0;\n            }\n            for (var j = 0; j < 8; j++) h[j] = (h[j] + v[j]) | 0;\n        }\n        return h.reduce((acc, val) => acc.concat([(val >>> 24) & 0xff, (val >>> 16) & 0xff, (val >>> 8) & 0xff, val & 0xff]), []);\n    }\n\n    if (typeof TextEncoder === \"undefined\") {\n        window.TextEncoder = function() {};\n        TextEncoder.prototype.encode = function(s) {\n            return new Uint8Array(unescape(encodeURIComponent(s)).split(\"\").map(c => c.charCodeAt(0)));\n        };\n    }\n\n    return {\n        hmac: function(key, message) {\n            var k = typeof key === 'string' ? Array.from(new TextEncoder().encode(key)) : key;\n            var m = Array.from(new TextEncoder().encode(message));\n            var b = 64;\n            if (k.length > b) k = sha256(k);\n            while (k.length < b) k.push(0);\n            var ipad = k.map(x => x ^ 0x36);\n            var opad = k.map(x => x ^ 0x5c);\n            var inner = sha256(ipad.concat(m));\n            return sha256(opad.concat(inner));\n        }\n    };\n})();\n\n// --- 3. LOGICA PARSING ---\nconst data = {};\ninitData.split('&').forEach(pair => {\n    const [k, v] = pair.split('=');\n    data[k] = decodeURIComponent(v);\n});\n\nconst hashReceived = data.hash;\nconst checkString = Object.keys(data)\n    .filter(k => k !== 'hash')\n    .sort()\n    .map(k => k + '=' + data[k])\n    .join('\\n');\n\n// --- 4. CALCOLO HASH TELEGRAM ---\nconst secretKey = CryptoJS.hmac(\"WebAppData\", BOT_TOKEN);\nconst computedHashBytes = CryptoJS.hmac(secretKey, checkString);\nconst computedHash = computedHashBytes.map(b => b.toString(16).padStart(2, '0')).join('');\n\n// --- 5. CONTROLLO SCADENZA (MAX 1 ORA) ---\nconst now = Math.floor(Date.now() / 1000);\nconst authDate = parseInt(data.auth_date);\nconst isExpired = (now - authDate) > 3600; // Scade dopo 3600 secondi (1 ora)\n\n// --- 6. RISULTATO FINALE ---\nconst isHashValid = (computedHash === hashReceived);\n\nreturn {\n    isValid: isHashValid && !isExpired,\n    isExpired: isExpired,\n    isHashValid: isHashValid,\n    user: data.user ? JSON.parse(data.user) : null,\n    auth_date_human: new Date(authDate * 1000).toLocaleString('it-IT'),\n    debug: {\n        time_diff_seconds: now - authDate,\n        computed: computedHash,\n        received: hashReceived\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2352,
+        608
+      ],
+      "id": "ec6e7503-04b5-4cef-9469-c1d35e0b3fd4",
+      "name": "telegram_validator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0c81033b-45d3-46ad-8449-cd854d0ee023",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2352,
+        448
+      ],
+      "id": "43c374ca-8b87-4546-b767-ed9b647fa0eb",
+      "name": "isValid"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c69e26dc-4a82-4959-97e9-1ec4bcbdf51d",
+              "leftValue": "={{ $json.body._auth }}",
+              "rightValue": "certificator",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2352,
+        752
+      ],
+      "id": "a84b48a6-d494-4870-9872-e762fd23de97",
+      "name": "MiniApp"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2352,
+        128
+      ],
+      "id": "d5610e51-54ed-4851-a98c-7093a16e2040",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.chat_id\": {\n        \"$eq\": {{ $json.user.id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2352,
+        304
+      ],
+      "id": "d9d111b1-0da2-4e8d-8159-4e8a3dc250b9",
+      "name": "Owner",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8e4bc003-3572-4c34-91fb-bbfbc78f537e",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2144,
+        304
+      ],
+      "id": "6c727027-8759-41ab-9f86-d5c21a2ac25a",
+      "name": "ownerExist?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"error\",\n  \"code\": 404,\n  \"message\": \"Errore Critico dati Proprietario Non Trovati\",\n  \"details\": \"Your ID is not in the allowlist.\"\n}",
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1920,
+        320
+      ],
+      "id": "c448b50f-dafd-4c4f-a9a2-b71fc59fbad1",
+      "name": "⛔️ 404 Owner Not Found"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9103d04-dd53-4c69-913f-376455c5c0be",
+              "name": "body.chat_id",
+              "value": "={{ $json.owner_data.chat_id }}",
+              "type": "number"
+            },
+            {
+              "id": "f2a37dca-6922-4dfe-8bc7-319a7020ddb9",
+              "name": "body.action",
+              "value": "={{ $json.body.action }}",
+              "type": "string"
+            },
+            {
+              "id": "1e526b65-e58a-4aba-aad1-5eaa638ddd60",
+              "name": "body.type",
+              "value": "={{ $json.body.type }}",
+              "type": "string"
+            },
+            {
+              "id": "d7251250-7d73-46b1-bf7c-cda437d62fbc",
+              "name": "body.productId",
+              "value": "={{ $json.body.sop_id }}",
+              "type": "string"
+            },
+            {
+              "id": "75f0c22b-5d80-4dda-a976-492533001170",
+              "name": "body.message_id",
+              "value": "={{ $json.body.message_id }}",
+              "type": "string"
+            },
+            {
+              "id": "b173c9d5-6933-483e-8599-15621c09a9a9",
+              "name": "body.vat",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "cd0eede4-b381-428b-8a2a-4360499d17b4",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            },
+            {
+              "id": "7bb90d8c-1a98-429e-af11-baf684827573",
+              "name": "body.payload",
+              "value": "={{ $json.body.payload }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1552,
+        128
+      ],
+      "id": "a9650515-aaf2-4145-a841-ca3ec919b0f4",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -160,
+        416
+      ],
+      "id": "ae6bb0af-f67f-4234-90b6-940ba205b1cb",
+      "name": "Call 'geminiCall'",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Delta Merger Engine\n// OBIETTIVO: Applicare patch chirurgiche ai documenti JSON usando la sintassi stile MongoDB (dot notation + array filters)\n\nconst item = $input.first().json;\n\n// --- 1. SAFETY FIRST: CLONAZIONE PROFONDA ---\n// Lavoriamo su copie per non corrompere i dati di input originali nel flusso n8n\nlet finalBlueprint = item.blueprint ? JSON.parse(JSON.stringify(item.blueprint)) : null;\nlet finalKb = item.KbFragment ? JSON.parse(JSON.stringify(item.KbFragment)) : null;\nconst finalProduct = item.modified_catalog; \nconst delta = item.delta_update;\n\n// --- 2. HELPER FUNCTIONS ---\n\n/**\n * Recupera il valore di una proprietà annidata (es. \"metadata.status\")\n */\nfunction getNestedValue(obj, path) {\n    if (!path || !obj) return undefined;\n    return path.split('.').reduce((acc, part) => (acc && acc[part] !== undefined) ? acc[part] : undefined, obj);\n}\n\n/**\n * Trova l'indice di un elemento in un array basandosi sui filtri (alias)\n * Es: cerca in 'currentArray' l'elemento che soddisfa il filtro associato all'alias \"$[kb_sec]\"\n */\nfunction findIndexByFilter(currentArray, alias, filters) {\n    if (!Array.isArray(currentArray) || !filters) return -1;\n\n    // 1. Trova il filtro corrispondente all'alias (es. cerca chiave che inizia con \"kb_sec.\")\n    const filterObj = filters.find(f => {\n        const key = Object.keys(f)[0];\n        return key.startsWith(alias + '.');\n    });\n\n    if (!filterObj) {\n        // Se non c'è filtro esplicito ma l'array è semplice, potremmo loggare un warning\n        return -1;\n    }\n\n    const filterKeyFull = Object.keys(filterObj)[0]; // es. \"kb_sec.question\"\n    const expectedValue = filterObj[filterKeyFull];  // es. \"Testo della domanda...\"\n    \n    // 2. Determina il nome della proprietà reale nell'oggetto (rimuovi \"kb_sec.\")\n    // \"kb_sec.question\" -> \"question\"\n    // \"bp_stage.stage_id\" -> \"stage_id\"\n    const propertyName = filterKeyFull.substring(alias.length + 1);\n\n    // 3. Cerca l'elemento\n    return currentArray.findIndex(el => {\n        const val = getNestedValue(el, propertyName);\n        return val === expectedValue;\n    });\n}\n\n/**\n * Motore principale di aggiornamento\n * @param {Object} doc - Il documento da modificare (blueprint o kb)\n * @param {String} path - Il percorso (es. \"stages.$[bp_stage].steps.$[bp_step].instructions\")\n * @param {Any} value - Il nuovo valore\n * @param {Array} filters - L'array dei filtri per risolvere gli alias\n */\nfunction applyUpdate(doc, path, value, filters) {\n    if (!doc) return;\n\n    const parts = path.split('.');\n    let current = doc;\n\n    for (let i = 0; i < parts.length; i++) {\n        const part = parts[i];\n        const isLast = i === parts.length - 1;\n\n        // CASO A: Array Placeholder (es. \"$[kb_sec]\")\n        if (part.startsWith('$[')) {\n            // Estrai alias senza dollari e parentesi: \"$[kb_sec]\" -> \"kb_sec\"\n            const alias = part.match(/\\$\\[(.*?)\\]/)[1];\n            \n            // L'oggetto corrente DEVE essere un array qui\n            if (Array.isArray(current)) {\n                const idx = findIndexByFilter(current, alias, filters);\n                \n                if (idx !== -1) {\n                    if (isLast) {\n                        current[idx] = value; // Sostituzione intero oggetto (raro)\n                    } else {\n                        current = current[idx]; // Entriamo nell'oggetto trovato\n                    }\n                } else {\n                    // Elemento non trovato: Interrompiamo in sicurezza\n                    // console.log(`Merge Skip: Elemento non trovato per alias ${alias}`);\n                    return; \n                }\n            } else {\n                return; // Errore strutturale (ci aspettavamo array)\n            }\n        } \n        // CASO B: Proprietà Standard\n        else {\n            if (isLast) {\n                // ASSEGNAZIONE FINALE\n                current[part] = value;\n            } else {\n                // Navigazione\n                // Se il prossimo step non esiste, potremmo doverlo creare (qui assumiamo struttura esistente)\n                if (current[part] === undefined) {\n                    // Se stiamo scrivendo, forse dovremmo creare l'oggetto? \n                    // Per ora usiamo logica strict: se non esiste il path, non scriviamo.\n                    return; \n                }\n                current = current[part];\n            }\n        }\n    }\n}\n\n// --- 3. ESECUZIONE LOGICA ---\n\n// Applicazione Update KB\nif (delta && delta.kb_fragment_updates && delta.kb_fragment_updates.updates) {\n    const updates = delta.kb_fragment_updates.updates;\n    const filters = delta.kb_fragment_updates.array_filters || [];\n    \n    Object.keys(updates).forEach(path => {\n        applyUpdate(finalKb, path, updates[path], filters);\n    });\n}\n\n// Applicazione Update Blueprint\nif (delta && delta.blueprint_updates && delta.blueprint_updates.updates) {\n    const updates = delta.blueprint_updates.updates;\n    const filters = delta.blueprint_updates.array_filters || [];\n\n    Object.keys(updates).forEach(path => {\n        applyUpdate(finalBlueprint, path, updates[path], filters);\n    });\n}\n\n// --- 4. COSTRUZIONE OUTPUT PER TELEGRAPH/DB ---\n\nreturn {\n    json: {\n        // I dati \"fusi\" e aggiornati\n        Final_KB_Fragment: finalKb,\n        Final_Blueprint: finalBlueprint,\n        Final_Product: finalProduct,\n        \n        // Metadati utili per il nodo Telegraph successivo\n        page_title: `KB: ${finalProduct.identity.item_name}`,\n        \n        // Debug Info\n        sync_info: {\n            was_updated: true,\n            reason: delta?.sync_summary?.reasoning || \"Manual Sync\",\n            timestamp: new Date().toISOString()\n        },\n        \n        // Mantengo il contesto originale se servisse\n        ...item\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        432
+      ],
+      "id": "5db7c888-1505-4a85-b723-ee4578f23102",
+      "name": "Delta Merger Engine"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        16,
+        144
+      ],
+      "id": "b1e88e22-db1e-46bc-b22f-338356d69adf",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4ab919b5-d220-4326-9637-4adb412e9f67",
+      "name": "📤 Telegram Call5"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Prepare_Save_Confirmation_Simple\n// DESC: Esito Sincronizzazione - Ritorno alla scheda operativa\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\n\n// 1. Recupero Dati Core\nconst owner = item.owner_data || {};\nconst payload = item.body.payload || {};\nconst delta = item.delta_update || {};\nconst tx = item.transaction_summary || {};\nconst catalog = item.service_catalog_setup?.categories || [];\n\nconst sku = item.body.sop_id;\nconst mId = item.body.message_id;\n\n// 2. Lookup Nome Esteso (Zero ID Tecnici nel testo)\nlet extendedName = sku;\nfor (const cat of catalog) {\n    const subFound = cat.subcategories.find(sub => sub.callback_data === sku);\n    if (subFound) {\n        extendedName = subFound.name;\n        break;\n    }\n}\n\n// 3. Analisi Cambiamenti e Reasoning AI\nconst changes = item.changes_summary || [];\nlet changesList = changes.length > 0 \n    ? changes.map(c => ` ├ ${c}`).join(\"\\n\") \n    : \" ├ Nessuna variazione strutturale rilevata.\";\n\nconst syncReasoning = delta.sync_summary?.reasoning || \"Sincronizzazione completata con successo.\";\n\n// 4. Localizzazione\nconst L = (owner.lenguage || 'it').toLowerCase().includes('en') ? 'en' : 'it';\nconst t = {\n    it: {\n        title: \"✅ <b>AGGIORNAMENTO COMPLETATO</b>\",\n        project: `PROGETTO: <b>${extendedName.toUpperCase()}</b>`,\n        header_changes: \"📊 <b>MODIFICHE APPLICATE:</b>\",\n        header_reason: \"🧠 <b>REASONING SINCRONIZZAZIONE (AI):</b>\",\n        footer: `Costo: <code>${tx.credits_deducted} Cr.</code> | Saldo: <b>${tx.final_balance}</b>`,\n        btn_back: \"⬅️ Torna alla Procedura\"\n    },\n    en: {\n        title: \"✅ <b>UPDATE COMPLETED</b>\",\n        project: `PROJECT: <b>${extendedName.toUpperCase()}</b>`,\n        header_changes: \"📊 <b>APPLIED CHANGES:</b>\",\n        header_reason: \"🧠 <b>SYNC REASONING (AI):</b>\",\n        footer: `Cost: <code>${tx.credits_deducted} Cr.</code> | Balance: <b>${tx.final_balance}</b>`,\n        btn_back: \"⬅️ Back to Procedure\"\n    }\n}[L];\n\n// 5. Composizione Messaggio HTML\nconst messageText = `\n${t.title}\n━━━━━━━━━━━━━━━━━━━━\n${t.project}\n\n${t.header_changes}\n${changesList}\n\n${t.header_reason}\n<i>\"${syncReasoning}\"</i>\n\n━━━━━━━━━━━━━━━━━━━━\n⛽ ${t.footer}`;\n\n// 6. Payload Telegram (EDIT del messaggio corrente)\nconst telegramApiPayload = {\n    method: \"editMessageText\",\n    chat_id: owner.chat_id,\n    message_id: mId,\n    text: messageText,\n    parse_mode: \"HTML\",\n    reply_markup: {\n        inline_keyboard: [\n            [{ text: t.btn_back, callback_data: `get_active_sop_${sku}` }]\n        ]\n    }\n};\n\nreturn [{ json: { ...item, telegramApiPayload: telegramApiPayload } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "a8c357f2-5bf4-47b8-83c9-149d261274ed",
+      "name": "Prepare_Save_Confirmation_Simple"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.modified_catalog }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -512,
+        1008
+      ],
+      "id": "22a51525-f114-4b6a-934d-192d691d3813",
+      "name": "service_catalog_product1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -352,
+        800
+      ],
+      "id": "e6a48bdd-9d7c-4c4c-966d-6fa2ecaddad3",
+      "name": "Merge9"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.original_catalog._id }}",
+        "collectionName": "service_catalog",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -512,
+        1136
+      ],
+      "id": "c501dd6b-5a2a-4c24-af96-7e1b7f86ca73",
+      "name": "MongoDB Chat Memory1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0",
+            "content-length": "3100",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "it,it-IT;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "content-type": "application/json",
+            "origin": "https://trinaibusinessoperatingsystem.github.io",
+            "priority": "u=1, i",
+            "referer": "https://trinaibusinessoperatingsystem.github.io/",
+            "sec-ch-ua": "\"Not.A/Brand\";v=\"8\", \"Microsoft Edge WebView2\";v=\"147\", \"Chromium\";v=\"147\", \"Microsoft Edge\";v=\"147\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "151.57.118.92",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "_auth": "query_id=AAFrba15AAAAAGttrXl_ZCjA&user=%7B%22id%22%3A2041408875%2C%22first_name%22%3A%22Giuseppe%22%2C%22last_name%22%3A%22Garofalo%22%2C%22username%22%3A%22TrinAi_OperativeChief%22%2C%22language_code%22%3A%22it%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2FvPTjxONkQ6hvO3p2LwlkoZjewgAm1sVh8k7dFYDeczY.svg%22%7D&auth_date=1776940139&signature=fLarC3KqtlcdahUQdRlpnLCKPLKUJmow1I30PDNxojBJFV5_XWOoyP2BwzB9Qz2CZOtOc5bVmxlrXw1sAIy3CQ&hash=8a095d8c60a93379f71c901952ae36e3a3c635819de8729d6d7ac904eb11e6da",
+            "action": "SAVE",
+            "type": "PRODUCT",
+            "sop_id": "SVC_KH3MCNO3",
+            "message_id": null,
+            "payload": {
+              "_id": "IT06988830821-SVC_KH3MCNO3",
+              "document_type": "CATALOG_ITEM",
+              "version": "1.0",
+              "owner_instance_id": "IT06988830821",
+              "metadata": {
+                "status": "ACTIVE",
+                "source": "CHAT_INFERENCE",
+                "created_at": "2026-04-23T05:28:14.901Z",
+                "is_duplicate": false,
+                "duplicate_of": null,
+                "last_updated_at": "2026-04-23T10:18:52.771Z"
+              },
+              "identity": {
+                "item_name": "Workshop Uso Pratico Di N8n",
+                "item_sku": "SVC_KH3MCNO3",
+                "item_type": "SERVICE",
+                "description": {
+                  "short": "Automatizza il tuo business: impara a costruire workflow intelligenti con n8n e AI.",
+                  "long": "Scopri come trasformare la tua operatività aziendale in un ecosistema autonomo. In questo workshop pratico guidato da Garofalo Consulting, apprenderai l'orchestrazione avanzata dei flussi di lavoro utilizzando n8n, integrando Google Gemini e MongoDB. Elimina la disorganizzazione e rendi la tua Partita IVA una struttura Enterprise efficiente.",
+                  "internal_notes": "Workshop di formazione tecnica focalizzato su casi d'uso reali per piccole imprese. Richiede accesso a istanza n8n del cliente."
+                },
+                "category": "CAT_4OF0QVKK",
+                "tags": [
+                  "n8n",
+                  "automazione",
+                  "intelligenza artificiale",
+                  "workflow",
+                  "efficienza aziendale",
+                  "digital transformation",
+                  "consulenza AI"
+                ],
+                "keywords": [
+                  "automazione processi",
+                  "ottimizzazione tempo",
+                  "integrazione API",
+                  "orchestrazione dati",
+                  "Garofalo Consulting"
+                ]
+              },
+              "pricing": {
+                "base_price": 297,
+                "currency": "EUR",
+                "unit_of_measure": "item",
+                "tax_info": {
+                  "taxable": true,
+                  "tax_rate_percentage": 22
+                },
+                "pricing_rules_engine": {
+                  "is_dynamic_price": true,
+                  "rules_ids": [],
+                  "notes": "Prezzo base workshop standard. Possibili variazioni in base a personalizzazioni richieste."
+                },
+                "cost_of_goods": null
+              },
+              "commercial_setup": {
+                "extra_options": [
+                  {
+                    "name": "Analisi workflow specifica (1h)",
+                    "price": 150
+                  },
+                  {
+                    "name": "Registrazione sessione + PDF blueprint",
+                    "price": 47
+                  },
+                  {
+                    "name": "Sessione follow-up 30min",
+                    "price": 97
+                  }
+                ],
+                "allow_customer_notes": true
+              },
+              "operations": {
+                "requires_booking": true,
+                "requires_inventory_check": true,
+                "process_blueprint_id": null,
+                "fulfillment_time": {
+                  "value": 4,
+                  "unit": "hours"
+                },
+                "provider_info": {
+                  "required_skill_tags": [
+                    "n8n expert",
+                    "AI architect",
+                    "business consultant"
+                  ],
+                  "specific_provider_ids": []
+                }
+              },
+              "relations": {
+                "related_items": [],
+                "marketing_info": {
+                  "is_featured": true,
+                  "target_audience_tags": [
+                    "freelance",
+                    "tiny enterprise",
+                    "business owner"
+                  ]
+                }
+              },
+              "additional_kwargs": {},
+              "response_metadata": {},
+              "ui_node_draft": {
+                "name": "Workshop uso pratico di n8n",
+                "short_name": "🤖 Workshop n8n",
+                "callback_data": "SVC_KH3MCNO3",
+                "blueprint_ready": true
+              }
+            }
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/2c6416b1-32c6-4661-bd8f-b175d24fd035",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "product": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "product1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "product1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Detect_Changes_And_Prepare_Sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ErrorApi3": {
+      "main": [
+        [
+          {
+            "node": "LLMFail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delta Merger Engine",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "KbFragment",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "product_edit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "blueprint": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "KbFragment": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Detect_Changes_And_Prepare_Sync": {
+      "main": [
+        [
+          {
+            "node": "canges",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "product_edit": {
+      "main": [
+        [
+          {
+            "node": "Call 'geminiCall'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge8": {
+      "main": [
+        [
+          {
+            "node": "Respond to Save",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KB_Fragment": {
+      "main": [
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "KB_Fragment",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "process_bluprint": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge7": {
+      "main": [
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "KB_Fragment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "process_bluprint",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "service_catalog_product": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "process_bluprint",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "service_catalog_product",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "canges": {
+      "main": [
+        [
+          {
+            "node": "blueprint",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "service_catalog_product1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Action": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "MiniApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "telegram_validator": {
+      "main": [
+        [
+          {
+            "node": "isValid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MiniApp": {
+      "main": [
+        [
+          {
+            "node": "telegram_validator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isValid": {
+      "main": [
+        [
+          {
+            "node": "Owner",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Owner": {
+      "main": [
+        [
+          {
+            "node": "ownerExist?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ownerExist?": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 404 Owner Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'geminiCall'": {
+      "main": [
+        [
+          {
+            "node": "ErrorApi3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delta Merger Engine": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "service_catalog_product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Prepare_Save_Confirmation_Simple",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare_Save_Confirmation_Simple": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "service_catalog_product1": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "service_catalog_product1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge9": {
+      "main": [
+        [
+          {
+            "node": "Respond to Save",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f88470fa-99d1-4561-9682-2b67137fbfbc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "cbmkIcfgWhcTBPYt",
+  "tags": []
+}

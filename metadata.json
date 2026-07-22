@@ -1,0 +1,6 @@
+{
+  "name": "SiTeBoS Admin Assistant",
+  "description": "Telegram Mini App per SiTeBoS Admin Assistant con generazione OdS, linter n8n e supporto Gemini AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

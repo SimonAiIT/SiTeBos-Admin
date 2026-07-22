@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Operator Catalog | SiteBoS</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* SiteBoS Architect Alignment */
+        body {
+            background-color: #fafafa !important;
+            color: #000000 !important;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .card-noir {
+            background: white !important;
+            border: 1px solid #eeeeee !important;
+            border-radius: 1.5rem;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-top-color: #000;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .prod-status-active {
+            border-left: 3px solid #000000;
+            background: #fcfcfc;
+        }
+
+        .macro-btn.active {
+            background-color: #000 !important;
+            color: #fff !important;
+        }
+
+        .macro-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Touch target enhancement */
+        .btn-touch {
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body class="bg-bg text-black pb-10 overflow-x-hidden">
+
+    <!-- LOADER -->
+    <div id="loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center space-y-4">
+        <div class="spinner"></div>
+        <p class="text-[8px] font-black uppercase tracking-widest text-gray-400">Loading Data...</p>
+    </div>
+
+    <div id="app-content" class="max-w-md mx-auto p-5 space-y-6 hidden">
+
+        <!-- HEADER -->
+        <header class="flex justify-between items-start pt-2 fade-in-up">
+            <div>
+                <div class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1 italic">
+                    Operator Hub
+                </div>
+                <h1 class="text-xl font-black tracking-tighter uppercase leading-none">Gestione Operativa</h1>
+            </div>
+            <button class="w-10 h-10 bg-white border border-border rounded-xl flex items-center justify-center text-black shadow-sm active:scale-90 transition" onclick="loadCatalog(true)">
+                <i class="fas fa-sync-alt text-xs"></i>
+            </button>
+        </header>
+
+        <!-- MACRO SELECTOR -->
+        <nav class="flex bg-gray-100 p-1 rounded-2xl gap-1 fade-in-up">
+            <button onclick="setMacro('SOP')" id="btn-SOP" class="macro-btn flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest active">Procedure</button>
+            <button onclick="setMacro('SER')" id="btn-SER" class="macro-btn flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400">Servizi</button>
+            <button onclick="setMacro('PRO')" id="btn-PRO" class="macro-btn flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400">Prodotti</button>
+        </nav>
+
+        <!-- STATS -->
+        <div class="fade-in-up">
+            <div class="card-noir p-4 flex items-center gap-3 w-full justify-center">
+                <div id="count-active" class="w-8 h-8 bg-black rounded-lg flex items-center justify-center font-black text-xs text-white">0</div>
+                <div class="text-[7px] font-black text-gray-400 uppercase tracking-widest">Protocolli Attivi</div>
+            </div>
+        </div>
+
+        <!-- LISTA CATEGORIE -->
+        <div id="catalog-list" class="space-y-4 fade-in-up"></div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden text-center py-20">
+            <i class="fas fa-box-open text-4xl text-gray-100 mb-4"></i>
+            <p class="text-[10px] font-black uppercase text-gray-300 tracking-widest">Nessun protocollo attivo trovato</p>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+        const WEBHOOK_URL = "https://prod.workflow.trinai.it/webhook/0cedacd4-f0d3-49b6-b113-fa503b5993f4";
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.ready(); tg.expand();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let ash = urlParams.get('ash');
+        let msg = urlParams.get('msg');
+
+        // Robust parsing for dirty ash: TOKEN?msg=ID
+        if (ash && ash.includes('?msg=')) {
+            const parts = ash.split('?msg=');
+            ash = parts[0];
+            if (!msg) msg = parts[1];
+        }
+
+        let fullCatalog = [], currentMacro = 'SOP';
+
+        async function loadCatalog(force = false) {
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('app-content');
+            if (force) loader.classList.remove('hidden');
+
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "get_catalog", _auth: tg.initData, ash: ash, msg: msg })
+                });
+                const raw = await res.json();
+                
+                // Parser più flessibile per n8n
+                if (Array.isArray(raw)) {
+                    if (raw.length > 0 && raw[0].categories) {
+                        fullCatalog = raw[0].categories;
+                    } else if (raw.length > 0 && raw[0].catalog && raw[0].catalog.categories) {
+                        fullCatalog = raw[0].catalog.categories;
+                    } else if (raw.length > 0 && raw[0].macrocategories) {
+                        // l'array stesso contiene le categorie
+                        fullCatalog = raw;
+                    } else {
+                        fullCatalog = raw; // fallback array
+                    }
+                } else {
+                    fullCatalog = raw.categories || raw.catalog?.categories || raw;
+                    if (!Array.isArray(fullCatalog)) fullCatalog = [];
+                }
+                
+                renderCatalog();
+            } catch (e) {
+                console.error("Load Error:", e);
+                tg.showAlert("Errore di caricamento dati: " + e.message);
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred("error");
+            } finally {
+                loader.classList.add('hidden');
+                content.classList.remove('hidden');
+            }
+        }
+
+        function setMacro(macro) {
+            currentMacro = macro;
+            document.querySelectorAll('.macro-btn').forEach(b => {
+                b.classList.remove('active', 'text-white');
+                b.classList.add('text-gray-400');
+            });
+            const activeBtn = document.getElementById('btn-' + macro);
+            activeBtn.classList.add('active', 'text-white');
+            activeBtn.classList.remove('text-gray-400');
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            renderCatalog();
+        }
+
+        function renderCatalog() {
+            const container = document.getElementById("catalog-list");
+            container.innerHTML = "";
+            
+            if (!Array.isArray(fullCatalog)) {
+                console.warn("fullCatalog is not an array:", fullCatalog);
+                document.getElementById("empty-state").classList.remove('hidden');
+                return;
+            }
+
+            const filtered = fullCatalog.filter(c => c.macrocategories === currentMacro);
+
+            let activeTotal = 0;
+            let hasContent = false;
+
+            filtered.forEach(cat => {
+                const subcats = cat.subcategories || cat.products || [];
+                // ONLY SHOW ACTIVE: strictly filter by blueprint_ready
+                const activeSubcats = subcats.filter(p => p.blueprint_ready === true || p.blueprint_ready === "true");
+                
+                if (activeSubcats.length === 0) return; // Skip categories without active items
+                hasContent = true;
+
+                const catEl = document.createElement("div");
+                catEl.className = "card-noir overflow-hidden transition-all fade-in-up";
+
+                catEl.innerHTML = `
+                <div class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition" onclick="toggleCat(this)">
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 bg-black text-white rounded-lg flex items-center justify-center font-black text-[10px]">${activeSubcats.length}</div>
+                        <div class="flex flex-col">
+                            <span class="font-black text-xs uppercase tracking-tight">${cat.short_name || cat.name}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2"> 
+                        <i class="fas fa-chevron-down text-[10px] text-gray-200 transition-transform ml-1 mr-2"></i>
+                    </div>
+                </div>
+                <div class="cat-body border-t border-gray-50 hidden">
+                    <div class="prod-list"></div>
+                </div>`;
+
+                const prodList = catEl.querySelector(".prod-list");
+                activeSubcats.forEach(prod => {
+                    activeTotal++;
+                    const pEl = document.createElement("div");
+                    pEl.className = "flex justify-between items-center p-4 border-b border-gray-50 last:border-b-0 prod-status-active";
+                    pEl.innerHTML = `
+                    <div class="flex-1 pr-4">
+                        <p class="font-bold text-[11px] uppercase tracking-tight leading-tight">${prod.short_name || prod.name}</p>
+                        <p class="text-[7px] font-medium text-gray-400 uppercase tracking-widest mt-0.5">Attivo</p>
+                    </div>
+                    <div class="flex gap-3 items-center">
+                        <button class="px-5 h-10 bg-black text-white rounded-xl text-[8px] font-black uppercase tracking-widest active:scale-90 transition shadow-sm" onclick="openSupervisorHub('${prod.callback_data}')">
+                            Supervisor
+                        </button>
+                    </div>`;
+                    prodList.appendChild(pEl);
+                });
+                container.appendChild(catEl);
+            });
+
+            document.getElementById('count-active').innerText = activeTotal;
+
+            if (!hasContent) {
+                document.getElementById("empty-state").classList.remove('hidden');
+            } else {
+                document.getElementById("empty-state").classList.add('hidden');
+            }
+        }
+
+        function toggleCat(el) {
+            const body = el.nextElementSibling;
+            const icon = el.querySelector('.fa-chevron-down');
+            const isOpen = !body.classList.contains('hidden');
+            document.querySelectorAll('.cat-body').forEach(b => b.classList.add('hidden'));
+            document.querySelectorAll('.fa-chevron-down').forEach(i => i.classList.remove('rotate-180'));
+            if (!isOpen) { body.classList.remove('hidden'); icon.classList.add('rotate-180'); }
+        }
+
+        window.openSupervisorHub = (pId) => {
+            location.href = `../supervisor_hub.html?ash=${ash}&msg=${msg || ''}&sop_id=${pId}`;
+        };
+
+        if (!ash) {
+            document.getElementById('loader').innerHTML = `<div class="font-black text-red-500">ASH MISSING</div>`;
+        } else {
+            document.addEventListener("DOMContentLoaded", () => loadCatalog());
+        }
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+
+</html>

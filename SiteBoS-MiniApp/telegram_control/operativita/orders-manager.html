@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SiteBoS | Orders Manager</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        (function () {
+            if (!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)) {
+                document.documentElement.innerHTML = `<body class="bg-black text-white flex items-center justify-center h-screen text-center p-10 font-sans"><div><h1 class="text-6xl mb-4">🚫</h1><h2 class="text-xl font-black uppercase tracking-widest">Accesso Proibito</h2></div></body>`;
+                window.stop();
+            }
+        })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background: #fafafa; color: #000; user-select: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Card ordine */
+        .order-card { background: #fff; border: 1px solid #eee; border-radius: 1.5rem; padding: 1.25rem; transition: all .15s; }
+        .order-card:active { transform: scale(0.98); }
+
+        /* Status badges */
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: .12em; }
+        .badge-pending  { background: #fef3c7; color: #92400e; }
+        .badge-confirmed { background: #d1fae5; color: #065f46; }
+        .badge-rejected { background: #fee2e2; color: #991b1b; }
+
+        /* Bottom sheet */
+        .sheet { position: fixed; inset: 0; z-index: 500; display: flex; flex-direction: column; justify-content: flex-end; }
+        .sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.35); backdrop-filter: blur(4px); }
+        .sheet-content { position: relative; background: #fff; border-radius: 1.5rem 1.5rem 0 0; padding: 1.5rem; max-height: 90vh; overflow-y: auto; }
+        .sheet-handle { width: 2.5rem; height: 4px; background: #e5e7eb; border-radius: 999px; margin: 0 auto 1.25rem; }
+        .sheet-hidden { display: none; }
+
+        /* Loader */
+        .spin { width: 2rem; height: 2rem; border: 2px solid #eee; border-top-color: #000; border-radius: 50%; animation: spin .7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Tabs */
+        .tab { flex: 1; padding: .6rem; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; border-radius: .75rem; transition: all .15s; }
+        .tab.active { background: #000; color: #fff; }
+        .tab:not(.active) { color: #94a3b8; }
+
+        /* Receipt Style for Detail View */
+        .receipt-paper { background: white; width: 100%; max-width: 400px; margin: 0 auto; min-height: 100vh; position: relative; }
+        .dotted-line { border-top: 2px dotted #000; width: 100%; height: 1px; margin: 15px 0; }
+        
+        @media print {
+            body { background: white !important; overflow: visible !important; }
+            .no-print { display: none !important; }
+            #view-detail { display: block !important; position: absolute; top: 0; left: 0; width: 100%; }
+            .receipt-paper { box-shadow: none; max-width: 100%; margin: 0; padding: 5mm; }
+        }
+
+        /* View Management */
+        .view { display: none; }
+        .view.active { display: flex; flex-direction: column; height: 100%; }
+
+        /* Buttons */
+        .btn { height: 3rem; border-radius: .75rem; font-weight: 900; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; display: flex; align-items: center; justify-content: center; gap: .5rem; transition: all .15s; cursor: pointer; border: none; padding: 0 1.25rem; flex: 1; }
+        .btn-black { background: #000; color: #fff; }
+        .btn-black:active { transform: scale(.96); opacity: .9; }
+        .btn-black:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; transform: none; }
+        .btn-outline { background: #fff; color: #000; border: 1.5px solid #000; }
+        .btn-outline:active { transform: scale(.96); }
+        .btn-danger { background: #fff; color: #ef4444; border: 1.5px solid #ef4444; }
+        .btn-danger:active { transform: scale(.96); }
+
+        @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn .25s ease forwards; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+<!-- GLOBAL LOADER -->
+<div id="global-loader" class="fixed inset-0 bg-white z-[999] flex flex-col items-center justify-center gap-4">
+    <div class="spin"></div>
+    <p class="text-[9px] font-black uppercase tracking-[.3em] text-gray-300">Caricamento Ordini...</p>
+</div>
+
+<!-- VIEW: ORDERS LIST -->
+<div id="view-list" class="view active h-screen flex flex-col">
+    <!-- HEADER -->
+    <header class="bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between flex-shrink-0 no-print">
+        <div>
+            <p class="text-[8px] font-black uppercase tracking-widest text-gray-400">Owner Panel</p>
+            <h1 class="text-[13px] font-black uppercase tracking-tight">📦 Orders Manager</h1>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="loadOrders()" class="w-9 h-9 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-center active:scale-90 transition">
+                <i class="fas fa-sync-alt text-xs text-gray-400"></i>
+            </button>
+            <button onclick="tg.close()" class="w-9 h-9 flex items-center justify-center text-gray-300">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- TABS -->
+    <div class="flex gap-1 px-4 py-3 bg-white border-b border-gray-100 flex-shrink-0 no-print" id="tab-bar">
+        <button class="tab active" id="tab-pending"  onclick="setTab('pending')">In Attesa <span id="count-pending" class="ml-1 opacity-50">0</span></button>
+        <button class="tab"        id="tab-confirmed" onclick="setTab('confirmed')">Confermati <span id="count-confirmed" class="ml-1 opacity-50">0</span></button>
+        <button class="tab"        id="tab-all"       onclick="setTab('all')">Tutti</button>
+    </div>
+
+    <!-- ORDERS LIST -->
+    <main id="orders-list-container" class="flex-1 overflow-y-scroll no-scrollbar p-4 space-y-3 pb-8">
+        <!-- injected -->
+    </main>
+
+    <!-- EMPTY STATE -->
+    <div id="empty-state" class="hidden flex-1 flex flex-col items-center justify-center text-center p-10 gap-3">
+        <div class="text-5xl">📭</div>
+        <h2 class="text-sm font-black uppercase tracking-tight">Nessun Ordine</h2>
+        <p class="text-[10px] text-gray-400">Non ci sono ordini in questa sezione.</p>
+    </div>
+</div>
+
+<!-- VIEW: ORDER DETAIL (RECEIPT STYLE) -->
+<div id="view-detail" class="view h-screen bg-gray-50 overflow-y-auto no-scrollbar">
+    <header class="no-print fixed top-0 left-0 right-0 p-4 flex justify-between items-center z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+        <button onclick="switchView('list')" class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center shadow-sm active:scale-90 transition">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="text-center">
+            <p class="text-[8px] font-black uppercase tracking-widest text-gray-400">Dettaglio Ordine</p>
+            <h2 id="detail-header-id" class="text-[10px] font-black uppercase tracking-tight">—</h2>
+        </div>
+        <button onclick="window.print()" class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center shadow-sm active:scale-90 transition">
+            <i class="fas fa-print"></i>
+        </button>
+    </header>
+
+    <main class="receipt-paper p-8 pt-24 flex flex-col items-center pb-40">
+        <!-- BRAND HEADER -->
+        <div class="text-center space-y-2 mb-6 w-full">
+            <div id="brand-logo" class="w-16 h-16 bg-black rounded-2xl mx-auto flex items-center justify-center text-white mb-2 overflow-hidden">
+                <i class="fas fa-shopping-bag text-2xl"></i>
+            </div>
+            <h1 id="brand-name" class="font-black text-xl uppercase tracking-tighter leading-none">SiteBoS Store</h1>
+            <p id="detail-order-date" class="text-[9px] font-bold text-gray-500 uppercase tracking-widest"></p>
+            <div id="detail-status-badge" class="inline-block px-3 py-1 bg-gray-100 rounded-full text-[8px] font-black uppercase tracking-widest mt-2 text-gray-500">PENDING</div>
+        </div>
+
+        <div class="dotted-line"></div>
+
+        <!-- CUSTOMER SECTION -->
+        <div class="w-full space-y-4 mb-6 text-left">
+            <div class="space-y-1">
+                <span class="text-[8px] font-black uppercase tracking-[0.2em] text-gray-300">Destinatario</span>
+                <p id="detail-customer-info" class="font-black text-sm uppercase"></p>
+            </div>
+            <div class="space-y-2">
+                <span class="text-[8px] font-black uppercase tracking-[0.2em] text-gray-300">Consegna</span>
+                <p id="detail-address" class="text-xs font-bold leading-tight"></p>
+                <div id="detail-gps-box" class="bg-gray-50 p-2 rounded-lg border border-gray-100 hidden">
+                    <span class="text-[7px] font-black uppercase text-gray-500 block mb-0.5">Posizione GPS (Rilevata)</span>
+                    <p id="detail-gps-name" class="text-[9px] font-medium text-gray-500 italic leading-tight"></p>
+                </div>
+                <a id="detail-maps-url" href="" target="_blank" class="no-print text-[9px] font-black uppercase text-blue-600 flex items-center gap-1">
+                    <i class="fas fa-map-marker-alt"></i> Apri in Maps
+                </a>
+            </div>
+        </div>
+
+        <div class="dotted-line"></div>
+
+        <!-- ITEMS SECTION -->
+        <div class="w-full space-y-5 mb-8">
+            <span class="text-[8px] font-black uppercase tracking-[0.2em] text-gray-300 block mb-2">Dettaglio Prodotti</span>
+            <div id="detail-items-list" class="w-full space-y-6">
+                <!-- Items injected here -->
+            </div>
+        </div>
+
+        <div class="dotted-line border-gray-100"></div>
+
+        <!-- TOTAL SECTION -->
+        <div class="w-full space-y-4 py-6">
+            <div class="flex justify-between items-center">
+                <span class="text-[10px] font-black uppercase text-gray-500">Metodo Pagamento</span>
+                <span id="detail-payment-mode" class="text-[10px] font-black uppercase tracking-tight"></span>
+            </div>
+            <div class="flex justify-between items-end border-t-2 border-black pt-6 pb-4">
+                <span class="text-xs font-black uppercase tracking-widest">Totale Finale</span>
+                <span id="detail-total-amount" class="text-3xl font-black tracking-tighter"></span>
+            </div>
+        </div>
+
+        <div class="dotted-line"></div>
+        
+        <div class="text-center mt-4 pb-10">
+            <p class="text-[8px] font-black uppercase text-gray-300 tracking-[0.3em]">SiteBoS Intelligence Engine</p>
+        </div>
+    </main>
+
+    <!-- EVASION PANEL (Owner Only) -->
+    <div id="detail-evade-panel" class="no-print fixed bottom-0 left-0 right-0 p-5 bg-white/95 backdrop-blur-md border-t border-gray-100 z-50 transition-all duration-300 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+        <div class="max-w-md mx-auto space-y-4">
+            <div id="evade-form" class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-[9px] font-black uppercase tracking-widest text-gray-500">Tempo di Consegna</h3>
+                    <span id="detail-selected-time" class="text-[10px] font-black text-black">Seleziona...</span>
+                </div>
+                
+                <div class="flex gap-2">
+                    <select id="detail-time-presets" onchange="updateTimeFromPreset(this.value)" class="flex-1 h-12 px-3 border-2 border-gray-100 rounded-2xl text-[10px] font-black outline-none focus:border-black bg-white">
+                        <option value="">Rapidi...</option>
+                        <option value="Al più presto">Al più presto</option>
+                        <option value="15 minuti">15 min</option>
+                        <option value="30 minuti">30 min</option>
+                        <option value="45 minuti">45 min</option>
+                        <option value="60 minuti">60 min</option>
+                    </select>
+                    <div class="flex-[2] relative">
+                        <input type="text" id="detail-time-input" placeholder="Specifica tempo..." oninput="setDeliveryTime(this.value)" class="w-full h-12 px-4 border-2 border-gray-100 rounded-2xl text-[10px] font-bold focus:border-black outline-none bg-white">
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="rejectOrder()" class="btn btn-danger h-12">
+                        <i class="fas fa-times"></i> Rifiuta
+                    </button>
+                    <button onclick="confirmOrder()" id="btn-confirm-detail" disabled class="btn btn-black flex-[2] h-12">
+                        <i class="fas fa-paper-plane"></i> Conferma ed Evadi
+                    </button>
+                </div>
+            </div>
+            <div id="detail-handled-msg" class="hidden text-center py-4">
+                <p class="text-[10px] font-black uppercase tracking-widest text-gray-500">Ordine già gestito</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+'use strict';
+
+const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+tg.expand(); tg.ready();
+
+const WH_URL = "https://prod.workflow.trinai.it/webhook/5ea527d5-b0e7-44dc-b7ca-626f1c6176f0";
+const params = new URLSearchParams(window.location.search);
+const ashToken = params.get('ash');
+
+let allOrders = [];
+let currentTab = 'pending';
+let activeOrder = null;
+let selectedTime = null;
+
+// ─── INIT ──────────────────────────────────────────────────
+window.onload = async () => {
+    if (!ashToken) { tg.showAlert("ASH Token mancante."); return; }
+    await loadOrders();
+    
+    // Gestione apertura diretta ordine se presente session_id
+    const sessionIdParam = params.get('session_id');
+    if (sessionIdParam) {
+        const order = allOrders.find(o => {
+            const od = o.order_data || o;
+            return (od.sessionId || od.ids?.timestamp) === sessionIdParam;
+        });
+        if (order) {
+            openOrder(allOrders.indexOf(order));
+        } else {
+            // Se non è nella lista caricata, potremmo doverlo cercare singolarmente?
+            // Per ora assumiamo che sia nella lista o diamo errore
+            console.log("Ordine non trovato nella lista caricata.");
+        }
+    }
+};
+
+async function loadOrders() {
+    showGlobalLoader(true);
+    try {
+        const res = await fetch(WH_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ _auth: tg.initData, ash: ashToken, action: 'u_calc_get_orders_list' })
+        });
+        const r = await res.json();
+        const d = Array.isArray(r) ? r[0] : r;
+        if (d && d.success) {
+            allOrders = d.orders || [];
+            renderOrders();
+        } else {
+            tg.showAlert("Errore durante il caricamento degli ordini.");
+        }
+    } catch (e) {
+        tg.showAlert("Connessione fallita.");
+    } finally {
+        showGlobalLoader(false);
+    }
+}
+
+// ─── VIEW MANAGER ──────────────────────────────────────────
+function switchView(viewName) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById(`view-${viewName}`).classList.add('active');
+    
+    if (viewName === 'list') {
+        activeOrder = null;
+        tg.BackButton.hide();
+    } else {
+        tg.BackButton.show();
+        tg.BackButton.onClick(() => switchView('list'));
+    }
+}
+
+// ─── TABS ──────────────────────────────────────────────────
+function setTab(tab) {
+    currentTab = tab;
+    ['pending','confirmed','all'].forEach(t => {
+        const el = document.getElementById(`tab-${t}`);
+        if(el) el.classList.toggle('active', t === tab);
+    });
+    renderOrders();
+}
+
+// ─── RENDER LIST ───────────────────────────────────────────
+function renderOrders() {
+    const pending   = allOrders.filter(o => getStatus(o) === 'PENDING');
+    const confirmed = allOrders.filter(o => getStatus(o) === 'CONFIRMED');
+
+    const countP = document.getElementById('count-pending');
+    const countC = document.getElementById('count-confirmed');
+    if(countP) countP.textContent = pending.length;
+    if(countC) countC.textContent = confirmed.length;
+
+    let filtered = allOrders;
+    if (currentTab === 'pending')   filtered = pending;
+    if (currentTab === 'confirmed') filtered = confirmed;
+
+    const list = document.getElementById('orders-list-container');
+    const empty = document.getElementById('empty-state');
+
+    if (filtered.length === 0) {
+        list.innerHTML = '';
+        list.classList.add('hidden');
+        empty.classList.remove('hidden');
+        empty.classList.add('flex');
+        return;
+    }
+
+    list.classList.remove('hidden');
+    empty.classList.add('hidden');
+    empty.classList.remove('flex');
+
+    list.innerHTML = filtered.map((o, i) => {
+        const od = o.order_data || o;
+        const status = getStatus(o);
+        const badgeCls = status === 'PENDING' ? 'badge-pending' : status === 'CONFIRMED' ? 'badge-confirmed' : 'badge-rejected';
+        const statusLabel = status === 'PENDING' ? '⏳ In Attesa' : status === 'CONFIRMED' ? '✅ Confermato' : '❌ Rifiutato';
+        const total = parseFloat(od.total_amount || 0).toFixed(2);
+        const ts = od.timestamp ? new Date(od.timestamp).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+        const itemsCount = (od.items || []).length;
+        const firstItem = od.items?.[0]?.name || '—';
+
+        return `
+        <div class="order-card fade-in" style="animation-delay:${i * 40}ms" onclick="openOrder(${allOrders.indexOf(o)})">
+            <div class="flex items-start justify-between mb-3">
+                <div>
+                    <p class="text-[8px] font-black uppercase tracking-widest text-gray-400">${ts}</p>
+                    <h3 class="text-[11px] font-black uppercase tracking-tight mt-0.5">${firstItem}${itemsCount > 1 ? ` + altri ${itemsCount-1}` : ''}</h3>
+                </div>
+                <span class="badge ${badgeCls}">${statusLabel}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <p class="text-[9px] font-bold text-gray-400 truncate max-w-[180px]">
+                    <i class="fas fa-map-marker-alt mr-1"></i>${od.address || 'Indirizzo non specificato'}
+                </p>
+                <span class="text-base font-black tracking-tighter">€ ${total}</span>
+            </div>
+            ${status === 'PENDING' ? `
+            <div class="mt-3 pt-3 border-t border-gray-50">
+                <button class="btn btn-black w-full text-[9px]" onclick="event.stopPropagation(); openOrder(${allOrders.indexOf(o)})">
+                    <i class="fas fa-bolt"></i> Gestisci Ordine
+                </button>
+            </div>` : ''}
+        </div>`;
+    }).join('');
+}
+
+function getStatus(o) {
+    const od = o.order_data || o;
+    return (od.order_info?.status || od.status || 'PENDING').toUpperCase();
+}
+
+// ─── RENDER DETAIL ─────────────────────────────────────────
+function openOrder(idx) {
+    activeOrder = allOrders[idx];
+    selectedTime = null;
+    renderDetail(activeOrder);
+    switchView('detail');
+    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+}
+
+function renderDetail(o) {
+    const od = o.order_data || o;
+    const status = getStatus(o);
+    const customer = od.customer || {};
+    const items = od.items || [];
+    const brand = o.brand || od.brand || {};
+
+    // Header & ID
+    const sessId = od.sessionId || od.ids?.timestamp || '—';
+    document.getElementById('detail-header-id').innerText = `ID: ${sessId}`;
+    document.getElementById('detail-order-date').innerText = od.timestamp 
+        ? new Date(od.timestamp).toLocaleString('it-IT', { dateStyle: 'medium', timeStyle: 'short' })
+        : '—';
+
+    // Brand Info
+    if (brand.logo) {
+        document.getElementById('brand-logo').innerHTML = `<img src="${brand.logo}" class="w-full h-full object-cover">`;
+    } else {
+        document.getElementById('brand-logo').innerHTML = `<i class="fas fa-shopping-bag text-2xl"></i>`;
+    }
+    document.getElementById('brand-name').innerText = brand.name || "SiteBoS Store";
+
+    // Status Badge
+    const badge = document.getElementById('detail-status-badge');
+    badge.innerText = status;
+    if (status === 'CONFIRMED') badge.className = "inline-block px-3 py-1 bg-green-500 rounded-full text-[8px] font-black uppercase tracking-widest mt-2 text-black";
+    else if (status === 'PENDING') badge.className = "inline-block px-3 py-1 bg-amber-400 rounded-full text-[8px] font-black uppercase tracking-widest mt-2 text-black";
+    else badge.className = "inline-block px-3 py-1 bg-red-500 rounded-full text-[8px] font-black uppercase tracking-widest mt-2 text-white";
+
+    // Customer Info
+    const nomeCompleto = `${customer.nome || ''} ${customer.cognome || ''}`.trim() || `Cliente #${od.ids?.customer_id || '—'}`;
+    let customerHtml = `<span class="text-sm font-black uppercase">${nomeCompleto}</span>`;
+    if (customer.telefono) customerHtml += `<br><a href="tel:${customer.telefono}" class="text-[10px] font-bold text-blue-600"><i class="fas fa-phone-alt mr-1"></i> ${customer.telefono}</a>`;
+    if (customer.email) customerHtml += `<br><span class="text-[9px] font-medium text-gray-500">${customer.email}</span>`;
+    document.getElementById('detail-customer-info').innerHTML = customerHtml;
+
+    // Delivery Info
+    document.getElementById('detail-address').innerText = od.address || "Ritiro in sede";
+    if (od.location?.display_name) {
+        document.getElementById('detail-gps-box').classList.remove('hidden');
+        document.getElementById('detail-gps-name').innerText = od.location.display_name;
+    } else {
+        document.getElementById('detail-gps-box').classList.add('hidden');
+    }
+
+    const mapsUrl = od.address && od.address !== "Ritiro in sede" 
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(od.address)}`
+        : "";
+    const mapsLink = document.getElementById('detail-maps-url');
+    if (mapsUrl) {
+        mapsLink.href = mapsUrl;
+        mapsLink.classList.remove('hidden');
+    } else {
+        mapsLink.classList.add('hidden');
+    }
+
+    // Payment & Total
+    document.getElementById('detail-payment-mode').innerText = od.payment_mode === 'CARD' ? 'Carta di Credito' : 'Pagamento alla Consegna';
+    document.getElementById('detail-total-amount').innerText = `€ ${parseFloat(od.total_amount || 0).toFixed(2)}`;
+
+    // Items List
+    const list = document.getElementById('detail-items-list');
+    list.innerHTML = items.map(i => {
+        const extras = i.selected_extras || [];
+        const extrasHtml = extras.length > 0 ? `<div class="mt-1 pl-2 border-l-2 border-gray-100 space-y-0.5">${extras.map(e => `<p class="text-[9px] font-bold text-gray-500 uppercase">+ ${e.name} (€${parseFloat(e.price).toFixed(2)})</p>`).join('')}</div>` : '';
+        const noteHtml = i.customer_note ? `<div class="mt-2 p-2 bg-gray-50 rounded text-[9px] font-medium italic text-gray-500">Nota: ${i.customer_note}</div>` : '';
+        return `<div class="w-full space-y-1"><div class="flex justify-between items-start gap-4"><div class="flex-1"><h3 class="font-black text-[12px] uppercase leading-tight">${i.quantity}x ${i.name}</h3>${extrasHtml}${noteHtml}</div><span class="font-mono text-[11px] font-bold">€${parseFloat(i.final_price || i.price).toFixed(2)}</span></div></div>`;
+    }).join('');
+
+    // Evasion Panel
+    const evadePanel = document.getElementById('evade-form');
+    const handledMsg = document.getElementById('detail-handled-msg');
+    document.getElementById('detail-time-input').value = '';
+    document.getElementById('detail-time-presets').value = '';
+    document.getElementById('detail-selected-time').innerText = 'Seleziona...';
+    document.getElementById('btn-confirm-detail').disabled = true;
+
+    if (status === 'PENDING') {
+        evadePanel.classList.remove('hidden');
+        handledMsg.classList.add('hidden');
+    } else {
+        evadePanel.classList.add('hidden');
+        handledMsg.classList.remove('hidden');
+    }
+}
+
+// ─── EVASION LOGIC ──────────────────────────────────────────
+function updateTimeFromPreset(val) {
+    if (!val) return;
+    document.getElementById('detail-time-input').value = val;
+    setDeliveryTime(val);
+}
+
+function setDeliveryTime(val) {
+    selectedTime = val.trim();
+    const display = document.getElementById('detail-selected-time');
+    const btn = document.getElementById('btn-confirm-detail');
+    
+    if (!selectedTime) {
+        display.innerText = "Seleziona...";
+        btn.disabled = true;
+        return;
+    }
+    display.innerText = selectedTime;
+    btn.disabled = false;
+}
+
+async function confirmOrder() {
+    if (!selectedTime || !activeOrder) return;
+    const od = activeOrder.order_data || activeOrder;
+    const sessId = od.sessionId || od.ids?.timestamp;
+    
+    const btn = document.getElementById('btn-confirm-detail');
+    const originalContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Invio...';
+
+    try {
+        const res = await fetch(WH_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                _auth: tg.initData, ash: ashToken, action: 'u_calc_evade_order',
+                session_id: sessId,
+                evasion_data: { delivery_time: selectedTime, status: 'CONFIRMED', timestamp: new Date().toISOString() }
+            })
+        });
+        const r = await res.json();
+        if (r.success) {
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            tg.showAlert(`✅ Ordine confermato! Tempo: ${selectedTime}`);
+            await loadOrders();
+            switchView('list');
+        } else {
+            tg.showAlert("Errore durante la conferma.");
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+        }
+    } catch (e) {
+        tg.showAlert("Connessione fallita.");
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+    }
+}
+
+async function rejectOrder() {
+    if (!activeOrder) return;
+    const od = activeOrder.order_data || activeOrder;
+    const sessId = od.sessionId || od.ids?.timestamp;
+
+    tg.showConfirm("Rifiutare questo ordine? Il cliente verrà notificato.", async (ok) => {
+        if (!ok) return;
+        showGlobalLoader(true);
+        try {
+            const res = await fetch(WH_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    _auth: tg.initData, ash: ashToken, action: 'u_calc_evade_order',
+                    session_id: sessId,
+                    evasion_data: { delivery_time: null, status: 'REJECTED', timestamp: new Date().toISOString() }
+                })
+            });
+            const r = await res.json();
+            if (r.success) {
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+                tg.showAlert("❌ Ordine rifiutato.");
+                await loadOrders();
+                switchView('list');
+            } else {
+                tg.showAlert("Errore.");
+            }
+        } catch (e) {
+            tg.showAlert("Connessione fallita.");
+        } finally {
+            showGlobalLoader(false);
+        }
+    });
+}
+
+// ─── UTILS ─────────────────────────────────────────────────
+function showGlobalLoader(show) {
+    const l = document.getElementById('global-loader');
+    if (show) {
+        l.classList.remove('hidden', 'opacity-0');
+    } else {
+        l.classList.add('opacity-0');
+        setTimeout(() => l.classList.add('hidden'), 300);
+    }
+}
+</script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

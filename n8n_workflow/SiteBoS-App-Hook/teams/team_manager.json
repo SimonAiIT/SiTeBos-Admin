@@ -1,0 +1,819 @@
+{
+  "name": "team_manager",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Access Denied or Data Not Found\",\n  \"code\": 500\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -272,
+        640
+      ],
+      "id": "a46be663-b6f3-424a-8ac4-7a49dafd2e8e",
+      "name": "500"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "502d2019-b5ee-4c9b-a14d-8d6545fbb05e",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -608,
+        800
+      ],
+      "id": "811354ce-72dc-4055-96c3-b11d6d0cd900",
+      "name": "Webhook",
+      "webhookId": "502d2019-b5ee-4c9b-a14d-8d6545fbb05e"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        800,
+        -48
+      ],
+      "id": "c6f5605c-fc95-4fef-bdcb-87601f727b72",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "921222b5-28e6-41cb-b54e-6116cbbaee31",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_team_data",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GetTeam"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a977589a-a45f-47d5-8c2d-528c4f756c0d",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_single_operator",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GetSingle"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        48,
+        784
+      ],
+      "id": "7ec9dc9e-b899-49c3-9679-1055c36985ea",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.vat_number }}\"\n      },\n      \"messages.0.data.access_token\": {\n        \"$eq\": \"{{ $json.body.access_token }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        256,
+        576
+      ],
+      "id": "e146b4ed-b57c-4e9d-b42e-f3636c10d8c8",
+      "name": "owner",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        576
+      ],
+      "id": "cd51c5fc-4afe-4678-af56-0c3f068785e4",
+      "name": "OwnerExist"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.vat_number }}-{{ $json.body.owner_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$stakeholder.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        784
+      ],
+      "id": "35e2d569-d64f-4c10-93fb-0565bda49d09",
+      "name": "stakeholders",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.stakeholder }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        848,
+        784
+      ],
+      "id": "247ead62-da98-43d3-a622-74a1b18234ae",
+      "name": "exist?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prendi il primo item dall'input\nconst ownerData = $input.first().json.owner_data;\n\n// operators[0] è SEMPRE l'owner\nconst ownerOperator = ownerData.operators?.[0];\n\n// Verifica se ha completato il questionario professionale (soft skills)\n// Usa l'optional chaining (?.) per evitare errori se kyc_details è null\nconst hasProfessionalQuestionnaire = ownerData.kyc_details?.professional_questionnaire ? true : false;\n\n// Costruisci l'oggetto owner\nconst owner = {\n  stakeholder_id: ownerData.user_id,\n  name: ownerOperator?.OperatorName || `${ownerData.name} ${ownerData.surname}`,\n  email: ownerData.email,\n  phone: ownerData.phone || \"\",\n  soft_skills_assessed: hasProfessionalQuestionnaire\n};\n\n// Costruisci l'array degli operatori (team)\nconst teamOperators = (ownerData.operators || [])\n  .slice(1) // Salta operators[0] che è l'owner\n  .map(op => ({\n    // CORREZIONE IMPORTANTE:\n    // Se OperatorChatID è null, usa invitation_code, altrimenti stringa vuota.\n    // Questo previene l'errore \"Cannot read properties of null (reading 'toString')\"\n    stakeholder_id: op.OperatorChatID ? op.OperatorChatID.toString() : (op.invitation_code || \"\"),\n    \n    name: op.OperatorName,\n    role: op.Role || \"Operator\",\n    email: \"\", // Se non disponibile, lascia vuoto\n    soft_skills_assessed: false // Default: operatori non hanno ancora fatto assessment\n  }));\n\n// Costruisci la risposta finale\nconst response = {\n  success: true,\n  data: {\n    owner: owner,\n    operators: teamOperators,\n    operators_count: teamOperators.length\n  }\n};\n\n// Ritorna come array per N8N\nreturn [response];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        432
+      ],
+      "id": "1d58112c-4238-4390-80b4-cb652d3ed765",
+      "name": "ResponderM"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prendi il primo item dall'input\nconst stakeholder = $input.first().json.stakeholder;\n\n// Estrai dati base\nconst identity = stakeholder.identity || {};\nconst professional = stakeholder.professional_profile || {};\nconst behavioral = stakeholder.behavioral_profile || {};\nconst commercial = stakeholder.commercial_profile || {};\nconst metadata = stakeholder.metadata || {};\n\n// Determina se è owner o operator\nconst isOwner = metadata.stakeholder_type === \"MANAGER\" || \n                professional.role === \"owner_manager\";\n\n// Costruisci stakeholder_id\nconst ownerRef = stakeholder.owner_data_ref || {};\nconst stakeholderId = `${ownerRef.vat_number}-${ownerRef.chat_id}`;\n\n// 🔥 ESTRAI SOFT SKILLS CON EVALUATION COMPLETA\nconst softSkillsModules = professional.soft_skills_modules || {};\nconst completedModules = Object.entries(softSkillsModules)\n  .filter(([_, module]) => module.completed)\n  .map(([moduleName, module]) => ({\n    module: moduleName,\n    completion_date: module.completion_date || module.timestamp || module.date,\n    evaluation: module.evaluation || null\n  }))\n  .filter(m => m.evaluation !== null);\n\n// Profilo soft skills completo\nconst softSkillsProfile = professional.soft_skills_complete_profile || {};\n\n// 🔥 ESTRAI LEARNING HISTORY (è già dentro professional.learning_history)\nconst learningHistory = professional.learning_history || {};\nconst videosCompleted = learningHistory.videos_completed || [];\n\n// Costruisci la risposta COMPLETA\nconst response = {\n  success: true,\n  data: {\n    stakeholder_id: stakeholderId,\n    name: identity.full_name || \"N/A\",\n    role: isOwner ? \"Owner\" : (professional.role || \"Operator\"),\n    email: identity.primary_contact?.email || \"\",\n    phone: identity.primary_contact?.phone || \"\",\n    \n    // 🔥 IDENTITY COMPLETA\n    identity: {\n      stakeholder_type: identity.stakeholder_type || \"INDIVIDUAL\",\n      full_name: identity.full_name || \"N/A\",\n      fiscal_info: identity.fiscal_info || {},\n      professional_background: identity.professional_background || {}\n    },\n    \n    // 🔥 PROFESSIONAL INFO COMPLETA\n    professional_info: {\n      role: professional.role || \"N/A\",\n      team_size: professional.team_size || \"N/A\",\n      years_experience: professional.years_experience || \"N/A\",\n      hard_skills: professional.hard_skills || [],\n      certifications: professional.certifications || \"\",\n      specialization_level: professional.work_preferences?.specialization_level || \"N/A\",\n      client_workflow: professional.work_preferences?.client_workflow || \"N/A\",\n      digital_tools: professional.work_preferences?.digital_tools || [],\n      document_management: professional.work_preferences?.document_management || \"N/A\",\n      current_challenges: professional.current_challenges || [],\n      main_goal: professional.main_goal || \"N/A\",\n      learning_attitude: professional.learning_attitude || {},\n      expertise_areas: behavioral.expertise_areas || [],\n      \n      // 🔥 LEARNING HISTORY - PRESO DA professional.learning_history.videos_completed\n      learning_history: videosCompleted\n    },\n    \n    // 🔥 SOFT SKILLS ASSESSMENT CON EVALUATION\n    soft_skills_assessment: {\n      is_complete: softSkillsProfile.completed || (completedModules.length === 4),\n      analyzed_at: softSkillsProfile.stats?.completion_date,\n      overall_score: softSkillsProfile.stats?.overall_score,\n      modules_completed: completedModules,\n      total_modules: 4,\n      completed_count: completedModules.length,\n      \n      // Se il profilo è completo, includi dettagli\n      ...(completedModules.length === 4 && {\n        profile_summary: {\n          top_skills: softSkillsProfile.strengths || [],\n          development_areas: softSkillsProfile.areas_to_improve || [],\n          ai_analysis: softSkillsProfile.summary || null\n        }\n      })\n    },\n    \n    // 🔥 METADATA COMPLETA\n    metadata: {\n      status: metadata.status || \"ACTIVE\",\n      stakeholder_type: metadata.stakeholder_type || \"OPERATOR\",\n      created_at: metadata.created_at,\n      last_updated: metadata.last_updated || stakeholder.created_at,\n      enrichment_date: metadata.enrichment_date,\n      intelligence_confidence: metadata.intelligence_confidence || \"unknown\"\n    },\n    \n    // 🔥 BEHAVIORAL PROFILE COMPLETO\n    behavioral_profile: {\n      communication_style: behavioral.communication_style || \"N/A\",\n      expertise_areas: behavioral.expertise_areas || [],\n      notes: behavioral.notes || \"\",\n      current_stance: {\n        stance_id: behavioral.current_stance?.stance_id || \"UNKNOWN\",\n        set_by: behavioral.current_stance?.set_by,\n        set_at: behavioral.current_stance?.set_at,\n        rationale: behavioral.current_stance?.rationale\n      },\n      interaction_summary: behavioral.interaction_summary || {},\n      public_reputation: behavioral.public_reputation || {\n        sentiment: \"neutral\",\n        credibility_signals: [],\n        media_mentions_count: 0,\n        trust_score: 0\n      }\n    },\n    \n    // 🔥 COMMERCIAL PROFILE\n    commercial_profile: {\n      customer_since: commercial.customer_since,\n      supplier_since: commercial.supplier_since,\n      tags: commercial.tags || [],\n      lifetime_value: commercial.lifetime_value || 0,\n      total_bookings: commercial.total_bookings || 0\n    },\n    \n    // 🔥 SOCIAL PROFILES\n    social_profiles: identity.social_profiles || {\n      facebook: null,\n      linkedin: null,\n      website: null,\n      twitter: null,\n      instagram: null\n    }\n  }\n};\n\nreturn [response];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        768
+      ],
+      "id": "455443a6-0a92-4655-9d94-dd957bc5ea61",
+      "name": "ResponderS"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3a1cdfdf-1f38-460d-9bcc-6861b8d36494",
+              "leftValue": "={{ $json.owner_data.operators[1] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        416
+      ],
+      "id": "60800369-4d88-484a-9032-35a97c015d48",
+      "name": "OperatorExist?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// N8N CODE NODE - GET OPERATORS LIST\n// Esclude Owner (index 0) e operatori senza ChatID\n// Output: Array con formato \"VAT-CHATID\"\n// ============================================\n\nconst inputData = $input.all();\n\n// L'input è un array con owner_data dentro\nconst ownerData = inputData[0].json.owner_data || inputData[0].json;\n\nconsole.log('🔍 Owner VAT:', ownerData.vat_number);\n\n// Controlla che esista l'array operators\nif (!ownerData.operators || !Array.isArray(ownerData.operators)) {\n    console.log('❌ NO operators array found');\n    return [{\n        json: {\n            total_operators: 0,\n            operators_list: []\n        }\n    }];\n}\n\nconsole.log('📦 Total operators in array:', ownerData.operators.length);\n\n// Filtra operatori: ESCLUDI indice 0 (Owner) e quelli senza ChatID\nconst activeOperators = ownerData.operators\n    .filter((op, index) => {\n        // Salta indice 0 (Owner)\n        if (index === 0) {\n            console.log(`   - ${op.OperatorName} (Owner): SKIPPED ⏭️`);\n            return false;\n        }\n        \n        // Controlla se ha ChatID valorizzato\n        const isActive = op.OperatorChatID !== null && \n                         op.OperatorChatID !== \"\" && \n                         op.OperatorChatID !== undefined;\n        \n        console.log(`   - ${op.OperatorName}: ChatID=${op.OperatorChatID} → ${isActive ? '✅' : '❌'}`);\n        \n        return isActive;\n    });\n\nconsole.log('✅ Active operators (excluding Owner):', activeOperators.length);\n\n// Crea array con formato VAT-CHATID\nconst vat = ownerData.vat_number || ownerData.user_id;\nconst operatorsList = activeOperators.map(op => `${vat}-${op.OperatorChatID}`);\n\nconsole.log('📋 Final list:', operatorsList);\n\nreturn [{\n    json: {\n        total_operators: activeOperators.length,\n        operators_list: operatorsList\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -464,
+        96
+      ],
+      "id": "f57794cd-a1e3-4826-b39a-1a9a2e665aaa",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "operators_list",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        96
+      ],
+      "id": "b134dc1a-d4b5-4aa2-9c60-77b14d028f72",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -96,
+        96
+      ],
+      "id": "d0a43e7b-7cae-402d-861d-ed2d8204d4bd",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.operators_list }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"operator\": \"$stakeholder.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        112
+      ],
+      "id": "cb125a74-edd0-4162-a3df-cf2bbf0d049b",
+      "name": "stakeholders1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.operator }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        576,
+        112
+      ],
+      "id": "f43160bd-2f62-4ac3-ba40-a1c49453ef23",
+      "name": "exist?1"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "operator"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -64
+      ],
+      "id": "903b0135-903e-4506-8a21-e12ec334d509",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        384,
+        -48
+      ],
+      "id": "12e2d683-2582-4276-8097-93fa86b60acc",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// N8N CODE NODE - GET TEAM DATA\n// Mappa owner_data + operator[] → formato team.html\n// ============================================\n\nconst inputData = $input.all();\nconst data = inputData[0].json;\n\nconst ownerData = data.owner_data;\nconst operatorsProfiles = data.operator || []; // Array STAKEHOLDER_PROFILE\n\nconsole.log('📦 Owner:', ownerData.ragione_sociale);\nconsole.log('📦 Operators profiles found:', operatorsProfiles.length);\n\n// ==========================================\n// 1. OWNER INFO\n// ==========================================\nconst ownerInfo = {\n    full_name: `${ownerData.name} ${ownerData.surname}`.trim() || ownerData.ragione_sociale\n};\n\n// ==========================================\n// 2. OPERATORS (da owner_data.operators + operator[])\n// ==========================================\nconst operatorsFromOwnerData = ownerData.operators || [];\n\n// Filtra: escludi index 0 (Owner) e quelli senza ChatID\nconst activeOperatorsBase = operatorsFromOwnerData\n    .filter((op, index) => {\n        if (index === 0) {\n            console.log(`   ⏭️ SKIP Owner: ${op.OperatorName}`);\n            return false;\n        }\n        \n        const hasChat = op.OperatorChatID !== null && \n                        op.OperatorChatID !== \"\" && \n                        op.OperatorChatID !== undefined;\n        \n        console.log(`   ${hasChat ? '✅' : '❌'} ${op.OperatorName} (ChatID: ${op.OperatorChatID})`);\n        return hasChat;\n    });\n\nconsole.log('✅ Active operators:', activeOperatorsBase.length);\n\n// ==========================================\n// 3. ARRICCHISCI CON DATI DA STAKEHOLDER_PROFILE\n// ==========================================\nconst operators = activeOperatorsBase.map(op => {\n    const chatId = String(op.OperatorChatID);\n    \n    // Cerca profilo corrispondente in operator[]\n    const profile = operatorsProfiles.find(p => \n        p.system_access?.telegram_chat_id === chatId\n    );\n    \n    let operatorData = {\n        operator_id: chatId,\n        name: op.OperatorName,\n        role: op.Role || 'Operatore',\n        has_assessment: false\n    };\n    \n    // Se esiste profilo stakeholder, arricchisci\n    if (profile) {\n        console.log(`   🔗 Linked profile for ${op.OperatorName}`);\n        \n        operatorData = {\n            operator_id: chatId,\n            name: profile.identity?.full_name || op.OperatorName,\n            role: profile.identity?.professional_background?.current_role || op.Role || 'Operatore',\n            has_assessment: profile.professional_profile?.soft_skills_complete_profile === true,\n            email: profile.identity?.primary_contact?.email || null,\n            phone: profile.identity?.primary_contact?.phone || null,\n            years_experience: profile.identity?.professional_background?.years_experience || null,\n            education: profile.identity?.professional_background?.education || null,\n            hard_skills: profile.professional_profile?.hard_skills || [],\n            certifications: profile.professional_profile?.certifications || null\n        };\n    } else {\n        console.log(`   ⚠️ No profile found for ${op.OperatorName}`);\n    }\n    \n    return operatorData;\n});\n\nconsole.log('📋 Final operators list:', operators.length);\n\n// ==========================================\n// 4. RESPONSE\n// ==========================================\nreturn [{\n    json: {\n        success: true,\n        owner_data: ownerInfo,\n        operators: operators\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        -48
+      ],
+      "id": "4e6118c4-6d7c-48f2-9923-7f77c6ce5107",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "53d2932b-933f-4a91-86c0-03d48d60d3a5",
+              "leftValue": "={{ $json.body.role }}",
+              "rightValue": "=owner",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        320,
+        800
+      ],
+      "id": "a9e42478-10a4-4b59-889c-bfa34afd14ad",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.vat_number }}-{{ $json.body.operator_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$stakeholder.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        1008
+      ],
+      "id": "05b67444-b377-4cfa-a4de-9ca7ab8d4b87",
+      "name": "stakeholders2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "da04c4f2-5349-4013-b1a2-b0d971334780",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "https://prod.workflow.trinai.it/webhook/59f8bb77-d356-41c9-928d-abc839471c9e",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -288,
+        800
+      ],
+      "id": "c17724d2-1925-44aa-abd0-ca643ea2a760",
+      "name": "Autorize"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "owner",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerExist": {
+      "main": [
+        [
+          {
+            "node": "OperatorExist?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders": {
+      "main": [
+        [
+          {
+            "node": "exist?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exist?": {
+      "main": [
+        [
+          {
+            "node": "ResponderS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ResponderM": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ResponderS": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OperatorExist?": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "ResponderM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "stakeholders1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders1": {
+      "main": [
+        [
+          {
+            "node": "exist?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exist?1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "stakeholders",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "stakeholders2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders2": {
+      "main": [
+        [
+          {
+            "node": "exist?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8a164664-614f-45b9-831f-87bb0b11a426",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "s9cmoec3SwaFEaSL",
+  "tags": []
+}

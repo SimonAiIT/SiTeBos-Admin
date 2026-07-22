@@ -1,0 +1,470 @@
+{
+  "name": "Multi_Input_Gate",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ JSON.stringify( $json.message.message_id ) }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -48,
+        256
+      ],
+      "id": "b94d57c6-3411-4c72-a2b6-c6203363ef85",
+      "name": "Chat Memory Manager"
+    },
+    {
+      "parameters": {
+        "simplifyOutput": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        496,
+        240
+      ],
+      "id": "f379e775-bda6-4eb4-b239-30b7862c7e20",
+      "name": "Chat Memory Manager1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        288,
+        240
+      ],
+      "id": "914d8755-4c50-4406-acf1-c9ad344e34fb",
+      "name": "Merge10"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        784,
+        16
+      ],
+      "id": "ea150d71-ab4a-46ef-940b-043b3567f993",
+      "name": "Merge13"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c6314ca3-1365-4037-84b0-9173039b2bb6",
+              "leftValue": "={{ $json.itemCount }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        992,
+        16
+      ],
+      "id": "9a2a672b-35d1-43cf-8fb0-af913b719a7c",
+      "name": "SoloUnFile",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        256,
+        0
+      ],
+      "id": "97f00be8-ad0f-41bc-9833-e901cab5797d",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "Memory",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        800,
+        240
+      ],
+      "id": "e88b5444-5473-46c8-b959-e0e59587959a",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Adaptive_Item_Counter\n// VERSIONE: 2.1 (Fix per struttura nidificata LangChain)\n\nconst item = $input.first().json;\n\n// 1. Accediamo al pacchetto di messaggi (Memory[0])\nconst aggregatedPackage = item.Memory?.[0];\n\n// 2. Recuperiamo il conteggio\n// Usiamo messagesCount se presente, altrimenti contiamo la lunghezza dell'array\nlet messageCount = 0;\n\nif (aggregatedPackage) {\n    if (aggregatedPackage.messagesCount !== undefined) {\n        messageCount = aggregatedPackage.messagesCount;\n    } else if (Array.isArray(aggregatedPackage.messages)) {\n        messageCount = aggregatedPackage.messages.length;\n    }\n}\n\n// --- Output pulito per i nodi successivi ---\nreturn [{ \n    json: { \n        itemCount: messageCount \n    } \n}];"
+      },
+      "id": "eeaacbea-63c3-4252-8dba-acdbc8781143",
+      "name": "Adaptive_Item_Counter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1008,
+        448
+      ],
+      "id": "299ae803-eebb-4acc-be92-3a0264952b54",
+      "name": "Merge14"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1296,
+        464
+      ],
+      "id": "df29125b-c705-412c-a52a-8351d808e736",
+      "name": "Merge15"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        496,
+        -96
+      ],
+      "id": "0b2b4703-18ac-46e5-b119-ee1aa6b99745",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Find_Lowest_Content\n// VERSIONE: 1.2 - Nested Structure Fix\n\nconst input = $input.first().json;\n\n// 1. Puntiamo al percorso corretto: Memory[0].messages\nconst messages = input.Memory?.[0]?.messages;\n\n// Validazione\nif (!messages || !Array.isArray(messages)) {\n  return [{ json: { lowest_content: null, error: \"Array messaggi non trovato nel percorso Memory[0].messages\" } }];\n}\n\n// 2. Ricerca del valore minimo\nlet lowestValue = Infinity;\n\nfor (const msg of messages) {\n  // Estraiamo il valore da kwargs.content (come si vede dal tuo JSON)\n  const rawVal = msg.kwargs?.content;\n\n  if (rawVal !== undefined && rawVal !== null) {\n    const currentNum = parseInt(rawVal);\n    \n    // Confronto numerico\n    if (!isNaN(currentNum) && currentNum < lowestValue) {\n      lowestValue = currentNum;\n    }\n  }\n}\n\n// 3. Output\nreturn [{\n  json: {\n    lowest_content: lowestValue === Infinity ? null : lowestValue\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        240
+      ],
+      "id": "593de8bc-aa4e-441d-a948-251d437d1a77",
+      "name": "Find_Lowest_Content"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.from.id }}",
+        "collectionName": "ingestion_buffers",
+        "databaseName": "Telegram_owner_bot"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        416
+      ],
+      "id": "87f19e90-f874-4aca-ac2c-16ce7a256f60",
+      "name": "MongoDB Chat Memory1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.from.id }}",
+        "collectionName": "ingestion_buffers",
+        "databaseName": "Telegram_owner_bot"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        496,
+        400
+      ],
+      "id": "5290c457-6d13-4d81-b19b-412ed222a5a7",
+      "name": "MongoDB Chat Memory2",
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "message": {
+            "message_id": 239,
+            "from": {
+              "id": 720379727,
+              "is_bot": false,
+              "first_name": "ImYourEnd",
+              "username": "ImYorEnd",
+              "language_code": "it"
+            },
+            "chat": {
+              "id": 720379727,
+              "first_name": "ImYourEnd",
+              "username": "ImYorEnd",
+              "type": "private"
+            },
+            "date": 1776437574,
+            "voice": {
+              "duration": 2,
+              "mime_type": "audio/ogg",
+              "file_id": "AwACAgQAAxkBAAPvaeJJRnSIeglQJ6LV2IIywa2AdcAAArceAAJ2ohlTh1AO0Z1wBfc7BA",
+              "file_unique_id": "AgADtx4AAnaiGVM",
+              "file_size": 57697
+            }
+          },
+          "query": {
+            "user_id": "2041408875"
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Chat Memory Manager": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Chat Memory Manager1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge10": {
+      "main": [
+        [
+          {
+            "node": "Chat Memory Manager1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge13": {
+      "main": [
+        [
+          {
+            "node": "SoloUnFile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SoloUnFile": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Chat Memory Manager",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Adaptive_Item_Counter",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Find_Lowest_Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adaptive_Item_Counter": {
+      "main": [
+        [
+          {
+            "node": "Merge15",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Merge13",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge14": {
+      "main": [
+        [
+          {
+            "node": "Merge15",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge15": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        []
+      ]
+    },
+    "Find_Lowest_Content": {
+      "main": [
+        [
+          {
+            "node": "Merge14",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Chat Memory Manager",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "Chat Memory Manager1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "62cf4cf3-c457-4ee2-a4b9-74f1d0a28ed6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "tjUloHdAa9cXXiIp",
+  "tags": []
+}

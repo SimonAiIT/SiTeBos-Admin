@@ -1,0 +1,3436 @@
+{
+  "name": "processor",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "35667aed-ee1c-4074-92df-d4334967a1b3",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1104,
+        2448
+      ],
+      "id": "bd414e69-efbb-44ac-9807-0cd8805cc38b",
+      "name": "Webhook",
+      "webhookId": "35667aed-ee1c-4074-92df-d4334967a1b3"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.response_for_webapp }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -672,
+        1536
+      ],
+      "id": "c4243c79-10a9-467e-bb8c-227aaa8d992f",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "onboarding",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "07fd962d-42d8-42ca-8abe-08542689da70"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Onbording"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2a9c9d3e-79e0-402d-9449-c2bc64a7f5a3",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "honeypot_build_trigger",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Catalog_Setup"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        256,
+        2432
+      ],
+      "id": "aa928e1f-2e57-4abf-866a-2bafdfa33666",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -672,
+        1680
+      ],
+      "id": "5bc86cfb-09ba-4be1-ab8b-6b0291b50c6f",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Build_Error_Payload_Multilang (v3.1 - Ibrido WebApp + Telegram CORRETTO)\n// OBIETTIVO: Restituire JSON di errore per WebApp E payload Telegram, rispettando le chiavi esistenti.\n\nconst input = $input.first().json;\n\nconst req = input.body.data;\nconst rawData = req.owner_data;\n\nconst vat = rawData.vat_number;\nconst chatId = req.chat_id;\nconst userLang = rawData.lenguage || 'en';\n\nconst SUPPORT_BOT_URL = \"https://t.me/TrinAi_TecSupport_bot\";\n\n// DIZIONARIO ERRORI COMPLETO (6 LINGUE)\nconst i18n = {\n  'it': {\n    title: \"⚠️ Attivazione Fallita\",\n    body: `Esiste già un account attivo per la Partita IVA ${vat}.`,\n    reason: \"Per motivi di sicurezza, non è possibile sovrascrivere un'istanza esistente.\",\n    action: \"Se hai bisogno di assistenza o vuoi resettare l'account, contatta il supporto.\",\n    btn_support: \"🆘 Contatta Supporto\"\n  },\n  'en': {\n    title: \"⚠️ Activation Failed\",\n    body: `An active account already exists for VAT ID ${vat}.`,\n    reason: \"For security reasons, overwriting an existing instance is not allowed.\",\n    action: \"If you need assistance or wish to reset the account, please contact support.\",\n    btn_support: \"🆘 Contact Support\"\n  },\n  'fr': {\n    title: \"⚠️ Échec de l'Activation\",\n    body: `Un compte actif existe déjà pour le numéro de TVA ${vat}.`,\n    reason: \"Pour des raisons de sécurité, il n'est pas permis d'écraser une instance existante.\",\n    action: \"Si vous avez besoin d'aide ou souhaitez réinitialiser le compte, contactez le support.\",\n    btn_support: \"🆘 Contacter le Support\"\n  },\n  'de': {\n    title: \"⚠️ Aktivierung Fehlgeschlagen\",\n    body: `Es existiert bereits ein aktives Konto für die USt-IdNr. ${vat}.`,\n    reason: \"Aus Sicherheitsgründen ist das Überschreiben einer bestehenden Instanz nicht gestattet.\",\n    action: \"Wenn Sie Hilfe benötigen oder das Konto zurücksetzen möchten, wenden Sie sich bitte an den Support.\",\n    btn_support: \"🆘 Support kontaktieren\"\n  },\n  'es': {\n    title: \"⚠️ Activación Fallida\",\n    body: `Ya existe una cuenta activa para el NIF ${vat}.`,\n    reason: \"Por razones de seguridad, no se permite sobrescribir una instancia existente.\",\n    action: \"Si necesitas asistencia o deseas restablecer la cuenta, contacta con el soporte.\",\n    btn_support: \"🆘 Contactar Soporte\"\n  },\n  'pt': {\n    title: \"⚠️ Falha na Ativação\",\n    body: `Já existe uma conta ativa para o NIF ${vat}.`,\n    reason: \"Por motivos de segurança, não é permitido sobrescrever uma instância existente.\",\n    action: \"Se precisar de assistência ou desejar redefinir a conta, entre em contato com o suporte.\",\n    btn_support: \"🆘 Contactar Suporte\"\n  }\n};\n\nconst t = i18n[userLang.substring(0,2)] || i18n['it'];\n\n// --- PAYLOAD 1: Per la WebApp (risposta al webhook) ---\n// La WebApp si aspetta la risposta direttamente nel JSON principale\nconst webAppErrorPayload = {\n  status: \"error\",\n  error: {\n    code: \"DUPLICATE_INSTANCE\",\n    title: t.title,\n    message: `${t.body}\\n\\n${t.reason}\\n${t.action}`\n  }\n};\n\n// --- PAYLOAD 2: Per Telegram (notifica in chat) ---\n// Usa la chiave standard 'telegramPayload' come richiesto.\nconst telegramMessageText = `\n⛔️ <b>ERRORE ATTIVAZIONE RILEVATO</b>\n\nUn tentativo di attivazione è stato bloccato perché l'account per la P.IVA <code>${vat}</code> esiste già.\n\n<b>Azione intrapresa:</b>\nL'utente è stato notificato tramite la WebApp.\n\nSe ritieni sia un errore o l'utente necessita di un reset, contatta il supporto.\n`;\n\nconst telegramPayload = {\n    chat_id: chatId,\n    text: telegramMessageText,\n    parse_mode: \"HTML\",\n    reply_markup: {\n        inline_keyboard: [[{\n            text: t.btn_support,\n            url: SUPPORT_BOT_URL\n        }]]\n    }\n};\n\n// --- RETURN Combinato CORRETTO ---\nreturn {\n    json: {\n        ...webAppErrorPayload, // Le chiavi 'status' ed 'error' sono al primo livello\n        telegramPayload: telegramPayload // La chiave 'telegramPayload' è una chiave separata\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        1680
+      ],
+      "id": "831a3f7e-a487-478d-a895-17111bd64d83",
+      "name": "Build_Error_Payload_Multilang"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -864,
+        1536
+      ],
+      "id": "e2dc0839-8043-48a7-9206-fc2b5876c7bf",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -64,
+        1952
+      ],
+      "id": "8b14a435-a569-41ce-bee7-2860514ca5cf",
+      "name": "owner"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        240,
+        1888
+      ],
+      "id": "1fb97cba-04d1-4942-a8f3-20e4eec3e878",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        2048
+      ],
+      "id": "ba2b18d1-5a0a-453f-b8a6-c2ad9f91b72e",
+      "name": "MongoDB Chat Memory3",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -256,
+        1872
+      ],
+      "id": "77e6cd32-eb78-46f9-9138-c85d70ce0eb4",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bea1b551-64b1-4b06-a609-cbe349671a67",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -480,
+        1840
+      ],
+      "id": "294c0c83-f107-4a5a-aeba-d50f88f6e2e4",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.stakeholder }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        1952
+      ],
+      "id": "5db7f1bb-30f0-450e-86d8-ca40206a5d48",
+      "name": "stakeholders"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        1488
+      ],
+      "id": "6d04d296-6ba3-4bd6-8c44-1020ca05e774",
+      "name": "Stop"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        512,
+        1504
+      ],
+      "id": "a3f8f7d9-443f-46dc-a525-301edaa941fd",
+      "name": "Merge32"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=You are a Senior Enterprise Business Intelligence Analyst. Your mission is to conduct comprehensive, multi-layered intelligence gathering on a company and its stakeholders via Google Search to support B2B customer onboarding.\n\n# CORE OBJECTIVES\n1. Gather verified intelligence on the Company and Key Stakeholder.\n2. Answer all onboarding choreography questions accurately.\n3. Produce a structured, enterprise-grade 2500-3000 word intelligence dossier.\n4. Provide actionable strategic insights based on gathered data.\n\n# TOOL USAGE & SEARCH PROTOCOL (CRITICAL)\nDo NOT execute 45+ individual searches, as this is inefficient. You must use Advanced Google Dorks to combine queries and gather data in 10-15 highly strategic tool calls. Analyze results after each batch to refine the next.\n\n**Recommended Combined Search Strategies:**\n- **Identity & Legal:** `\"[VAT_NUMBER]\" OR \"[LEGAL_NAME]\"` AND `\"registroimprese\" OR \"partita iva\"`\n- **Brand & Mission:** `site:[WEBSITE_DOMAIN] (\"chi siamo\" OR \"about\" OR mission OR vision OR \"cosa facciamo\")`\n- **USP & Reputation:** `\"[LEGAL_NAME]\" AND (reviews OR recensioni OR opinioni OR \"vs competitors\" OR site:trustpilot.com)`\n- **Products & Pricing:** `site:[WEBSITE_DOMAIN] (products OR services OR pricing OR catalog OR portfolio)`\n- **Stakeholder Profile:** `\"[STAKEHOLDER_FULL_NAME]\" AND (\"[LEGAL_NAME]\" OR \"[VAT_NUMBER]\" OR site:linkedin.com OR interview OR \"case study\")`\n- **Digital Footprint:** `\"[LEGAL_NAME]\" (site:facebook.com OR site:instagram.com OR news)`\n\n# DOSSIER OUTPUT STRUCTURE\nGenerate a comprehensive dossier strictly following this structure:\n\n## EXECUTIVE SUMMARY\n- Brief overview of the entity, core business, and stakeholder.\n- Red flags or major discrepancies (if any).\n\n## PART 1: COMPANY INTELLIGENCE\n- **Legal & Commercial Identity:** (Legal name, DBA, verified address, VAT, Sector).\n- **Mission & USP:** (Core mission, values, differentiators, market positioning).\n- **Operations & Offerings:** (Business hours, core products/services, pricing structures).\n- **Target Market:** (B2B/B2C, typical clients, industries served).\n- **Digital & Media Footprint:** (Social media presence, reputation, recent news/press).\n\n## PART 2: STAKEHOLDER INTELLIGENCE\n- **Professional Profile:** (Role, background, verified skills, personal brand strength).\n- **Authority & Proof:** (Publications, speaking gigs, portfolio/GitHub, awards, associations).\n\n## PART 3: ONBOARDING CHOREOGRAPHY & STRATEGIC ANALYSIS\n- **Answers to Specific Research Questions:** Direct answers to the user's specific questions.\n- **Strategic Insights:** How the company's pain points map to their goals.\n- **Onboarding Recommendations:** Actionable advice for the sales/onboarding team.\n\n# QUALITY & EXECUTION STANDARDS\n- **Cite Sources:** Append the source URL `[1]` to every factual claim.\n- **Transparency:** If exhaustive search yields no results for a specific point, write: *\"NOT FOUND in verified sources.\"* Do not hallucinate.\n- **Objectivity:** Clearly separate verified facts from your analytical inferences.\n- **Language:** The final dossier should be generated in the language requested by the user prompt (default to Italian if the input context is in Italian).",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=Execute a comprehensive business intelligence analysis based on the following target entity. \n\n**OUTPUT LANGUAGE REQUIREMENT:** Please generate the final dossier completely in ITALIAN.\n\n## 1. TARGET DATA (CONSOLIDATED)\n**Business Profile:**\n- Legal Name: {{ $json.owner_data.ragione_sociale }}\n- VAT Number: {{ $json.owner_data.vat_number }}\n- Full Address: {{ $json.owner_data.indirizzo }}\n- Website URL: {{ $json.owner_data.site }}\n- Phone: {{ $json.owner_data.phone }}\n- Facebook Page: {{ $json.owner_data.facebook_page }}\n- LinkedIn Company: {{ $json.owner_data.linkedin_page }}\n\n**Primary Stakeholder:**\n- Name/Role: {{ $json.owner_data.kyc_details.professional_questionnaire.role }}\n- Email: {{ $json.owner_data.email }}\n- Known Skills: {{ $json.owner_data.kyc_details.professional_questionnaire.hard_skills }}\n- Years Experience: {{ $json.owner_data.kyc_details.professional_questionnaire.years_experience }}\n\n**Business Context:**\n- Sector: {{ $json.owner_data.sector }}\n- Self-Reported Description: {{ $json.owner_data.business_description }}\n- Stated Pain Points: {{ $json.owner_data.kyc_details.professional_questionnaire.pain_points }}\n- Target Goals: {{ $json.owner_data.kyc_details.professional_questionnaire.main_goal }}\n\n## 2. SPECIFIC RESEARCH QUESTIONS TO ANSWER (Choreography)\nFocus your semantic research to explicitly answer these progression steps in \"PART 3\" of your report:\n\n**Step 1: Identità e Posizionamento**\n- Qual è il nome commerciale (DBA) effettivamente usato rispetto alla ragione sociale?\n- Qual è l'esatta Mission deducibile dai loro canali?\n- Qual è la loro reale USP (Unique Selling Proposition) confrontata col mercato?\n\n**Step 2: Operatività e Target**\n- Quali sono le disponibilità e gli orari di contatto/operatività?\n- Quali sono le esatte categorie o pacchetti della loro offerta commerciale?\n- Chi è l'esatto \"Cliente Ideale\" (Buyer Persona) che stanno cercando di attrarre?\n\n## 3. SPECIAL DIRECTIVES FOR THIS RUN\n- **SOLE PROPRIETOR / EXPERT FOCUS:** This target is a specialized technical consultant. The stakeholder's personal brand IS the company brand. Prioritize deeply profiling the stakeholder's digital footprint over standard corporate metrics.\n- **SKILL VERIFICATION:** Cross-reference the \"Known Skills\" (e.g., AI, Automation, n8n, Gemini) with the stakeholder's name. Look for proof of actual expertise (articles, forum answers, LinkedIn posts).\n- **PORTFOLIO HUNTING:** Prioritize finding tangible proof of work: case studies, project portfolios, GitHub repositories, or client testimonials associated with the stakeholder.",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "oDOSSIER",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "3cadacdd-9503-43aa-bf98-77d9cf9f769c",
+              "name": "billing_source.use",
+              "value": "onboarding_dossier_generation",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        1248
+      ],
+      "id": "5c6e6e38-9082-4f5f-ac2e-914f2e0d0b32",
+      "name": "DossierGeneration"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstructions>\nYou are a Knowledge Base Architect. Transform business intelligence dossier into structured HoneyPot JSON for conversational AI.\n\n# LANGUAGE EXTRACTION\nTarget language {{ $json.owner_data.lenguage }}\nALL output MUST be in this language.\n\n# KNOWLEDGE FRAGMENT STRUCTURE (CORRECT)\n\n{\n  \"fragment_id\": \"UPPERCASE_SNAKE_CASE_V1\",\n  \"user_utterances\": [\"array of 4-6 natural questions\"],\n  \"answer_fragment\": \"Direct answer paragraph (80-120 words)\",\n  \"summary\": \"Metaphorical/conceptual summary (30-50 words)\",\n  \"sections\": [\n    {\n      \"question\": \"Deep-dive question\",\n      \"answer\": \"Detailed answer with formatting\"\n    }\n  ]\n}\n\n# FRAGMENT CONSTRUCTION RULES\n\n## answer_fragment\n- Direct, comprehensive answer (80-120 words)\n- Extracted from dossier main content\n- Self-contained, can stand alone\n- Professional tone\n- No HTML formatting\n\n## summary\n- Conceptual/metaphorical summary (30-50 words)\n- Makes the concept memorable\n- Uses analogies or comparisons\n- Example: \"Pensa a un 'assistente di regia' che lavora dietro le quinte...\"\n- Creative but accurate\n\n## sections (array)\n- 2-4 deep-dive Q&A pairs\n- Each section has:\n  - question: Specific aspect question\n  - answer: Detailed explanation (60-100 words)\n  - Can use **bold** for emphasis in answers\n  - Can use numbered lists (1. 2. 3.)\n  - More detailed than answer_fragment\n\n# MANDATORY FRAGMENTS TO CREATE (8 total)\n\n1. COMPANY_OVERVIEW_V1\n   - user_utterances: \"Cos'è [company]?\", \"Parlami di [company]\", \"Cosa fate?\"\n   - answer_fragment: Company description from dossier\n   - summary: Conceptual positioning\n   - sections: History, Evolution, Current status\n\n2. MISSION_PURPOSE_V1\n   - user_utterances: \"Qual è la vostra missione?\", \"Perché esistete?\"\n   - answer_fragment: Mission from dossier\n   - summary: Purpose metaphor\n   - sections: Vision, Values, Long-term goals\n\n3. PRODUCTS_SERVICES_V1\n   - user_utterances: \"Cosa offrite?\", \"Quali prodotti/servizi?\"\n   - answer_fragment: Main offerings from dossier\n   - summary: Offering essence\n   - sections: Product categories, Service types, Delivery methods\n\n4. USP_DIFFERENTIATORS_V1\n   - user_utterances: \"Perché scegliervi?\", \"Cosa vi rende unici?\"\n   - answer_fragment: USP from dossier\n   - summary: Uniqueness metaphor\n   - sections: Competitive advantages, Customer testimonials, Quality markers\n\n5. TARGET_CUSTOMERS_V1\n   - user_utterances: \"Chi sono i vostri clienti?\", \"Per chi lavorate?\"\n   - answer_fragment: Target market from dossier\n   - summary: Ideal customer essence\n   - sections: Customer segments, Industries served, Success stories\n\n6. CONTACT_HOURS_V1\n   - user_utterances: \"Come vi contatto?\", \"Dove siete?\", \"Orari?\"\n   - answer_fragment: Contact info and hours from dossier\n   - summary: Accessibility essence\n   - sections: Opening hours detail, Contact methods, Location info\n\n7. PROCESS_HOW_IT_WORKS_V1\n   - user_utterances: \"Come funziona?\", \"Qual è il processo?\"\n   - answer_fragment: Process description from dossier\n   - summary: Process metaphor\n   - sections: Step-by-step, Timeline, Requirements\n\n8. PRICING_VALUE_V1\n   - user_utterances: \"Quanto costa?\", \"Prezzi?\"\n   - answer_fragment: Pricing model from dossier\n   - summary: Value proposition\n   - sections: Pricing tiers, Payment options, ROI explanation\n\n# SECTION FORMATTING EXAMPLES\n\nExample with numbered list:\n{\n  \"question\": \"Cosa fa esattamente questo servizio?\",\n  \"answer\": \"Principalmente tre cose: 1. **Analizza i dati:** Raccoglie informazioni complete. 2. **Elabora insights:** Trasforma i dati in decisioni. 3. **Genera report:** Presenta tutto in formato chiaro e actionable.\"\n}\n\nExample with bold emphasis:\n{\n  \"question\": \"Quali sono i vantaggi principali?\",\n  \"answer\": \"Il vantaggio più grande è la **velocità**: quello che normalmente richiederebbe giorni, con noi avviene in minuti. Inoltre, garantiamo **precisione** verificata e **compliance** normativa automatica.\"\n}\n\n# COMPLETE OUTPUT STRUCTURE\nTutti i dati devono essere estratti dinamicamente dai dati di input dell'azienda corrente. Non usare mai segnaposto di testo come \"same as before\" o simili.\n\n{\n  \"HoneyPot\": {\n    \"vertical\": \"verticale primaria estratta (string)\",\n    \"verticals\": [\"lista di tutte le verticali attive estratte\"],\n    \"operational_units\": [\n      {\n        \"vertical\": \"verticale di riferimento (string)\",\n        \"count\": \"numero di unità stimato estratto (integer)\",\n        \"label\": \"etichetta personalizzata estratta (string)\"\n      }\n    ],\n    \"reuniti_count\": \"numero di riuniti se dental attivo (integer, altrimenti 0)\",\n    \"reuniti_label\": \"etichetta riuniti se dental attivo (string, altrimenti vuoto)\",\n    \"chairs_count\": \"numero di postazioni se altre verticali attive (integer, altrimenti 0)\",\n    \"chairs_label\": \"etichetta postazioni se altre verticali attive (string, altrimenti vuoto)\",\n    \"profile_type\": \"profilo fiscale e societario estratto (string)\",\n    \"company_context_string\": \"100-150 words in TARGET LANGUAGE (string)\",\n    \"offer_text\": \"Testo formattato dell'offerta commerciale generato (string)\",\n    \"knowledge_fragments\": [\n      {\n        \"fragment_id\": \"string\",\n        \"user_utterances\": [\"string\"],\n        \"answer_fragment\": \"string\",\n        \"summary\": \"string\",\n        \"sections\": [\n          {\n            \"question\": \"string\",\n            \"answer\": \"string\"\n          }\n        ]\n      }\n    ],\n    \"offers\": [],\n    \"availability_schedule\": {\n      \"type\": \"Tipologia di ricezione/orario estratta, es: 'By Appointment' o 'Open Hours' (string)\",\n      \"notes\": \"Note sintetiche sulla reperibilità ed eccezioni estratte (string)\",\n      \"hours\": {\n        \"monday\": {\n          \"morning\": { \"from\": \"HH:MM o null\", \"to\": \"HH:MM o null\" },\n          \"afternoon\": { \"from\": \"HH:MM o null\", \"to\": \"HH:MM o null\" }\n        },\n        \"tuesday\": {\n          \"morning\": { \"from\": \"HH:MM o null\", \"to\": \"HH:MM o null\" },\n          \"afternoon\": { \"from\": \"HH:MM o null\", \"to\": \"HH:MM o null\" }\n        },\n        \"wednesday\": {\n          \"morning\": { \"from\": \"HH:MM o null\", \"to\": \"HH:MM o null\" },\n          \"afternoon\": { \"from\": \"HH:MM o null\", \"to\": \"HH:MM o null\" }\n        },\n        \"thursday\": {\n          \"morning\": { \"from\": \"HH:MM o null\", \"to\": \"HH:MM o null\" },\n          \"afternoon\": { \"from\": \"HH:MM o null\", \"to\": \"HH:MM o null\" }\n        },\n        \"friday\": {\n          \"morning\": { \"from\": \"HH:MM o null\", \"to\": \"HH:MM o null\" },\n          \"afternoon\": { \"from\": \"HH:MM o null\", \"to\": \"HH:MM o null\" }\n        }\n      }\n    }\n  }\n}\n\n# QUALITY STANDARDS & INTEGRITY RULES\n- summary MUST be creative/metaphorical, not just repetition.\n- sections provide depth beyond answer_fragment.\n- All text fields must be written in the TARGET LANGUAGE.\n- Use bold and numbered lists in sections for readability.\n- If a specific day or time slot has no available hours in the input, set its \"from\" and \"to\" values strictly to null.\n- Output ONLY valid raw JSON. Do not wrap the output in markdown code blocks.\n</SystemInstructions>\n",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<Prompt>\nAnalyze the current intelligence dossier and generate the fully populated HoneyPot JSON structure. Extract all values dynamically.\n\nExact Owner Data:\nName: {{ $json.owner_data.name }}\nSurname: {{ $json.owner_data.surname }}\nEmail: {{ $json.owner_data.email }}\nPhone: {{ $json.owner_data.phone }}\nVat: {{ $json.owner_data.vat_number }}\nBrand: {{ $json.owner_data.ragione_sociale }}\nBusiness Description: {{ $json.owner_data.business_description }}\nSite: {{ $json.owner_data.site }}\nLinkedin: {{ $json.owner_data.linkedin_page }}\nFacebook: {{ $json.owner_data.facebook_page }}\n\nProfessional Questionnaire:\n{{ JSON.stringify($json.owner_data.kyc_details.professional_questionnaire) }}\n\nWeb Research Dossier:\n{{ JSON.stringify($json.oDOSSIER) }}\n\nCLASSIFICAZIONE VERTICALE (mappa in \"vertical\" e \"verticals\"):\nAnalizza la descrizione aziendale e il dossier. Determina la verticale operativa dello studio/azienda ed esprimi il risultato scegliendo tra: {{ $json.VerticaliDisponibili }}\nIstruzioni:\n  * \"dental\": Studi dentistici, ortodonzia, igiene.\n  * \"beauty\": Centri estetici, parrucchieri, SPA, massaggi.\n  * \"food\": Ristoranti, bar, enoteche, pub.\n  * \"hospitality\": B&B, hotel, affittacamere.\n  * \"professional\": Uffici, studi legali, commercialisti, consulenza.\n  * \"workshop\": Officine meccaniche, carrozzerie, artigianato.\n  * \"construction\": Elettricisti, idraulici, imprese edili, installatori.\n  * \"generic\": Altro.\n\nCLASSIFICAZIONE PROFILO (mappa in \"profile_type\"):\nAnalizza la ragione sociale e determina la forma giuridica esatta scegliendo tra: {{ $json.ProfiliDisponibili }}\nIstruzioni:\n1. \"societa_capitali\": Se presente S.r.l., SRL, S.r.l.s., SRLS, S.p.A., SPA, o STP costituite in forma di S.r.l.\n2. \"societa_persone\": Se presente S.n.c., SNC, S.a.s., SAS, S.s., Società Semplice.\n3. \"professionista\": Se ditta individuale, libero professionista o regimi forfettari/minimi.\n\nTarget language: {{ $json.owner_data.lenguage }}\n\nATTENZIONE: Estrai e compila dinamicamente ogni singolo campo del JSON basandoti esclusivamente sui dati dell'azienda corrente forniti sopra. Ricostruisci fedelmente l'orario settimanale in \"availability_schedule\" leggendo le disponibilità effettive; inserisci \"HH:MM\" o null per ogni fascia oraria in modo dinamico. Non utilizzare dati predefiniti o segnaposto.\n</Prompt>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "oHONEYPOT",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "b502c3b0-7580-477f-a8f9-c2a579ee9578",
+              "name": "billing_source.use",
+              "value": "onboarding_honeypot_generation",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        1088
+      ],
+      "id": "08430e6a-b472-450a-b33b-5824cca11694",
+      "name": "HoneyPotGeneration"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number  + \"_reserch\" }}",
+        "collectionName": "website_board",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        208
+      ],
+      "id": "7a1ea784-cd2c-4942-b07a-af92abc4f88f",
+      "name": "MongoDB Chat Memory5",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.sOUTPUT }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -128,
+        96
+      ],
+      "id": "1a15200c-f034-4b10-8b6c-cbc4305cdb09",
+      "name": "Reserch"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "honeypots",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        48,
+        -64
+      ],
+      "id": "5b9d28b8-04c8-4a06-ab21-617a0715d6aa",
+      "name": "MongoDB Chat Memory6",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.oHONEYPOT.HoneyPot }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        48,
+        -176
+      ],
+      "id": "80e7ef1f-ae5b-4ca0-8c74-3bb738f8fef1",
+      "name": "HoneyPot"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        864,
+        1088
+      ],
+      "id": "ff05a824-c785-4b85-adf6-c0191e04e7bf",
+      "name": "If14"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1232,
+        1184
+      ],
+      "id": "706ec24d-3b41-43c2-bb35-c055fe390b52",
+      "name": "Merge14"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Activation_Message_Editor (Hybrid Fix)\n// VERSIONE: 3.1 - Supporto WebApp (No Callback) + Telegram Edit\n// OBIETTIVO: Gestire sia l'editing del messaggio (se da Bot) sia l'invio nuovo (se da WebApp)\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 1. RECUPERO INPUT SICURO\n// ═══════════════════════════════════════════════════════════════════════════\nconst input = $input.first().json;\n\n// Supporto per diverse strutture di input (adattatore implicito)\nconst userData = input.owner_data || input.body?.data?.owner_data;\n// Cerchiamo callback_details in profondità, con fallback a null\nconst callbackDetails = input.user_request?.callback_details || input.body?.data?.user_request?.callback_details || null;\n\nif (!userData) {\n    throw new Error(\"Dati utente (owner_data) non trovati nell'input.\");\n}\n\n// Estrazione dati chiave\nconst chatId = userData.chat_id;\nconst userName = userData.name || 'Utente';\nconst companyName = userData.ragione_sociale || 'la tua azienda';\nconst langString = userData.lenguage || 'it';\nconst languageCode = langString.substring(0, 2).toLowerCase(); \n\n// ID Messaggio da editare (se esiste)\nconst messageToEditId = callbackDetails ? callbackDetails.message_to_edit_id : null;\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 2. MAPPING LINGUA\n// ═══════════════════════════════════════════════════════════════════════════\nconst languageMap = {\n  'it': 'Italiano', 'en': 'English', 'fr': 'Français',\n  'de': 'Deutsch', 'es': 'Español', 'pt': 'Português'\n};\nconst detectedLanguage = languageMap[languageCode] || 'Italiano';\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 3. DIZIONARIO MULTILINGUA\n// ═══════════════════════════════════════════════════════════════════════════\nconst translations = {\n  'Italiano': {\n    title: \"✅ <b>MOTORE SITEBOS AVVIATO!</b>\",\n    greeting: \"Ciao <b>{userName}</b>, benvenuto a bordo! 👋\",\n    confirmation: \"L'istanza per <i>{companyName}</i> è ora <b>attiva</b>.\",\n    analysis: \"🤖 <b>Intelligenza in Azione...</b>\\nI nostri analisti AI stanno studiando i dati della tua azienda per preparare il tuo assistente personale.\",\n    timing: \"⏱ <b>Tempo stimato:</b> Circa 4-5 minuti.\\nPuoi attendere nella WebApp o chiudere: ti avviserò qui quando avrò finito.\",\n    closing: \"A tra pochissimo! 🚀\"\n  },\n  'English': {\n    title: \"✅ <b>SITEBOS ENGINE STARTED!</b>\",\n    greeting: \"Hello <b>{userName}</b>, welcome aboard! 👋\",\n    confirmation: \"The instance for <i>{companyName}</i> is now <b>active</b>.\",\n    analysis: \"🤖 <b>Intelligence in Action...</b>\\nOur AI analysts are studying your company data to prepare your personal assistant.\",\n    timing: \"⏱ <b>Estimated time:</b> About 4-5 minutes.\\nYou can wait in the WebApp or close it: I will notify you here when done.\",\n    closing: \"See you very soon! 🚀\"\n  },\n  // ... (altre lingue se vuoi, usa il fallback inglese per brevità)\n};\n\nconst t = translations[detectedLanguage] || translations['English'] || translations['Italiano'];\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 4. COSTRUZIONE MESSAGGIO\n// ═══════════════════════════════════════════════════════════════════════════\nconst newText = \n  `${t.title}\\n\\n` +\n  `${t.greeting.replace('{userName}', userName)}\\n` +\n  `${t.confirmation.replace('{companyName}', companyName)}\\n\\n` +\n  `───────────────\\n\\n` +\n  `${t.analysis}\\n\\n` +\n  `${t.timing}\\n\\n` +\n  `───────────────\\n\\n` +\n  `${t.closing}`;\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 5. DETERMINA METODO (EDIT vs SEND)\n// ═══════════════════════════════════════════════════════════════════════════\nlet telegramApiPayload = {};\n\nif (messageToEditId) {\n    // CASO A: Arrivo da click su bottone Telegram -> EDIT\n    telegramApiPayload = {\n      method: \"editMessageText\",\n      chat_id: chatId,\n      message_id: messageToEditId,\n      text: newText,\n      parse_mode: \"HTML\",\n      reply_markup: { inline_keyboard: [] } // Rimuove bottoni vecchi\n    };\n} else {\n    // CASO B: Arrivo da WebApp (Processor) -> SEND NEW\n    telegramApiPayload = {\n      method: \"sendMessage\",\n      chat_id: chatId,\n      text: newText,\n      parse_mode: \"HTML\"\n      // Niente reply_markup per ora, è un messaggio informativo\n    };\n}\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 6. RETURN\n// ═══════════════════════════════════════════════════════════════════════════\nreturn [{\n  json: {\n    ...input, // Mantieni i dati originali per i nodi successivi\n    telegramApiPayload: telegramApiPayload\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        1632
+      ],
+      "id": "9dbc9072-ec3e-4106-963f-427baf7f6c55",
+      "name": "Welcome_Message_Builder"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramPayload }}",
+        "options": {}
+      },
+      "id": "9090ac9a-6c01-4bcf-a456-e812ee417b0c",
+      "name": "NoMultiSession",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        48,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: HoneyPot_WebApp_Notifier (Dashboard Link Edition)\n// VERSIONE: 3.0 - Single Entry Point\n// OBIETTIVO: Notificare il completamento e fornire UNICO accesso alla Dashboard.\n\nconst input = $input.first().json;\nconst ownerData = input.owner_data;\n// Gestione robusta dei callback details (potrebbero non esserci se flusso webapp, ma qui stiamo editando un messaggio esistente)\nconst callbackDetails = input.user_request?.callback_details || {};\n\nif (!ownerData) {\n    throw new Error(\"Dati 'owner_data' mancanti.\");\n}\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 1. CONFIGURAZIONE URL DASHBOARD\n// ═══════════════════════════════════════════════════════════════════════════\nconst DASHBOARD_BASE_URL = \"https://dashboard.trinai.it/sitebos\";\n\n// Estrazione Dati\nconst vat = ownerData.vat_number;\nconst chatId = ownerData.chat_id;\nconst token = ownerData.access_token; // FONDAMENTALE per il login automatico\nconst companyName = ownerData.ragione_sociale;\nconst langCode = ownerData.lenguage || 'it';\nconst userName = ownerData.name;\n\n// Costruzione URL Sicuro\nconst dashboardUrl = `${DASHBOARD_BASE_URL}?vat=${vat}&owner=${chatId}&token=${token}&lang=${langCode.substring(0,2)}&ragione_sociale=${encodeURIComponent(companyName)}`;\n\n// ID Messaggio da editare (se arriviamo dal flusso telegram originale)\nconst messageToEditId = callbackDetails.message_to_edit_id;\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 2. MAPPING LINGUA\n// ═══════════════════════════════════════════════════════════════════════════\nconst langMap = { 'it':'Italiano', 'en':'English', 'fr':'Français', 'de':'Deutsch', 'es':'Español', 'pt':'Português' };\nconst normalizedLang = langMap[langCode.substring(0,2)] || 'Italiano';\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 3. DIZIONARIO (Focus su \"Sistema Pronto\")\n// ═══════════════════════════════════════════════════════════════════════════\nconst i18n = {\n  'Italiano': {\n    title: \"🚀 <b>SISTEMA OPERATIVO ATTIVO</b>\",\n    greeting: \"Ottime notizie, <b>{userName}</b>!\",\n    body: \"L'analisi AI è terminata e la tua istanza SiteBoS è stata configurata completamente.\",\n    instruction: \"Accedi ora al tuo <b>Manager Desk</b>. Da lì potrai controllare la Knowledge Base, gestire i prodotti e vedere l'agenda.\",\n    btn_dashboard: \"🎛️ Vai alla Dashboard\"\n  },\n  'English': {\n    title: \"🚀 <b>OPERATING SYSTEM ACTIVE</b>\",\n    greeting: \"Great news, <b>{userName}</b>!\",\n    body: \"AI analysis is complete and your SiteBoS instance is fully configured.\",\n    instruction: \"Access your <b>Manager Desk</b> now. From there you can check the Knowledge Base, manage products, and view the agenda.\",\n    btn_dashboard: \"🎛️ Go to Dashboard\"\n  },\n  'Français': {\n    title: \"🚀 <b>SYSTÈME D'EXPLOITATION ACTIF</b>\",\n    greeting: \"Excellente nouvelle, <b>{userName}</b> !\",\n    body: \"L'analyse IA est terminée et votre instance SiteBoS est entièrement configurée.\",\n    instruction: \"Accédez maintenant à votre <b>Bureau de Gestion</b>. De là, vous pourrez contrôler la Base de Connaissances, gérer les produits et voir l'agenda.\",\n    btn_dashboard: \"🎛️ Aller au Tableau de Bord\"\n  },\n  'Deutsch': {\n    title: \"🚀 <b>BETRIEBSSYSTEM AKTIV</b>\",\n    greeting: \"Gute Nachrichten, <b>{userName}</b>!\",\n    body: \"Die KI-Analyse ist abgeschlossen und Ihre SiteBoS-Instanz ist vollständig konfiguriert.\",\n    instruction: \"Greifen Sie jetzt auf Ihren <b>Manager Desk</b> zu. Von dort aus können Sie die Wissensdatenbank prüfen, Produkte verwalten und die Agenda einsehen.\",\n    btn_dashboard: \"🎛️ Zum Dashboard\"\n  },\n  'Español': {\n    title: \"🚀 <b>SISTEMA OPERATIVO ACTIVO</b>\",\n    greeting: \"¡Excelentes noticias, <b>{userName}</b>!\",\n    body: \"El análisis de IA ha finalizado y tu instancia SiteBoS está totalmente configurada.\",\n    instruction: \"Accede ahora a tu <b>Escritorio de Gestión</b>. Desde allí podrás controlar la Base de Conocimiento, gestionar productos y ver la agenda.\",\n    btn_dashboard: \"🎛️ Ir al Dashboard\"\n  },\n  'Português': {\n    title: \"🚀 <b>SISTEMA OPERACIONAL ATIVO</b>\",\n    greeting: \"Ótimas notícias, <b>{userName}</b>!\",\n    body: \"A análise de IA foi concluída e sua instância SiteBoS está totalmente configurada.\",\n    instruction: \"Acesse agora sua <b>Mesa de Gerenciamento</b>. De lá, você poderá verificar a Base de Conhecimento, gerenciar produtos e ver a agenda.\",\n    btn_dashboard: \"🎛️ Ir para o Painel\"\n  }\n};\n\nconst t = i18n[normalizedLang] || i18n['Italiano'];\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 4. COSTRUZIONE MESSAGGIO\n// ═══════════════════════════════════════════════════════════════════════════\nconst messageText = `\n${t.title}\n\n${t.greeting.replace('{userName}', userName)}\n${t.body}\n\n${t.instruction}\n`;\n\n// Unico Bottone per la Dashboard\nconst replyMarkup = {\n    inline_keyboard: [\n        [{\n            text: t.btn_dashboard,\n            url: dashboardUrl\n        }]\n    ]\n};\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 5. DETERMINA METODO (EDIT vs SEND)\n// ═══════════════════════════════════════════════════════════════════════════\nlet telegramApiPayload = {};\n\nif (messageToEditId) {\n    // Se c'era un messaggio di attesa, lo aggiorniamo\n    telegramApiPayload = {\n      method: \"editMessageText\",\n      chat_id: chatId,\n      message_id: messageToEditId,\n      text: messageText,\n      parse_mode: \"HTML\",\n      reply_markup: replyMarkup\n    };\n} else {\n    // Fallback: inviamo un nuovo messaggio (utile per debug o flussi anomali)\n    telegramApiPayload = {\n      method: \"sendMessage\",\n      chat_id: chatId,\n      text: messageText,\n      parse_mode: \"HTML\",\n      reply_markup: replyMarkup\n    };\n}\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 6. OUTPUT\n// ═══════════════════════════════════════════════════════════════════════════\nreturn [{\n    json: {\n        ...input, // Passiamo tutto l'input ai nodi successivi (Build_Success_Payload)\n        telegramPayload: telegramApiPayload\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        816
+      ],
+      "id": "fcac00da-81c5-4dab-a787-e027b843aacc",
+      "name": "HoneyPot_WebApp_Notifier"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.user_ref.email }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        448,
+        2080
+      ],
+      "id": "3a7f344f-a301-48d0-b007-2c15bb638686",
+      "name": "MongoDB Chat Memory4",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "62c1a63e-557a-4e4d-b949-2c2a114debd3",
+              "name": "oHONEYPOT.HoneyPot.config.onboarding_completed",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -128,
+        -176
+      ],
+      "id": "ed9a05d8-c8df-43ef-98dd-8ce63c984922",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1424,
+        1184
+      ],
+      "id": "5b98bbbc-6369-4d09-a278-da33b2a14831",
+      "name": "Respond to LLMFail"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        224,
+        640
+      ],
+      "id": "17f55fd6-8554-43ca-a0f8-6fc1317941a4",
+      "name": "Respond to Start"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -128,
+        976
+      ],
+      "id": "484910e8-b1ed-493d-8615-52ef460e3ffa",
+      "name": "Merge33"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "11cd4405-fb21-42de-8855-c501eb92e6a0",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "35667aed-ee1c-4074-92df-d4334967a1b3",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "ed68c384-8a6a-4fb2-841c-9c3348229765",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -512,
+        2448
+      ],
+      "id": "2a2f4f77-aad7-427f-8b07-4f52a03dbff2",
+      "name": "Autorize"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -128,
+        640
+      ],
+      "id": "0af0958a-3003-496b-b557-e64172bb055d",
+      "name": "Merge12"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.data.owner_data.email }}\" \n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        64,
+        2208
+      ],
+      "id": "3da40d04-aed1-4f58-bf82-e3d154def8be",
+      "name": "stakeholders1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        272,
+        2224
+      ],
+      "id": "0268e97f-9eb8-45f4-9657-c9f94478b1bf",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Finalize_Provisioning (Enterprise Edition v3.5)\n// OBIETTIVO: Salvare TUTTI i dati originali + Social + Crediti dallo Stakeholder\n\nconst input = $input.first().json;\n\n// --- MAPPING INPUT ---\nconst req = input.body.data || input.body; \nconst rawData = req.owner_data;\nconst existingStakeholder = input.stakeholder; // Per recuperare i 2000 crediti\n\nfunction generateUUID() {\n    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\n        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);\n        return v.toString(16);\n    });\n}\n\n// 1. NORMALIZZAZIONE LINGUA E VAT\nconst userLang = rawData.language || \"it\";\nconst normalizedLang = (userLang.substring(0,2) === 'it') ? 'Italiano' : 'English';\nconst countryPrefixMap = { 'Italiano':'IT', 'English':'GB' };\nconst targetPrefix = countryPrefixMap[normalizedLang] || 'IT';\n\nlet cleanVat = rawData.vat_number.toUpperCase().replace(/[^A-Z0-9]/g, '');\nif (/^[0-9]+$/.test(cleanVat)) {\n    cleanVat = targetPrefix + cleanVat;\n}\n\nconst cleanChatId = parseInt(req.chat_id || req.user_id, 10);\nif (isNaN(cleanChatId)) throw new Error(\"Chat ID invalido\");\n\nconst accessToken = generateUUID();\n\n// 2. COSTRUZIONE OWNER_DATA INTEGRALE\nconst ownerData = {\n    user_id: cleanVat,\n    chat_id: cleanChatId,\n    access_token: accessToken,\n    group_id: null,\n    user_name: \"\",\n    vat_number: cleanVat,\n    gemini_key: rawData.gemini_key,\n    bot_key: \"\",\n    path: \"\",\n    name: rawData.name,\n    surname: rawData.surname,\n    email: rawData.email,\n    phone: rawData.phone,\n    ragione_sociale: rawData.ragione_sociale,\n    indirizzo: rawData.indirizzo,\n    fiscal_code: rawData.fiscal_code,\n    sdi_pec: rawData.sdi_pec,\n    \n    // --- DATI WEB & SOCIAL (Preservati) ---\n    site: rawData.site || \"\",\n    linkedin_page: rawData.linkedin_page || \"\",\n    facebook_page: rawData.facebook_page || \"\",\n    instagram_page: rawData.instagram_page || \"\",\n    twitter_page: rawData.twitter_page || \"\",\n    \n    sector: rawData.sector,\n    business_description: rawData.what_we_do,\n    ai_goal: rawData.main_goal,\n    \n    // --- DATI KYC ---\n    kyc_details: rawData.kyc_details || {}, \n\n    subscription_plan: rawData.plan || \"Pioneer Trial\",\n    subscription_status: \"Pending_Activation\",\n    \n   // --- FIX CREDITI: 600 Crediti Omaggio Pioneer Trial (Policy Attuale) ---\ncredits_balance: existingStakeholder?.commercial_profile?.credit_balance?.available_credits || 600,\n\n// Abilitazione immediata e out-of-the-box di SuperVisor (Certificatore)\nesposizione_prezzi: true, \ncertifier_enabled: true,\nsubscription_certificator: true,\n    \n    model_choice: \"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent\",\n    lenguage: normalizedLang,\n    owner_unavailable_time: \"21-7\",\n    operator_unavailable_time: \"19-9\",\n    \n    // --- OPERATORS (Ripristinato) ---\n    operators: [{\n        OperatorName: `${rawData.name} ${rawData.surname}`,\n        OperatorChatID: cleanChatId,\n        OperatorLenguage: normalizedLang,\n        FreeHandOperator: true,\n        Role: \"Owner\",\n        GeminiKey: rawData.gemini_key\n    }],\n    \n    payment_preference: rawData.payment_preference,\n    terms_accepted: rawData.terms_accepted,\n    operator_owner: \"\",\n    operator_credit: \"1\",\n    created_at: existingStakeholder?.metadata?.created_at || new Date().toISOString(),\n    additional_kwargs: {},\n    response_metadata: {}\n};\n\n// 3. RETURN\nreturn {\n    json: {\n        owner_data: ownerData,\n        stakeholder: existingStakeholder, // Passiamo lo stakeholder originale per i nodi successivi\n        response_for_webapp: {\n            cmd: \"onboarding_complete\",\n            owner_data: {\n                vat_number: ownerData.vat_number,\n                ragione_sociale: ownerData.ragione_sociale,\n                access_token: ownerData.access_token\n            }\n        }\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        2224
+      ],
+      "id": "7727b8d3-7698-4867-a2b0-01740a18a5ec",
+      "name": "Finalize_Owner"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Update_Stakeholder_Final\n// VERSIONE: 2.0 - Onboarding Integration\n// OBIETTIVO: Aggiornare lo Stakeholder Draft con i dati del questionario, preservando crediti e chat_id.\n\nconst item = $input.first().json;\n\n// 1. RECUPERO DATI (Dall'owner_data creato nel nodo precedente e dallo stakeholder originale)\nconst ownerData = item.owner_data;\n// Cerchiamo lo stakeholder o in item.stakeholder o in item.stakeholder_context a seconda di come è passato nel workflow\nconst oldStakeholder = item.stakeholder || item.stakeholder_context;\n\nif (!oldStakeholder) {\n    throw new Error(\"Stakeholder originale non trovato. Verificare il passaggio dei dati nel workflow.\");\n}\n\nconst questionnaire = ownerData.kyc_details?.professional_questionnaire || {};\n\n// 2. COSTRUZIONE STAKEHOLDER AGGIORNATO\nconst updatedStakeholder = {\n  // Mantengo la struttura base (incluso l'ID del documento se presente)\n  ...oldStakeholder,\n  \n  version: \"2.0\",\n  owner_instance_id: ownerData.vat_number.replace('IT', ''),\n  \n  // ━━━ PERSISTENZA IDENTITÀ E CHAT_ID ━━━\n  owner_data_ref: {\n    vat_number: ownerData.vat_number,\n    chat_id: parseInt(ownerData.chat_id, 10), // Blindiamo il chat_id 2041408875\n    user_id: ownerData.user_id\n  },\n  \n  // ━━━ AGGIORNAMENTO STATO ━━━\n  metadata: {\n    ...oldStakeholder.metadata,\n    status: \"ACTIVE\",\n    last_updated: new Date().toISOString(),\n    stakeholder_type: \"MANAGER\" // Evoluzione da USER a MANAGER\n  },\n\n  // ━━━ PROFESSIONAL PROFILE (Dati Onboarding) ━━━\n  professional_profile: {\n    ...oldStakeholder.professional_profile, // Preserva soft_skills_modules (vuoti)\n    role: questionnaire.role || null,\n    team_size: questionnaire.team_size || null,\n    years_experience: questionnaire.years_experience || null,\n    hard_skills: questionnaire.hard_skills || [],\n    certifications: questionnaire.certifications || null,\n    \n    work_preferences: {\n      specialization_level: questionnaire.specialization_level || null,\n      client_workflow: questionnaire.client_workflow || null,\n      digital_tools: questionnaire.digital_tools || [],\n      document_management: questionnaire.document_management || null\n    },\n    \n    current_challenges: questionnaire.pain_points || [],\n    main_goal: questionnaire.main_goal || null,\n    \n    learning_attitude: {\n      recent_training: questionnaire.recent_training || null\n    }\n  },\n\n  // ━━━ BEHAVIORAL PROFILE ━━━\n  behavioral_profile: {\n    ...oldStakeholder.behavioral_profile,\n    current_stance: {\n      stance_id: \"ONBOARDED_MANAGER\",\n      set_by: \"SYSTEM_ONBOARDING\",\n      set_at: new Date().toISOString(),\n      rationale: \"Profilo completato tramite onboarding tecnico.\"\n    }\n  },\n\n  // ━━━ COMMERCIAL PROFILE (Preservazione Crediti) ━━━\n  commercial_profile: {\n    ...oldStakeholder.commercial_profile,\n    // Qui available_credits rimane 600 \n    tags: [\"manager\", \"primary_contact\", \"owner\"],\n    customer_since: oldStakeholder.metadata?.created_at || new Date().toISOString()\n  }\n};\n\n// 3. LOG DI VERIFICA (Opzionale)\nconsole.log(`✅ Stakeholder aggiornato per P.Iva: ${ownerData.vat_number}`);\nconsole.log(`📱 Chat ID collegato: ${updatedStakeholder.owner_data_ref.chat_id}`);\nconsole.log(`💰 Crediti preservati: ${updatedStakeholder.commercial_profile.credit_balance.available_credits}`);\n\n// 4. RETURN FINALE\nreturn [{\n    json: {\n        owner_data: ownerData,         // Per la sessione corrente\n        stakeholder: updatedStakeholder // Per il salvataggio su DB (es. MongoDB)\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        2224
+      ],
+      "id": "81f85f3d-aaa9-43cb-8158-9ee380f0dff6",
+      "name": "Update_Stakeholder_Final"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"error\",\n  \"code\": 500,\n  \"message\": \"⛔️ ACCESS DENIED: Unauthorized User or Invalid Endpoint.\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -496,
+        2784
+      ],
+      "id": "590735a3-0dba-4b24-a170-d8eeef2bd53b",
+      "name": "⛔️ 500 Forbidden"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramPayload }}",
+        "options": {}
+      },
+      "id": "af9e94a9-cc71-41f5-a780-998194d7b070",
+      "name": "Error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1072,
+        1552
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}\" \n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -672,
+        1840
+      ],
+      "id": "146165c1-429d-45df-a5de-8fefd1f6b076",
+      "name": "ownerExist",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        784,
+        1904
+      ],
+      "id": "916083e4-b4a1-48c8-b19d-69b37ddafea3",
+      "name": "Merge13"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "id": "f5bb786c-7143-404e-9dea-25a5d581879b",
+      "name": "SendStart",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        48,
+        1632
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ae86281b-8419-4b0b-b012-1162880a1ac5",
+              "name": "result.message_id",
+              "value": "={{ $json.result.message_id - 1  }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -128,
+        1488
+      ],
+      "id": "66295f76-b5ae-4f0a-b224-0d4439b7673c",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/deleteMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": {{ $json.result.chat.id }},\n  \"message_id\": {{ $json.result.message_id }}\n}",
+        "options": {}
+      },
+      "id": "23e31c08-5d46-4ac8-882a-81bbb16be4b9",
+      "name": "DeleteStartButton",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        48,
+        1488
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "i6kSWyKrKQytzwQlFs92T",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/i6kSWyKrKQytzwQlFs92T",
+          "cachedResultName": "GeminiGoogleSerch"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        1248
+      ],
+      "id": "482c63c0-090d-4a1d-82ae-bddb0d79b985",
+      "name": "Owner_Resrch",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d9f44ff8-9f9b-4bc2-92da-0c2ac2273a21",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        864,
+        1248
+      ],
+      "id": "5bca1f63-59c0-459b-a570-1fddd31b5a51",
+      "name": "Error?"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        1088
+      ],
+      "id": "1f14d44b-6aed-4529-a770-c8d89d7ecbec",
+      "name": "Honeypot Structure"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -480,
+        3504
+      ],
+      "id": "faf7e30f-707d-43fc-aba0-62710560845d",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "website_board",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.user_request.vat_number }}_reserch\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"company\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"company_reserch\": \"$company.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -64,
+        3968
+      ],
+      "id": "8b07fe39-946a-40e9-859e-e6cf317de528",
+      "name": "reserch",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Set_Loading_State (WebApp Mode)\n// VERSIONE: 3.0 - WebApp Pure (Force SendMessage)\n// OBIETTIVO: Inviare un NUOVO messaggio di notifica (\"Inizializzazione...\")\n//            poiché l'utente arriva dalla WebApp e non c'è un messaggio da editare.\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 1. RECUPERO DATI\n// ═══════════════════════════════════════════════════════════════════════════\nconst item = $input.first().json;\nconst ownerData = item.owner_data || {};\nconst userRequest = item.user_request || {};\n\n// Cerchiamo il Chat ID nel posto più sicuro (owner_data)\nconst chatId = ownerData.chat_id || (userRequest.chat && userRequest.chat.group_id);\n\nif (!chatId) {\n    throw new Error(\"Chat ID non trovato in owner_data o user_request.\");\n}\n\n// Cerchiamo il Thread ID (Topic) se esiste, per non spammare nella chat generale\nconst threadId = (userRequest.chat && userRequest.chat.thread_id) || ownerData.thread_id || null;\n\n// Recupero lingua (owner_data ha priorità es. \"Italiano\", userRequest ha \"it\")\nconst rawLang = ownerData.lenguage || userRequest.sender?.language_code || 'it';\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 2. DIZIONARIO MULTILINGUA\n// ═══════════════════════════════════════════════════════════════════════════\n// Mappiamo l'input (che può essere \"it\" o \"Italiano\") alle chiavi del dizionario\nlet langKey = 'Italiano'; // Default\nconst lowerLang = String(rawLang).toLowerCase();\n\nif (lowerLang.startsWith('it')) langKey = 'Italiano';\nelse if (lowerLang.startsWith('en')) langKey = 'English';\nelse if (lowerLang.startsWith('fr')) langKey = 'Français';\nelse if (lowerLang.startsWith('de')) langKey = 'Deutsch';\nelse if (lowerLang.startsWith('es')) langKey = 'Español';\nelse if (lowerLang.startsWith('pt')) langKey = 'Português';\n\nconst translations = {\n  'Italiano': {\n    title: \"⚙️ <b>Configurazione Avviata</b>\",\n    message: \"Stiamo costruendo la tua architettura AI.\",\n    explanation: \"Il processo è automatico e richiede circa 2 minuti. Riceverai una notifica qui appena terminato.\"\n  },\n  'English': {\n    title: \"⚙️ <b>Configuration Started</b>\",\n    message: \"We are building your AI architecture.\",\n    explanation: \"The process is automatic and takes about 2 minutes. You will be notified here once finished.\"\n  },\n  'Français': {\n    title: \"⚙️ <b>Configuration Lancée</b>\",\n    message: \"Nous construisons votre architecture IA.\",\n    explanation: \"Le processus est automatique et prend environ 2 minutes. Vous serez notifié ici une fois terminé.\"\n  },\n  'Deutsch': {\n    title: \"⚙️ <b>Konfiguration Gestartet</b>\",\n    message: \"Wir bauen Ihre KI-Architektur auf.\",\n    explanation: \"Der Vorgang ist automatisch und dauert ca. 2 Minuten. Sie werden hier benachrichtigt, sobald er abgeschlossen ist.\"\n  },\n  'Español': {\n    title: \"⚙️ <b>Configuración Iniciada</b>\",\n    message: \"Estamos construyendo tu arquitectura de IA.\",\n    explanation: \"El proceso es automático y tarda unos 2 minutos. Se te notificará aquí cuando termine.\"\n  },\n  'Português': {\n    title: \"⚙️ <b>Configuração Iniciada</b>\",\n    message: \"Estamos construindo sua arquitetura de IA.\",\n    explanation: \"O processo é automático e leva cerca de 2 minutos. Você será notificado aqui assim que terminar.\"\n  }\n};\n\nconst t = translations[langKey] || translations['Italiano'];\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 3. COSTRUZIONE DEL PAYLOAD (sendMessage)\n// ═══════════════════════════════════════════════════════════════════════════\nconst messageText = `${t.title}\\n\\n${t.message}\\n<i>${t.explanation}</i>`;\n\nconst telegramApiPayload = {\n    method: \"sendMessage\",\n    chat_id: chatId,\n    text: messageText,\n    parse_mode: \"HTML\"\n};\n\n// Se siamo in un topic, aggiungiamo il thread_id\nif (threadId) {\n    telegramApiPayload.message_thread_id = threadId;\n}\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 4. RETURN\n// ═══════════════════════════════════════════════════════════════════════════\nreturn [{\n    json: {\n        ...item,\n        telegramApiPayload: telegramApiPayload,\n        status_log: \"webapp_init_notification_sent\"\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        3728
+      ],
+      "id": "da00d57d-bd0a-46b8-bc64-6063502a07e2",
+      "name": "Set_Loading_State"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "id": "1822ba79-54fa-4280-aa22-cd1d03901142",
+      "name": "Collection_Retrieval5",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -288,
+        3728
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "11ef9cfa-e8f5-487d-a277-0bfe1acb9d76",
+              "name": "user_request.message_id",
+              "value": "={{ $json.result.message_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        3728
+      ],
+      "id": "01582fff-5996-46f9-922d-e5ecd7d1e3cd",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        3488
+      ],
+      "id": "a11592c2-2c4e-4d40-af2d-5c12f947dc58",
+      "name": "ErrorApi"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.user_request.vat_number }}_setup_ik",
+        "collectionName": "service_catalog",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        544,
+        3104
+      ],
+      "id": "4f4ab850-480a-44e3-a3a5-fb0e38618b1e",
+      "name": "MongoDB Chat Memory1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.oLabel }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        544,
+        2976
+      ],
+      "id": "a983fb99-64bc-433d-a855-56a856dcac80",
+      "name": "service_catalog_setup"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        864,
+        3296
+      ],
+      "id": "1b3ecaa8-3bee-4cc9-ac7a-0897173ee168",
+      "name": "Merge7"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        2976
+      ],
+      "id": "5e0c7de4-4b93-4590-874c-70df68956f7c",
+      "name": "Edit Fields8"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "47af18a6-175d-44e6-81a1-c0faf7f0a00f",
+              "name": "service_catalog_setup_ik",
+              "value": "={{ $json.oLabel }}",
+              "type": "object"
+            },
+            {
+              "id": "1db35054-c2e4-4eaa-9f56-d33ff17e59ea",
+              "name": "user_request",
+              "value": "={{ $json.user_request }}",
+              "type": "object"
+            },
+            {
+              "id": "136a408d-44b7-415e-8d9f-283f515d74e1",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        3296
+      ],
+      "id": "26d6b380-c831-4c39-a937-1ec682fdf41e",
+      "name": "Edit Fields9"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        3296
+      ],
+      "id": "68222d85-b92b-48e2-9803-bd40cb76834b",
+      "name": "ErrorApi1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -96,
+        3488
+      ],
+      "id": "78ea0df8-b684-42ca-9af6-56e83274b18a",
+      "name": "Merge8"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1520,
+        2624
+      ],
+      "id": "3ac55030-af90-458b-9beb-d3e976df66cd",
+      "name": "Respond to Catalog"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "42641b06-57d6-4ab5-aa24-484365b71c0e",
+              "name": "user_request.vat_number",
+              "value": "={{ $json.body.data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "9f6d4854-172f-4e2b-8ebe-c92121aa4e16",
+              "name": "user_request.access_token",
+              "value": "={{ $json.body.data.access_token }}",
+              "type": "string"
+            },
+            {
+              "id": "9bfd41b0-7c3b-4739-be61-91a5d0da81cf",
+              "name": "user_request.owner_id",
+              "value": "={{ $json.body.data.owner_id }}",
+              "type": "string"
+            },
+            {
+              "id": "900093eb-74ef-4df4-bfef-e679727d98d7",
+              "name": "billing_source",
+              "value": "={{ $json.billing_source }}",
+              "type": "object"
+            },
+            {
+              "id": "a5e39425-8e93-41e6-bbb2-c01849a023fe",
+              "name": "HoneyPot",
+              "value": "={{ $json.HoneyPot }}",
+              "type": "object"
+            },
+            {
+              "id": "b69a6b9f-2cd8-495b-91a4-1d0ebbc32334",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -304,
+        3968
+      ],
+      "id": "a2c11595-c983-470e-ba7d-10cc9cab8b4d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Global_ID_Rewriter\n// OBIETTIVO: Sostituire tutti i callback_data semantici (lunghi e rischiosi)\n//            con ID tecnici (brevi, univoci e sicuri per Telegram).\n\nconst item = $input.first().json;\n\n// Recuperiamo il catalogo (gestiamo se arriva come oLabel o service_catalog_setup)\nlet catalogWrapper = item.oLabel || item.service_catalog_setup;\n\nif (!catalogWrapper || !catalogWrapper.categories) {\n  throw new Error(\"Struttura catalogo non trovata in oLabel o service_catalog_setup\");\n}\n\n// Set per garantire univocità assoluta durante la generazione\nconst generatedIds = new Set();\n\n// Funzione generatrice ID (Prefisso + 8 char alfanumerici upper)\nfunction generateUniqueId(prefix) {\n  let id;\n  do {\n    // Genera stringa random base36 e prendi 8 caratteri\n    const uniquePart = Math.random().toString(36).substring(2, 10).toUpperCase();\n    id = `${prefix}_${uniquePart}`;\n  } while (generatedIds.has(id)); // Se per assurdo esiste già, rigenera\n  \n  generatedIds.add(id);\n  return id;\n}\n\n// ITERAZIONE E RISCRITTURA\nconst newCategories = catalogWrapper.categories.map(cat => {\n  \n  // 1. Riscrivi ID Categoria\n  // Da: \"PIATTAFORME_TBOS_SISTEMA_OPERATIVO...\" (Troppo lungo)\n  // A:  \"CAT_9X8Y7Z6W\" (Sicuro)\n  const newCatId = generateUniqueId(\"CAT\");\n  \n  // Mappiamo le sottocategorie\n  const newSubcategories = (cat.subcategories || []).map(sub => {\n    \n    // 2. Riscrivi ID Sottocategoria/Servizio\n    // Da: \"LICENZA_BASE_TBOS_ANNUALITA...\" (Troppo lungo)\n    // A:  \"SVC_A1B2C3D4\" (Sicuro)\n    const newSubId = generateUniqueId(\"SVC\"); // Usa 'PRD' se preferisci distinzione prodotti\n    \n    return {\n      ...sub,\n      callback_data: newSubId,\n      // Salviamo il vecchio callback come \"legacy_slug\" per debug/riferimento (opzionale)\n      original_slug: sub.callback_data \n    };\n  });\n\n  return {\n    ...cat,\n    callback_data: newCatId,\n    original_slug: cat.callback_data,\n    subcategories: newSubcategories\n  };\n});\n\n// Aggiorniamo l'oggetto originale\ncatalogWrapper.categories = newCategories;\n\n// Output\nreturn [{\n  json: {\n    ...item,\n    // Sovrascriviamo oLabel o service_catalog con la versione \"Sanitizzata\"\n    oLabel: item.oLabel ? catalogWrapper : undefined,\n    service_catalog_setup: item.service_catalog_setup ? catalogWrapper : undefined,\n    \n    // Metadati per debug\n    ids_generated_count: generatedIds.size,\n    sanitization_status: \"COMPLETED_SECURE\"\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        656,
+        3312
+      ],
+      "id": "0635d586-3d85-4ba8-9c4d-c9515a164441",
+      "name": "Global_ID_Rewriter"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        544,
+        2720
+      ],
+      "id": "9bc69abb-e0d9-407c-9012-1788d55c83b9",
+      "name": "owner1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        544,
+        2816
+      ],
+      "id": "a4e3b5fd-6150-4c50-b487-acf2109300e3",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        896,
+        2736
+      ],
+      "id": "72825f70-515c-47e6-b4a3-b60cc5a702bd",
+      "name": "Merge9"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"error\": {\n    \"code\": \"AI_GLITCH_501\",\n    \"title\": \"AI Generation Failed\",\n    \"message\": \"Il modello AI non ha risposto correttamente. Richiesto nuovo tentativo.\"\n  }\n}",
+        "options": {
+          "responseCode": 501
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        48,
+        3088
+      ],
+      "id": "9c2373bf-51f3-4693-a4bc-6b4e84a6639d",
+      "name": "LLMFail"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        3488
+      ],
+      "id": "f90b87c6-78fa-4567-816f-a25acd6b00a1",
+      "name": "Call 'GeminiCall'",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        3296
+      ],
+      "id": "1ec54bfc-93b2-4acb-a7fc-f4985d386d0c",
+      "name": "Call 'GeminiCall' Labeling",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Prepare_Processor_Response\n// OBIETTIVO: Pulire l'output e formattare il JSON esattamente come se lo aspetta processor.js\n//            per eseguire il redirect, INSERENDO IL NUOVO TOKEN.\n\nconst item = $input.first().json;\nconst ownerData = item.owner_data;\n\n// Recuperiamo il token appena ruotato (che è nel payload per il DB)\n// Se per qualche motivo non c'è, usiamo quello vecchio come fallback, ma non dovrebbe succedere.\nconst finalToken = ownerData.access_token;\n\n// Costruiamo l'oggetto pulito\nconst finalResponse = {\n    owner_data: {\n        vat_number: ownerData.vat_number,\n        chat_id: ownerData.chat_id, // Fondamentale per il parametro 'owner'\n        ragione_sociale: ownerData.ragione_sociale,\n        access_token: finalToken,   // <<< IL NUOVO TOKEN SICURO\n        lenguage: ownerData.lenguage\n    },\n    status: \"success\",\n    command: \"MANAGER_DESK\" // Opzionale: rinforza l'intento di aprire quella tab\n};\n\nreturn [{\n    json: finalResponse\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        2608
+      ],
+      "id": "7c628df1-28a8-4fce-86f6-4fff92c68f5a",
+      "name": "PrepareRespond"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "honeypots",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.data.vat_number }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"company\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"HoneyPot\": \"$company.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -336,
+        4192
+      ],
+      "id": "8e0a8368-95ef-4770-8f2a-791ad429de0a",
+      "name": "HoneyPot1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bea1b551-64b1-4b06-a609-cbe349671a67",
+              "leftValue": "={{ $json.HoneyPot }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -176,
+        4192
+      ],
+      "id": "42c0081e-34ea-4a63-ac86-7bcd8bfedc2f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -336,
+        4400
+      ],
+      "id": "1572de01-c434-47dc-a23d-51ba78a36efe",
+      "name": "Wait",
+      "webhookId": "5822d166-efc4-45ba-858c-ed91aa9ce215"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "honeypots",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.data.vat_number }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"company\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"HoneyPot\": \"$company.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -160,
+        4640
+      ],
+      "id": "ff6a6a84-226a-4d37-abc1-0fdd17a20085",
+      "name": "HoneyPot2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bea1b551-64b1-4b06-a609-cbe349671a67",
+              "leftValue": "={{ $json.HoneyPot }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        32,
+        4640
+      ],
+      "id": "6eea1f9a-3659-4a53-a2db-ad53e901b61e",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -336,
+        4640
+      ],
+      "id": "971006bb-7872-441b-a15b-dcf295020243",
+      "name": "Merge10"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        16,
+        4192
+      ],
+      "id": "e9d09e16-aac1-450b-8c74-22b69cc82a62",
+      "name": "Merge11"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -480,
+        3968
+      ],
+      "id": "fac20459-5eb4-4daf-a9dd-0365ff4ccbe9",
+      "name": "Merge15"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bea1b551-64b1-4b06-a609-cbe349671a67",
+              "leftValue": "={{ $json.company_reserch }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        96,
+        3968
+      ],
+      "id": "30086cba-cf8d-42fe-be24-861801e11341",
+      "name": "If4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<system_instructions>\n  <persona>\n    Sei un Business Architect di altissimo livello. Il tuo compito è analizzare un'impresa, anche complessa, ibrida o fortemente multidisciplinare, e mapparne l'intero ecosistema operativo. Devi trasformare l'intera attività in una \"Macchina Aziendale\" strutturata, documentata, scalabile e protetta a 360 gradi.\n  </persona>\n  \n  <rules>\n    <rule>Analizza il business_context per comprendere il modello di business, il settore, le attività e l'offerta complessiva.</rule>\n    \n    <rule>\n      MARCATURA MANDATORIA: Il \"name\" di OGNI categoria DEVE iniziare ESATTAMENTE con uno di questi tre tag. Sii rigoroso nella classificazione:\n      1. [SOP] -> Standard Operating Procedures (Il Motore). Processi interni, amministrazione, sicurezza, protocolli di erogazione, gestione emergenze. Queste sono le regole della casa. NON IN VENDITA.\n      2. [SER] -> Services (Il Lavoro Attivo). Servizi erogati al pubblico, consulenze, trattamenti fisici, abbonamenti, ore di lavoro specializzato. IN VENDITA.\n      3. [PRO] -> Products (La Scalabilità). Prodotti fisici, kit domiciliari, licenze, asset digitali (E-book, videocorsi), template, pacchetti pre-configurati. IN VENDITA.\n    </rule>\n    \n    <rule>\n      CHIAVE VERTICAL (MULTIDISCIPLINARE): \n      Ogni oggetto categoria nell'array \"categories\" deve contenere la chiave \"vertical\". \n      Analizza l'elenco delle verticali attive dell'azienda fornite nel tag <active_verticals>. Per ogni categoria che generi, valuta il suo contenuto e assegna la verticale più pertinente tra quelle disponibili nell'elenco (ad esempio, se l'attività è un centro multidisciplinare con attive \"dental\" e \"beauty\", mappa le categorie odontoiatriche a \"dental\" e quelle di estetica/benessere a \"beauty\"). Usa la verticale primaria o \"generic\" come fallback solo se la categoria è trasversale.\n    </rule>\n    \n    <rule>\n      TINY ENTERPRISE MINDSET E LINGUAGGIO AZIONABILE: \n      L'azienda analizzata ha tipicamente da 1 a 10 collaboratori per dipartimento. \n      - È SEVERAMENTE VIETATO usare gergo corporate (NO: \"Audit Interno\", \"Supply Chain\", \"Corporate Governance\", \"Onboarding\", \"MOL\", \"Ciclo Passivo\").\n      - Usa un LINGUAGGIO DA TRINCEA e pratico. I titoli delle [SOP] devono essere azioni direzioni e risolutive per i problemi quotidiani (Es. Usa \"Cosa fare se un cliente non si presenta\" invece di \"Gestione No-Show\"; Usa \"Controllo rapido materiali in esaurimento\" invece di \"Gestione Approvvigionamenti\").\n    </rule>\n\n    <rule>\n      MAPPATURA OPERATIVA TOTALE (MANDATORIA): \n      Genera a partire da un minimo di 20 o 25 categorie totali per coprire interamente e in modo esaustivo ogni reparto e branca dell'azienda (specialmente se multidisciplinare). \n      Per OGNI singola categoria, genera da 10 a 15 \"subcategories\" pratiche e azionabili. \n      L'obiettivo etico e professionale è fornire all'imprenditore una mappa operativa totale, assicurandosi che nessun micro-processo venga lasciato al caso, garantendo così la massima stabilità, resilienza e sicurezza per la sua azienda.\n      Non porti limiti massimi o cap rigidi sul numero di categorie. La mappatura deve essere proporzionale alla complessità e alla multidisciplinarietà del business. Se l'attività unisce diverse branche operative , mappa in modo esteso, granulare e separato ciascuno di questi settori. Crea tutte le categorie necessarie a coprire l'intera operatività reale, e per ogni categoria definisci tutte le \"subcategories\" necessarie a renderla chiara e azionabile.\n    </rule>\n\n    <rule>Genera un JSON con UNA SOLA chiave root: \"categories\". ZERO descrizioni, ZERO markdown fuori dal JSON. Solo codice valido.</rule>\n  </rules>\n</system_instructions>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<prompt>\n  <task>\n    Genera il Draft completo dell'Ecosistema Aziendale (Operazioni, Vendita, Difesa Legale/Digitale e Qualità) usando il sistema di tagging [SOP], [SER], [PRO] e assicurando la massima capillarità e copertura multidisciplinare.\n  </task>\n  \n  <business_context>\n    <![CDATA[\n    Ragione Sociale: {{ $json.owner_data.ragione_sociale }}\n    Contesto: {{ $json.HoneyPot.company_context_string }}\n    Analisi: {{ $json.company_reserch.content }}\n    Knowledge: \n{{ JSON.stringify($json.HoneyPot.knowledge_fragments) }}\n    ]]>\n  </business_context>\n\n  <active_verticals>{{ JSON.stringify($json.HoneyPot.verticals || $json.owner_data.verticals || [\"generic\"]) }}</active_verticals>\n  <primary_vertical>{{ $json.HoneyPot.vertical || $json.owner_data.vertical || \"generic\" }}</primary_vertical>\n\n  <output_format>\n    {\n      \"categories\": [\n        {\n          \"name\": \"[TAG] Nome Categoria Semplice\",\n          \"vertical\": \"verticale_selezionata_coerente_con_la_categoria\",\n          \"subcategories\": [\n            \"Titolo Pratico 1\", \n            \"Titolo Pratico 2\", \n            \"Titolo Pratico 3\",\n            \"...\"\n          ]\n        }\n      ]\n    }\n  </output_format>\n\n  <instructions>\n    Immedesimati nei problemi quotidiani del titolare e struttura l'ecosistema in categorie distinte per ciascun reparto attivo dell'attività (es. ortodonzia, medicina estetica, centro massaggi, parrucchiere, onicotecnica):\n\n    - LE FONDAMENTA E LA DIFESA INTERNA (Usa il tag [SOP] per queste categorie specifiche):\n      * Gestione Front-Desk, Accoglienza e Cassa per i diversi reparti.\n      * Sicurezza, Igiene, Sterilizzazione degli strumenti medici (ortodonzia/medicina estetica) e sanificazione cabine (estetica/massaggi/capelli).\n      * Cybersecurity, Privacy (GDPR), gestione dei consensi informati medici ed estetici.\n      * Gestione magazzino, scorte e materiali di consumo distinti per branca operativa.\n      * Organizzazione dei collaboratori e turni dei vari specialisti.\n\n    - IL FATTURATO ATTIVO (Usa il tag [SER] per ciascun reparto):\n      * Mappa in modo esteso e separato tutti i servizi reali offerti da ciascuna branca operativa (es. trattamenti ortodontici, interventi di medicina estetica, massaggi e trattamenti benessere, servizi di acconciatura/taglio/colore, onicotecnica e cura delle unghie). Sii estremamente specifico e descrittivo per ogni dipartimento.\n\n    - IL FATTURATO SCALABILE (Usa il tag [PRO]):\n      * Mappa pacchetti multidisciplinari, abbonamenti combinati, kit di cura domiciliare post-trattamento (creme, prodotti post-colore, guide igiene orale), gift card e pacchetti benessere/salute integrati.\n\n    - CRITERI DI COMPILAZIONE MANDATORI:\n      1. Genera a partire da un minimo di 20-25 categorie totali.\n      2. Per ciascuna categoria, definisci obbligatoriamente tra le 10 e le 15 sottocategorie (\"subcategories\").\n      3. Assegna ad ogni categoria la verticale corrispondente estratta da <active_verticals> (es. \"dental\" o \"beauty\").\n\n    - REVISIONE FINALE DEL LINGUAGGIO:\n      Prima di generare il JSON, assicurati che i titoli scelti siano chiari, diretti e rassicuranti. Elimina ogni parola che ricordi una grande multinazionale e sostituiscila con azioni concrete e immediate.\n\n    - Lingua output: {{ $json.owner_data.lenguage }}\n    - Output: SOLO Oggetto JSON.\n  </instructions>\n</prompt>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "oTaxionomy",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.media_items[0].base64_content }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.media_items[0].mime_type }}",
+              "type": "string"
+            },
+            {
+              "id": "76f9f62e-c83f-4c70-a995-995f8629f548",
+              "name": "billing_source.use",
+              "value": "catalog_taxonomy_generation",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        3488
+      ],
+      "id": "56a1aa6a-4710-4edc-a566-4da511b61ed0",
+      "name": "Tassionomy"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "==<system_instructions>\n  <persona>\n    Sei \"VisualButtonFactory\", un'AI ultra-precisa per la generazione di interfacce UI. Il tuo compito è prendere una tassonomia gerarchica e trasformarla in una struttura JSON pronta per un bot Telegram. Ogni singolo elemento, sia categoria che sottocategoria, deve essere trasformato in un oggetto completo di pulsante.\n  </persona>\n  <rules>\n    <rule>\n      L'output DEVE essere un oggetto JSON valido e nient'altro.\n    </rule>\n    <rule>\n      La struttura principale DEVE essere `{\"categories\": [...]}`.\n    </rule>\n    <rule>\n      L'array `categories` DEVE contenere oggetti. Ogni oggetto categoria DEVE avere la seguente struttura: `{\"name\": \"...\", \"short_name\": \"...\", \"callback_data\": \"...\", \"macrocategories\": \"[SOP,PRO or SER]\", \"vertical\": \"...\", \"subcategories\": [...]}`.\n    </rule>\n    <rule>\n      CONSERVAZIONE CHIAVE VERTICAL: Per ogni categoria, devi copiare e preservare inalterata la chiave \"vertical\" ricevuta in input nel JSON finale. Non modificarne né ometterne il valore, poiché rappresenta la specifica associazione disciplinare di quella categoria.\n    </rule>\n    <rule>\n      Per ogni `\\\"name\\\"` originale, a QUALSIASI livello, devi generare:\n      1.  Un `\\\"short_name\\\"`: Etichetta breve (max 25 caratteri) che INIZIA con una singola emoji appropriata.\n      2.  Un `\\\"callback_data\\\"`: Un ID univoco generato a partire dallo `short_name` (senza emoji), in formato `SNAKE_CASE_UPPERCASE`.\n    </rule>\n    <rule>\n      **COERENZA ASSOLUTA:** Applica questa trasformazione a ogni nodo della struttura di input. Non ci sono eccezioni.\n    </rule>\n  </rules>\n</system_instructions>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "==<prompt>\n  <task>\n    Prendi la seguente struttura JSON in `<input_structure>`. Replica l'intera struttura e arricchisci ogni categoria e sottocategoria con un campo `\\\"short_name\\\"` breve e incisivo, adatto per un pulsante Telegram, mantenendo inalterata la chiave `\\\"vertical\\\"` presente a livello di categoria.\n  </task>\n\n  <input_structure>\n    <![CDATA[\n   {{ JSON.stringify($json.oTaxionomy.categories) }}\n    ]]>\n  </input_structure>\n\n  <output_format_example>\n  Ecco un esempio di come DEVE essere l'output per UNA categoria. Applica questo schema a TUTTE le categorie e sottocategorie dell'input, preservando il rispettivo valore di \"vertical\" originario.\n  ```json\n  {\n    \"categories\": [\n      {\n        \"name\": \"Architettura e Piattaforma TBOS (Sistema Operativo AI)\",\n        \"short_name\": \"Piattaforma TBOS\",\n        \"vertical\": \"generic\",\n        \"subcategories\": [\n          {\n            \"name\": \"Licenza Base TBOS (Annualità Standard)\",\n            \"short_name\": \"Licenza Base\"\n          },\n          {\n            \"name\": \"Onboarding e Setup Iniziale Configurazione\",\n            \"short_name\": \"Setup Iniziale\"\n          }\n        ]\n      }\n    ]\n  }\n</output_format_example>\n</prompt>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "={{ $json.owner_data.model_choice }}",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "oLabel",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.media_items[0].base64_content }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.media_items[0].mime_type }}",
+              "type": "string"
+            },
+            {
+              "id": "c7e96649-685a-4b39-828e-874e8b3b4032",
+              "name": "billing_source.use",
+              "value": "catalog_label_generation",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        3296
+      ],
+      "id": "c4f2328c-5fe2-4175-926b-d745f5350933",
+      "name": "Label"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Prepare_Perfect_Dashboard_Welcome (V7.6 Surgical Fix)\n// DESC: Allineato a 📝 Prep: Dynamic Agent Selection\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst baseUrl = item.urlMiniApp || \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/telegram_control/\";\nconst credits = owner.credits_balance || 0;\nconst callbackQuery = item.user_request || {};\n\nconst chatId = (item.user_request.owner_id) || owner.chat_id;\nconst messageIdToEdit = (callbackQuery.message_id) || null;\n\n// --- LOGICA CONDIVISA UTENTE DI TEST ---\nconst isTestUser = String(chatId) === \"2041408875\";\n\n// --- LOGICA SIGNATURE ASH ---\nfunction generateSignature(str, key) {\n    let hash = 0; const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        const char = combined.charCodeAt(i);\n        hash = ((hash << 5) - hash) + char; hash = hash & hash; \n    }\n    return Math.abs(hash).toString(16);\n}\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst ts = Date.now().toString();\nconst payloadASH = `${chatId}|${ts}|ef4aece4-9ec0-4026-a7a7-328562bcbdf6`;\nconst ash = `${Buffer.from(payloadASH).toString('base64')}.${generateSignature(payloadASH, SECRET_KEY)}`;\n\n// --- LOGICA SUPERVISOR (Attiva Out-Of-The-Box - No Costo Attivazione) ---\nconst COSTO_USO_CERT = 1;\nconst URL_DASHBOARD = \"https://dashboard.trinai.it/\";\n\nlet labelSup = \"🛡️ SuperVisor\";\nlet cbSup = \"get_active\";\nlet urlSup = null;\n\nif (credits < COSTO_USO_CERT) {\n    labelSup = \"⚠️ Credito Insuf.\";\n    urlSup = URL_DASHBOARD;\n}\n\nconst t = {\n    header: `🛠️ <b>SiteBoS Assistant KeyBoard</b>`,\n    entity: `🏢 <b>${(owner.ragione_sociale || 'PRIVATE_TENANT').toUpperCase()}</b>`,\n    user: `👤 OPERATORE: <b>${owner.name} ${owner.surname}</b>`,\n    status: `📊 STATO: <b>OPERATIVO</b>`,\n    balance: `🔋 DISPONIBILITÀ: <b>${credits} CREDITI</b>`,\n    gdpr: `🔐 <b>PROTOCOLLO SICUREZZA & PRIVACY</b>\\n<i>In conformità al GDPR (Reg. UE 2016/679) e al principio di minimizzazione dei dati, tutti i messaggi inviati a questa chat vengono rimossi ISTANTANEAMENTE per garantirne la totale riservatezza ed evitarne la conservazione sui server di Telegram.</i>`\n};\n\n// --- COSTRUZIONE DINAMICA TASTIERA MONOCOLONNA ---\nconst buttons = [];\n\nbuttons.push([{ text: \"🏢 Identità Aziendale\", web_app: { url: `${baseUrl}identity_hub.html?ash=${ash}&msg=${messageIdToEdit}` } }]);\nbuttons.push([{ text: \"📋 Gestione Aziendale\", web_app: { url: `${baseUrl}catalog.html?ash=${ash}&msg=${messageIdToEdit}` } }]);\nbuttons.push([{ text: labelSup, callback_data: cbSup, ...(urlSup && { url: urlSup }) }]);\nbuttons.push([{ text: \"📣 Marketing\", callback_data: \"m_mkt\" }]);\nbuttons.push([{ text: \"👥 Team\", callback_data: \"m_team\" }]);\n\nif (isTestUser) {\n    buttons.push([{ text: \"💸 Acquisti\", web_app: { url: `${baseUrl}new-insert.html?ash=${ash}&msg=${messageIdToEdit}` } }]);\n    buttons.push([{ text: \"⏳ Operazioni\", callback_data: \"tm_menu\" }]);\n    buttons.push([{ text: \"💬 Comunicazioni\", web_app: { url: `${baseUrl}comunication_hub.html?ash=${ash}&msg=${messageIdToEdit}` } }]);\n    buttons.push([{ text: \"📊 Intelligence\", callback_data: \"int_\" }]);\n}\n\nbuttons.push([{ text: \"🔄 Sync\", callback_data: \"open_agent_control_center\" }]);\n\n// Costruzione testo con andate a capo native\nconst formattedText = `${t.header}\\n━━━━━━━━━━━━━━━━━━━━\\n${t.entity}\\n${t.user}\\n${t.status}\\n${t.balance}\\n━━━━━━━━━━━━━━━━━━━━\\n${t.gdpr}`;\n\nreturn [{\n    json: {\n        ...item,\n        telegramApiPayload: {\n            method: messageIdToEdit ? \"editMessageText\" : \"sendMessage\",\n            chat_id: chatId,\n            ...(messageIdToEdit && { message_id: messageIdToEdit }),\n            text: formattedText,\n            parse_mode: \"HTML\",\n            reply_markup: { inline_keyboard: buttons }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        2800
+      ],
+      "id": "9320c1b0-890b-494d-8632-62afaeb16327",
+      "name": "Complete_msg"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "id": "92d6963a-792a-4dcb-8fbb-31fca2943a16",
+      "name": "TelegramCompleteMsg",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1312,
+        2800
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1312,
+        2624
+      ],
+      "id": "c80199f5-d9f4-4b38-9e7e-2601fcda2afe",
+      "name": "Merge16"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1520,
+        2800
+      ],
+      "id": "936a66d1-c18e-4f2f-aa31-dc241dc8b869",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f0ded29d-f99d-454f-9098-5531364cf1e4",
+              "name": "billing_source.wh",
+              "value": "={{ $json.webhookUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "7bdc3158-6345-4af8-9c50-45ee604492b2",
+              "name": "urlMiniApp",
+              "value": "={{ \n  (() => {\n    const userId = $json.body?.data?.owner_id || \n                   $json.body?.data?.chat_id || \n                   $json.body?.callback_query?.from?.id || \n                   $json.body?.message?.from?.id ||\n                   $json.body?.owner_id;\n                   \n    return (String(userId) === \"2041408875\") \n      ? \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/telegram_control/\" \n      : \"https://telegram.trinai.it/\";\n  })()\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -832,
+        2448
+      ],
+      "id": "1ed6cb30-cf7e-475a-a61a-f788618371ae",
+      "name": "billing_source + urlminiapp"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        48,
+        368
+      ],
+      "id": "414bae2a-53a9-4ee5-8eec-7f8cecaa311e",
+      "name": "owner2"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        48,
+        464
+      ],
+      "id": "bfaab9aa-db29-4b32-a0b1-7222e9d6ed52",
+      "name": "MongoDB Chat Memory7",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c3719157-3e19-4ef8-acac-551e76a66adb",
+              "name": "VerticaliDisponibili",
+              "value": "generic, dental, beauty, food, hospitality, professional, workshop, construction",
+              "type": "string"
+            },
+            {
+              "id": "b349a5e9-46e1-4b53-a066-fd6bb1a30f7b",
+              "name": "ProfiliDisponibili",
+              "value": "societa_capitali, societa_persone, professionista",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        320,
+        1088
+      ],
+      "id": "4f21cfe3-fa4a-4639-b91a-62296ed91315",
+      "name": "VerticalProfile"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Build_Success_Payload\n// OBIETTIVO: Restituire i dati per il redirect alla Dashboard\n\nconst input = $input.first().json;\n\n// Recuperiamo i dati (assicurati che owner_data sia arrivato fin qui)\nconst ownerData = input.owner_data; \n\nif (!ownerData) throw new Error(\"Dati owner persi nel flusso.\");\n\nreturn {\n  json: {\n    // Flag di successo\n    status: \"success\",\n    \n    // Payload per processor_logic.js -> result.owner_data\n    owner_data: {\n        vat_number: ownerData.vat_number,\n        chat_id: ownerData.chat_id,\n        ragione_sociale: ownerData.ragione_sociale,\n        // Questo token serve per il login automatico nella Dashboard\n        access_token: ownerData.access_token \n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        640
+      ],
+      "id": "f17b34be-0543-4a0f-8f29-23cc5101949e",
+      "name": "Build_Success_Payload"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        816
+      ],
+      "id": "08b79df8-1db2-40f6-a042-99061d84390c",
+      "name": "obfuscator"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bc7e1c54-c0ec-420f-bd33-fcc5910cb7d5",
+              "name": "=owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            },
+            {
+              "id": "3c3d0f0d-4e50-4622-95b0-702c472e370c",
+              "name": "owner_data.vertical",
+              "value": "={{ $json.oHONEYPOT.HoneyPot.vertical }}",
+              "type": "string"
+            },
+            {
+              "id": "9aa1fd3f-7f23-41f4-99db-5d934b7ff60e",
+              "name": "owner_data.profile_type",
+              "value": "={{ $json.oHONEYPOT.HoneyPot.profile_type }}",
+              "type": "string"
+            },
+            {
+              "id": "57a0ae7c-f6f9-4712-bf37-66f385d4dd9f",
+              "name": "owner_data.verticals",
+              "value": "={{ $json.oHONEYPOT.HoneyPot.verticals }}",
+              "type": "array"
+            },
+            {
+              "id": "e8dc9319-d457-466b-98a3-ec48a1a622d1",
+              "name": "owner_data.operational_units",
+              "value": "={{ $json.oHONEYPOT.HoneyPot.operational_units }}",
+              "type": "string"
+            },
+            {
+              "id": "b83d693d-407f-4720-b7a8-74e08bcacb78",
+              "name": "owner_data.reuniti_count",
+              "value": "={{ $json.oHONEYPOT.HoneyPot.reuniti_count || 0 }}",
+              "type": "string"
+            },
+            {
+              "id": "405c295c-4710-4ad8-8861-8e443a80016e",
+              "name": "owner_data.reuniti_label",
+              "value": "={{ $json.oHONEYPOT.HoneyPot.reuniti_label || 'Riuniti Dentistici' }}",
+              "type": "string"
+            },
+            {
+              "id": "5d8b675c-793f-4b0a-91ef-1048ea407a27",
+              "name": "owner_data.chairs_count",
+              "value": "={{ $json.oHONEYPOT.HoneyPot.chairs_count || 0 }}",
+              "type": "string"
+            },
+            {
+              "id": "531c66c5-f60a-4cf4-a4db-9eccb626e5c6",
+              "name": "owner_data.chairs_label",
+              "value": "={{ $json.oHONEYPOT.HoneyPot.chairs_label || 'Postazioni Operative' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -128,
+        368
+      ],
+      "id": "db7ca64f-6ce5-4e6b-90e6-e4faa4d07f13",
+      "name": "VerticalToOwner"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "I3Wi7RmhugztaU0q",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/I3Wi7RmhugztaU0q",
+          "cachedResultName": "Unified-Authentication"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -496,
+        3168
+      ],
+      "id": "a28a2738-0366-45a2-9d7a-c38b8be26529",
+      "name": "Call 'Unified-Authentication'"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "75a788d0-5d79-4686-a784-1dd16a113dbe",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -288,
+        3168
+      ],
+      "id": "747bfb8d-5925-42cb-959c-9b51a330cefa",
+      "name": "unautorized"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Symfony HttpClient (Curl)",
+            "content-length": "151",
+            "accept": "application/json",
+            "accept-encoding": "gzip",
+            "content-type": "application/json",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "46.252.148.106",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "honeypot_build_trigger",
+            "data": {
+              "vat_number": "IT06988830821",
+              "access_token": "3884d06f-f913-49c6-8544-200a96b79805",
+              "owner_id": "2041408875"
+            }
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/35667aed-ee1c-4074-92df-d4334967a1b3",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "billing_source + urlminiapp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "stakeholders1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Call 'Unified-Authentication'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Build_Error_Payload_Multilang",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build_Error_Payload_Multilang": {
+      "main": [
+        [
+          {
+            "node": "Error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "stakeholders",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "owner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stop": {
+      "main": [
+        [
+          {
+            "node": "Merge32",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge32": {
+      "main": [
+        [
+          {
+            "node": "DossierGeneration",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge33",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DossierGeneration": {
+      "main": [
+        [
+          {
+            "node": "Owner_Resrch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HoneyPotGeneration": {
+      "main": [
+        [
+          {
+            "node": "Honeypot Structure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory5": {
+      "ai_memory": [
+        [
+          {
+            "node": "Reserch",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory6": {
+      "ai_memory": [
+        [
+          {
+            "node": "HoneyPot",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If14": {
+      "main": [
+        [
+          {
+            "node": "Merge33",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge14": {
+      "main": [
+        [
+          {
+            "node": "Respond to LLMFail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Welcome_Message_Builder": {
+      "main": [
+        [
+          {
+            "node": "SendStart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NoMultiSession": {
+      "main": [
+        [
+          {
+            "node": "obfuscator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HoneyPot_WebApp_Notifier": {
+      "main": [
+        [
+          {
+            "node": "NoMultiSession",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory4": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholders",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "HoneyPot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge33": {
+      "main": [
+        [
+          {
+            "node": "Reserch",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HoneyPot_WebApp_Notifier",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge12",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "VerticalToOwner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 500 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge12": {
+      "main": [
+        [
+          {
+            "node": "Build_Success_Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders1": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Finalize_Owner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finalize_Owner": {
+      "main": [
+        [
+          {
+            "node": "Update_Stakeholder_Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update_Stakeholder_Final": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ownerExist",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Error": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "ownerExist": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders": {
+      "main": [
+        [
+          {
+            "node": "Merge13",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge13": {
+      "main": [
+        [
+          {
+            "node": "Welcome_Message_Builder",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge32",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "SendStart": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "DeleteStartButton",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeleteStartButton": {
+      "main": [
+        [
+          {
+            "node": "Stop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Owner_Resrch": {
+      "main": [
+        [
+          {
+            "node": "Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error?": {
+      "main": [
+        [
+          {
+            "node": "VerticalProfile",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge14",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Honeypot Structure": {
+      "main": [
+        [
+          {
+            "node": "If14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "Set_Loading_State",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "reserch": {
+      "main": [
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set_Loading_State": {
+      "main": [
+        [
+          {
+            "node": "Collection_Retrieval5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collection_Retrieval5": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ErrorApi": {
+      "main": [
+        [
+          {
+            "node": "LLMFail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "service_catalog_setup",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "service_catalog_setup": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge7": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields8": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields9": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "owner1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ErrorApi1": {
+      "main": [
+        [
+          {
+            "node": "LLMFail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Global_ID_Rewriter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge8": {
+      "main": [
+        [
+          {
+            "node": "Tassionomy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "reserch",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Global_ID_Rewriter": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "service_catalog_setup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner1": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge9": {
+      "main": [
+        [
+          {
+            "node": "PrepareRespond",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Complete_msg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'GeminiCall'": {
+      "main": [
+        [
+          {
+            "node": "ErrorApi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'GeminiCall' Labeling": {
+      "main": [
+        [
+          {
+            "node": "ErrorApi1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PrepareRespond": {
+      "main": [
+        [
+          {
+            "node": "Merge16",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HoneyPot1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HoneyPot2": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge10": {
+      "main": [
+        [
+          {
+            "node": "HoneyPot2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 500 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge11": {
+      "main": [
+        [
+          {
+            "node": "Merge15",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge15": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 500 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tassionomy": {
+      "main": [
+        [
+          {
+            "node": "Call 'GeminiCall'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label": {
+      "main": [
+        [
+          {
+            "node": "Call 'GeminiCall' Labeling",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complete_msg": {
+      "main": [
+        [
+          {
+            "node": "TelegramCompleteMsg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TelegramCompleteMsg": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Merge16",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge16": {
+      "main": [
+        [
+          {
+            "node": "Respond to Catalog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "billing_source + urlminiapp": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory7": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VerticalProfile": {
+      "main": [
+        [
+          {
+            "node": "HoneyPotGeneration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build_Success_Payload": {
+      "main": [
+        [
+          {
+            "node": "Respond to Start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "obfuscator": {
+      "main": [
+        [
+          {
+            "node": "Merge12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VerticalToOwner": {
+      "main": [
+        [
+          {
+            "node": "owner2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Unified-Authentication'": {
+      "main": [
+        [
+          {
+            "node": "unautorized",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "unautorized": {
+      "main": [
+        [
+          {
+            "node": "⛔️ 500 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "HoneyPot1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge15",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "70f2aabc-b9e6-42fc-a504-449b6949f95c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "kSn5sBgmPGVgTsaX",
+  "tags": []
+}

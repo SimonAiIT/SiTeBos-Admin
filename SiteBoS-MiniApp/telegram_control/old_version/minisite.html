@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>SiteBoS Editor Pro</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <style>
+
+/* SiteBoS Architect Alignment */
+body { background-color: #fafafa !important; color: #000000 !important; }
+.card, .section-card, .dark-card, .upload-box { 
+    background: white !important; 
+    border: 1px solid #eeeeee !important; 
+    box-shadow: none !important; 
+}
+input:focus, textarea:focus, select:focus { 
+    border-color: #000000 !important; 
+    box-shadow: none !important; 
+    outline: none !important;
+}
+.text-primary, .text-black, .text-blue-600, .text-black { color: #000000 !important; }
+.bg-primary, .bg-black, .bg-black, .bg-black { background-color: #000000 !important; color: #ffffff !important; }
+.border-primary, .border-black, .border-blue-600, .border-black { border-color: #000000 !important; }
+.spinner { border-top-color: #000 !important; }
+input[type="checkbox"]:checked { background-color: #000 !important; border-color: #000 !important; }
+/* Forza icone pesanti */
+.fas, .far, .fal { font-weight: 900 !important; font-family: "Font Awesome 6 Free" !important; }
+
+
+    :root { --bg: #fafafa; --surface: #ffffff; --text: #000000; --line: #eeeeee; --radius-card: 1.5rem; --radius-input: 1rem; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; margin: 0; padding-bottom: 100px; }
+    .noir-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-card); box-shadow: 0 4px 12px rgba(0,0,0,0.02); overflow: hidden; }
+    .noir-input, .noir-textarea, .noir-select { width: 100%; border: 1px solid var(--line); border-radius: var(--radius-input); background: #fff; padding: 0.75rem 1rem; transition: all .15s ease; outline: none; font-size: 14px; }
+    .noir-input:focus, .noir-textarea:focus, .noir-select:focus { background: #fff; border-color: #000; }
+    .label-k { display: block; margin-bottom: .4rem; font-size: 9px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: #94a3b8; }
+    .noir-btn { height: 44px; border-radius: 12px; padding: 0 1.2rem; border: none; background: #000; color: #fff; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; font-size: 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all .1s; }
+    .noir-btn.secondary { background: #fff; color: #000; border: 1px solid #000; }
+    #side-menu { position: fixed; top: 0; right: -100%; width: 260px; height: 100%; background: #fff; z-index: 1000; transition: right 0.3s; box-shadow: -5px 0 15px rgba(0,0,0,0.05); padding: 30px 20px; display: flex; flex-direction: column; gap: 10px; }
+    #side-menu.open { right: 0; }
+    .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); z-index: 999; display: none; }
+    .menu-overlay.open { display: block; }
+    .menu-btn { border: none; background: transparent; padding: 12px; text-align: right; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; cursor: pointer; border-bottom: 1px solid #f8fafc; }
+    .header-img { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); object-fit: cover; }
+    .asset-box { width: 100%; height: 120px; border-radius: 1.2rem; background: #f3f4f6; overflow: hidden; position: relative; border: 1px solid var(--line); }
+    .asset-box img { width: 100%; height: 100%; object-fit: cover; }
+    .fixed-footer { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 16px; border-top: 1px solid var(--line); z-index: 50; display: flex; justify-content: center; gap: 10px; }
+    .loader-spin { width: 24px; height: 24px; border: 2px solid #f3f3f3; border-top: 2px solid #000; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+    const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+    const WEBHOOK_URL = 'https://prod.workflow.trinai.it/webhook/50891655-84c8-4213-90e8-26ebbc3d6c4c';
+    if (!tg.initData) { document.body.innerHTML = "ACCESS DENIED"; window.stop(); }
+    const urlParams = new URLSearchParams(window.location.search);
+    let ash = urlParams.get('ash');
+    let msg = urlParams.get('msg') || urlParams.get('message_id');
+    if (ash && ash.includes('?msg=')) {
+        const parts = ash.split('?msg=');
+        ash = parts[0];
+        if (!msg) msg = parts[1];
+    }
+    const dataFetch = fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ _auth: tg.initData, action: 'GET_MINISITE_DATA', ash: ash, msg: msg }) }).then(r => r.json());
+  </script>
+
+  <div id="loading" class="fixed inset-0 flex items-center justify-center bg-white z-50">
+    <div class="text-center"><div class="loader-spin mb-3 mx-auto"></div><div class="label-k text-black">Initializing SiteBoS...</div></div>
+  </div>
+
+  <div class="menu-overlay" id="overlay"></div>
+  <nav id="side-menu">
+    <div class="label-k text-left mb-3">Navigation</div>
+    <button class="menu-btn" data-tab="content">Content & Style</button>
+    <button class="menu-btn" data-tab="offer">AI Offer</button>
+    <button class="menu-btn" data-tab="assets">Visual Assets</button>
+    <button class="menu-btn" data-tab="services">Services</button>
+    <button onclick="toggleMenu()" class="noir-btn secondary mt-auto">Close</button>
+  </nav>
+
+  <main id="app" class="hidden p-4 max-w-md mx-auto">
+    <header class="noir-card p-5 mb-5 flex justify-between items-center">
+      <div>
+        <h1 id="ent-name" class="text-lg font-black uppercase tracking-tighter leading-none mb-1">Editor</h1>
+        <p id="ent-vat" class="text-[8px] opacity-40 font-black uppercase tracking-widest"></p>
+      </div>
+      <button onclick="toggleMenu()" class="noir-btn secondary h-9 text-[9px]">Menu</button>
+    </header>
+
+    <section data-panel="content" class="tab-panel space-y-5">
+      <div class="noir-card p-5">
+        <label class="label-k">Template</label>
+        <select id="template" class="noir-select text-xs font-bold">
+          <option value="classic">Classic</option>
+          <option value="tailwind">Tailwind</option>
+          <option value="dark-tech">Dark Tech</option>
+          <option value="bento">Bento</option>
+        </select>
+      </div>
+      <div class="noir-card p-5 space-y-4">
+        <label class="label-k">Hero Section</label>
+        <input id="hero-h1" class="noir-input font-bold" placeholder="H1 Title">
+        <textarea id="hero-sub" class="noir-textarea" rows="2" placeholder="Subtitle"></textarea>
+      </div>
+    </section>
+
+    <section data-panel="offer" class="tab-panel hidden space-y-5">
+      <div class="noir-card p-5">
+        <label class="label-k">Offer Preview</label>
+        <div id="offer-render" class="bg-gray-50 border border-gray-100 rounded-xl p-4 text-[13px] leading-relaxed mb-4 max-h-60 overflow-y-auto"></div>
+        <textarea id="offer-prompt" class="noir-textarea mb-3" rows="2" placeholder="Regen instructions..."></textarea>
+        <button id="btn-gen-offer" class="noir-btn w-full">✨ Regen Offer</button>
+      </div>
+    </section>
+
+    <section data-panel="assets" class="tab-panel hidden space-y-5">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="noir-card p-4 flex flex-col items-center gap-2 text-center">
+          <img id="v-logo" class="header-img">
+          <label class="text-[7px] font-black uppercase text-gray-300">Brand Logo</label>
+        </div>
+        <div class="noir-card p-4 flex flex-col items-center gap-2 text-center">
+          <img id="v-photo" class="header-img">
+          <label class="text-[7px] font-black uppercase text-gray-300">Profile</label>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div class="noir-card p-3 text-center">
+          <div class="asset-box mb-2"><img id="v-g1" src=""></div>
+          <button onclick="triggerUp('gallery1')" class="noir-btn secondary h-7 text-[7px] px-2 w-full uppercase">Upload</button>
+          <input type="file" id="f-gallery1" class="hidden" onchange="procMedia(this, 'gallery1')">
+        </div>
+        <div class="noir-card p-3 text-center">
+          <div class="asset-box mb-2"><img id="v-g2" src=""></div>
+          <button onclick="triggerUp('gallery2')" class="noir-btn secondary h-7 text-[7px] px-2 w-full uppercase">Upload</button>
+          <input type="file" id="f-gallery2" class="hidden" onchange="procMedia(this, 'gallery2')">
+        </div>
+        <div class="noir-card p-3 text-center">
+          <div class="asset-box mb-2"><img id="v-g3" src=""></div>
+          <button onclick="triggerUp('gallery3')" class="noir-btn secondary h-7 text-[7px] px-2 w-full uppercase">Upload</button>
+          <input type="file" id="f-gallery3" class="hidden" onchange="procMedia(this, 'gallery3')">
+        </div>
+      </div>
+    </section>
+
+    <section data-panel="services" class="tab-panel hidden space-y-4">
+      <div id="services-list" class="grid gap-3"></div>
+    </section>
+  </main>
+
+  <footer class="fixed-footer">
+    <button id="preview-btn-f" class="noir-btn secondary flex-1">Preview</button>
+    <button id="save-btn" class="noir-btn flex-[2]" disabled>Publish Site</button>
+  </footer>
+
+  <div id="preview-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-[2000] flex flex-col p-4">
+    <div class="noir-card p-3 flex justify-between items-center mb-3 bg-white">
+        <span class="text-[10px] font-black uppercase ml-2">Live Preview</span>
+        <button onclick="closePreview()" class="noir-btn secondary h-8 text-[8px] px-4">Close</button>
+    </div>
+    <div class="flex-1 rounded-2xl overflow-hidden bg-white"><iframe id="preview-frame" class="w-full h-full border-0"></iframe></div>
+  </div>
+
+  <script>
+    const state = { root: {}, originalHash: '', dirty: false };
+    function byId(id) { return document.getElementById(id); }
+    function haptic() { try { tg.HapticFeedback.impactOccurred('light'); } catch(e){} }
+    function toggleMenu() { haptic(); byId('side-menu').classList.toggle('open'); byId('overlay').classList.toggle('open'); }
+    function bust(url) { if(!url || url.startsWith('data:')) return url; return url.includes('?') ? `${url}&t=${Date.now()}` : `${url}?t=${Date.now()}`; }
+    function ensureShape(d) { if(!d) return {}; d.ownerdata = d.ownerdata || d.owner_data || {}; d.ownerbot = d.ownerbot || d.owner_bot || {}; d.HoneyPot = d.HoneyPot || { assets:{}, active_services:[] }; d.MiniSiteJson = d.MiniSiteJson || { seo:{}, hero:{}, service_descriptions:[] }; return d; }
+
+    function populateForm() {
+      const r = state.root; byId('ent-name').textContent = r.ownerdata.ragione_sociale || 'Editor'; byId('ent-vat').textContent = `VAT: ${r.ownerdata.vat_number || '---'}`;
+      byId('v-logo').src = bust(r.HoneyPot.assets.logo?.url); byId('v-photo').src = bust(r.HoneyPot.assets.photo?.url);
+      byId('template').value = r.MiniSiteJson.style || 'classic'; byId('hero-h1').value = r.MiniSiteJson.hero.h1 || ''; byId('hero-sub').value = r.MiniSiteJson.hero.sub || '';
+      byId('offer-render').innerHTML = r.HoneyPot.offer_text || '<em>No offer loaded.</em>';
+      byId('v-g1').src = bust(r.HoneyPot.assets.gallery1?.url); byId('v-g2').src = bust(r.HoneyPot.assets.gallery2?.url); byId('v-g3').src = bust(r.HoneyPot.assets.gallery3?.url);
+      renderServices(); syncDirty();
+    }
+
+    function syncDirty() {
+      const msj = state.root.MiniSiteJson; msj.style = byId('template').value; msj.hero.h1 = byId('hero-h1').value; msj.hero.sub = byId('hero-sub').value;
+      const h = JSON.stringify(msj); state.dirty = h !== state.originalHash; byId('save-btn').disabled = !state.dirty;
+    }
+
+    byId('preview-btn-f').onclick = async () => {
+        haptic(); byId('preview-btn-f').innerText = "...";
+        try {
+            const r = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ _auth: tg.initData, action: 'PREVIEW_MINISITE', ash: ash, msg: msg, ...state.root }) });
+            const res = await r.json(); if(res.html) { byId('preview-frame').srcdoc = res.html; byId('preview-modal').classList.remove('hidden'); }
+        } catch(e) { tg.showAlert("Error."); } finally { byId('preview-btn-f').innerText = "Preview"; }
+    };
+    function closePreview() { byId('preview-modal').classList.add('hidden'); byId('preview-frame').srcdoc = ""; }
+
+    byId('btn-gen-offer').onclick = async () => {
+      haptic();
+      try {
+        const r = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ _auth: tg.initData, action: 'Generate_Offer', ash: ash, msg: msg, prompt: byId('offer-prompt').value, company_context: state.root.HoneyPot.company_context_string }) });
+        const res = await r.json(); if(res.html_content) { state.root.HoneyPot.offer_text = res.html_content; populateForm(); }
+      } catch(e) {}
+    };
+
+    function triggerUp(k) { haptic(); byId('f-'+k).click(); }
+    function procMedia(i, k) { if (i.files && i.files[0]) { const r = new FileReader(); r.onload = e => { state.root.HoneyPot.assets[k].url = e.target.result; populateForm(); syncDirty(); }; r.readAsDataURL(i.files[0]); } }
+    function renderServices() { const list = byId('services-list'); list.innerHTML = ''; state.root.HoneyPot.active_services.forEach(s => { const d = document.createElement('div'); d.className = 'noir-card p-3 flex justify-between items-center'; d.innerHTML = `<div><div class="font-black text-[10px] uppercase">${s.name}</div><div class="text-[7px] opacity-40 font-bold uppercase">${s.macro}</div></div>`; list.appendChild(d); }); }
+
+    byId('save-btn').onclick = () => { tg.showConfirm("Publish Changes?", async ok => { if(!ok) return; try { await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ _auth: tg.initData, action: 'PUBLISH_MINISITE', ash: ash, msg: msg, ...state.root }) }); tg.showAlert("Published!"); state.originalHash = JSON.stringify(state.root.MiniSiteJson); syncDirty(); } catch (e) {} }); };
+
+    document.querySelectorAll('.menu-btn').forEach(b => b.onclick = () => { document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden')); document.querySelector(`[data-panel="${b.dataset.tab}"]`).classList.remove('hidden'); toggleMenu(); });
+    byId('overlay').onclick = toggleMenu;
+    document.querySelectorAll('input, textarea, select').forEach(el => el.addEventListener('input', () => syncDirty()));
+
+    (async () => { try { const r = await dataFetch; state.root = ensureShape(r); state.originalHash = JSON.stringify(state.root.MiniSiteJson); populateForm(); byId('loading').classList.add('hidden'); byId('app').classList.remove('hidden'); tg.expand(); } catch (e) {} })();
+  </script>
+</body>
+</html>

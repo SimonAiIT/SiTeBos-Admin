@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiteBoS advanced - Operations & Sourcing Controller</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem' }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fafafa; color: #000000; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .card { background: white; border: 1px solid #eeeeee; }
+        
+        /* Stile Slider personalizzato */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: #000000; cursor: pointer; margin-top: -7px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.1s; }
+        input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e5e7eb; border-radius: 2px; }
+        .hide-arrows::-webkit-outer-spin-button, .hide-arrows::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col pb-10">
+
+    <!-- MENU LATERALE -->
+    <div id="menu-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300" onclick="toggleMenu()"></div>
+    <div id="menu-drawer" class="fixed top-0 left-0 h-full w-[300px] bg-white border-r border-border z-50 shadow-2xl -translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-5 border-b border-border flex justify-between items-center bg-gray-50/50">
+            <div>
+                <span class="px-2 py-0.5 bg-black text-white text-[8px] font-black uppercase rounded">SiteBoS Menu</span>
+                <h3 class="text-xs font-black uppercase text-gray-500 mt-1">Seleziona Sezione</h3>
+            </div>
+            <button onclick="toggleMenu()" class="w-8 h-8 rounded-full border border-border bg-white text-gray-500 hover:text-black flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-1">
+            <button onclick="selectMenuSection('tab-cfo', '🏛️ CFO Advisory')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 bg-black text-white" id="menu-tab-cfo">
+                <i class="fas fa-balance-scale text-sm w-5 text-center"></i> 🏛️ CFO Advisory
+            </button>
+            <button onclick="selectMenuSection('tab-bom', '⚙️ Distinta Base (BOM)')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-bom">
+                <i class="fas fa-cogs text-sm w-5 text-center"></i> ⚙️ Distinta Base (BOM)
+            </button>
+            <button onclick="selectMenuSection('tab-competitors', '🎯 Analisi Concorrenza')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-competitors">
+                <i class="fas fa-bullseye text-sm w-5 text-center"></i> 🎯 Analisi Concorrenza
+            </button>
+            <button onclick="selectMenuSection('tab-suppliers', '📦 Sourcing Fornitori')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-suppliers">
+                <i class="fas fa-box text-sm w-5 text-center"></i> 📦 Sourcing Fornitori
+            </button>
+            <button onclick="selectMenuSection('tab-locations', '📍 Aree & Riuniti')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-locations">
+                <i class="fas fa-map-marker-alt text-sm w-5 text-center"></i> 📍 Aree & Riuniti
+            </button>
+            <button onclick="selectMenuSection('tab-assets', '🛠️ Tecnologie Cliniche')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-assets">
+                <i class="fas fa-tools text-sm w-5 text-center"></i> 🛠️ Tecnologie Cliniche
+            </button>
+            <button onclick="selectMenuSection('tab-meta', '👥 Personale & Supporto')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-meta">
+                <i class="fas fa-users text-sm w-5 text-center"></i> 👥 Personale & Supporto
+            </button>
+            <button onclick="selectMenuSection('tab-fiscal', '💼 Tassazione & ENPAM')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-fiscal">
+                <i class="fas fa-briefcase text-sm w-5 text-center"></i> 💼 Tassazione & ENPAM
+            </button>
+        </div>
+    </div>
+
+    <!-- HEADER PRINCIPALE -->
+    <header class="bg-white border-b border-border sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center gap-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-md">SiteBoS advanced</span>
+                    <span class="text-xs text-gray-400 font-bold" id="header-version">V5.0</span>
+                </div>
+                <h1 class="text-xl font-black uppercase tracking-tight mt-1" id="header-owner">Centro Odontoiatrico Buscemi srl</h1>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest italic" id="header-subtitle">Prestazione: ...</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="hidden md:block text-right pr-4 border-r border-gray-200">
+                    <span class="block text-[9px] text-gray-400 font-black uppercase tracking-widest">Tempo Poltrona</span>
+                    <span class="text-lg font-black text-blue-600" id="header-time">0 min</span>
+                </div>
+                <div class="hidden md:block text-right pr-4 border-r border-gray-200">
+                    <span class="block text-[9px] text-gray-400 font-black uppercase tracking-widest">MDC Totale</span>
+                    <span class="text-lg font-black text-green-600" id="header-mdc">€ 0,00</span>
+                </div>
+                <button onclick="toggleMenu()" class="p-3 bg-black text-white rounded-2xl flex items-center justify-center transition-all duration-200">
+                    <i class="fas fa-bars text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTAINER PRINCIPALE -->
+    <main class="max-w-7xl w-full mx-auto px-6 mt-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- SIDEBAR: CONTROLLO DI GESTIONE & INPUT EDITABILI -->
+        <div class="lg:col-span-4 space-y-6">
+            <div class="card rounded-3xl p-6 space-y-5 shadow-sm border-gray-200 bg-white sticky top-28">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 block">📊 PARAMETRI DI BILANCIO</span>
+                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-[8px] font-black uppercase rounded">EDITABILI</span>
+                </div>
+                
+                <!-- INPUTS EDITABILI -->
+                <div class="space-y-3">
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Tariffa della Prestazione (€)</label>
+                        <input type="number" id="in-tariffa" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2.5 text-sm font-black text-black focus:outline-none focus:border-black transition-colors">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Costo Operatori Totale (€)</label>
+                            <input type="number" id="in-compenso" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Materiali Consumo (€)</label>
+                            <input type="number" id="in-materiali" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Costo Lab. Odontotec. (€)</label>
+                            <input type="number" id="in-lab" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Tempo Poltrona (Min)</label>
+                            <input type="number" id="in-tempo" oninput="recalculateAll()" class="hide-arrows w-full bg-blue-50 border border-blue-150 rounded-xl p-2 text-xs font-black text-blue-600 focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Costo Ora Poltrona (€/h)</label>
+                            <input type="number" id="in-poltrona" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Tasse Ordinario (%)</label>
+                            <input type="number" id="in-tasse" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SINTESI CARATTERISTICA -->
+                <div class="border-t border-border pt-5 space-y-2.5">
+                    <h3 class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Sintesi Caratteristica</h3>
+                    
+                    <div class="flex justify-between items-end text-xs">
+                        <span class="font-semibold text-gray-500">Ricavi Totali</span>
+                        <span class="font-black text-black" id="out-ricavi">€ 0.00</span>
+                    </div>
+                    <div class="flex justify-between items-end text-xs">
+                        <span class="font-semibold text-gray-500">Costi Variabili Diretti</span>
+                        <span class="font-black text-red-500" id="out-costi-var">€ 0.00</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-end pt-2">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-black">Margine Contribuzione</span>
+                        <span class="text-sm font-black text-green-600" id="out-mdc">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end text-xs border-b border-dashed border-border pb-2 pt-1">
+                        <span class="font-semibold text-gray-500">Costo Fisso Sedia Allocato</span>
+                        <span class="font-black text-gray-700" id="out-costo-fisso">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end pt-2">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-black">Reddito Operativo</span>
+                        <span class="text-sm font-black text-black" id="out-reddito">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end text-xs pb-2 border-b border-border">
+                        <span class="font-semibold text-gray-500">Fisco ed ENPAM stimati</span>
+                        <span class="font-black text-red-500" id="out-tasse">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end pt-2">
+                        <span class="text-[11px] font-black uppercase tracking-widest text-black">Utile Netto Stimato</span>
+                        <span class="text-xl font-black" id="out-utile">€ 0.00</span>
+                    </div>
+
+                    <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden mt-3">
+                        <div class="h-full transition-all duration-300" id="margin-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- PUNTO DI PAREGGIO -->
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl mt-4">
+                    <span class="text-[9px] font-black uppercase tracking-widest text-amber-700">🎯 Terapie per Break-Even</span>
+                    <div class="text-2xl font-black text-amber-900 mt-1" id="bep-units">Calcolo...</div>
+                    <p class="text-[9px] text-amber-700/80 font-medium leading-relaxed mt-1" id="bep-rationale"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- AREA DESTRA: CONTENUTI A SCHEDE -->
+        <div class="lg:col-span-8 space-y-6">
+            
+            <div class="flex justify-between items-center border-b border-border pb-3">
+                <div class="space-y-0.5">
+                    <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Sezione Attiva</span>
+                    <h2 class="text-xs font-black uppercase tracking-wider text-black" id="active-section-title">🏛️ CFO Advisory</h2>
+                </div>
+                <button onclick="toggleMenu()" class="px-3 py-1.5 bg-gray-100 rounded-xl text-[9px] font-black uppercase tracking-wider text-gray-600 hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-list-ul mr-1"></i> Tutte le sezioni
+                </button>
+            </div>
+
+            <!-- TAB CFO (DEFAULT) -->
+            <div id="tab-cfo" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <!-- HEALTH RATING -->
+                    <div class="md:col-span-4 card rounded-3xl p-6 flex flex-col justify-between items-center text-center bg-black text-white" id="cfo-health-card">
+                        <div class="space-y-2">
+                            <span class="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400">HEALTH RATING</span>
+                            <h3 class="text-sm font-black uppercase text-gray-200">Stato di Salute</h3>
+                        </div>
+                        <div class="py-6">
+                            <span class="px-4 py-2 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-md" id="label-health">VERIFICA...</span>
+                        </div>
+                        <p class="text-[9px] text-gray-400 leading-relaxed font-semibold" id="label-health-desc"></p>
+                    </div>
+
+                    <!-- ADVISORY TESTUALE -->
+                    <div class="md:col-span-8 card rounded-3xl p-6 space-y-3 border-gray-200 bg-white">
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">💡 STRATEGIA DI PREZZO & ADVISORY</span>
+                        <p class="text-xs text-gray-700 leading-relaxed font-medium" id="pricing-advisory-text"></p>
+                    </div>
+                </div>
+
+                <!-- SIMULATORE PREDITTIVO -->
+                <div class="card rounded-3xl p-6 space-y-6 border-gray-200 bg-white shadow-sm">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">🚀 SIMULATORE DI VOLUMI MENSILI</span>
+                            <p class="text-[10px] text-gray-500 font-medium mt-1">Sposta l'indicatore per simulare l'impatto sul bilancio (Volumi/Mese).</p>
+                        </div>
+                        <div class="bg-gray-100 border border-gray-200 px-4 py-2 rounded-xl text-center min-w-[80px]">
+                            <span id="slider-val" class="text-lg font-black text-black">50</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 px-2">
+                        <span class="text-xs font-bold text-gray-400">0</span>
+                        <input type="range" id="volume-slider" min="0" max="200" value="50" class="flex-1" oninput="updateSimulation()">
+                        <span class="text-xs font-bold text-gray-400">200</span>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-gray-100">
+                        <div class="bg-gray-50 border border-gray-100 p-3 rounded-2xl">
+                            <span class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Fatturato</span>
+                            <span id="sim-fatturato" class="text-sm font-black text-black">€0,00</span>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-100 p-3 rounded-2xl">
+                            <span class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Margine Totale</span>
+                            <span id="sim-margine" class="text-sm font-black text-green-600">€0,00</span>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-100 p-3 rounded-2xl">
+                            <span class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Costi Struttura</span>
+                            <span id="sim-costi" class="text-sm font-black text-gray-700">€0,00</span>
+                        </div>
+                        <div class="bg-green-50 border border-green-200 p-3 rounded-2xl" id="sim-utile-card">
+                            <span class="block text-[8px] font-black uppercase tracking-widest mb-1" id="sim-utile-label">Utile Netto</span>
+                            <span id="sim-utile" class="text-base font-black text-green-700">€0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RACCOMANDAZIONI -->
+                <div class="card rounded-3xl p-6 space-y-4 border-gray-200 bg-white">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">🛠️ RACCOMANDAZIONI OPERATIVE</span>
+                    <div class="space-y-2" id="cost-optimization-list"></div>
+                </div>
+            </div>
+
+            <!-- GLI ALTRI TAB GENERATI DINAMICAMENTE -->
+            <div id="tab-bom" class="tab-content space-y-4 hidden"><div id="bom-list-container" class="space-y-4"></div></div>
+            <div id="tab-suppliers" class="tab-content space-y-4 hidden"><div id="suppliers-list-container" class="space-y-4"></div></div>
+            <div id="tab-locations" class="tab-content space-y-4 hidden"><div id="locations-list-container" class="space-y-4"></div></div>
+            <div id="tab-assets" class="tab-content space-y-4 hidden"><div id="assets-list-container" class="space-y-4"></div></div>
+            <div id="tab-meta" class="tab-content space-y-4 hidden"><div id="meta-list-container" class="grid grid-cols-1 gap-4"></div></div>
+            <div id="tab-competitors" class="tab-content space-y-6 hidden">
+                <div class="card rounded-3xl p-6 bg-zinc-50 border-zinc-200">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 block mb-2">🎯 POSIZIONAMENTO DI MERCATO</span>
+                    <p class="text-xs text-zinc-700 font-medium leading-relaxed" id="market-pos-summary"></p>
+                </div>
+                <div id="competitor-list-container" class="space-y-4"></div>
+            </div>
+            
+            <!-- TAB TASSI E FISCO CON MODIFICHE DI BILANCIO ED ENPAM SELEZIONABILE -->
+            <div id="tab-fiscal" class="tab-content space-y-4 hidden">
+                <div class="card rounded-3xl p-6 space-y-4 border-gray-200 bg-white shadow-sm">
+                    <div class="flex justify-between items-center border-b border-border pb-3">
+                        <div class="space-y-1">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Inquadramento Fiscale Consigliato</span>
+                            <h3 class="text-sm font-black uppercase tracking-tight text-black" id="fiscal-regime-name">S.r.l. Ordinaria Commerciale</h3>
+                        </div>
+                    </div>
+
+                    <!-- STRUMENTO MODIFICA CONFIGURAZIONE DI BILANCIO SUL FISCO & ENPAM -->
+                    <div class="bg-gray-50 p-4 rounded-2xl border border-gray-150 space-y-3">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-gray-500 block">⚙️ STRUMENTI DI MODIFICA DEL BILANCIO</span>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-bold text-gray-400 uppercase">Aliquota ENPAM Societaria</label>
+                                <select id="select-enpam-rate" onchange="updateENPAMFromSelect()" class="w-full bg-white border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                                    <option value="2.0">2.0% (S.r.l. Ordinaria - L. 205/2017)</option>
+                                    <option value="0.5" selected>0.5% (Aliquota Ridotta STP / Accreditate)</option>
+                                    <option value="0.0">0.0% (Esente ENPAM)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-bold text-gray-400 uppercase">Costi Fissi Strutturali Annui (€)</label>
+                                <input type="number" id="in-fissi-annui" oninput="recalculateAll()" class="hide-arrows w-full bg-white border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PARAMETRI STATISTICI -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 py-2">
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Codice ATECO</span>
+                            <div class="text-lg font-black text-black mt-1" id="fiscal-ateco">86.23.00</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Coeff. Redditività</span>
+                            <div class="text-lg font-black text-black mt-1" id="fiscal-coeff">78%</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Aliquota Tasse S.r.l.</span>
+                            <div class="text-lg font-black text-black mt-1" id="fiscal-tax-rate">24%</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">ENPAM Societario</span>
+                            <div class="text-lg font-black text-black mt-1" id="fiscal-enpam-label">0.50%</div>
+                        </div>
+                    </div>
+                    
+                    <!-- BOX GIALLO RISOLTO E DINAMICO -->
+                    <div class="bg-amber-50/50 p-4 rounded-2xl border border-amber-200/60 text-xs text-amber-800 font-medium leading-relaxed" id="fiscal-explanation"></div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- LOGICA E DATI REALI HARDCODED -->
+    <script>
+        const rawPayload = [
+  {
+    "_id": "IT02564250849-SVC_5ZD1XG6Y",
+    "document_type": "ADVANCED_SERVICE_BLUEPRINT",
+    "version": "1.0",
+    "owner_instance_id": "IT02564250849",
+    "sop_id": "SVC_5ZD1XG6Y",
+    "metadata": {
+      "status": "DRAFT",
+      "created_at": "2026-06-05T09:18:32.482Z",
+      "last_updated_at": "2026-06-05T09:18:32.482Z"
+    },
+    "service_identity": {
+      "name": "Ortodonzia Intercettiva Per Bambini",
+      "sku": "SVC_5ZD1XG6Y",
+      "type": "SERVICE",
+      "short_description": "Il primo passo per un sorriso sano: correzione precoce e cura specializzata per i più piccoli.",
+      "long_description": "Affida il sorriso del tuo bambino al Centro Odontoiatrico Specialistico Buscemi. L'ortodonzia intercettiva è fondamentale nei primi anni per guidare la corretta crescita ossea e dentale, prevenendo complicazioni future. Con la nostra diagnosi di precisione e approccio multidisciplinare, offriamo un percorso risolutivo personalizzato per il benessere duraturo dei tuoi figli, garantendo attenzione umana e competenza clinica d'eccellenza."
+    },
+    "operating_benchmarks": {
+      "brand_tier": "PREMIUM_EXCELLENCE",
+      "positioning_coefficient": 1.3,
+      "geographic_coefficient": 0.75,
+      "combined_multiplier": 0.975,
+      "chair_hourly_rate_consolidated": 27.18,
+      "operators_hourly_rates": {
+        "Medico_Chirurgo_Odontoiatra": 62.4,
+        "Assistente_ASO": 16.9,
+        "Segretaria_Amministrativa": 14.95
+      },
+      "decomposed_machinery_costs": {
+        "Riunito_odontoiatrico_poltrona_clinica_attrezzata": 1.71,
+        "Scanner_intraorale_3D": 1.49,
+        "Autoclave_di_Classe_B_per_sterilizzazione": 0.27,
+        "PC_Workstation_con_software_di_pianificazione_ortodontica_3D": 0.37,
+        "Compressore_d_aria_medicale_essiccata": 0.23,
+        "Sistema_di_aspirazione_chirurgica_attiva": 0.25,
+        "Sistemi_di_depurazione_e_decontaminazione_delle_acque_del_riunito": 0.17
+      },
+      "decomposed_environments_costs": {
+        "Studio_Clinico_Ambulatorio": 9.82,
+        "Area_Reception_Accettazione": 5.89,
+        "Sala_di_Sterilizzazione": 3.93,
+        "Ufficio_preventivi_consulenze": 4.91
+      },
+      "balance_sheet_raccordo": {
+        "canoni_leasing_annui_IIC133": 14336,
+        "ammortamenti_materiali_annui_IIC138": 5860,
+        "canone_figurativo_immobile_IIC012": 13692.42,
+        "costi_gestione_stanza_IIC139": 76564,
+        "costo_personale_IIC134": 55930,
+        "costo_servizi_IIC132": 100133
+      }
+    },
+    "bill_of_materials": {
+      "estimated_total_cost": 117.57,
+      "estimated_total_time_minutes": 90,
+      "bom_steps": [
+        {
+          "subprocess_name": "Protocollo Diagnostico Intercettivo 3D",
+          "subprocess_sku": "CLINIC-PROC-ORTHO-INTERC",
+          "estimated_internal_cost": 101.25,
+          "estimated_cost_per_100_units": 8215,
+          "cost_scaling_rationale": "La produzione su scala di 100 unità consente di ottimizzare l'acquisto a volume dei puntali monouso dello scanner (-15% sul costo materiale) e di ridurre i tempi morti di setup clinico ed elaborazione dei report tramite la pianificazione di sessioni cliniche dedicate e sequenziali (-18.8% complessivo).",
+          "estimated_total_time_minutes": 90,
+          "calculation_breakdown": {
+            "chair_time_mins": 30,
+            "consumables": 19.2,
+            "depreciation": 2.26,
+            "staff_cost": 79.79
+          },
+          "stages": [
+            {
+              "stage_name": "Setup Operativo e Verifica",
+              "steps": [
+                {
+                  "step_name": "Verifica Strumentazione 3D",
+                  "instructions": "Eseguire la calibrazione dello scanner intraorale 3D e verificare lo stato di connettività con il server di backup protetto nel rispetto delle normative di sicurezza dei dati clinici. Sanificare le impugnature e preparare le barriere protettive.",
+                  "estimated_time_minutes": 10,
+                  "required_skills": [
+                    "Assistente_ASO"
+                  ],
+                  "required_resources": [
+                    "Guanti monouso in nitrile",
+                    "Mascherina chirurgica",
+                    "Salviette disinfettanti per superfici"
+                  ]
+                }
+              ]
+            },
+            {
+              "stage_name": "Admission e Compliance Legale",
+              "steps": [
+                {
+                  "step_name": "Sottoscrizione Consenso Informato e Privacy",
+                  "instructions": "Presentare al genitore o tutore legale del paziente pediatrico l'informativa privacy ai sensi dell'Art. 9 GDPR e il consenso informato per la prestazione ortodontica diagnostica ai sensi della Legge 219/2017, raccogliendo le firme obbligatorie.",
+                  "estimated_time_minutes": 15,
+                  "required_skills": [
+                    "Segretaria_Amministrativa"
+                  ],
+                  "required_resources": [
+                    "Penna biro monouso"
+                  ]
+                }
+              ]
+            },
+            {
+              "stage_name": "Protocollo Diagnostico Intercettivo 3D",
+              "steps": [
+                {
+                  "step_name": "Acquisizione Scansione 3D",
+                  "instructions": "Accogliere il piccolo paziente sul riunito odontoiatrico. Eseguire la scansione ottica intraorale digitale 3D di entrambe le arcate dentarie e del record occlusale, garantendo il comfort del bambino ed evitando riflessi o zone d'ombra nel file STL generato.",
+                  "estimated_time_minutes": 20,
+                  "required_skills": [
+                    "Medico_Chirurgo_Odontoiatra",
+                    "Assistente_ASO"
+                  ],
+                  "required_resources": [
+                    "Puntale scanner monouso",
+                    "Guanti monouso in nitrile",
+                    "Mascherina chirurgica",
+                    "Cuffia monouso",
+                    "Bavaglio monouso",
+                    "Cannula aspirasaliva"
+                  ]
+                }
+              ]
+            },
+            {
+              "stage_name": "Elaborazione Output",
+              "steps": [
+                {
+                  "step_name": "Stesura Report di Crescita 3D",
+                  "instructions": "Analizzare i modelli tridimensionali esportati tramite il software di pianificazione ortodontica 3D. Elaborare lo studio cefalometrico digitale e redigere il Report di Crescita personalizzato definendo il timing terapeutico ottimale.",
+                  "estimated_time_minutes": 30,
+                  "required_skills": [
+                    "Medico_Chirurgo_Odontoiatra"
+                  ],
+                  "required_resources": []
+                }
+              ]
+            },
+            {
+              "stage_name": "Consegna e Chiusura",
+              "steps": [
+                {
+                  "step_name": "Consulto di Restituzione",
+                  "instructions": "Presentare dettagliatamente al genitore i risultati emersi dall'analisi 3D e illustrare il piano terapeutico intercettivo pediatrico personalizzato, rispondendo a dubbi clinici e raccogliendo la firma di ricezione del report.",
+                  "estimated_time_minutes": 15,
+                  "required_skills": [
+                    "Medico_Chirurgo_Odontoiatra"
+                  ],
+                  "required_resources": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "environments": [
+      {
+        "loc_id": "loc_studio_clinico_ambulatorio",
+        "loc_name": "Studio Clinico / Ambulatorio",
+        "temperature": "Temperatura controllata (20-24°C), umidità relativa 40-60%, sistema di aspirazione chirurgica attiva integrato, ricambio d'aria forzato continuo (almeno 6 volumi/ora) e compressore d'aria medicale essiccata.",
+        "estimated_internal_cost": 4.91,
+        "cost_scaling_rationale": "Il costo d'uso dello Studio Clinico è calcolato su 30 minuti totali di occupazione reale (10 minuti di setup operativo iniziale e 20 minuti di acquisizione scansione 3D del piccolo paziente) moltiplicati per la tariffa oraria reale riconciliata di bilancio di € 9,82/ora, con formula: 30 * (9,82 / 60) = € 4,91.",
+        "associated_subprocess_skus": [
+          "CLINIC-PROC-ORTHO-INTERC"
+        ],
+        "maintenance_checklist": [
+          {
+            "task_name": "Sanificazione del Riunito Odontoiatrico e delle Superfici di Contatto",
+            "frequency": "DAILY",
+            "instructions": "Rimuovere tutte le barriere monouso. Nebulizzare e strofinare un disinfettante di livello intermedio ad azione rapida (es. sali di ammonio quaternario e alcol) su tavoletta portastrumenti, manipoli, poltrona, poggiatesta, lampada scialitica e sputacchiera. Attendere il tempo di contatto raccomandato dal produttore (minimo 2 minuti) prima di asciugare con carta monouso."
+          },
+          {
+            "task_name": "Sanificazione e Decontaminazione dello Scanner Intraorale 3D",
+            "frequency": "DAILY",
+            "instructions": "Rimuovere il puntale monouso dello scanner e gettarlo nei rifiuti speciali. Pulire il corpo dello scanner e il cavo di collegamento utilizzando esclusivamente salviette disinfettanti approvate dal produttore prive di alcol aggressivo per evitare l'opacizzazione delle lenti ottiche."
+          },
+          {
+            "task_name": "Flussaggio e Decontaminazione dei Circuiti Idrici del Riunito",
+            "frequency": "DAILY",
+            "instructions": "Attivare il ciclo di flussaggio automatico dei condotti interni del riunito (sistema anti-legionella) per almeno 2 minuti all'inizio e al termine di ogni giornata di lavoro, utilizzando la soluzione disinfettante integrata nei sistemi di depurazione delle acque."
+          }
+        ]
+      },
+      {
+        "loc_id": "loc_area_reception_accettazione",
+        "loc_name": "Area Reception / Accettazione",
+        "temperature": "Temperatura comfort (21-23°C), climatizzazione standard, ventilazione naturale ed artificiale integrata.",
+        "estimated_internal_cost": 1.47,
+        "cost_scaling_rationale": "Il costo d'uso dell'Area Reception è calcolato su 15 minuti di occupazione necessari alla gestione burocratica (accettazione del paziente pediatrico, identificazione del tutore e firma digitale/cartacea del consenso informato e della privacy), moltiplicati per la tariffa oraria reale riconciliata di € 5,89/ora, con formula: 15 * (5,89 / 60) = € 1,47.",
+        "associated_subprocess_skus": [
+          "CLINIC-PROC-ORTHO-INTERC"
+        ],
+        "maintenance_checklist": [
+          {
+            "task_name": "Sanificazione Postazione Accettazione e Dispositivi di Firma",
+            "frequency": "DAILY",
+            "instructions": "Pulire il bancone di ricezione, la tastiera, il mouse e il dispositivo di firma elettronica (tablet o tavoletta grafica) con una soluzione idroalcolica al 70% o salviette disinfettanti monouso dopo il passaggio di ciascun nucleo familiare."
+          }
+        ]
+      },
+      {
+        "loc_id": "loc_ufficio_preventivi_consulenze",
+        "loc_name": "Ufficio preventivi / Area consulenza",
+        "temperature": "Temperatura di comfort (20-22°C), illuminazione idonea alla lettura dei monitor e della reportistica clinica, assenza di rumori molesti.",
+        "estimated_internal_cost": 3.68,
+        "cost_scaling_rationale": "Il costo d'uso dell'Ufficio Consulenze si basa su 45 minuti complessivi di occupazione (30 minuti del medico per lo studio cefalometrico digitale e stesura del report di crescita 3D sulla workstation dedicate, più 15 minuti di consulto vis-à-vis per la restituzione ai genitori), moltiplicati per la tariffa oraria reale riconciliata di € 4,91/ora, con formula: 45 * (4,91 / 60) = € 3,68.",
+        "associated_subprocess_skus": [
+          "CLINIC-PROC-ORTHO-INTERC"
+        ],
+        "maintenance_checklist": [
+          {
+            "task_name": "Sanificazione Postazione di Lavoro e Monitor Clinici",
+            "frequency": "DAILY",
+            "instructions": "Detergere la scrivania, le sedie dei pazienti e della segreteria, la tastiera, il mouse e i monitor di pianificazione 3D con un panno in microfibra imbevuto di soluzione disinfettante neutra e non abrasiva, per evitare danni ai pannelli antiriflesso."
+          }
+        ]
+      },
+      {
+        "loc_id": "loc_sala_di_sterilizzazione",
+        "loc_name": "Sala di Sterilizzazione",
+        "temperature": "Pressione negativa per evitare la diffusione di contaminanti aerodispersi, ricambio forzato d'aria continuo (10 volumi/ora), isolamento acustico per il funzionamento dei macchinari.",
+        "estimated_internal_cost": 0.66,
+        "cost_scaling_rationale": "Il costo d'uso della Sala di Sterilizzazione è stimato su 10 minuti di occupazione per il ciclo post-operatorio di decontaminazione, detersione manuale/meccanica, asciugatura, imbustamento e sterilizzazione dei dispositivi riutilizzabili usati nella seduta, moltiplicati per la tariffa oraria reale riconciliata di € 3,93/ora, con formula: 10 * (3,93 / 60) = € 0,66.",
+        "associated_subprocess_skus": [
+          "CLINIC-PROC-ORTHO-INTERC"
+        ],
+        "maintenance_checklist": [
+          {
+            "task_name": "Ciclo Completo di Decontaminazione e Sterilizzazione dello Strumentario",
+            "frequency": "DAILY",
+            "instructions": "Immergere gli strumenti metallici e i manipoli autoclavabili nella vasca di decontaminazione chimica. Successivamente, eseguire il passaggio in vasca a ultrasuoni o termodisinfettore. Asciugare accuratamente gli strumenti, imbustarli con la termosigillatrice applicando l'etichetta con codice a barre/lotto e avviare il ciclo di sterilizzazione in Autoclave di Classe B a 134°C per il tempo standardizzato. Conservare i test fisici e chimici di avvenuta sterilizzazione."
+          },
+          {
+            "task_name": "Detersione e Sanificazione delle Vasche e dei Piani di Lavoro della Linea Sporco/Pulito",
+            "frequency": "DAILY",
+            "instructions": "Sanificare separatamente le superfici della 'zona sporca' (accettazione e lavaggio) e della 'zona pulita' (confezionamento e stoccaggio) con disinfettante a base di cloro attivo o alcolico. Evitare assolutamente la contaminazione incrociata tra le due aree."
+          }
+        ]
+      }
+    ],
+    "assets": [
+      {
+        "asset_id": "AST-RIUNITO-PREMIUM-01",
+        "asset_name": "Riunito odontoiatrico (poltrona clinica attrezzata)",
+        "asset_sku": "AST-CLINIC-RIUNITO-PREMIUM",
+        "notes": "Poltrona clinica polifunzionale per il posizionamento ergonomico del paziente pediatrico durante l'acquisizione delle scansioni 3D e l'allineamento dei protocolli clinici.",
+        "estimated_internal_cost": 0.57,
+        "cost_scaling_rationale": "Calcolo basato su 20 minuti di utilizzo attivo durante la fase di scansione clinica intraorale su una tariffa oraria reale raccordata di € 1,71/ora: 20 minuti * (€ 1,71 / 60) = € 0,57.",
+        "associated_subprocess_skus": [
+          "CLINIC-PROC-ORTHO-INTERC"
+        ],
+        "maintenance_checklist": [
+          {
+            "task_name": "Sanificazione e decontaminazione dei condotti idrici integrati",
+            "frequency": "DAILY",
+            "instructions": "Eseguire il lavaggio dei condotti interni con soluzione igienizzante a base di perossido di idrogeno prima dell'inizio delle attività e tra un paziente e l'altro."
+          },
+          {
+            "task_name": "Pulizia e rimozione dei residui dai filtri delle cannule di aspirazione",
+            "frequency": "DAILY",
+            "instructions": "Smontare i filtri situati alla base del riunito, lavare sotto acqua corrente e inserire pastiglie disinfettanti specifiche antifoam."
+          },
+          {
+            "task_name": "Verifica di sicurezza elettrica e conformità CEI EN 62353",
+            "frequency": "BIENNIALLY",
+            "instructions": "Far eseguire da un tecnico esterno abilitato le prove di dispersione elettrica e la continuità del conduttore di protezione."
+          }
+        ]
+      },
+      {
+        "asset_id": "AST-SCANNER-3D-01",
+        "asset_name": "Scanner intraorale 3D",
+        "asset_sku": "AST-CLINIC-SCANNER-3D",
+        "notes": "Sistema optoelettronico di rilevamento d'impronta digitale tridimensionale ad alta velocità per l'ortodonzia digitale pediatrica.",
+        "estimated_internal_cost": 0.75,
+        "cost_scaling_rationale": "Calcolo basato su 30 minuti totali di impiego (10 minuti per il setup e calibrazione iniziale e 20 minuti per l'acquisizione clinica attiva) applicando la tariffa oraria raccordata di € 1,49/ora: 30 minuti * (€ 1,49 / 60) = € 0,745, arrotondato a € 0,75.",
+        "associated_subprocess_skus": [
+          "CLINIC-PROC-ORTHO-INTERC"
+        ],
+        "maintenance_checklist": [
+          {
+            "task_name": "Calibrazione ottica e geometrica dello scanner",
+            "frequency": "WEEKLY",
+            "instructions": "Eseguire la procedura guidata tramite l'apposito tool di calibrazione metallico fornito dal produttore per assicurare l'accuratezza micrometrica della mesh."
+          },
+          {
+            "task_name": "Pulizia e sterilizzazione in autoclave dei puntali di scansione",
+            "frequency": "DAILY",
+            "instructions": "Rimuovere il puntale ottico, detergerlo con panno morbido non abrasivo e sterilizzarlo in autoclave classe B secondo i cicli standard raccomandati (max 134°C)."
+          }
+        ]
+      },
+      {
+        "asset_id": "AST-AUTOCLAVE-B-01",
+        "asset_name": "Autoclave di Classe B per sterilizzazione dello strumentario",
+        "asset_sku": "AST-CLINIC-STERIL-AUTOCLAVE",
+        "notes": "Dispositivo di sterilizzazione medica a vapore saturo con vuoto frazionato per la messa in sicurezza dello strumentario diagnostico e dei manipoli.",
+        "estimated_internal_cost": 0.14,
+        "cost_scaling_rationale": "Calcolo basato su un ciclo operativo standard di sterilizzazione e condizionamento di 30 minuti totali, rapportato alla tariffa oraria di ammortamento reale di € 0,27/ora: 30 minuti * (€ 0,27 / 60) = € 0,135, arrotondato a € 0,14.",
+        "associated_subprocess_skus": [
+          "CLINIC-PROC-ORTHO-INTERC"
+        ],
+        "maintenance_checklist": [
+          {
+            "task_name": "Esecuzione test quotidiani obbligatori (Helix Test e Vacuum Test)",
+            "frequency": "DAILY",
+            "instructions": "Eseguire il Vacuum Test a camera fredda per la tenuta del vuoto, seguito dall'Helix Test per verificare la penetrazione del vapore nei corpi cavi."
+          },
+          {
+            "task_name": "Controllo biologico con fiale di spore",
+            "frequency": "WEEKLY",
+            "instructions": "Inserire una fiala di spore di Geobacillus stearothermophilus nella camera di sterilizzazione; al termine del ciclo, incubarla a 57°C per verificare l'annullamento della carica batterica."
+          },
+          {
+            "task_name": "Taratura e validazione periodica dei sensori di pressione e temperatura",
+            "frequency": "YEARLY",
+            "instructions": "Incaricare un tecnico qualificato per la verifica dei trasduttori e rilascio di certificato di conformità tecnica ai sensi della norma UNI EN 13060."
+          }
+        ]
+      },
+      {
+        "asset_id": "AST-WORKSTATION-ORTHO-01",
+        "asset_name": "PC Workstation con software di analisi ortodontica 3D e gestionale clinico",
+        "asset_sku": "AST-CLINIC-IT-WORKSTATION",
+        "notes": "Unità di calcolo dedicata all'elaborazione dei modelli STL, tracciamento cefalometrico digitale e stesura del report diagnostico ortodontico.",
+        "estimated_internal_cost": 0.37,
+        "cost_scaling_rationale": "Calcolo basato su 60 minuti totali di utilizzo del sistema (10 minuti setup, 20 minuti visualizzazione in tempo reale della scansione, 30 minuti stesura cefalometria e report di crescita) alla tariffa oraria raccordata di € 0,37/ora: 60 minuti * (€ 0,37 / 60) = € 0,37.",
+        "associated_subprocess_skus": [
+          "CLINIC-PROC-ORTHO-INTERC"
+        ],
+        "maintenance_checklist": [
+          {
+            "task_name": "Verifica del backup automatico crittografato",
+            "frequency": "DAILY",
+            "instructions": "Accertarsi del corretto trasferimento dei file STL e delle schede dei pazienti pediatrici sul server sicuro in linea con il GDPR."
+          },
+          {
+            "task_name": "Aggiornamento patch del software di pianificazione 3D e database",
+            "frequency": "MONTHLY",
+            "instructions": "Verificare la presenza di aggiornamenti del software ortodontico per correggere bug analitici e migliorare l'affidabilità degli algoritmi cefalometrici."
+          }
+        ]
+      },
+      {
+        "asset_id": "AST-COMPRESSORE-01",
+        "asset_name": "Compressore d'aria medicale essiccata",
+        "asset_sku": "AST-CLINIC-AIR-COMPRESSOR",
+        "notes": "Generatore di aria compressa per uso odontoiatrico, essiccata e priva di olio, essenziale per il funzionamento della siringa aria/acqua del riunito.",
+        "estimated_internal_cost": 0.08,
+        "cost_scaling_rationale": "Calcolo basato su 20 minuti di funzionamento simultaneo all'uso attivo del riunito durante la seduta di scansione alla tariffa oraria raccordata di € 0,23/ora: 20 minuti * (€ 0,23 / 60) = € 0,0767, arrotondato a € 0,08.",
+        "associated_subprocess_skus": [
+          "CLINIC-PROC-ORTHO-INTERC"
+        ],
+        "maintenance_checklist": [
+          {
+            "task_name": "Scarico della condensa accumulata nel serbatoio",
+            "frequency": "WEEKLY",
+            "instructions": "Aprire manualmente la valvola di scarico inferiore del serbatoio per far defluire l'umidità condensata ed evitare la corrosione interna e la proliferazione di funghi."
+          },
+          {
+            "task_name": "Sostituzione filtri dell'aria ad alta efficienza",
+            "frequency": "YEARLY",
+            "instructions": "Sostituire i filtri di aspirazione dell'aria e controllare le pastiglie di essiccazione per garantire che l'aria erogata rimanga medicalmente pura."
+          }
+        ]
+      },
+      {
+        "asset_id": "AST-ASPIRATORE-01",
+        "asset_name": "Sistema di aspirazione chirurgica attiva",
+        "asset_sku": "AST-CLINIC-SUCTION-UNIT",
+        "notes": "Centrale di aspirazione ad anello umido che garantisce la corretta rimozione dei fluidi orali durante le procedure diagnostiche.",
+        "estimated_internal_cost": 0.08,
+        "cost_scaling_rationale": "Calcolo basato su 20 minuti di aspirazione clinica attiva nella fase di scansione alla tariffa oraria raccordata di € 0,25/ora: 20 minuti * (€ 0,25 / 60) = € 0,0833, arrotondato a € 0,08.",
+        "associated_subprocess_skus": [
+          "CLINIC-PROC-ORTHO-INTERC"
+        ],
+        "maintenance_checklist": [
+          {
+            "task_name": "Lavaggio e decontaminazione chimica delle tubature di aspirazione",
+            "frequency": "DAILY",
+            "instructions": "Aspirare almeno 1 litro di soluzione disinfettante non schiumogena per dissolvere depositi organici e prevenire la formazione di biofilm batterici."
+          },
+          {
+            "task_name": "Controllo e pulizia del filtro di sbarramento della centrale d'aspirazione",
+            "frequency": "WEEKLY",
+            "instructions": "Rimuovere la griglia del filtro, ripulirla dai detriti grossolani e disinfettarla prima del reinserimento per preservare la potenza di vuoto."
+          }
+        ]
+      },
+      {
+        "asset_id": "AST-DEPURATORE-ACQUA-01",
+        "asset_name": "Sistemi di depurazione e decontaminazione delle acque del riunito",
+        "asset_sku": "AST-CLINIC-WATER-PURIFIER",
+        "notes": "Sistema di filtrazione e dosaggio biocida integrato per garantire la prevenzione della legionella nei flussi d'acqua diretti alla cavità orale del paziente.",
+        "estimated_internal_cost": 0.06,
+        "cost_scaling_rationale": "Calcolo basato su 20 minuti di alimentazione idrica del riunito durante la seduta diagnostica alla tariffa oraria raccordata di € 0,17/ora: 20 minuti * (€ 0,17 / 60) = € 0,0566, arrotondato a € 0,06.",
+        "associated_subprocess_skus": [
+          "CLINIC-PROC-ORTHO-INTERC"
+        ],
+        "maintenance_checklist": [
+          {
+            "task_name": "Flussaggio dei circuiti idrici (procedura anti-ristagno)",
+            "frequency": "DAILY",
+            "instructions": "Eseguire un flussaggio a scarico libero di tutti i condotti idrici per almeno 2 minuti all'apertura dello studio e per 30 secondi tra un paziente e l'altro."
+          },
+          {
+            "task_name": "Sostituzione cartucce filtranti e sanificanti",
+            "frequency": "MONTHLY",
+            "instructions": "Sostituire i filtri di microfiltrazione o rabboccare il livello dell'agente igienizzante a base di ioni d'argento o perossido secondo le specifiche del produttore."
+          }
+        ]
+      }
+    ],
+    "market_and_fiscal_intelligence": {
+      "market_positioning_summary": "Il prezzo di €250,00 del Centro Odontoiatrico Buscemi si posiziona nella fascia medio-alta del mercato regionale siciliano (benchmark €150-€300) per lo studio del caso ortodontico pediatrico. Lo studio si differenzia nettamente dai concorrenti locali di Menfi (che utilizzano metodiche tradizionali e non pubblicano tariffe online) grazie alla tangibilità del 'Report di Crescita 3D' e all'adozione sistematica del flusso digitale (scanner intraorale 3D), neutralizzando l'attrattiva della prima visita gratuita delle grandi catene.",
+      "competitors": [
+        {
+          "name": "Studio Dentistico Dott. Pietro Cacioppo",
+          "distance_km": 0.7,
+          "url": "https://maps.google.com/?cid=14107607642082206374",
+          "estimated_price": 0,
+          "usp_gap_strengths": [
+            "Forte radicamento storico locale",
+            "Fidelizzazione dei pazienti sul territorio di Menfi"
+          ],
+          "usp_gap_weaknesses": [
+            "Assenza di protocolli diagnostici digitali strutturati",
+            "Mancanza di scanner intraorale 3D in studio (rinvio a centri radiologici esterni)",
+            "Assenza di trasparenza tariffaria online"
+          ]
+        },
+        {
+          "name": "Studio Dentistico Dottor Rino Sutera",
+          "distance_km": 1.2,
+          "url": "https://maps.google.com/?cid=10137431845332376982",
+          "estimated_price": 0,
+          "usp_gap_strengths": [
+            "Studio storico di riferimento nel territorio di Menfi",
+            "Esperienza consolidata in pedodonzia ed ortodonzia"
+          ],
+          "usp_gap_weaknesses": [
+            "Assenza di un pacchetto standardizzato di screening digitale con report finale cartaceo",
+            "Utilizzo di impronte tradizionali in alginato (minor comfort pediatrico)",
+            "Tariffario non pubblicato online"
+          ]
+        },
+        {
+          "name": "Studio Dentistico Falco Dott. Nicola",
+          "distance_km": 20,
+          "url": "https://maps.google.com/?cid=3612701128993978934",
+          "estimated_price": 0,
+          "usp_gap_strengths": [
+            "Ottima reputazione digitale",
+            "Studio tecnologicamente avanzato e moderno",
+            "Posizionamento di mercato medio-alto"
+          ],
+          "usp_gap_weaknesses": [
+            "Sito a Sciacca, distanza geografica di 20 km scomoda per controlli frequenti",
+            "Nessuna informazione sui prezzi della diagnostica ortodontica reperibile online"
+          ]
+        }
+      ],
+      "strategic_recommendations": [
+        "Smantellare l'argomentazione della prima visita gratuita promuovendo il protocollo come un processo di ingegneria biologica diagnostica avanzata della durata di 90 minuti.",
+        "Sfruttare il 'Report di Crescita 3D' come elemento fisico e tangibile per giustificare il valore e la professionalità del servizio agli occhi dei genitori.",
+        "Focalizzare la comunicazione sul massimo comfort della scansione ottica intraorale 3D per i bambini, eliminando il fastidio e l'ansia da impronta tradizionale (alginato).",
+        "Applicare una strategia di incentivo alla conversione stornando il costo della diagnosi (€250,00) dal preventivo finale di trattamento ortodontico attivo se accettato entro 30 giorni."
+      ],
+      "fiscal_analysis": {
+        "regime_name": "Regime Ordinario IRES (Società a Responsabilità Limitata)",
+        "activity_code": "ATECO 86.23.00 (Attività degli studi odontoiatrici)",
+        "profitability_coefficient": 0.78,
+        "income_tax_rate": 0.24,
+        "social_security_rate": 0.195,
+        "total_estimated_tax_burden_ratio": 0.141,
+        "is_startup_rate_applied": false
+      },
+      "meta_operators_overhead": [
+        {
+          "role": "Assistente alla Poltrona (ASO)",
+          "allocated_cost": 9,
+          "allocation_rationale": "Quota ASO calcolata su un costo orario aziendale stimato di €18,00 per complessivi 30 minuti di impiego (10 min setup tecnologico/sanificazione e 20 min assistenza attiva alla scansione 3D)."
+        },
+        {
+          "role": "Segreteria Amministrativa",
+          "allocated_cost": 4,
+          "allocation_rationale": "Quota Segreteria calcolata su un costo orario aziendale di €16,00 per 15 minuti dedicati alle procedure di accettazione, compilazione cartella clinica, consenso informato L.219/2017 e adempimenti privacy GDPR."
+        },
+        {
+          "role": "Consulente Fiscale e Controllo Gestione",
+          "allocated_cost": 5,
+          "allocation_rationale": "Quota forfettaria per singola prestazione per la gestione della contabilità aziendale della S.r.l., bilancio ordinario ed elaborazione dell'adempimento ENPAM sul fatturato della struttura (0.5% di solidarietà)."
+        }
+      ],
+      "mapped_extra_options": [
+        {
+          "option_name": "Modello Fisico Arcate Stampato in 3D (Resina)",
+          "catalog_extra_price": 50,
+          "associated_subprocess_sku": "CLINIC-PROC-ORTHO-INTERC"
+        },
+        {
+          "option_name": "Studio Cefalometrico Digitale Extra con Tracciato Predittivo",
+          "catalog_extra_price": 80,
+          "associated_subprocess_sku": "CLINIC-PROC-ORTHO-INTERC"
+        }
+      ]
+    },
+    "financial_simulations": {
+      "pricing_summary": {
+        "catalog_price": 250,
+        "currency": "EUR",
+        "competitor_average_price_benchmark": 0
+      },
+      "cost_breakdown_unit": {
+        "direct_materials_cost": 19.2,
+        "dental_lab_cost": 0,
+        "medical_collaborator_fee": 67.6,
+        "total_direct_variable_costs_unit": 86.8,
+        "contribution_margin_unit": 163.2,
+        "chair_time_cost_fixed": 30.77,
+        "total_operating_clinical_cost_unit": 117.57,
+        "operating_income_unit": 132.43,
+        "clinical_cost_calculation_rationale": "Il costo totale della prestazione (€117,57) e' composto da costi variabili clinici diretti pari a €86,80 (consumabili di siringa, puntale monouso scanner 3D e DPI per €19,20, oltre al compenso orario raccordato del medico pari a €67,60 per 65 minuti di lavoro effettivo complessivo) e da costi fissi operativi di sedia pari a €30,77. Questi ultimi includono la quota d'uso degli ambienti fisici stimata in €10,72, l'ammortamento orario dei macchinari tecnologici per €2,05 e l'incidenza dei meta-operatori di supporto per €18,00 (ASO, segreteria e gestione fiscale)."
+      },
+      "fiscal_and_previdential_impact": {
+        "assumed_taxation_regime": "Regime Ordinario IRES (Societa' a Responsabilita' Limitata)",
+        "enpam_previdential_rate": 0.005,
+        "estimated_tax_burden_ratio_on_revenue": 0.141,
+        "estimated_tax_and_previdential_burden_value": 35.25,
+        "fiscal_and_previdential_calculation_rationale": "L'accantonamento fiscale e previdenziale sul fatturato caratteristico e' calcolato applicando l'incidenza totale reale stimata del 14,10% (pari a €35,25 a prestazione). Questa percentuale ingloba l'imposta sul reddito societario (IRES) rettificata per coefficiente di redditivita' del settore odontoiatrico e il contributo di solidarieta' ENPAM dello 0,5% dovuto dalle strutture societarie accreditate/autorizzate sul fatturato lordo."
+      },
+      "predictive_volume_simulation": {
+        "scenarios": [
+          {
+            "monthly_volume": 10,
+            "total_revenues": 2500,
+            "total_direct_variable_costs": 868,
+            "total_contribution_margin": 1632,
+            "total_fixed_chair_costs_allocated": 307.7,
+            "total_projected_operating_income": 1324.3,
+            "agenda_saturation_percentage": 1.3
+          },
+          {
+            "monthly_volume": 50,
+            "total_revenues": 12500,
+            "total_direct_variable_costs": 4340,
+            "total_contribution_margin": 8160,
+            "total_fixed_chair_costs_allocated": 1538.5,
+            "total_projected_operating_income": 6621.5,
+            "agenda_saturation_percentage": 6.7
+          },
+          {
+            "monthly_volume": 100,
+            "total_revenues": 25000,
+            "total_direct_variable_costs": 8680,
+            "total_contribution_margin": 16320,
+            "total_fixed_chair_costs_allocated": 3077,
+            "total_projected_operating_income": 13243,
+            "agenda_saturation_percentage": 13.3
+          }
+        ],
+        "no_show_sensitivity_analysis": {
+          "no_show_rate_5_percent_loss": 816,
+          "no_show_rate_10_percent_loss": 1632,
+          "impact_analysis_comment": "Un tasso di no-show del 5% su una base di 100 trattamenti mensili genera una perdita di Margine di Contribuzione pari a €816,00, a fronte di 2,5 ore di sedia rimaste improduttive. Se il tasso sale al 10%, la perdita raddoppia a €1.632,00 (5 ore sedia sprecate). L'inefficienza non incide solo sul mancato ricavo, ma drena marginalita' poiche' i costi fissi del personale di sedia (ASO e segreteria) e i costi di struttura della clinica continuano a decorrere linearmente."
+        },
+        "break_even_point_metrics": {
+          "allocated_budget_percentage": 0.1,
+          "allocated_overhead_value": 11045.24,
+          "break_even_units_annually": 68,
+          "break_even_chair_hours_annually": 34,
+          "break_even_calculation_rationale": "Il Break-Even Point e' stato calcolato secondo il metodo del Sales Mix allocando a questa prestazione di front-end diagnostico una quota pari al 10% dei costi fissi strutturali totali annui dello studio (€11.045,24 su un totale di €110.452,42 per le 3 poltrone attive). Dividendo questa quota per il Margine di Contribuzione unitario (€163,20), si ottiene una soglia di pareggio di 68 prestazioni annue. Il raggiungimento di tale soglia richiede un'occupazione reale delle poltrone dello studio pari a sole 34 ore all'anno."
+        }
+      }
+    },
+    "strategic_clinical_analysis": {
+      "clinical_financial_health_rating": "HIGH_PROFITABILITY",
+      "pricing_and_tariff_strategy_advisory": "La prestazione presenta un'eccellente marginalita' operativa caratteristica (52,9% del prezzo di catalogo) e si posiziona idealmente nella fascia Premium del mercato locale di Menfi, superando i competitor che ancora propongono prime visite ortodontiche diagnostiche gratuite o non digitalizzate. Lo studio deve mantenere ferma la tariffa di €250,00, promuovendo il servizio non come semplice visita ma come 'Ingegneria Diagnostica della Crescita Pediatrica 3D', un protocollo clinico-tecnologico di 90 minuti supportato da scansione ottica intraorale e consegna fisica del report cartaceo. Per massimizzare le conversioni dei successivi piani terapeutici di ortodonzia attiva (back-end ad altissimo valore), si consiglia di applicare una formula contrattuale di incentivo: stornare l'intero costo della diagnosi (€250,00) dal preventivo del trattamento attivo, purche' quest'ultimo venga firmato ed accettato dai genitori entro un massimo di 30 giorni. Dal punto di vista medico-legale, e' indispensabile far firmare al genitore/tutore il consenso informato conforme alla Legge 219/2017 e l'informativa GDPR per il trattamento dei dati biometrici 3D (Art. 9 GDPR) prima dell'inizio della scansione.",
+      "extra_options_clinical_evaluation": [
+        {
+          "option_name": "Modello Fisico Arcate Stampato in 3D (Resina)",
+          "revenue": 50,
+          "unit_cost_scaled": 15,
+          "margin_scaled": 35,
+          "evaluation_comment": "Opzione di upsell tangibile ad alto impatto emotivo per i genitori. Il costo della resina e l'usura della stampante 3D incidono marginalmente, garantendo un margine incrementale di €35,00 a modello."
+        },
+        {
+          "option_name": "Studio Cefalometrico Digitale Extra con Tracciato Predittivo",
+          "revenue": 80,
+          "unit_cost_scaled": 25,
+          "margin_scaled": 55,
+          "evaluation_comment": "Upsell clinico ad alto valore aggiunto. Sfrutta il software di pianificazione 3D gia' ammortizzato e richiede solo 15 minuti aggiuntivi di analisi da parte del medico, generando un eccellente ritorno economico."
+        }
+      ],
+      "clinical_cost_optimization_recommendations": [
+        "Negoziare l'acquisto a volume dei puntali monouso dello scanner 3D per abbattere il costo del materiale del 15% su base annua.",
+        "Implementare un sistema automatico di recall via SMS/WhatsApp a 48 ore dall'appuntamento, richiedendo una conferma attiva via link per azzerare l'incidenza dei no-show d'agenda.",
+        "Accorpare la stesura del report di crescita e il consulto di restituzione in un unico blocco temporale per ridurre i tempi morti di riattivazione clinica del medico."
+      ]
+    },
+    "additional_kwargs": {},
+    "response_metadata": {}
+  }
+];
+
+        const realData = rawPayload[0];
+        const currFmt = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
+
+        // Stato dei fornitori (Sourcing) pre-selezionato
+        let selectedSuppliers = {
+            "Consumabili Clinici e DPI (Monouso)": "Dentaltix (Nazionale)",
+            "Attrezzature Cliniche & Digitali": "D.P. Dental s.r.l. (Mazara)"
+        };
+
+        // Parametri master dell'applicazione
+        let unit_tariffa = 250;
+        let unit_mdc = 0;
+        let unit_costofisso = 0;
+        let unit_utile = 0;
+
+        function init() {
+            // Mappatura dinamica degli attributi mancanti negli ambienti
+            realData.environments.forEach(loc => {
+                if (loc.loc_id === 'loc_studio_clinico_ambulatorio') { loc.rate = 9.82; loc.time = 30; }
+                else if (loc.loc_id === 'loc_area_reception_accettazione') { loc.rate = 5.89; loc.time = 15; }
+                else if (loc.loc_id === 'loc_ufficio_preventivi_consulenze') { loc.rate = 4.91; loc.time = 45; }
+                else if (loc.loc_id === 'loc_sala_di_sterilizzazione') { loc.rate = 3.93; loc.time = 10; }
+                else { loc.rate = 10.00; loc.time = 10; }
+            });
+
+            // Mappatura delle tariffe orarie di ammortamento dei macchinari
+            const assetRates = {
+                "AST-CLINIC-RIUNITO-PREMIUM": 1.71,
+                "AST-CLINIC-SCANNER-3D": 1.49,
+                "AST-CLINIC-STERIL-AUTOCLAVE": 0.27,
+                "AST-CLINIC-IT-WORKSTATION": 0.37,
+                "AST-CLINIC-AIR-COMPRESSOR": 0.23,
+                "AST-CLINIC-SUCTION-UNIT": 0.25,
+                "AST-CLINIC-WATER-PURIFIER": 0.17
+            };
+            realData.assets.forEach(ast => {
+                ast.hourly_rate = assetRates[ast.asset_sku] || 0.20;
+            });
+
+            // Strutturazione automatica di un database fornitori coerente con il payload
+            if (!realData.suppliers_output) {
+                realData.suppliers_output = {
+                    suppliers: [
+                        {
+                            required_material: "Consumabili Clinici e DPI (Monouso)",
+                            providers: [
+                                { supp_name: "Dentaltix (Nazionale)", item_name: "Puntale Scanner + DPI Set Pediatrico", cost: 19.20, supp_sku: "DPI-DENTALTIX", supp_web: "https://www.dentaltix.com", supp_phone: "" },
+                                { supp_name: "Dental Group S.r.l. (Palermo)", item_name: "Puntale Scanner + DPI Set Pediatrico", cost: 22.50, supp_sku: "DG-PALERMO-DPI", supp_web: "https://maps.google.com/?cid=16870704471475326660", supp_phone: "091 678 8179" }
+                            ]
+                        },
+                        {
+                            required_material: "Attrezzature Cliniche & Digitali",
+                            providers: [
+                                { supp_name: "D.P. Dental s.r.l. (Mazara)", item_name: "Scanner 3D Assistenza e Calibrazione", cost: 1.49, supp_sku: "AST-CLINIC-SCANNER-3D", supp_web: "https://maps.google.com/?cid=9309018340189426360", supp_phone: "0923 932664" }
+                            ]
+                        }
+                    ]
+                };
+            }
+
+            // Iniezione dati nell'interfaccia
+            document.getElementById('header-subtitle').innerText = "Prestazione: " + realData.service_identity.name;
+            document.getElementById('header-owner').innerText = "Centro Odontoiatrico Buscemi srl";
+
+            // Pre-caricamento valori di default della Sidebar e Fissi Annui
+            document.getElementById('in-tariffa').value = realData.financial_simulations.pricing_summary.catalog_price;
+            document.getElementById('in-compenso').value = realData.financial_simulations.cost_breakdown_unit.medical_collaborator_fee;
+            document.getElementById('in-materiali').value = realData.financial_simulations.cost_breakdown_unit.direct_materials_cost;
+            document.getElementById('in-lab').value = realData.financial_simulations.cost_breakdown_unit.dental_lab_cost;
+            document.getElementById('in-tempo').value = realData.bill_of_materials.bom_steps[0].calculation_breakdown.chair_time_mins;
+            document.getElementById('in-poltrona').value = 61.54; // default per sedia oraria (€30.77 / 30 mins)
+            document.getElementById('in-tasse').value = (realData.financial_simulations.fiscal_and_previdential_impact.estimated_tax_burden_ratio_on_revenue * 100).toFixed(1); 
+            document.getElementById('in-fissi-annui').value = 110452.42; // Totale costi fissi della clinica
+
+            // Rendering schede
+            renderBOM();
+            renderSuppliers();
+            renderLocations();
+            renderAssets();
+            renderMetaOperators();
+            renderCompetitors();
+            renderFiscal();
+            renderCFOAdvisory();
+            
+            recalculateAll(); 
+        }
+
+        // --- MOTORE DI CALCOLO DINAMICO REATTIVO ---
+        function recalculateAll() {
+            unit_tariffa = parseFloat(document.getElementById('in-tariffa').value) || 0;
+            const compenso = parseFloat(document.getElementById('in-compenso').value) || 0;
+            const materiali = parseFloat(document.getElementById('in-materiali').value) || 0;
+            const lab = parseFloat(document.getElementById('in-lab').value) || 0;
+            
+            const tempoSedia = parseFloat(document.getElementById('in-tempo').value) || 0;
+            const costoOra = parseFloat(document.getElementById('in-poltrona').value) || 0;
+            
+            const tasseP = parseFloat(document.getElementById('in-tasse').value) || 0;
+            const enpamRate = parseFloat(document.getElementById('select-enpam-rate').value) || 0;
+            const aliquotaTotale = tasseP + enpamRate;
+
+            const varCosts = compenso + materiali + lab;
+            unit_mdc = unit_tariffa - varCosts;
+            unit_costofisso = (costoOra / 60) * tempoSedia;
+            const reddito = unit_mdc - unit_costofisso;
+            
+            const prelievoTotale = unit_tariffa * (aliquotaTotale / 100);
+            unit_utile = reddito - prelievoTotale;
+
+            // Aggiorna DOM Sidebar
+            document.getElementById('out-ricavi').innerText = currFmt.format(unit_tariffa);
+            document.getElementById('out-costi-var').innerText = currFmt.format(varCosts);
+            document.getElementById('out-mdc').innerText = currFmt.format(unit_mdc);
+            document.getElementById('out-costo-fisso').innerText = currFmt.format(unit_costofisso);
+            document.getElementById('out-reddito').innerText = currFmt.format(reddito);
+            document.getElementById('out-tasse').innerText = currFmt.format(prelievoTotale);
+            document.getElementById('out-utile').innerText = currFmt.format(unit_utile);
+            
+            // Aggiorna Header
+            document.getElementById('header-mdc').innerText = currFmt.format(unit_mdc);
+            document.getElementById('header-time').innerText = tempoSedia + ' min';
+
+            // Styling Sidebar Utile/Barra
+            const utileEl = document.getElementById('out-utile');
+            if (unit_utile < 0) {
+                utileEl.className = 'text-xl font-black text-red-500';
+                document.getElementById('margin-bar').className = 'h-full bg-red-500 transition-all duration-300';
+            } else {
+                utileEl.className = 'text-xl font-black text-green-600';
+                document.getElementById('margin-bar').className = 'h-full bg-green-500 transition-all duration-300';
+            }
+            const mdcPct = unit_tariffa > 0 ? (unit_mdc / unit_tariffa) * 100 : 0;
+            document.getElementById('margin-bar').style.width = Math.max(0, Math.min(100, mdcPct)) + '%';
+
+            // Break-Even Point Dinamico (con allocazione fissa strutturale al 10%)
+            const totalFixedCosts = parseFloat(document.getElementById('in-fissi-annui').value) || 0;
+            const allocatedFixedOverhead = totalFixedCosts * 0.1; // 10% di allocazione del budget
+            const bepUnitsEl = document.getElementById('bep-units');
+            const bepRationaleEl = document.getElementById('bep-rationale');
+            
+            if (unit_mdc > 0) {
+                const bepVal = Math.ceil(allocatedFixedOverhead / unit_mdc);
+                bepUnitsEl.innerText = bepVal + " terapie / anno";
+                bepRationaleEl.innerHTML = `Con un Margine di Contribuzione unitario di <strong>${currFmt.format(unit_mdc)}</strong> e una quota fissa allocata del 10% (pari a <strong>${currFmt.format(allocatedFixedOverhead)}</strong>), lo studio raggiunge il pareggio alla <strong>${bepVal}ª esecuzione annua</strong>.`;
+            } else {
+                bepUnitsEl.innerText = "Non Raggiungibile";
+                bepRationaleEl.innerHTML = "L'MDC è negativo o nullo. Riduci i costi variabili o incrementa la tariffa clinica per poter ammortizzare la sedia.";
+            }
+
+            // CFO Advisory Card
+            const healthBadge = document.getElementById('label-health');
+            const healthDesc = document.getElementById('label-health-desc');
+            const healthCard = document.getElementById('cfo-health-card');
+            
+            if (unit_utile > 50) {
+                healthBadge.className = 'px-4 py-2 bg-green-500 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-md';
+                healthBadge.innerText = 'HIGH PROFITABILITY';
+                healthDesc.innerText = "Ottimo. La prestazione presenta un'eccellente marginalità operativa e copre agevolmente le tasse.";
+                healthCard.style.borderColor = '#22c55e';
+            } else if (unit_utile >= 0) {
+                healthBadge.className = 'px-4 py-2 bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-md';
+                healthBadge.innerText = 'MARGINI RIDOTTI';
+                healthDesc.innerText = "Utile netto ridotto. Si consiglia di ottimizzare i costi variabili o di usare la prestazione come gancio.";
+                healthCard.style.borderColor = '#f59e0b';
+            } else {
+                healthBadge.className = 'px-4 py-2 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-md';
+                healthBadge.innerText = 'IN PERDITA';
+                healthDesc.innerText = "Critico. La tariffa non sostiene l'attività clinica ordinaria della poltrona e il fisco.";
+                healthCard.style.borderColor = '#ef4444';
+            }
+
+            // Aggiorna KPI nella Tab Tassazione
+            document.getElementById('fiscal-enpam-label').innerText = enpamRate.toFixed(2) + "%";
+            document.getElementById('fiscal-tax-rate').innerText = tasseP.toFixed(1) + "%";
+            
+            const regimeName = enpamRate === 2.0 ? "S.r.l. Ordinaria Commerciale" : (enpamRate === 0.5 ? "S.r.l. STP (Società tra Professionisti)" : "Regime Esente");
+            document.getElementById('fiscal-regime-name').innerText = regimeName + " (con quota ENPAM " + enpamRate.toFixed(1) + "%)";
+
+            let explanationText = "";
+            if (enpamRate === 2.0) {
+                explanationText = `L'inquadramento fiscale ordinario prevede l'applicazione del contributo di solidarietà <strong>ENPAM al 2.0%</strong> sul fatturato clinico delle società commerciali (L. 205/2017). Questo si somma alla tassazione d'impresa standard del <strong>${tasseP}%</strong>, per un prelievo totale stimato del <strong>${aliquotaTotale.toFixed(1)}%</strong>.`;
+            } else if (enpamRate === 0.5) {
+                explanationText = `L'inquadramento come <strong>Società tra Professionisti (STP)</strong> o struttura accreditata riduce il contributo ENPAM societario allo <strong>0.5%</strong>. Abbinato al regime societario del <strong>${tasseP}%</strong>, abbassa il prelievo totale combinato al <strong>${aliquotaTotale.toFixed(1)}%</strong>, preservando l'utile netto.`;
+            } else {
+                explanationText = `Il regime configurato esclude l'ENPAM (0.0%). La pressione fiscale si basa esclusivamente sull'aliquota d'impresa ordinaria del <strong>${tasseP}%</strong> definita nei parametri.`;
+            }
+            document.getElementById('fiscal-explanation').innerHTML = explanationText;
+
+            updateSimulation();
+        }
+
+        // --- SELETTORE ENPAM ---
+        function updateENPAMFromSelect() {
+            recalculateAll();
+        }
+
+        // --- FUNZIONI DI RACCORDO DAI COMPONENTI EDITABILI ---
+        function updateBOMFromInputs() {
+            let totalStaff = 0;
+            let totalConsumables = 0;
+            let totalChairTime = 0;
+
+            realData.bill_of_materials.bom_steps.forEach((sub, idx) => {
+                let stepSum = 0;
+                sub.stages.forEach((stg, stageIdx) => {
+                    stg.steps.forEach((step, stepIdx) => {
+                        const el = document.getElementById(`input-bom-step-time-${idx}-${stageIdx}-${stepIdx}`);
+                        if (el) {
+                            stepSum += parseFloat(el.value) || 0;
+                        }
+                    });
+                });
+
+                const timeInput = document.getElementById(`input-bom-time-${idx}`);
+                if (timeInput && stepSum > 0) {
+                    timeInput.value = stepSum;
+                }
+
+                const consumables = parseFloat(document.getElementById(`input-bom-consumables-${idx}`).value) || 0;
+                const depr = parseFloat(document.getElementById(`input-bom-depr-${idx}`).value) || 0;
+                const staff = parseFloat(document.getElementById(`input-bom-staff-${idx}`).value) || 0;
+                const time = parseFloat(document.getElementById(`input-bom-time-${idx}`).value) || 0;
+                const chairTime = parseFloat(document.getElementById(`input-bom-chair-time-${idx}`).value) || 0;
+
+                sub.calculation_breakdown.consumables = consumables;
+                sub.calculation_breakdown.depreciation = depr;
+                sub.calculation_breakdown.staff_cost = staff;
+                sub.calculation_breakdown.chair_time_mins = chairTime;
+                sub.estimated_total_time_minutes = time;
+
+                const singleCost = consumables + depr + staff;
+                const costLabel = document.getElementById(`label-bom-cost-${idx}`);
+                if (costLabel) costLabel.innerText = `€ ${singleCost.toFixed(2)}`;
+
+                totalStaff += staff;
+                totalConsumables += consumables;
+                totalChairTime += chairTime; 
+            });
+
+            document.getElementById('in-compenso').value = totalStaff.toFixed(2);
+            document.getElementById('in-tempo').value = totalChairTime;
+
+            recalculateAll();
+        }
+
+        function updateSuppliersFromInputs() {
+            let totalSuppliersCost = 0;
+            let totalLabCost = 0;
+
+            realData.suppliers_output.suppliers.forEach((mat, matIdx) => {
+                const selectedName = selectedSuppliers[mat.required_material];
+                mat.providers.forEach((prov, provIdx) => {
+                    const el = document.getElementById(`input-supplier-cost-${matIdx}-${provIdx}`);
+                    if (el) {
+                        prov.cost = parseFloat(el.value) || 0;
+                    }
+                    if (prov.supp_name === selectedName) {
+                        if (mat.required_material.includes("Laboratorio")) {
+                            totalLabCost += prov.cost;
+                        } else {
+                            totalSuppliersCost += prov.cost;
+                        }
+                    }
+                });
+            });
+
+            const bomConsumables = realData.bill_of_materials.bom_steps.reduce((acc, curr) => acc + (curr.calculation_breakdown.consumables || 0), 0);
+            document.getElementById('in-materiali').value = (bomConsumables + totalSuppliersCost).toFixed(2);
+            document.getElementById('in-lab').value = totalLabCost.toFixed(2);
+
+            recalculateAll();
+        }
+
+        function updateLocationsFromInputs() {
+            let totalLocRateSum = 0;
+            let count = 0;
+
+            realData.environments.forEach((loc, idx) => {
+                const rate = parseFloat(document.getElementById(`input-loc-rate-${idx}`).value) || 0;
+                const time = parseFloat(document.getElementById(`input-loc-time-${idx}`).value) || 0;
+
+                loc.rate = rate;
+                loc.time = time;
+                loc.estimated_internal_cost = (rate / 60) * time;
+                document.getElementById(`label-loc-cost-${idx}`).innerText = `€ ${loc.estimated_internal_cost.toFixed(2)}`;
+
+                totalLocRateSum += rate;
+                count++;
+            });
+
+            if (count > 0) {
+                // Raccordo costo ora poltrona complessivo
+                document.getElementById('in-poltrona').value = (totalLocRateSum).toFixed(2);
+            }
+
+            recalculateAll();
+        }
+
+        function updateAssetsFromInputs() {
+            realData.assets.forEach((ast, idx) => {
+                const el = document.getElementById(`input-ast-cost-${idx}`);
+                if (el) {
+                    ast.hourly_rate = parseFloat(el.value) || 0;
+                }
+                
+                let time = 20; 
+                if (ast.asset_sku.includes('SCANNER') || ast.asset_sku.includes('STERIL')) time = 30;
+                if (ast.asset_sku.includes('WORKSTATION')) time = 60;
+
+                ast.estimated_internal_cost = (ast.hourly_rate / 60) * time;
+                document.getElementById(`label-ast-cost-${idx}`).innerText = `€ ${ast.estimated_internal_cost.toFixed(2)}`;
+            });
+            recalculateAll();
+        }
+
+        function updateMetaFromInputs() {
+            realData.market_and_fiscal_intelligence.meta_operators_overhead.forEach((op, idx) => {
+                const el = document.getElementById(`input-meta-cost-${idx}`);
+                if (el) {
+                    op.allocated_cost = parseFloat(el.value) || 0;
+                }
+                document.getElementById(`label-meta-cost-${idx}`).innerText = `€ ${op.allocated_cost.toFixed(2)}`;
+            });
+            recalculateAll();
+        }
+
+        // --- SIMULATORE PREVISIONALE DI VOLUMETRIA MENSILE ---
+        function updateSimulation() {
+            const volume = parseInt(document.getElementById('volume-slider').value);
+            document.getElementById('slider-val').innerText = volume;
+
+            document.getElementById('sim-fatturato').innerText = currFmt.format(volume * unit_tariffa);
+            document.getElementById('sim-margine').innerText = currFmt.format(volume * unit_mdc);
+            document.getElementById('sim-costi').innerText = currFmt.format(volume * unit_costofisso);
+            
+            const totUtile = volume * unit_utile;
+            const valUtile = document.getElementById('sim-utile');
+            valUtile.innerText = currFmt.format(totUtile);
+
+            const cardUtile = document.getElementById('sim-utile-card');
+            const labelUtile = document.getElementById('sim-utile-label');
+            
+            if(totUtile < 0) {
+                cardUtile.className = 'bg-red-50 border border-red-200 p-3 rounded-2xl';
+                labelUtile.className = 'block text-[8px] font-black text-red-500 uppercase tracking-widest mb-1';
+                valUtile.className = 'text-base font-black text-red-700';
+            } else {
+                cardUtile.className = 'bg-green-50 border border-green-200 p-3 rounded-2xl';
+                labelUtile.className = 'block text-[8px] font-black text-green-600 uppercase tracking-widest mb-1';
+                valUtile.className = 'text-base font-black text-green-700';
+            }
+        }
+
+        // --- RENDERIZZAZIONE INTERFACCIA ---
+        function renderBOM() {
+            const container = document.getElementById('bom-list-container');
+            container.innerHTML = '';
+            
+            realData.bill_of_materials.bom_steps.forEach((sub, idx) => {
+                let stagesHtml = sub.stages.map((stg, stageIdx) => `
+                    <div class="space-y-3 pt-2">
+                        <h4 class="text-[11px] font-black uppercase text-gray-500 tracking-wider flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 bg-black rounded-full"></span>${stg.stage_name}
+                        </h4>
+                        ${stg.steps.map((step, stepIdx) => {
+                            let skillsHtml = step.required_skills && step.required_skills.length > 0 
+                                ? `<div class="mt-1"><span class="text-[8px] font-black uppercase tracking-wider text-indigo-500">Operatori: ${step.required_skills.join(', ').replace(/_/g, ' ')}</span></div>` 
+                                : '';
+                            let resourcesHtml = step.required_resources && step.required_resources.length > 0 
+                                ? `<div class="mt-1.5 flex flex-wrap gap-1 items-center"><span class="text-[8px] font-black uppercase tracking-wider text-emerald-600 mr-1">Materiali:</span> ${step.required_resources.map(r => `<span class="bg-emerald-50 text-emerald-700 text-[8px] px-1.5 py-0.5 rounded border border-emerald-100 font-bold">${r}</span>`).join('')}</div>` 
+                                : '';
+                            return `
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <h5 class="text-xs font-black uppercase text-black">${step.step_name}</h5>
+                                    <div class="flex items-center gap-1.5 bg-gray-200/50 px-2 py-1 rounded-lg border border-gray-200">
+                                        <input type="number" id="input-bom-step-time-${idx}-${stageIdx}-${stepIdx}" value="${step.estimated_time_minutes}" oninput="updateBOMFromInputs()" class="w-10 bg-transparent text-xs font-black text-center text-gray-800 focus:outline-none">
+                                        <span class="text-[8px] font-bold text-gray-400">Min</span>
+                                    </div>
+                                </div>
+                                <p class="text-[10px] text-gray-600 font-medium leading-relaxed">${step.instructions}</p>
+                                ${skillsHtml}
+                                ${resourcesHtml}
+                            </div>`;
+                        }).join('')}
+                    </div>
+                `).join('');
+
+                const c = sub.calculation_breakdown;
+                container.innerHTML += `
+                    <div class="card rounded-3xl p-5 space-y-4 shadow-sm">
+                        <div class="flex justify-between border-b border-border pb-3">
+                            <div>
+                                <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">${sub.subprocess_sku}</span>
+                                <h3 class="text-xs font-black uppercase tracking-tight text-black">${sub.subprocess_name}</h3>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-black text-black" id="label-bom-cost-${idx}">€ ${sub.estimated_internal_cost.toFixed(2)}</span>
+                            </div>
+                        </div>
+                        ${stagesHtml}
+                        
+                        <div class="bg-zinc-50/50 border border-zinc-150 p-4 rounded-2xl space-y-3 mt-3">
+                            <h4 class="text-[9px] font-black uppercase tracking-wider text-gray-700">⚙️ Componenti Economiche della Fase</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                <div class="space-y-1">
+                                    <label class="text-[7px] font-black text-gray-400 uppercase">Consumabili (€)</label>
+                                    <input type="number" id="input-bom-consumables-${idx}" value="${c.consumables}" oninput="updateBOMFromInputs()" class="w-full bg-white border border-border rounded-lg p-1.5 text-xs font-black text-center focus:outline-none">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[7px] font-black text-gray-400 uppercase">Ammortamento (€)</label>
+                                    <input type="number" id="input-bom-depr-${idx}" value="${c.depreciation}" oninput="updateBOMFromInputs()" class="w-full bg-white border border-border rounded-lg p-1.5 text-xs font-black text-center focus:outline-none">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[7px] font-black text-gray-400 uppercase">Costo Operatore (€)</label>
+                                    <input type="number" id="input-bom-staff-${idx}" value="${c.staff_cost}" oninput="updateBOMFromInputs()" class="w-full bg-white border border-border rounded-lg p-1.5 text-xs font-black text-center focus:outline-none">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[7px] font-black text-gray-400 uppercase">Durata (Min)</label>
+                                    <input type="number" id="input-bom-time-${idx}" value="${sub.estimated_total_time_minutes}" oninput="updateBOMFromInputs()" class="w-full bg-white border border-border rounded-lg p-1.5 text-xs font-black text-center focus:outline-none text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[7px] font-black text-blue-600 uppercase">Tempo Poltrona (Min)</label>
+                                    <input type="number" id="input-bom-chair-time-${idx}" value="${c.chair_time_mins}" oninput="updateBOMFromInputs()" class="w-full bg-blue-50/50 border border-blue-100 rounded-lg p-1.5 text-xs font-black text-center focus:outline-none text-blue-600">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 mt-2">
+                            <span class="text-[9px] font-black uppercase text-amber-500"><i class="fas fa-coins"></i> Analisi Economica di Scala</span>
+                            <p class="text-[10px] text-gray-600 mt-1 leading-relaxed">"${sub.cost_scaling_rationale}"</p>
+                            <div class="mt-2 text-[9px] font-bold text-gray-500 uppercase">Costo Unitario Target 100u: <span class="text-black font-black">€ ${(sub.estimated_cost_per_100_units / 100).toFixed(2)}</span></div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderSuppliers() {
+            const container = document.getElementById('suppliers-list-container');
+            container.innerHTML = '';
+            realData.suppliers_output.suppliers.forEach((mat, matIdx) => {
+                let provs = mat.providers.map((p, provIdx) => {
+                    const isSelected = selectedSuppliers[mat.required_material] === p.supp_name;
+                    return `
+                        <div onclick="selectProvider('${mat.required_material.replace(/'/g, "\\'")}', '${p.supp_name.replace(/'/g, "\\'")}')" class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 rounded-2xl border cursor-pointer transition-all duration-200 ${isSelected ? 'bg-black text-white border-black shadow-md' : 'bg-gray-50 text-black border-gray-100 hover:border-black/10'}" id="prov-${matIdx}-${provIdx}">
+                            <div>
+                                <span class="text-xs font-black uppercase">${p.supp_name}</span>
+                                <p class="text-[10px] ${isSelected ? 'text-gray-300' : 'text-gray-500'}">${p.item_name}</p>
+                                <div class="text-[8px] uppercase font-bold mt-1 ${isSelected ? 'text-gray-400' : 'text-gray-400'}">${p.supp_phone ? `Tel: ${p.supp_phone} | ` : ''}<a href="${p.supp_web}" target="_blank" class="underline">Link Web</a></div>
+                            </div>
+                            <div class="text-right flex items-center gap-3">
+                                <div class="space-y-0.5" onclick="event.stopPropagation();">
+                                    <label class="block text-[6px] font-bold uppercase tracking-wider text-gray-400">Modifica Costo (€)</label>
+                                    <input type="number" id="input-supplier-cost-${matIdx}-${provIdx}" value="${p.cost}" oninput="updateSuppliersFromInputs()" class="w-16 bg-white border border-gray-200 text-black rounded-md p-1 text-xs font-black text-center focus:outline-none">
+                                </div>
+                                <div class="text-[8px] uppercase font-bold text-gray-400">${p.supp_sku}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                container.innerHTML += `
+                    <div class="card rounded-3xl p-5 space-y-4 shadow-sm">
+                        <div class="pb-3 border-b border-border">
+                            <span class="text-[8px] font-black text-amber-500 uppercase">Fabbisogno Materiale</span>
+                            <h3 class="text-xs font-black uppercase text-black">${mat.required_material}</h3>
+                        </div>
+                        <div class="space-y-3">${provs}</div>
+                    </div>`;
+            });
+        }
+
+        function selectProvider(material, providerName) {
+            selectedSuppliers[material] = providerName;
+            renderSuppliers();
+            updateSuppliersFromInputs();
+        }
+
+        function renderLocations() {
+            const container = document.getElementById('locations-list-container');
+            container.innerHTML = '';
+            realData.environments.forEach((loc, idx) => {
+                let checks = loc.maintenance_checklist.map(c => `
+                    <li class="text-[10px] text-gray-600 leading-relaxed">
+                        <strong class="text-gray-800">[${c.frequency}]</strong> <span class="font-semibold text-black">${c.task_name}:</span> ${c.instructions}
+                    </li>`).join('');
+
+                container.innerHTML += `
+                    <div class="card rounded-3xl p-5 space-y-3 shadow-sm">
+                        <div class="flex justify-between border-b border-border pb-3">
+                            <div>
+                                <h3 class="text-xs font-black uppercase text-black">${loc.loc_name}</h3>
+                                <p class="text-[9px] text-gray-400 font-bold uppercase mt-1 leading-relaxed">${loc.temperature}</p>
+                            </div>
+                            <span class="text-xs font-black text-black" id="label-loc-cost-${idx}">€ ${loc.estimated_internal_cost.toFixed(2)}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 bg-gray-50/50 p-3 rounded-2xl border border-gray-100">
+                            <div class="space-y-1">
+                                <label class="text-[7px] font-black text-gray-400 uppercase">Costo Orario Allocato (€/Ora)</label>
+                                <input type="number" id="input-loc-rate-${idx}" value="${loc.rate}" oninput="updateLocationsFromInputs()" class="w-full bg-white border border-border rounded-lg p-1 text-xs font-black text-center focus:outline-none">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[7px] font-black text-gray-400 uppercase">Tempo Presenza (Minuti)</label>
+                                <input type="number" id="input-loc-time-${idx}" value="${loc.time}" oninput="updateLocationsFromInputs()" class="w-full bg-white border border-border rounded-lg p-1 text-xs font-black text-center focus:outline-none">
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                            <h4 class="text-[9px] font-black uppercase text-gray-800 mb-2 tracking-wider"><i class="fas fa-clipboard-list mr-1"></i> Protocollo Igiene & Manutenzione:</h4>
+                            <ul class="list-disc pl-4 space-y-2">${checks}</ul>
+                        </div>
+                        <div class="bg-amber-50/50 p-3 rounded-xl border border-amber-100">
+                            <span class="text-[8px] font-black uppercase text-amber-600">Raccordo Rationale Clinico</span>
+                            <p class="text-[9px] text-amber-800 leading-relaxed mt-0.5 font-medium">"${loc.cost_scaling_rationale}"</p>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderAssets() {
+            const container = document.getElementById('assets-list-container');
+            container.innerHTML = '';
+            realData.assets.forEach((ast, idx) => {
+                let checksHtml = '';
+                if (ast.maintenance_checklist && ast.maintenance_checklist.length > 0) {
+                    let checks = ast.maintenance_checklist.map(c => `
+                        <li class="text-[10px] text-gray-600 leading-relaxed">
+                            <strong class="text-gray-800">[${c.frequency}]</strong> <span class="font-semibold text-black">${c.task_name}:</span> ${c.instructions}
+                        </li>`).join('');
+                    checksHtml = `
+                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 mt-2">
+                        <h4 class="text-[9px] font-black uppercase text-gray-800 mb-2 tracking-wider"><i class="fas fa-wrench mr-1"></i> Controllo Qualità & Standard:</h4>
+                        <ul class="list-disc pl-4 space-y-1.5">${checks}</ul>
+                    </div>`;
+                }
+
+                container.innerHTML += `
+                    <div class="card rounded-3xl p-5 space-y-3 shadow-sm">
+                        <div class="flex justify-between border-b border-border pb-3">
+                            <div>
+                                <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">${ast.asset_sku}</span>
+                                <h3 class="text-xs font-black uppercase text-black">${ast.asset_name}</h3>
+                            </div>
+                            <span class="text-xs font-black text-black" id="label-ast-cost-${idx}">€ ${ast.estimated_internal_cost.toFixed(2)}</span>
+                        </div>
+                        <p class="text-[10px] text-gray-500 font-medium leading-relaxed"><strong>Note:</strong> ${ast.notes}</p>
+                        <p class="text-[10px] text-gray-600 italic leading-relaxed">"${ast.cost_scaling_rationale}"</p>
+                        
+                        <div class="flex items-center gap-4 bg-gray-50/50 p-3 rounded-2xl border border-gray-100 justify-end">
+                            <label class="text-[8px] font-black text-gray-400 uppercase">Ammortamento Orario Raccordato (€/Ora):</label>
+                            <input type="number" id="input-ast-cost-${idx}" value="${ast.hourly_rate}" oninput="updateAssetsFromInputs()" class="w-16 bg-white border border-gray-200 rounded-lg p-1 text-xs font-black text-center focus:outline-none text-black">
+                        </div>
+                        ${checksHtml}
+                    </div>`;
+            });
+        }
+
+        function renderMetaOperators() {
+            const container = document.getElementById('meta-list-container');
+            container.innerHTML = '';
+            realData.market_and_fiscal_intelligence.meta_operators_overhead.forEach((op, idx) => {
+                container.innerHTML += `
+                    <div class="card rounded-3xl p-5 space-y-4 shadow-sm">
+                        <div class="flex justify-between items-center border-b border-border pb-2">
+                            <div><h3 class="text-xs font-black uppercase text-black">${op.role}</h3></div>
+                            <span class="text-xs font-black text-black" id="label-meta-cost-${idx}">€ ${op.allocated_cost.toFixed(2)}</span>
+                        </div>
+                        <p class="text-[10px] text-gray-500 font-medium leading-relaxed">${op.allocation_rationale}</p>
+                        <div class="flex items-center gap-4 bg-gray-50/50 p-3 rounded-2xl border border-gray-100 justify-end">
+                            <label class="text-[8px] font-black text-gray-400 uppercase">Costo di Supporto Allocato (€):</label>
+                            <input type="number" id="input-meta-cost-${idx}" value="${op.allocated_cost}" oninput="updateMetaFromInputs()" class="w-16 bg-white border border-gray-200 rounded-lg p-1 text-xs font-black text-center focus:outline-none text-black">
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderCompetitors() {
+            const intel = realData.market_and_fiscal_intelligence;
+            document.getElementById('market-pos-summary').innerText = intel.market_positioning_summary;
+            const container = document.getElementById('competitor-list-container');
+            container.innerHTML = '';
+            
+            intel.competitors.forEach(c => {
+                const hasPrice = c.estimated_price > 0;
+                const priceText = hasPrice ? `€ ${c.estimated_price.toFixed(2)}` : "Non Dichiarato / Primo Consulto Gratis";
+                
+                container.innerHTML += `
+                    <div class="card rounded-3xl p-5 space-y-4 shadow-sm">
+                        <div class="flex justify-between border-b border-border pb-3">
+                            <div>
+                                <div class="flex gap-2 items-center">
+                                    <h3 class="text-xs font-black uppercase text-black">${c.name}</h3>
+                                    <span class="px-1.5 py-0.5 bg-gray-100 text-[7px] font-black rounded border border-gray-200">${c.distance_km} KM</span>
+                                </div>
+                                <a href="${c.url}" class="text-[9px] text-gray-400 underline" target="_blank">Apri in Google Maps</a>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-black text-black">${priceText}</span>
+                                <div class="text-[8px] font-bold text-gray-400 uppercase">${hasPrice ? 'Tariffa Stimata' : 'Strategia Gancio Concorrenza'}</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="text-[8px] font-black text-gray-400 uppercase mb-1">Punti di Forza</h4>
+                                ${c.usp_gap_strengths.map(s => `<div class="text-[10px] text-gray-600"><span class="text-green-500 mr-1">✔</span>${s}</div>`).join('')}
+                            </div>
+                            <div>
+                                <h4 class="text-[8px] font-black text-gray-400 uppercase mb-1">Debolezze rilevanti</h4>
+                                ${c.usp_gap_weaknesses.map(w => `<div class="text-[10px] text-gray-600"><span class="text-red-500 mr-1">✘</span>${w}</div>`).join('')}
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderFiscal() {
+            const data = realData.market_and_fiscal_intelligence.fiscal_analysis;
+            document.getElementById('fiscal-ateco').innerText = data.activity_code.split(' ')[1];
+            document.getElementById('fiscal-coeff').innerText = (data.profitability_coefficient * 100) + '%';
+        }
+
+        function renderCFOAdvisory() {
+            document.getElementById('pricing-advisory-text').innerText = realData.strategic_clinical_analysis.pricing_and_tariff_strategy_advisory;
+            const container = document.getElementById('cost-optimization-list');
+            container.innerHTML = '';
+            
+            realData.strategic_clinical_analysis.clinical_cost_optimization_recommendations.forEach(r => {
+                container.innerHTML += `
+                    <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex gap-3 shadow-sm">
+                        <div class="w-2 h-2 rounded-full bg-black mt-1.5"></div>
+                        <p class="text-[11px] text-gray-700 font-medium leading-relaxed">${r}</p>
+                    </div>`;
+            });
+
+            // Opzioni Cliniche Extra a Catalogo
+            if (realData.strategic_clinical_analysis.extra_options_clinical_evaluation) {
+                let optionsHtml = realData.strategic_clinical_analysis.extra_options_clinical_evaluation.map(opt => `
+                    <div class="bg-zinc-50 border border-zinc-200 p-4 rounded-2xl space-y-2">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xs font-black uppercase text-black">${opt.option_name}</h4>
+                            <span class="px-2.5 py-1 bg-black text-white text-[9px] font-black rounded-lg">+ € ${opt.revenue.toFixed(2)}</span>
+                        </div>
+                        <p class="text-[10px] text-zinc-600 leading-relaxed font-medium">"${opt.evaluation_comment}"</p>
+                        <div class="flex gap-4 text-[9px] font-bold text-zinc-500 uppercase pt-1 border-t border-dashed border-zinc-200">
+                            <div>Costo Marginale: <span class="text-zinc-900 font-black">€ ${opt.unit_cost_scaled.toFixed(2)}</span></div>
+                            <div>Margine Netto: <span class="text-green-600 font-black">€ ${opt.margin_scaled.toFixed(2)}</span></div>
+                        </div>
+                    </div>
+                `).join('');
+
+                container.innerHTML += `
+                    <div class="pt-6 mt-4 border-t border-gray-100 space-y-4">
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 block">💎 VALORIZZAZIONE OPZIONI CLINICHE EXTRA (UPSELL)</span>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${optionsHtml}
+                        </div>
+                    </div>`;
+            }
+        }
+
+        // --- GESTIONE INTERFACCIA TABS & MENU ---
+        function toggleMenu() {
+            const backdrop = document.getElementById('menu-backdrop');
+            const drawer = document.getElementById('menu-drawer');
+            if (drawer.classList.contains('-translate-x-full')) {
+                backdrop.classList.remove('hidden');
+                setTimeout(() => backdrop.classList.add('opacity-100'), 10);
+                drawer.classList.remove('-translate-x-full');
+            } else {
+                backdrop.classList.remove('opacity-100');
+                setTimeout(() => backdrop.classList.add('hidden'), 300);
+                drawer.classList.add('-translate-x-full');
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+        }
+
+        function selectMenuSection(tabId, sectionTitle) {
+            toggleMenu();
+            switchTab(tabId);
+            document.getElementById('active-section-title').innerHTML = sectionTitle;
+            document.querySelectorAll('.menu-link').forEach(el => {
+                el.classList.remove('bg-black', 'text-white');
+                el.classList.add('text-gray-400', 'hover:bg-gray-50', 'hover:text-black');
+            });
+            const activeLink = document.getElementById('menu-' + tabId);
+            if(activeLink) {
+                activeLink.classList.remove('text-gray-400', 'hover:bg-gray-50', 'hover:text-black');
+                activeLink.classList.add('bg-black', 'text-white');
+            }
+        }
+
+        window.onload = init;
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

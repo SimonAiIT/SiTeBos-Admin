@@ -1,0 +1,1282 @@
+{
+  "name": "knowledge",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "0ca76af1-8c02-47f4-a3a4-fd19ad495afe",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -448,
+        1456
+      ],
+      "id": "c2dcabed-52ef-4f6b-9595-3eaa27fe3427",
+      "name": "Webhook",
+      "webhookId": "0ca76af1-8c02-47f4-a3a4-fd19ad495afe"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1008,
+        16
+      ],
+      "id": "aba2ca21-545f-4542-9d16-6d495353c0cd",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "collection": "knowledge_fragments",
+        "options": {},
+        "query": "={\n    \"sessionId\": {\n        \"$regex\": \"^{{ $json.body.vat }}\"\n    }\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        320
+      ],
+      "id": "289d5395-8c2f-4669-9d5c-48fd2e7ad808",
+      "name": "KbFragment",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "5pERtRttklNe4fOb",
+          "name": "AssetLake"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "fragment"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        320,
+        320
+      ],
+      "id": "1857697e-bfb4-45cf-8682-218ee7d90875",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_kb",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "5bb87f4f-e3c1-4b64-954c-d0daba871456"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get_List"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b9c844ed-6c1f-40ec-86fd-235b2a755889",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_kb_details",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get_Single"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "886c89f8-7213-420e-9c84-d69659013bf5",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "save_kb",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Save"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        0,
+        512
+      ],
+      "id": "90f6d528-7c4e-4d3e-9d30-b26b50419719",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2015d4c0-f8af-42aa-98a7-1c0e81c02d27",
+              "name": "fragment.fragment_id",
+              "value": "={{ $json.messages[0].data.fragment_id }}",
+              "type": "string"
+            },
+            {
+              "id": "1a9db80b-4d04-4469-92fd-8352187bb405",
+              "name": "fragment.title",
+              "value": "={{ $json.messages[0].data.title }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        144,
+        320
+      ],
+      "id": "e201d32e-9804-4801-8afd-db9d69f9cc24",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "knowledge_fragments",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.fragment_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"Fragment\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        528
+      ],
+      "id": "5c8b907a-02d1-4821-a4f5-58714338aba6",
+      "name": "KbFragmentSingle",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "5pERtRttklNe4fOb",
+          "name": "AssetLake"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        672,
+        544
+      ],
+      "id": "64311f5d-25b6-48fa-b762-1966c79b8c57",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b29810cd-07b5-40c0-abb5-27f60a395494",
+              "leftValue": "={{ $json.blog_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        720
+      ],
+      "id": "490b9912-d9c8-4011-9fbf-cc453b2666bf",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        464,
+        544
+      ],
+      "id": "0256f6d8-93fa-4f9c-bd7d-de4e1e827020",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0ef79d98-c21a-40b1-8727-f586640e12cf",
+              "name": "Fragment.content_generated",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        704
+      ],
+      "id": "af722238-a483-4a61-8729-674a0e3de1ca",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "service_catalog",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.vat }}_setup_ik\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"blog\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"catalog\": \"$blog.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        160
+      ],
+      "id": "34f24612-3bdf-4443-96e6-b28d500e3478",
+      "name": "catalog",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        576,
+        176
+      ],
+      "id": "6840209f-3c9f-4e68-95e9-042eeb8ab97a",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "website_board",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.fragment_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"blog\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"blog_data\": \"$blog.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        720
+      ],
+      "id": "fbdc40b7-cb82-476f-9c72-be2e9526bbc1",
+      "name": "website_board",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "website_board",
+        "options": {},
+        "query": "={\n    \"sessionId\": {\n        \"$regex\": \"^{{ $json.body.vat }}-\"\n    }\n}\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a83449bd-f4bc-45eb-acba-feca803f985b",
+      "name": "website_board1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        768,
+        16
+      ],
+      "id": "18d72e39-a3fd-40d2-95a4-1cd6041832ec",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b86c16b1-1ba5-4da0-8006-0eff0e6e1a64",
+              "name": "article.articleId",
+              "value": "={{ $json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "3d5c2155-dea1-43ec-ac80-d436dd42de6c",
+              "name": "article.meta_title",
+              "value": "={{ $json.messages[0].data.seo.meta_title }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        0
+      ],
+      "id": "ef02e909-8f21-4b60-ac43-c381726337d9",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "article"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        336,
+        0
+      ],
+      "id": "b9bbd184-75f9-42e9-94ec-da2ee42c685a",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.fragments[0].fragment_id }}",
+        "collectionName": "knowledge_fragments",
+        "databaseName": "TbosAssetLake"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        352,
+        1184
+      ],
+      "id": "dbd9cabc-08c4-4d4e-87b1-23978fb45883",
+      "name": "MongoDB Chat Memory3",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.body.fragments[0] }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        1056
+      ],
+      "id": "577a9c8f-8b89-4d6f-82d8-2f62edf0ee32",
+      "name": "bluprint"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        704,
+        1056
+      ],
+      "id": "3e901b26-5dc4-4886-a182-c1d2c78cd18a",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4fced2cf-09aa-4ff8-a700-3834cac2ebff",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "0ca76af1-8c02-47f4-a3a4-fd19ad495afe",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        1456
+      ],
+      "id": "d0728904-f0db-41e5-a0b9-6dae554662a2",
+      "name": "Autorize"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"error\",\n  \"code\": 403,\n  \"message\": \"\u26d4\ufe0f ACCESS DENIED: Unauthorized User or Invalid Endpoint.\",\n  \"details\": \"Your ID {{ $json.query.user_id || 'Unknown' }} is not in the allowlist.\"\n}",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        1472
+      ],
+      "id": "28e13feb-0e00-48e3-a9f2-91520e9e913d",
+      "name": "\u26d4\ufe0f 403 Forbidden"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- 1. CONFIGURAZIONE ---\nconst BOT_TOKEN = \"8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ\";\nconst initData = $input.item.json.body._auth;\n\nif (!initData) return { isValid: false, error: \"Dato _auth mancante\" };\n\n// --- 2. LIBRERIA CRIPTOGRAFICA PURE JS (SHA-256 & HMAC) ---\nconst CryptoJS = (function() {\n    function sha256(m) {\n        var h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];\n        var k = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];\n        var b = Array.from(typeof m === 'string' ? new TextEncoder().encode(m) : m);\n        var l = b.length * 8; b.push(0x80);\n        while ((b.length * 8) % 512 !== 448) b.push(0);\n        for (var i = 7; i >= 0; i--) b.push((l / Math.pow(2, i * 8)) & 0xff);\n        for (var i = 0; i < b.length; i += 64) {\n            var w = new Int32Array(64);\n            for (var j = 0; j < 16; j++) w[j] = (b[i + j * 4] << 24) | (b[i + j * 4 + 1] << 16) | (b[i + j * 4 + 2] << 8) | (b[i + j * 4 + 3]);\n            for (var j = 16; j < 64; j++) {\n                var s0 = ((w[j - 15] >>> 7) | (w[j - 15] << 25)) ^ ((w[j - 15] >>> 18) | (w[j - 15] << 14)) ^ (w[j - 15] >>> 3);\n                var s1 = ((w[j - 2] >>> 17) | (w[j - 2] << 15)) ^ ((w[j - 2] >>> 19) | (w[j - 2] << 13)) ^ (w[j - 2] >>> 10);\n                w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;\n            }\n            var [a, c, d, e, f, g, i_h, j_h] = h;\n            var v = [...h];\n            for (var j = 0; j < 64; j++) {\n                var S1 = ((v[4] >>> 6) | (v[4] << 26)) ^ ((v[4] >>> 11) | (v[4] << 21)) ^ ((v[4] >>> 25) | (v[4] << 7));\n                var ch = (v[4] & v[5]) ^ (~v[4] & v[6]);\n                var t1 = (v[7] + S1 + ch + k[j] + w[j]) | 0;\n                var S0 = ((v[0] >>> 2) | (v[0] << 30)) ^ ((v[0] >>> 13) | (v[0] << 19)) ^ ((v[0] >>> 22) | (v[0] << 10));\n                var maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);\n                var t2 = (S0 + maj) | 0;\n                v.unshift((t1 + t2) | 0); v.splice(8); v[4] = (v[4] + t1) | 0;\n            }\n            for (var j = 0; j < 8; j++) h[j] = (h[j] + v[j]) | 0;\n        }\n        return h.reduce((acc, val) => acc.concat([(val >>> 24) & 0xff, (val >>> 16) & 0xff, (val >>> 8) & 0xff, val & 0xff]), []);\n    }\n\n    if (typeof TextEncoder === \"undefined\") {\n        window.TextEncoder = function() {};\n        TextEncoder.prototype.encode = function(s) {\n            return new Uint8Array(unescape(encodeURIComponent(s)).split(\"\").map(c => c.charCodeAt(0)));\n        };\n    }\n\n    return {\n        hmac: function(key, message) {\n            var k = typeof key === 'string' ? Array.from(new TextEncoder().encode(key)) : key;\n            var m = Array.from(new TextEncoder().encode(message));\n            var b = 64;\n            if (k.length > b) k = sha256(k);\n            while (k.length < b) k.push(0);\n            var ipad = k.map(x => x ^ 0x36);\n            var opad = k.map(x => x ^ 0x5c);\n            var inner = sha256(ipad.concat(m));\n            return sha256(opad.concat(inner));\n        }\n    };\n})();\n\n// --- 3. LOGICA PARSING ---\nconst data = {};\ninitData.split('&').forEach(pair => {\n    const [k, v] = pair.split('=');\n    data[k] = decodeURIComponent(v);\n});\n\nconst hashReceived = data.hash;\nconst checkString = Object.keys(data)\n    .filter(k => k !== 'hash')\n    .sort()\n    .map(k => k + '=' + data[k])\n    .join('\\n');\n\n// --- 4. CALCOLO HASH TELEGRAM ---\nconst secretKey = CryptoJS.hmac(\"WebAppData\", BOT_TOKEN);\nconst computedHashBytes = CryptoJS.hmac(secretKey, checkString);\nconst computedHash = computedHashBytes.map(b => b.toString(16).padStart(2, '0')).join('');\n\n// --- 5. CONTROLLO SCADENZA (MAX 1 ORA) ---\nconst now = Math.floor(Date.now() / 1000);\nconst authDate = parseInt(data.auth_date);\nconst isExpired = (now - authDate) > 3600; // Scade dopo 3600 secondi (1 ora)\n\n// --- 6. RISULTATO FINALE ---\nconst isHashValid = (computedHash === hashReceived);\n\nreturn {\n    isValid: isHashValid && !isExpired,\n    isExpired: isExpired,\n    isHashValid: isHashValid,\n    user: data.user ? JSON.parse(data.user) : null,\n    auth_date_human: new Date(authDate * 1000).toLocaleString('it-IT'),\n    debug: {\n        time_diff_seconds: now - authDate,\n        computed: computedHash,\n        received: hashReceived\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        1120
+      ],
+      "id": "99bc537c-3d10-4391-980f-cc97bb162f33",
+      "name": "telegram_validator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0c81033b-45d3-46ad-8449-cd854d0ee023",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        1120
+      ],
+      "id": "5a87ebf7-3a24-4437-8926-91c54baaab2a",
+      "name": "isValid"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d14b4715-baea-47c3-ac0b-a151a3b384be",
+              "name": "urlMiniApp",
+              "value": "={{ \n  (() => {\n    const userId = $json.body?.data?.owner_id || \n                   $json.body?.data?.chat_id || \n                   $json.body?.callback_query?.from?.id || \n                   $json.body?.message?.from?.id ||\n                   $json.body?.owner_id ||\n                   $json.user?.id ||\n                   $json.ids?.owner_id ||\n                   $json.owner_data?.chat_id;\n                   \n    // Array degli ID abilitati all'ambiente di test (GitHub Pages)\n    const testers = [\"2041408875\", \"8305126267\"];\n                   \n    return testers.includes(String(userId)) \n      ? \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/telegram_control/\" \n      : \"https://telegram.trinai.it/\";\n  })()\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        1296
+      ],
+      "id": "4e0b7db5-0a13-4889-bbf9-e18f6200bf90",
+      "name": "appUrl"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.chat_id\": {\n        \"$eq\": {{ $json.user.id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        912
+      ],
+      "id": "84d18bc7-397e-440b-9ab5-8bc0e8b11aa4",
+      "name": "Owner",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -240,
+        912
+      ],
+      "id": "fc910390-1283-40e8-bc06-93f578530a79",
+      "name": "Merge27"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c69e26dc-4a82-4959-97e9-1ec4bcbdf51d",
+              "leftValue": "={{ $json.body._auth }}",
+              "rightValue": "certificator",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        1296
+      ],
+      "id": "a679bce9-26bd-405e-b966-d7ce970e7e3f",
+      "name": "MiniApp?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "54945fb2-debf-4240-aafa-f960788eddfa",
+              "name": "body.vat",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "70eeaf31-58fa-4622-84e9-39a6ae6d1dbc",
+              "name": "body.chat_id",
+              "value": "={{ $json.owner_data.chat_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        720
+      ],
+      "id": "8501bc55-e811-443f-9136-6b3cb55fab28",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2ea7ecc0-caed-40d6-8b33-c6b0088ec0e5",
+              "name": "body.action",
+              "value": "={{ $json.body.action }}",
+              "type": "string"
+            },
+            {
+              "id": "61c71e52-00c5-48f0-a616-91b2549adfd7",
+              "name": "body.fragment_id",
+              "value": "={{ $json.body.fragment_id }}",
+              "type": "string"
+            },
+            {
+              "id": "5314512c-76e6-42bf-a4df-892a74bda793",
+              "name": "body.fragments",
+              "value": "={{ $json.body.fragments }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        736
+      ],
+      "id": "c8a8ae5b-cb6f-459b-b692-0d5603bfe7e7",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -464,
+        528
+      ],
+      "id": "bf29256a-a403-4ebe-a07e-246552d4253a",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b44db460-45ab-4600-ae0a-bf18d73d3831",
+              "name": "body.fragment_id",
+              "value": "={{ $json.body.vat }}-{{ $json.body.fragment_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -256,
+        528
+      ],
+      "id": "f440b2f0-6ef7-4c8e-9ea8-8dce2e526f95",
+      "name": "Edit Fields5"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+            "content-length": "3400",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "it,it-IT;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "content-type": "application/json",
+            "origin": "https://trinaibusinessoperatingsystem.github.io",
+            "priority": "u=1, i",
+            "referer": "https://trinaibusinessoperatingsystem.github.io/",
+            "sec-ch-ua": "\"Not-A.Brand\";v=\"24\", \"Microsoft Edge\";v=\"146\", \"Chromium\";v=\"146\", \"Microsoft Edge WebView2\";v=\"146\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "151.57.253.236",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "save_kb",
+            "fragments": [
+              {
+                "fragment_id": "IT06988830821-SVC_05S3EKTT",
+                "title": "Template Informativa Privacy per Chatbot AI",
+                "user_utterances": [
+                  "Quanto costa mettere a norma un chatbot?",
+                  "Come proteggo il mio chatbot dal GDPR e dall'AI Act?",
+                  "Perch\u00e9 comprare il vostro template privacy invece di un generatore automatico?",
+                  "Cosa include il template privacy per AI di Garofalo Consulting?"
+                ],
+                "answer_fragment": "Non vendiamo un semplice documento, ma lo scudo legale su misura per il tuo chatbot. A 97\u20ac ti offriamo la competenza di un AI System Architect: un template che parla la lingua dei dati, delle API e dell'AI Act, proteggendo il tuo business dalle sanzioni senza gli abbonamenti ricorrenti dei servizi standard.",
+                "summary": "Soluzione legale completa e tecnica, specifica per architetture AI (n8n/LLM), con costo una tantum e focus su trasparenza algoritmica.",
+                "sections": [
+                  {
+                    "question": "Perch\u00e9 pagare 97\u20ac quando esistono generatori gratuiti o abbonamenti economici?",
+                    "answer": "I generatori generici creano documenti 'di facciata' che ignorano come i dati fluiscono realmente tra n8n, OpenAI o database vettoriali. Il nostro template \u00e8 tecnicamente consapevole: include clausole specifiche per l'orchestrazione AI e la trasparenza algoritmica richiesta dall'EU AI Act. \u00c8 un investimento una tantum che ti libera dal lock-in degli abbonamenti annuali e ti garantisce una copertura reale, non solo teorica.",
+                    "analogy": "Usare un generatore standard per un chatbot complesso \u00e8 come indossare un abito comprato al supermercato per una cerimonia: pu\u00f2 coprirti, ma appena ti muovi i bottoni saltano e le cuciture cedono. Il nostro template \u00e8 la sartoria su misura per il tuo ecosistema digitale: ogni clausola \u00e8 cucita attorno alla tua architettura."
+                  },
+                  {
+                    "question": "Ho paura che il template diventi obsoleto o di non sapere come configurarlo tecnicamente.",
+                    "answer": "\u00c8 un timore legittimo, per questo il prodotto include una mini-guida pratica all'implementazione. Non ti diamo solo il testo, ma ti mostriamo dove inserire i blocchi di consenso nel tuo workflow (n8n) e come dichiarare la presenza dell'AI. Il documento \u00e8 modulare, progettato per accogliere le evoluzioni normative del 2025, trasformando l'ansia da sanzione in una gestione sicura e professionale. cagare",
+                    "analogy": "Considera il tuo chatbot come una Ferrari: il motore \u00e8 l'IA, ma il nostro template privacy \u00e8 l'impianto frenante. Senza freni adeguati, non puoi spingere al massimo perch\u00e9 rischi di finire fuori strada alla prima curva normativa. Noi ti forniamo l'impianto frenante tarato esattamente sulla potenza del tuo motore."
+                  }
+                ],
+                "_id": "IT06988830821-SVC_05S3EKTT",
+                "path": null,
+                "additional_kwargs": {},
+                "response_metadata": {}
+              }
+            ],
+            "ash": "MjA0MTQwODg3NXwxNzc1NzI0NDI3NjQyfGVmNGFlY2U0LTllYzAtNDAyNi1hN2E3LTMyODU2MmJjYmRmNg==.4a96419c",
+            "_auth": "query_id=AAFrba15AAAAAGttrXkJm3SI&user=%7B%22id%22%3A2041408875%2C%22first_name%22%3A%22Giuseppe%22%2C%22last_name%22%3A%22Garofalo%22%2C%22username%22%3A%22TrinAi_OperativeChief%22%2C%22language_code%22%3A%22it%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2FvPTjxONkQ6hvO3p2LwlkoZjewgAm1sVh8k7dFYDeczY.svg%22%7D&auth_date=1775724429&signature=s60tDDFdEqUKpK5_1CpWE3AOXdnoCEQ1QDCvjS4qHSvaAJ43T5sJdQLs-4SEpes4lxgzsDpf8LqbZ6Z2WKDHAw&hash=489111187cf256e2e88e129d9305311661d5d8861b437de8d78f1ef4a3b79078"
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/0ca76af1-8c02-47f4-a3a4-fd19ad495afe",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KbFragment": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "KbFragment",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "catalog",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "website_board1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "KbFragmentSingle",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "website_board",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "bluprint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KbFragmentSingle": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "catalog": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "website_board": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "website_board1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "bluprint",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "bluprint": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "appUrl",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "\u26d4\ufe0f 403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "telegram_validator": {
+      "main": [
+        [
+          {
+            "node": "isValid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isValid": {
+      "main": [
+        [
+          {
+            "node": "Merge27",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "\u26d4\ufe0f 403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "appUrl": {
+      "main": [
+        [
+          {
+            "node": "MiniApp?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge27": {
+      "main": [
+        [
+          {
+            "node": "Owner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MiniApp?": {
+      "main": [
+        [
+          {
+            "node": "telegram_validator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge27",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Owner": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "af694afb-f8c5-455d-a630-4d535479ee2a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "jdDceqLxTfzvLMz8",
+  "tags": []
+}

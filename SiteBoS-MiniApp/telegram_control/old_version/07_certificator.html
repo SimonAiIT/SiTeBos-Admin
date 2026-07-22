@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>07. Certificatore e Qualità | SiTeBoS Guide</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { primary: '#000000', bg: '#fafafa', surface: '#ffffff', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #ffffff; color: #000000; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .content-area { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .prose h1 { font-size: 2.5rem; font-weight: 900; tracking: -0.04em; line-height: 1.1; margin-bottom: 1.5rem; text-transform: uppercase; font-style: italic; }
+        .prose h2 { font-size: 1.25rem; font-weight: 800; tracking: -0.02em; margin-top: 3rem; margin-bottom: 1rem; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 0.5rem; display: inline-block; }
+        .prose p { font-size: 1rem; line-height: 1.7; color: #374151; margin-bottom: 1.5rem; }
+        .prose b { font-weight: 800; color: #000; }
+        .img-container { margin: 2rem 0; background: #fafafa; border: 1px solid #eeeeee; border-radius: 2rem; overflow: hidden; }
+        .evidence-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 2rem 0; }
+        .evidence-item { background: #f9fafb; border: 1px solid #eeeeee; padding: 1.5rem; border-radius: 1.5rem; text-align: center; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeIn 0.4s ease forwards; }
+    </style>
+</head>
+<body class="safe-area-inset min-h-screen pb-32">
+
+    <!-- TOP NAV -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-5 py-4 flex items-center justify-between">
+        <button onclick="location.href='index.html'" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
+            <i class="fas fa-arrow-left"></i> Index
+        </button>
+        <div class="text-[9px] font-black uppercase tracking-[0.2em] text-blue-600 italic">Capitolo 07</div>
+    </nav>
+
+    <main class="content-area animate-in">
+        <article class="prose">
+            <h1>Certificatore e Qualità (Protocollo Evidence)</h1>
+            
+            <p>
+                SiTeBoS garantisce che ogni missione sia eseguita secondo gli standard aziendali tramite il <b>Protocollo Evidence</b>: un sistema di validazione oggettiva dei processi.
+            </p>
+
+            <h2>Il "Notatario Digitale"</h2>
+            <p>
+                Durante l'esecuzione di un lavoro basato su un Blueprint (SOP), il sistema richiede all'operatore di fornire prove inconfutabili del completamento di fasi critiche. Questo elimina l'incertezza e garantisce la qualità finale.
+            </p>
+
+            <!-- DEPENDENCY: Erogazione Servizio Placeholder -->
+            <div class="img-container shadow-sm">
+                <img src="../../images/userguide/Screen_Placeholder.svg" alt="Flusso Erogazione Servizio" class="w-full h-auto">
+                <div class="p-4 bg-gray-50 border-t border-gray-100 text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center">
+                    Flusso: Erogazione Servizio (Placeholder)
+                </div>
+            </div>
+
+            <div class="evidence-grid">
+                <div class="evidence-item space-y-2">
+                    <i class="fas fa-camera text-blue-600 text-xl"></i>
+                    <p class="font-black text-[10px] uppercase">Vision</p>
+                    <p class="text-[9px] text-gray-500">Scatto foto o video. L'IA analizza l'immagine per validare la conformità tecnica.</p>
+                </div>
+                <div class="evidence-item space-y-2">
+                    <i class="fas fa-signature text-blue-600 text-xl"></i>
+                    <p class="font-black text-[10px] uppercase">Signature</p>
+                    <p class="text-[9px] text-gray-500">Raccolta della firma digitale del cliente o del tecnico direttamente su schermo.</p>
+                </div>
+                <div class="evidence-item space-y-2">
+                    <i class="fas fa-file-invoice text-blue-600 text-xl"></i>
+                    <p class="font-black text-[10px] uppercase">File</p>
+                    <p class="text-[9px] text-gray-500">Caricamento di documenti tecnici, schede di collaudo o report PDF.</p>
+                </div>
+                <div class="evidence-item space-y-2">
+                    <i class="fas fa-quote-left text-blue-600 text-xl"></i>
+                    <p class="font-black text-[10px] uppercase">Note</p>
+                    <p class="text-[9px] text-gray-500">Inserimento di osservazioni testuali dettagliate caricate nel log di missione.</p>
+                </div>
+            </div>
+
+            <!-- DEPENDENCY: Screen_Certificator_Vision -->
+            <div class="img-container shadow-sm">
+                <img src="../../images/userguide/Screen_Certificator_Vision.svg" alt="Certificatore Vision" class="w-full h-auto">
+                <div class="p-4 bg-gray-50 border-t border-gray-100 text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center">
+                    Interfaccia di acquisizione evidenze fotografiche
+                </div>
+            </div>
+
+            <h2>Audit Trail & AssetLake</h2>
+            <p>
+                Tutte le evidenze raccolte non vengono solo salvate, ma vengono "sigillate" con metadati critici:
+            </p>
+
+            <div class="bg-white border-2 border-black p-8 rounded-4xl my-10 space-y-6">
+                <div class="flex gap-6 items-start">
+                    <i class="fas fa-clock text-blue-600 text-xl mt-1"></i>
+                    <div>
+                        <p class="font-black text-sm uppercase text-black">Timestamp Immutabile</p>
+                        <p class="text-xs text-gray-500 leading-relaxed font-medium">Ogni prova ha una data e un'ora certa di acquisizione.</p>
+                    </div>
+                </div>
+                <div class="flex gap-6 items-start">
+                    <i class="fas fa-map-location-dot text-blue-600 text-xl mt-1"></i>
+                    <div>
+                        <p class="font-black text-sm uppercase text-black">Geolocalizzazione</p>
+                        <p class="text-xs text-gray-500 leading-relaxed font-medium">Coordinate GPS precise del luogo in cui è stata acquisita l'evidenza.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DEPENDENCY: Screen_Certificator_Sign -->
+            <div class="img-container shadow-sm">
+                <img src="../../images/userguide/Screen_Certificator_Sign.svg" alt="Certificatore Firma" class="w-full h-auto">
+                <div class="p-4 bg-gray-50 border-t border-gray-100 text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center">
+                    Raccolta della firma digitale per accettazione lavori
+                </div>
+            </div>
+
+            <h2>Audit Trail & Validazione AI</h2>
+            <p>
+                Ogni operazione, dalla firma digitale alla scansione di scontrini, viene auditata e validata dall'IA per garantire la conformità normativa (es. D.Lgs. 19/2026).
+            </p>
+
+            <!-- DEPENDENCY: Audit Report Placeholder -->
+            <div class="img-container shadow-sm">
+                <img src="../../images/userguide/Screen_Placeholder.svg" alt="Flusso Executive Audit Report" class="w-full h-auto">
+                <div class="p-4 bg-gray-50 border-t border-gray-100 text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center">
+                    Flusso: Executive Audit Report (Placeholder)
+                </div>
+            </div>
+
+            <p>
+                Questo storico indistruttibile, salvato nell'<b>AssetLake</b> aziendale, certifica la qualità del lavoro svolto e protegge legalmente l'azienda in caso di contestazioni.
+            </p>
+
+        </article>
+
+        <!-- PAGINATION -->
+        <div class="flex items-center justify-between mt-20 pt-10 border-t border-gray-100">
+            <a href="06_team.html" class="flex flex-col gap-1 items-start group text-left">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Precedente</span>
+                <span class="font-black text-xs uppercase group-hover:underline">06. Team & Missioni</span>
+            </a>
+            <a href="08_security.html" class="flex flex-col gap-1 items-end group text-right">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Successivo</span>
+                <span class="font-black text-xs uppercase group-hover:underline text-blue-600">08. Sicurezza & Billing <i class="fas fa-arrow-right ml-1"></i></span>
+            </a>
+        </div>
+    </main>
+
+    <script>
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            tg.BackButton.show();
+            tg.BackButton.onClick(() => location.href='index.html');
+        }
+    </script>
+</body>
+</html>

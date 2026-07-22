@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Nuovo Job - SiteBoS</title>
+    
+    <!-- ✅ CRITICAL: Project Core Styles -->
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../operators/operators.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ✅ Job Creation Specific Styles (Unified) */
+        :root {
+            --primary-glow: rgba(255, 255, 255, 0.15);
+        }
+
+        .section-title { margin-bottom: 24px; }
+        .section-title h3 { margin: 0; font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+        .section-title p { margin: 6px 0 0 0; font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+        /* Catalog Grid */
+        .catalog-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+        .cat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: all 0.2s ease; }
+        .cat-card.open { border-color: rgba(255,255,255,0.2); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+        .cat-header { padding: 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: rgba(255,255,255,0.02); }
+        .cat-title { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 12px; }
+        .cat-badge { background: var(--border); color: var(--text-muted); font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 800; }
+        .cat-body { display: none; padding: 8px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2); }
+        .cat-card.open .cat-body { display: block; animation: slideDown 0.3s ease-out; }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .prod-item { padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: background 0.2s; margin-bottom: 4px; }
+        .prod-item:last-child { margin-bottom: 0; }
+        .prod-item:active { background: rgba(255,255,255,0.08); transform: scale(0.98); }
+        .prod-name { font-size: 14px; font-weight: 600; color: #fff; }
+        .prod-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        .btn-add { width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--border); background: #000; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+
+        /* Target Options */
+        .target-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .target-option { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: all 0.2s ease; }
+        .target-option:active { transform: scale(0.96); background: rgba(255,255,255,0.05); }
+        .target-option.selected { border-color: #fff; background: rgba(255,255,255,0.05); }
+        .target-option i { font-size: 28px; margin-bottom: 14px; color: var(--text-secondary); }
+        .target-option span { font-size: 14px; font-weight: 700; display: block; color: #fff; }
+        .target-option small { font-size: 10px; color: var(--text-muted); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Photo Grid */
+        .photo-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 16px; }
+        .photo-slot { aspect-ratio: 1; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); overflow: hidden; position: relative; }
+        .photo-slot img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-delete { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: #ff4757; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; border: none; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+        /* Summary Card */
+        .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .summary-item { margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .summary-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .summary-item label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); display: block; margin-bottom: 6px; }
+        .summary-value { font-size: 16px; font-weight: 600; color: #fff; }
+        .summary-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(255,255,255,0.08); border-radius: 99px; font-size: 11px; color: #fff; margin-top: 12px; font-weight: 700; }
+
+        /* QR Card */
+        .qr-card { background: #fff; padding: 24px; border-radius: 24px; text-align: center; color: #000; box-shadow: 0 20px 40px rgba(0,0,0,0.4); margin-top: 20px; }
+        #qr-code { display: flex; justify-content: center; margin-bottom: 20px; }
+        .smart-link { font-size: 12px; color: #666; word-break: break-all; margin-bottom: 20px; font-family: monospace; background: #f0f0f0; padding: 10px; border-radius: 10px; }
+        
+        /* Form controls override */
+        textarea, select, input[type="text"] {
+            background: rgba(255,255,255,0.05) !important;
+            border: 1px solid var(--border) !important;
+            color: #fff !important;
+            border-radius: 12px !important;
+            padding: 14px !important;
+        }
+        textarea:focus, select:focus, input[type="text"]:focus {
+            border-color: #fff !important;
+            outline: none !important;
+        }
+    </style>
+    
+    <!-- Dependencies -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="../softskill/twa_guard.js"></script>
+    <script src="../operators/operator_session_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="header-info">
+                <h1><i class="fas fa-briefcase"></i> Crea Job</h1>
+                <small id="step-indicator">Inizializzazione...</small>
+            </div>
+            <div class="header-actions">
+                <button class="btn-icon" onclick="location.reload()" aria-label="Ricarica">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 1: Selezione Servizio -->
+        <div id="step-service" class="step-container">
+            <div class="section-title">
+                <h3>1. Cosa dobbiamo fare?</h3>
+                <p>Seleziona un servizio o una procedura operativa dal catalogo dell'azienda.</p>
+            </div>
+            
+            <div class="form-group">
+                <div style="position: relative;">
+                    <input type="text" id="catalog-search" placeholder="🔍 Cerca servizio o procedura...">
+                </div>
+            </div>
+
+            <div id="catalog-container" class="catalog-grid">
+                <div class="empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Caricamento catalogo...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Selezione Target -->
+        <div id="step-target" class="step-container hidden">
+            <div class="section-title">
+                <h3>2. Per chi è il job?</h3>
+                <p>Associa il lavoro a un cliente, un asset specifico o un'attività interna.</p>
+            </div>
+
+            <div class="target-options">
+                <div class="target-option" data-option="known">
+                    <i class="fas fa-user-check"></i>
+                    <span>Cliente</span>
+                    <small>Esistente</small>
+                </div>
+                <div class="target-option" data-option="new">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Nuovo</span>
+                    <small>Handshake</small>
+                </div>
+                <div class="target-option" data-option="asset">
+                    <i class="fas fa-qrcode"></i>
+                    <span>Asset</span>
+                    <small>QR Scan</small>
+                </div>
+                <div class="target-option" data-option="internal">
+                    <i class="fas fa-building"></i>
+                    <span>Interno</span>
+                    <small>Azienda</small>
+                </div>
+            </div>
+
+            <!-- Search Sub-step -->
+            <div id="search-substep" class="hidden" style="margin-top: 20px;">
+                <div class="form-group">
+                    <input type="text" id="client-search" placeholder="🔍 Cerca cliente (Nome, Email, P.IVA)...">
+                </div>
+                <div id="search-results" class="results-list" style="max-height: 300px; overflow-y: auto;"></div>
+            </div>
+
+            <!-- Handshake Sub-step -->
+            <div id="handshake-substep" class="hidden">
+                <div class="qr-card">
+                    <div id="qr-code"></div>
+                    <p id="smart-link-display" class="smart-link"></p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button id="copy-link-btn" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-copy"></i> Copia
+                        </button>
+                        <button id="btn-verify" class="btn btn-primary btn-sm">
+                            <i class="fas fa-check"></i> Verifica
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Dettagli & Foto -->
+        <div id="step-details" class="step-container hidden">
+            <div class="section-title">
+                <h3>3. Dettagli & Setup</h3>
+                <p>Configura i parametri operativi e aggiungi eventuali prove visive.</p>
+            </div>
+
+            <div class="form-group">
+                <label>Note Operative</label>
+                <textarea id="job-notes" placeholder="Dettagli per l'esecuzione, istruzioni speciali..." rows="4"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Priorità</label>
+                <select id="job-priority">
+                    <option value="normal">Normale</option>
+                    <option value="high">Alta ⚡</option>
+                    <option value="urgent">Urgente 🔥</option>
+                    <option value="low">Bassa</option>
+                </select>
+            </div>
+
+            <div style="margin-top: 24px;">
+                <label style="display: block; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); margin-bottom: 12px;">Foto Iniziali (PROVE)</label>
+                <div id="photo-slots-container" class="photo-grid"></div>
+                <input type="file" id="job-photo-input" accept="image/*" multiple hidden>
+                <button type="button" class="btn btn-secondary btn-block" onclick="document.getElementById('job-photo-input').click()">
+                    <i class="fas fa-camera"></i> AGGIUNGI FOTO
+                </button>
+            </div>
+
+            <button id="btn-to-summary" class="btn btn-primary btn-block" style="margin-top: 30px;">
+                RIEPILOGO <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- Step 4: Riepilogo -->
+        <div id="step-summary" class="step-container hidden">
+            <div class="section-title">
+                <h3>4. Verifica & Attiva</h3>
+                <p>Controlla che tutte le informazioni siano corrette prima di lanciare il Job.</p>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-item">
+                    <label>Servizio selezionato</label>
+                    <div id="summary-service" class="summary-value">-</div>
+                </div>
+                <div class="summary-item">
+                    <label>Beneficiario (Target)</label>
+                    <div id="summary-target" class="summary-value">-</div>
+                </div>
+                <div class="summary-item">
+                    <label>Priorità Assegnata</label>
+                    <div id="summary-priority" class="summary-value">-</div>
+                </div>
+                <div id="summary-photos-count" class="summary-badge">
+                    <i class="fas fa-image"></i> 0 Foto caricate
+                </div>
+            </div>
+
+            <button id="btn-create-job" class="btn btn-primary btn-lg btn-block" style="margin-top: 40px; height: 60px; font-size: 14px; border: 1px solid rgba(255,255,255,0.2);">
+                <i class="fas fa-rocket"></i> ATTIVA MISSIONE ORA
+            </button>
+        </div>
+
+    </div>
+
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="hidden">
+        <div class="loader-content">
+            <div class="spinner-ring"></div>
+            <p id="loading-text" style="margin-top: 15px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em;">Elaborazione...</p>
+        </div>
+    </div>
+
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        // ============================================
+        // JOB CREATE - UNIFIED LOGIC
+        // ============================================
+
+        const tg = window.TwaGuard?.requireTelegramWebApp?.() || window.Telegram.WebApp;
+        const ash = window.TwaGuard?.requireAsh?.();
+        window.TwaGuard?.cleanupUrl?.(['ash']);
+
+        // Webhook configurato con ash e _auth come richiesto
+        const WEBHOOK_URL = 'https://trinai.api.workflow.dcmake.it/webhook/d253f855-ce1a-43ee-81aa-38fa11a9d639';
+
+        let currentStep = 'service';
+        let selectedService = null;
+        let selectedTarget = null;
+        let selectedTargetType = null;
+        let jobPhotos = [];
+        let operatorSession = null;
+        let fullCatalog = [];
+
+        const MAX_PHOTOS = 5;
+        const IMAGE_QUALITY = 0.7;
+        const MAX_IMAGE_DIMENSION = 1024;
+
+        // ============================================
+        // INIT
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            tg.expand();
+            operatorSession = initOperatorSession();
+            
+            // Fallback per test (se ash non è presente, ad esempio in browser locale)
+            if (!operatorSession || !operatorSession.ash) {
+                console.warn('⚠️ Sessione non valida o ash mancante');
+                // Per scopi di sviluppo potremmo settare un ash di test, ma in produzione tg.close()
+                if (!ash && !window.location.hostname.includes('localhost')) {
+                    // tg.close(); 
+                }
+            }
+            
+            setupEventListeners();
+            loadCatalog();
+            showStep('service');
+        });
+
+        function setupEventListeners() {
+            document.getElementById('catalog-search').addEventListener('input', debounce((e) => filterCatalog(e.target.value), 300));
+            document.querySelectorAll('.target-option').forEach(opt => opt.addEventListener('click', () => handleTargetOptionSelection(opt.dataset.option)));
+            document.getElementById('client-search').addEventListener('input', debounce((e) => handleClientSearch(e.target.value), 300));
+            document.getElementById('job-photo-input').addEventListener('change', handlePhotoUpload);
+            document.getElementById('btn-create-job').addEventListener('click', createJob);
+            document.getElementById('copy-link-btn').addEventListener('click', copySmartLink);
+            document.getElementById('btn-verify').addEventListener('click', verifyHandshake);
+            document.getElementById('btn-to-summary').addEventListener('click', () => {
+                updateSummary();
+                showStep('summary');
+            });
+        }
+
+        // ============================================
+        // STEP NAVIGATION
+        // ============================================
+
+        function showStep(step) {
+            document.querySelectorAll('.step-container').forEach(c => c.classList.add('hidden'));
+            const containerId = 'step-' + step;
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.classList.remove('hidden');
+                container.classList.add('fade-in');
+            }
+
+            const titles = {
+                'service': 'Cosa dobbiamo fare?',
+                'target': 'Per chi è il job?',
+                'details': 'Dettagli & Setup',
+                'summary': 'Verifica & Inizia'
+            };
+
+            document.getElementById('step-indicator').textContent = titles[step] || '';
+            currentStep = step;
+            window.scrollTo(0, 0);
+        }
+
+        function goBack() {
+            const sequence = ['service', 'target', 'details', 'summary'];
+            const idx = sequence.indexOf(currentStep);
+            if (idx > 0) showStep(sequence[idx - 1]);
+            else navigateOperatorWithContext('operators/operator_dashboard.html');
+        }
+
+        // ============================================
+        // CATALOG
+        // ============================================
+
+        async function loadCatalog() {
+            const container = document.getElementById('catalog-container');
+            try {
+                // Chiamata con ash e _auth (initData)
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'get_catalog',
+                        ash: ash,
+                        _auth: tg.initData
+                    })
+                });
+
+                const data = await response.json();
+                fullCatalog = data.categories || data.catalog?.categories || data.data?.categories || [];
+                renderCatalog(fullCatalog);
+            } catch (error) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Errore caricamento catalogo</p></div>';
+            }
+        }
+
+        function renderCatalog(categories) {
+            const container = document.getElementById('catalog-container');
+            if (!categories.length) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><p>Nessun servizio trovato</p></div>';
+                return;
+            }
+
+            container.innerHTML = categories.map((cat, idx) => `
+                <div class="cat-card" id="cat-${idx}">
+                    <div class="cat-header" onclick="toggleCategory(${idx})">
+                        <div class="cat-title">
+                            ${cat.short_name || cat.name}
+                            <span class="cat-badge">${cat.subcategories?.length || 0}</span>
+                        </div>
+                        <i class="fas fa-chevron-down" id="chevron-${idx}" style="transition: transform 0.3s;"></i>
+                    </div>
+                    <div class="cat-body" id="cat-body-${idx}">
+                        ${(cat.subcategories || []).map(sub => `
+                            <div class="prod-item" onclick='selectService(${JSON.stringify(sub).replace(/'/g, "'")})'>
+                                <div class="prod-info">
+                                    <div class="prod-name">${sub.short_name || sub.name}</div>
+                                    <div class="prod-desc">${sub.name}</div>
+                                </div>
+                                <div class="btn-add"><i class="fas fa-chevron-right"></i></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleCategory(idx) {
+            const card = document.getElementById(`cat-${idx}`);
+            card.classList.toggle('open');
+            const chevron = document.getElementById(`chevron-${idx}`);
+            chevron.style.transform = card.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+
+        function selectService(service) {
+            selectedService = service;
+            showStep('target');
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        }
+
+        function filterCatalog(query) {
+            if (!query) return renderCatalog(fullCatalog);
+            const q = query.toLowerCase();
+            const filtered = fullCatalog.map(cat => {
+                const subs = (cat.subcategories || []).filter(s => s.name.toLowerCase().includes(q) || s.short_name?.toLowerCase().includes(q));
+                return { ...cat, subcategories: subs };
+            }).filter(cat => cat.subcategories.length > 0);
+            renderCatalog(filtered);
+        }
+
+        // ============================================
+        // TARGET & SEARCH
+        // ============================================
+
+        function handleTargetOptionSelection(option) {
+            selectedTargetType = option;
+            document.querySelectorAll('.target-option').forEach(el => el.classList.toggle('selected', el.dataset.option === option));
+            
+            document.getElementById('search-substep').classList.add('hidden');
+            document.getElementById('handshake-substep').classList.add('hidden');
+
+            if (option === 'known') document.getElementById('search-substep').classList.remove('hidden');
+            else if (option === 'new') { document.getElementById('handshake-substep').classList.remove('hidden'); initHandshake(); }
+            else if (option === 'asset') {
+                showAlert('Scansione QR...', 'info');
+                setTimeout(() => selectTarget({ id: 'asset_123', name: 'Asset Termico X1' }), 800);
+            }
+            else if (option === 'internal') selectTarget({ id: 'internal', name: 'SiteBoS Interno' });
+        }
+
+        async function handleClientSearch(query) {
+            const container = document.getElementById('search-results');
+            if (query.length < 2) { container.innerHTML = ''; return; }
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'search_clients', query, ash, _auth: tg.initData })
+                });
+                const data = await res.json();
+                const clients = data.clients || [];
+                container.innerHTML = clients.map(c => `
+                    <div class="company-card" onclick='selectTarget(${JSON.stringify(c).replace(/'/g, "'")})'>
+                        <div class="company-avatar">${(c.name || 'C').charAt(0)}</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; font-size: 14px; color: #fff;">${c.name}</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">${c.email || c.phone || ''}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {}
+        }
+
+        function selectTarget(target) {
+            selectedTarget = target;
+            showStep('details');
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        }
+
+        // ============================================
+        // HANDSHAKE
+        // ============================================
+
+        let currentInviteToken = null;
+        function initHandshake() {
+            currentInviteToken = ash + '_' + Date.now();
+            const link = `https://simonaiit.github.io/SiteBoS-MiniApp/customer/securehandshake.html?invite=${currentInviteToken}`;
+            document.getElementById('smart-link-display').textContent = link.split('://')[1];
+            const qrContainer = document.getElementById('qr-code');
+            qrContainer.innerHTML = '';
+            new QRCode(qrContainer, { text: link, width: 180, height: 180, colorDark: "#000000", colorLight: "#ffffff" });
+        }
+
+        function copySmartLink() {
+            const link = 'https://' + document.getElementById('smart-link-display').textContent;
+            navigator.clipboard.writeText(link).then(() => showAlert('Link copiato!', 'success'));
+        }
+
+        async function verifyHandshake() {
+            const btn = document.getElementById('btn-verify');
+            btn.disabled = true;
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'check_customer', session_id: currentInviteToken, ash, _auth: tg.initData })
+                });
+                const data = await res.json();
+                if (data.ready && data.customer) selectTarget(data.customer);
+                else showAlert('In attesa del cliente...', 'warning');
+            } catch (e) { showAlert('Errore verifica', 'error'); }
+            finally { btn.disabled = false; }
+        }
+
+        // ============================================
+        // PHOTOS
+        // ============================================
+
+        async function handlePhotoUpload(e) {
+            const files = Array.from(e.target.files);
+            const available = MAX_PHOTOS - jobPhotos.length;
+            showLoading(true, 'Compressione...');
+            for (const file of files.slice(0, available)) {
+                try { jobPhotos.push(await compressImage(file)); } catch (err) {}
+            }
+            renderPhotoSlots();
+            showLoading(false);
+        }
+
+        function renderPhotoSlots() {
+            const container = document.getElementById('photo-slots-container');
+            container.innerHTML = jobPhotos.map((p, i) => `
+                <div class="photo-slot">
+                    <img src="${p}">
+                    <button class="photo-delete" onclick="removePhoto(${i})"><i class="fas fa-times"></i></button>
+                </div>
+            `).join('');
+            for (let i = jobPhotos.length; i < MAX_PHOTOS; i++) {
+                container.innerHTML += '<div class="photo-slot"><i class="fas fa-camera"></i></div>';
+            }
+        }
+
+        function removePhoto(idx) {
+            jobPhotos.splice(idx, 1);
+            renderPhotoSlots();
+        }
+
+        // ============================================
+        // FINAL
+        // ============================================
+
+        function updateSummary() {
+            document.getElementById('summary-service').textContent = selectedService?.short_name || selectedService?.name || '-';
+            document.getElementById('summary-target').textContent = selectedTarget?.name || '-';
+            document.getElementById('summary-priority').textContent = document.getElementById('job-priority').value.toUpperCase();
+            document.getElementById('summary-photos-count').innerHTML = `<i class="fas fa-image"></i> ${jobPhotos.length} Foto caricate`;
+        }
+
+        async function createJob() {
+            const btn = document.getElementById('btn-create-job');
+            showLoading(true, 'Attivazione Missione...');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'create_job',
+                        ash: ash,
+                        _auth: tg.initData,
+                        operator_context: operatorSession,
+                        service: selectedService,
+                        target: selectedTarget,
+                        target_type: selectedTargetType,
+                        notes: document.getElementById('job-notes').value,
+                        priority: document.getElementById('job-priority').value,
+                        photos: jobPhotos
+                    })
+                });
+
+                if (response.ok) {
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                    showAlert('✅ Missione attivata!', 'success');
+                    setTimeout(() => navigateOperatorWithContext('operators/operator_dashboard.html'), 1500);
+                } else throw new Error();
+            } catch (e) {
+                showAlert('Errore attivazione Job', 'error');
+            } finally {
+                showLoading(false);
+                btn.disabled = false;
+            }
+        }
+
+        // ============================================
+        // UTILS
+        // ============================================
+
+        function showAlert(msg, type = 'info') {
+            if (tg.showAlert) tg.showAlert(msg);
+            else alert(msg);
+        }
+
+        function showLoading(show, text) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (text) document.getElementById('loading-text').textContent = text;
+            overlay.classList.toggle('hidden', !show);
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return (...args) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func(...args), wait);
+            };
+        }
+
+        async function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let w = img.width, h = img.height;
+                        if (w > MAX_IMAGE_DIMENSION) { h *= MAX_IMAGE_DIMENSION / w; w = MAX_IMAGE_DIMENSION; }
+                        canvas.width = w; canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', IMAGE_QUALITY));
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

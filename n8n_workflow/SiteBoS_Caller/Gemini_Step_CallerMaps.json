@@ -1,0 +1,2869 @@
+{
+  "name": "Gemini_Step_CallerMaps",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "advanced_service_catalog_step",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}-{{ $json.body.sop_id }}-{{ $json.outputRename }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"{{ $json.outputRename }}\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1472,
+        -400
+      ],
+      "id": "5a741297-c764-4dcf-abaf-8aea135a929b",
+      "name": "Step",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "5pERtRttklNe4fOb",
+          "name": "AssetLake"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "2GeG8JG0V3kA9EyJ",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/2GeG8JG0V3kA9EyJ",
+          "cachedResultName": "GeminiGoogleMaps"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -1280,
+        -144
+      ],
+      "id": "616e9a71-f537-41de-af14-747792175ab5",
+      "name": "Call GeminiExSup2",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}-{{ $json.body.sop_id }}-{{ $json.outputRename }}",
+        "collectionName": "advanced_service_catalog_step",
+        "databaseName": "TbosAssetLake"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        64
+      ],
+      "id": "733ea39a-ae92-439c-a3f8-1f13bc224556",
+      "name": "MongoDB Chat Memory1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -288,
+        -144
+      ],
+      "id": "fab3a65d-f68a-4471-98e4-f9c7c18856d2",
+      "name": "Merge10"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -960,
+        -400
+      ],
+      "id": "2bc0e381-88a0-43f3-945a-c9ee7984674b",
+      "name": "Merge11"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json[$json.outputRename] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -992,
+        -144
+      ],
+      "id": "0fb03513-943d-4a2a-94bb-5cfb679314e8",
+      "name": "ErrorApi1"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1824,
+        -400
+      ],
+      "id": "b2114842-95ff-4a26-a3c1-d3dcc333fd95",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1472,
+        -144
+      ],
+      "id": "61607af2-f963-4cf3-8d91-ad1e12987d14",
+      "name": "Merge12"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "418e2bbc-a341-4bd7-acde-45d0c7a5407b",
+              "name": "error",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -960,
+        224
+      ],
+      "id": "ec90f264-c923-4187-a970-673bd2239a0c",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json[$json.outputRename] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1264,
+        -560
+      ],
+      "id": "5b5ec765-79c9-461e-ae11-79a2a5737e8c",
+      "name": "StepExist"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json[$json.outputRename] }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -704,
+        -80
+      ],
+      "id": "b34f639d-34c3-4bdf-880c-13209e4ddfcf",
+      "name": "SaveStep",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d2e2a787-3067-401e-923d-5035c7adf87a",
+              "name": "outputRename",
+              "value": "={{ $json.outputRename }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1456,
+        80
+      ],
+      "id": "180b25e6-0fda-42ee-9ae4-4712813f9a03",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1280,
+        64
+      ],
+      "id": "64895289-e22e-4239-b3ba-8bfd3559b060",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1472,
+        -560
+      ],
+      "id": "782b1283-9072-4083-b85b-27df8ec61135",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: AI_Output_Cleaner & Final Formatter\n// VERSIONE: 2.0 - Con logica di rename dinamico\n// OBIETTIVO: Pulire i campi tecnici e formattare l'output finale\n//            secondo la chiave specificata in 'outputRename'.\n\ntry {\n  // 1. Ottieni l'item di input completo\n  const item = $input.first().json;\n\n  // 2. Crea una copia dell'item\n  const cleanedItem = { ...item };\n\n  // 3. Elenco dei campi di primo livello da rimuovere\n  const fieldsToRemove = [\n    'SystemInstruction',\n    'Prompt',\n    'output_structure',\n    'ModelChoice',\n    'GeminiKey',\n    'grounding',\n    'thinking',\n    'finalApiUrl',\n    'geminiApiCallPayload',\n    'data',\n    'path',\n    'errorPath',\n    'mimeType'\n  ];\n\n  // 4. Rimuovi i campi tecnici\n  for (const field of fieldsToRemove) {\n    if (field in cleanedItem) {\n      delete cleanedItem[field];\n    }\n  }\n\n  // 5. --- NUOVA LOGICA DI RENAME DINAMICO ---\n  // Legge la chiave desiderata per l'output. Se non fornita, usa 'output' come default.\n  const outputKey = cleanedItem.outputRename || 'output';\n  \n  // Verifica che il campo 'output' esista (prodotto dal parser)\n  if ('output' in cleanedItem) {\n    // Salva il risultato finale\n    const finalResult = cleanedItem.output;\n    \n    // Rimuovi il campo 'output' originale e 'outputRename'\n    delete cleanedItem.output;\n    delete cleanedItem.outputRename;\n    \n    // Aggiungi il risultato con la nuova chiave dinamica\n    cleanedItem[outputKey] = finalResult;\n  } else {\n    // Se non c'è un campo 'output', logga un avviso ma non far fallire il workflow\n    console.warn(\"Output_Cleaner: Campo 'output' non trovato da rinominare.\");\n  }\n\n  // 6. Restituisci l'oggetto finale, pulito e formattato\n  return [{ json: cleanedItem }];\n\n} catch (error) {\n  console.error(`Errore critico nel nodo AI_Output_Cleaner: ${error.message}`);\n  // In caso di errore, restituisci l'item originale per il debug\n  return $input.all();\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        -576
+      ],
+      "id": "a96fe5ab-7e4a-48db-b917-d27f21ed76e7",
+      "name": "Output Cleaner",
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "compliance_docs": {
+            "content": "# Report di Conformità Tecnico-Legale: \"Ortodonzia Intercettiva Per Bambini\"\n\n**Data Analisi:** 21 aprile 2026\n**Asset:** Servizio di Ortodonzia Intercettiva\n**Sede:** Via Tagliavia, 92013 Menfi (AG)\n**Ambito:** Servizi Sanitari Odontoiatrici (Pedodonzia)\n\n---\n\n### 1. Inquadramento Normativo (Autorizzazione Sanitaria)\nTrattandosi di un servizio odontoiatrico erogato presso una struttura a Menfi, l'attività deve essere pienamente conforme alla normativa nazionale e regionale sulla sicurezza e l'esercizio delle strutture sanitarie.\n\n*   **Riferimenti Normativi:**\n    *   **L.R. Sicilia n. 5/2009 e ss.mm.ii:** Disciplina le procedure di autorizzazione e accreditamento delle strutture sanitarie in Sicilia.\n    *   **D.Lgs. 502/1992:** Normativa nazionale di riferimento per l'organizzazione delle prestazioni sanitarie.\n*   **Adempimento:** Il \"Centro Odontoiatrico Specialistico Buscemi\" deve essere in possesso di **Autorizzazione all'Esercizio** rilasciata dall'Assessorato alla Salute (tramite la competente ASP di Agrigento) per la branca specialistica di Odontoiatria/Ortodonzia. \n*   **Azione Pratica:** Verificare che nel locale in Via Tagliavia sia esposto il certificato di autorizzazione sanitaria in corso di validità e che il Direttore Sanitario sia regolarmente iscritto all'Albo dei Medici Chirurghi e Odontoiatri.\n\n---\n\n### 2. Protezione Dati (GDPR e Codice Privacy)\nL'ortodonzia intercettiva implica il trattamento di dati sanitari (categorie particolari di dati, Art. 9 GDPR), inclusi dati biometrici (scansioni 3D del cavo orale) e dati relativi a minori.\n\n*   **Riferimenti Normativi:**\n    *   **GDPR (Regolamento UE 2016/679):** Art. 9 (Trattamento di categorie particolari di dati) e Art. 32 (Sicurezza del trattamento).\n    *   **Codice in materia di protezione dei dati personali (D.Lgs. 196/2003, novellato dal D.Lgs. 101/2018).**\n*   **Adempimento:**\n    *   **Informativa specifica:** Deve essere fornita al genitore/tutore legale, esplicitando che il trattamento include l'analisi 3D.\n    *   **Consenso:** Il consenso al trattamento dei dati sanitari deve essere distinto dal consenso alle finalità di marketing o profilazione (se presenti).\n    *   **Conservazione:** Le scansioni 3D e il \"Report di Crescita\" costituiscono parte integrante della cartella clinica. Devono essere conservati su server crittografati o sistemi cloud conformi a standard sanitari (GDPR compliant).\n\n---\n\n### 3. Gestione Clinica e Consenso Informato\nL'attività descritta (Protocollo 3D, diagnosi gnatologica) non è una mera vendita, ma un atto medico che richiede protezione legale specifica.\n\n*   **Riferimenti Normativi:**\n    *   **Legge 219/2017:** Norme in materia di consenso informato e disposizioni anticipate di trattamento.\n*   **Adempimento:**\n    *   **Consenso Informato:** Prima di avviare il protocollo diagnostico (i 250€ del \"Report di Crescita\"), è obbligatorio far firmare al genitore/tutore un documento di consenso informato che spieghi: rischi, benefici, alternative terapeutiche e limiti dell'ortodonzia intercettiva.\n    *   **Cartella Clinica:** La legge impone la conservazione della documentazione clinica. Il \"Report di Crescita\" prodotto deve essere firmato dal medico e archiviato in modo da garantire l'immodificabilità.\n\n---\n\n### 4. Trasparenza Commerciale e Codice del Consumo\nL'offerta del servizio deve rispettare le norme sulla trasparenza dei prezzi e la correttezza informativa, specialmente quando si opera con minori.\n\n*   **Riferimenti Normativi:**\n    *   **Codice del Consumo (D.Lgs. 206/2005):** Artt. 20-27 (Pratiche commerciali scorrette), Artt. 45-59 (Contratti a distanza/fuori dai locali).\n*   **Adempimento:**\n    *   **Trasparenza Prezzi:** Il prezzo di 250€ per il \"Protocollo Diagnostico Intercettivo 3D\" deve essere chiaramente indicato. Eventuali extra (es. Kit igiene 15€, Controllo 50€) devono essere presentati in modo non ingannevole.\n    *   **Nota bene:** Essendo una prestazione sanitaria, non si applica il diritto di recesso previsto per gli e-commerce (se il trattamento è già iniziato), ma è buona norma contrattuale specificare le condizioni di disdetta o rimborso in caso di rinuncia prima dell'erogazione.\n\n---\n\n### Sintesi Operativa: Checklist Azioni (Responsabile: Titolare Centro Odontoiatrico)\n\n| Ambito | Azione Obbligatoria | Periodicità |\n| :--- | :--- | :--- |\n| **Sanitario** | Verifica autorizzazione ASP Agrigento per la sede di Via Tagliavia | Check annuale |\n| **Privacy** | Firma Informativa Privacy (Art. 13 GDPR) da parte dei genitori | Ad ogni nuovo paziente |\n| **Clinico** | Firma Consenso Informato (L. 219/2017) per il Piano di Cura | Prima di ogni piano di trattamento |\n| **Commerciale** | Esposizione chiara dei costi (250€) in sede e nel preventivo scritto | Permanente |\n| **Sicurezza Dati** | Backup crittografato e controllo accessi ai dati 3D/Report | Costante (Automated) |\n\n**Raccomandazione finale:** Data la delicatezza del servizio (pediatria), si consiglia di integrare nel contratto di prestazione una clausola specifica che chiarisca che il \"Report di Crescita\" è uno strumento diagnostico e non garantisce il risultato clinico (l'ortodonzia è una disciplina biologica soggetta a variabili soggettive), per tutelarsi da contestazioni future.",
+            "additional_kwargs": {},
+            "response_metadata": {}
+          },
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 Edg/148.0.0.0",
+            "content-length": "1672",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "it,it-IT;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "content-type": "application/json",
+            "origin": "https://trinaibusinessoperatingsystem.github.io",
+            "priority": "u=1, i",
+            "referer": "https://trinaibusinessoperatingsystem.github.io/",
+            "sec-ch-ua": "\"Not/A)Brand\";v=\"99\", \"Microsoft Edge\";v=\"148\", \"Microsoft Edge WebView2\";v=\"148\", \"Chromium\";v=\"148\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "151.19.235.13",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "_auth": "query_id=AAF7KwZvAwAAAHsrBm8osFX9&user=%7B%22id%22%3A8305126267%2C%22first_name%22%3A%22Giuseppe%22%2C%22last_name%22%3A%22B%22%2C%22language_code%22%3A%22it%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2Fp6piCXvtNSGj4KPd60vozxgOJss0ji-aGRNNX4I7CVNme0ergMr6kC1wUoV60zBY.svg%22%7D&auth_date=1780471386&signature=B43rLvNhgO9Zb5pWgKMmLhdGCzxyTt-4Hl6rOBNbyUPnEZh8mL8o7Zz0k2c2MbA_1Qa2XHkQTliaW2PzbRBMCw&hash=b17971b31712d2d0930abf9e1abaeb9a4369cc2ce131a540281493590025dc76",
+            "ash": "ODMwNTEyNjI2N3wxNzc5Mjg2OTQ2MDQ4fGVmNGFlY2U0LTllYzAtNDAyNi1hN2E3LTMyODU2MmJjYmRmNg==.4b9bf5de",
+            "message_id": "659",
+            "action": "GENERATE_ADVANCED_DRAFT",
+            "sop_id": "SVC_5ZD1XG6Y",
+            "product_state": {
+              "name": "Ortodonzia Intercettiva Per Bambini",
+              "type": "SERVICE",
+              "short": "Il primo passo per un sorriso sano: correzione precoce e cura specializzata per i più piccoli.",
+              "long": "Affida il sorriso del tuo bambino al Centro Odontoiatrico Specialistico Buscemi. L'ortodonzia intercettiva è fondamentale nei primi anni per guidare la corretta crescita ossea e dentale, prevenendo complicazioni future. Con la nostra diagnosi di precisione e approccio multidisciplinare, offriamo un percorso risolutivo personalizzato per il benessere duraturo dei tuoi figli, garantendo attenzione umana e competenza clinica d'eccellenza.",
+              "price": "250",
+              "cur": "EUR",
+              "uom": "project",
+              "tax": "22",
+              "booking": true,
+              "inv": false,
+              "notes_enabled": false,
+              "st": "Ortodontista,Pedodontista",
+              "ex": "[]",
+              "suppliers": "[]",
+              "locations": "[]",
+              "bom": "[]",
+              "assets": "[]"
+            },
+            "user_instructions": "",
+            "grounded_files": {
+              "suppliers": null,
+              "bom": null,
+              "locations": null,
+              "assets": null
+            }
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/6333dff0-d886-499c-8000-f3e0266845ed",
+          "executionMode": "production",
+          "owner_data": {
+            "user_id": "IT02564250849",
+            "chat_id": 8305126267,
+            "access_token": "3085509e-63ee-463a-ba87-e0de3b975218",
+            "group_id": null,
+            "user_name": "",
+            "vat_number": "IT02564250849",
+            "gemini_key": "AIzaSyAbDReRpDWAg93RXoOxuOmNtCGzIfZmF4Q",
+            "bot_key": "8407768207:AAE8ki9v8DPdcrYYyWDFjPFON6cS-7sehb8",
+            "path": "",
+            "name": "GIUSEPPE",
+            "surname": "BUSCEMI",
+            "email": "giuseppe.buscemi78@gmail.com",
+            "phone": "3934425185",
+            "ragione_sociale": "Centro Odontoiatrico Buscemi srl",
+            "indirizzo": "via tagliavia , 92013 MENFI (AG)",
+            "fiscal_code": "BSCGPP78S29G273C",
+            "sdi_pec": "KRRH6B9",
+            "site": "www.centroodontoiatricobuscemi.com",
+            "linkedin_page": "",
+            "facebook_page": "https://www.facebook.com/profile.php?id=100064938375333",
+            "instagram_page": "https://www.instagram.com/centrodentisticobuscemi/",
+            "twitter_page": "",
+            "sector": "services_personal",
+            "business_description": "ATTIVITà DI ODONTOIATRIA DI ECCELLENZA",
+            "kyc_details": {
+              "professional_questionnaire": {
+                "role": "founder_ceo",
+                "team_size": "6-10",
+                "years_experience": "20+",
+                "hard_skills": [
+                  "ODONTOIATRA SPECIALISTA IN ORTODONZIA",
+                  "IMPRENDITORE",
+                  "DENTAL OFFICE MANAGER",
+                  "ODONTOIATRA SPECIALISTA IN CHIRURGIA",
+                  "ESPERTO DI GNATOLOGIA"
+                ],
+                "certifications": "ALBO DEI MEDICI DI AG NUM 353",
+                "recent_training": "formal_course",
+                "specialization_level": "specialist",
+                "digital_tools": [
+                  "email",
+                  "whatsapp",
+                  "word",
+                  "calendar",
+                  "social",
+                  "crm",
+                  "accounting"
+                ],
+                "client_workflow": "physical_dominant",
+                "document_management": "gestionale",
+                "pain_points": [
+                  "bureaucracy",
+                  "find_clients",
+                  "time_management",
+                  "costs_control",
+                  "scaling"
+                ],
+                "main_goal": "save_time"
+              }
+            },
+            "subscription_plan": "pioneer_free_trial",
+            "subscription_status": "Pending_Activation",
+            "credits_balance": 499048,
+            "model_choice": "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+            "lenguage": "Italiano",
+            "owner_unavailable_time": "21-7",
+            "operator_unavailable_time": "19-9",
+            "operators": [
+              {
+                "OperatorName": "GIUSEPPE Garofalo",
+                "OperatorChatID": 8305126267,
+                "OperatorLenguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Owner",
+                "GeminiKey": "AIzaSyBCV2D4FL-1Nww0jYJRJTDBG5QRdm7Kclc"
+              }
+            ],
+            "payment_preference": "stripe",
+            "terms_accepted": true,
+            "operator_owner": "",
+            "operator_credit": "1",
+            "created_at": "2026-03-24T18:17:36.730Z",
+            "additional_kwargs": {},
+            "response_metadata": {},
+            "subscription_certificator": true,
+            "last_update": "2026-05-12T11:28:23.342Z",
+            "subscription_custombot": true,
+            "customer_bot_config": {
+              "status": "ACTIVE",
+              "activated_at": "2026-04-21T10:46:26.534Z",
+              "last_updated_at": "2026-04-21T10:46:26.534Z",
+              "identity": {
+                "agent_name": "Arianna",
+                "role_persona": "customer_support"
+              },
+              "permissions": {
+                "allow_images": true,
+                "allow_files": true
+              },
+              "personality": {
+                "tone": "friendly",
+                "vibe": "helpful_assistant",
+                "language_style": "casual",
+                "emoji_usage": "moderate",
+                "custom_instructions": ""
+              },
+              "business_logic": {
+                "primary_goal": "lead_generation",
+                "fallback_message": "Al momento non dispongo di questa informazione specifica. Preferisce che inoltri la Sua richiesta a un operatore umano?"
+              },
+              "system_safety_limits": {
+                "max_daily_messages_per_user": 20,
+                "max_tokens_per_chat": 2000
+              }
+            }
+          },
+          "Company_ApiOverview": {
+            "managers": [
+              {
+                "isLegalRepresentative": true,
+                "age": 47,
+                "birthDate": "1978-11-29T00:00:00",
+                "birthTown": "PALERMO (PA)",
+                "name": "GIUSEPPE MARIA",
+                "roles": [
+                  {
+                    "role": {
+                      "code": "AUN",
+                      "description": "Managing director"
+                    },
+                    "roleStartDate": "2019-02-05T00:00:00"
+                  }
+                ],
+                "gender": {
+                  "code": "M",
+                  "description": "Man"
+                },
+                "surname": "BUSCEMI",
+                "taxCode": "BSCGPP78S29G273C"
+              }
+            ],
+            "rae": {
+              "code": "950",
+              "description": "SERVIZI SANITARI DESTINABILI ALLA VENDITA"
+            },
+            "sae": {
+              "code": "430",
+              "description": "Imprese produttive"
+            },
+            "shareholders": [
+              {
+                "shareholdersInformation": [
+                  {
+                    "sinceDate": "2019-02-05T00:00:00",
+                    "streetName": "VIA STORICO GIUSEPPE VOLPE 19",
+                    "town": "MENFI",
+                    "name": "GIUSEPPE MARIA",
+                    "zipCode": "92013",
+                    "surname": "BUSCEMI",
+                    "taxCode": "BSCGPP78S29G273C"
+                  }
+                ],
+                "percentShare": 50,
+                "shareType": {
+                  "code": "ND99",
+                  "description": "N. a."
+                }
+              },
+              {
+                "shareholdersInformation": [
+                  {
+                    "sinceDate": "2019-02-05T00:00:00",
+                    "streetName": "VIA VOLPE STORICO G. 19",
+                    "town": "MENFI",
+                    "name": "FILIPPO",
+                    "zipCode": "92013",
+                    "surname": "BUSCEMI",
+                    "taxCode": "BSCFPP81D27G273N"
+                  }
+                ],
+                "percentShare": 50,
+                "shareType": {
+                  "code": "ND99",
+                  "description": "N. a."
+                }
+              }
+            ],
+            "pec": "CENTROBUSCEMI@PEC.IT",
+            "adjustments": [
+              {
+                "code": "IIC163",
+                "value": 0
+              },
+              {
+                "code": "IIC162",
+                "value": 0
+              },
+              {
+                "code": "IIC164",
+                "value": 0
+              },
+              {
+                "code": "IIC246",
+                "value": 0
+              },
+              {
+                "code": "IIC245",
+                "value": 0
+              },
+              {
+                "code": "IIC350",
+                "value": 0
+              },
+              {
+                "code": "IICC351",
+                "value": 0
+              },
+              {
+                "code": "IIC167",
+                "value": 0
+              },
+              {
+                "code": "IIC168",
+                "value": 0
+              },
+              {
+                "code": "IIC166",
+                "value": 0
+              },
+              {
+                "code": "IIC165",
+                "value": 0
+              },
+              {
+                "code": "IIC169",
+                "value": 0
+              }
+            ],
+            "productionCosts": [
+              {
+                "code": "IIC134",
+                "value": 55930
+              },
+              {
+                "code": "IIC188",
+                "value": 34412
+              },
+              {
+                "code": "IIC140",
+                "value": 4099
+              },
+              {
+                "code": "IIC141",
+                "value": 30313
+              },
+              {
+                "code": "IIC142",
+                "value": 0
+              },
+              {
+                "code": "IIC143",
+                "value": 0
+              },
+              {
+                "code": "IIC133",
+                "value": 14336
+              },
+              {
+                "code": "IIC138",
+                "value": 5860
+              },
+              {
+                "code": "IIC148",
+                "value": 7021
+              },
+              {
+                "code": "IIC147",
+                "value": 40000
+              },
+              {
+                "code": "IIC137",
+                "value": 0
+              },
+              {
+                "code": "IIC131",
+                "value": 86766
+              },
+              {
+                "code": "IIC146",
+                "value": 0
+              },
+              {
+                "code": "IIC132",
+                "value": 100133
+              },
+              {
+                "code": "IIC136",
+                "value": 3450
+              },
+              {
+                "code": "IIC187",
+                "value": 9310
+              },
+              {
+                "code": "IIC135",
+                "value": 11324
+              },
+              {
+                "code": "IIC144",
+                "value": 34412
+              },
+              {
+                "code": "IIC139",
+                "value": 76564
+              },
+              {
+                "code": "IIC145",
+                "value": 0
+              }
+            ],
+            "revenuesFinancialCharges": [
+              {
+                "code": "IIC226",
+                "value": 0
+              },
+              {
+                "code": "IPL231",
+                "value": 0
+              },
+              {
+                "code": "IIC236",
+                "value": 0
+              },
+              {
+                "code": "IIC227",
+                "value": 0
+              },
+              {
+                "code": "IPL232",
+                "value": 0
+              },
+              {
+                "code": "IIC237",
+                "value": 0
+              },
+              {
+                "code": "IIC225",
+                "value": 0
+              },
+              {
+                "code": "IIC230",
+                "value": 0
+              },
+              {
+                "code": "IIC235",
+                "value": 0
+              },
+              {
+                "code": "IIC228",
+                "value": 0
+              },
+              {
+                "code": "IIC233",
+                "value": 0
+              },
+              {
+                "code": "IIC238",
+                "value": 0
+              },
+              {
+                "code": "IIC229",
+                "value": 0
+              },
+              {
+                "code": "IIC234",
+                "value": 0
+              },
+              {
+                "code": "IIC239",
+                "value": 0
+              },
+              {
+                "code": "IIC156",
+                "value": 0
+              },
+              {
+                "code": "IIC190",
+                "value": 0
+              },
+              {
+                "code": "IIC152",
+                "value": 0
+              },
+              {
+                "code": "IIC155",
+                "value": 0
+              },
+              {
+                "code": "IIC154",
+                "value": 0
+              },
+              {
+                "code": "IIC150",
+                "value": 0
+              },
+              {
+                "code": "IIC189",
+                "value": 0
+              },
+              {
+                "code": "IIC241",
+                "value": 0
+              },
+              {
+                "code": "IIC243",
+                "value": 0
+              },
+              {
+                "code": "IIC244",
+                "value": 7317
+              },
+              {
+                "code": "IIC242",
+                "value": 0
+              },
+              {
+                "code": "IIC240",
+                "value": 0
+              },
+              {
+                "code": "IIC159",
+                "value": 7317
+              },
+              {
+                "code": "IIC158",
+                "value": 0
+              }
+            ],
+            "annualResult": [
+              {
+                "code": "IIC191",
+                "value": 9724
+              },
+              {
+                "code": "IIC192",
+                "value": 0
+              },
+              {
+                "code": "IIC250",
+                "value": 0
+              },
+              {
+                "code": "IIC179",
+                "value": 62486
+              },
+              {
+                "code": "IIC177",
+                "value": 72210
+              },
+              {
+                "code": "IIC347",
+                "value": 0
+              },
+              {
+                "code": "IIC178",
+                "value": 9724
+              }
+            ],
+            "incomeStatementAggregateValues": [
+              {
+                "code": "IIC224",
+                "value": 79527
+              },
+              {
+                "code": "IIC149",
+                "value": 359232
+              },
+              {
+                "code": "IIC130",
+                "value": 438759
+              },
+              {
+                "code": "IIC161",
+                "value": -7317
+              },
+              {
+                "code": "IIC170",
+                "value": 0
+              }
+            ],
+            "productionValue": [
+              {
+                "code": "IIC127",
+                "value": 0
+              },
+              {
+                "code": "IIC129",
+                "value": 17315
+              },
+              {
+                "code": "IIC223",
+                "value": 129
+              },
+              {
+                "code": "IIC125",
+                "value": 0
+              },
+              {
+                "code": "IIC124",
+                "value": 421315
+              },
+              {
+                "code": "IIC128",
+                "value": 17444
+              },
+              {
+                "code": "IIC186",
+                "value": 0
+              },
+              {
+                "code": "IIC126",
+                "value": 0
+              }
+            ],
+            "assetsAggregateValues": [
+              {
+                "code": "IIC072",
+                "value": 1434
+              },
+              {
+                "code": "IIC001",
+                "value": 0
+              },
+              {
+                "code": "IIC071",
+                "value": 145448
+              },
+              {
+                "code": "IIC074",
+                "value": 513493
+              },
+              {
+                "code": "IIC039",
+                "value": 366611
+              }
+            ],
+            "intangibleFixedAssets": [
+              {
+                "code": "IIC008",
+                "value": 0
+              },
+              {
+                "code": "IIC007",
+                "value": 0
+              },
+              {
+                "code": "IIC009",
+                "value": 4852
+              },
+              {
+                "code": "IIC005",
+                "value": 0
+              },
+              {
+                "code": "IIC006",
+                "value": 0
+              },
+              {
+                "code": "IIC004",
+                "value": 0
+              },
+              {
+                "code": "IIC003",
+                "value": 0
+              },
+              {
+                "code": "IIC011",
+                "value": 4852
+              }
+            ],
+            "tangibleFixedAssets": [
+              {
+                "code": "IIC016",
+                "value": 0
+              },
+              {
+                "code": "IIC014",
+                "value": 6170
+              },
+              {
+                "code": "IIC012",
+                "value": 228207
+              },
+              {
+                "code": "IIC015",
+                "value": 8546
+              },
+              {
+                "code": "IIC013",
+                "value": 13537
+              },
+              {
+                "code": "IIC018",
+                "value": 256460
+              }
+            ],
+            "cashEquivalents": [
+              {
+                "code": "IIC067",
+                "value": 94868
+              },
+              {
+                "code": "IIC070",
+                "value": 107613
+              },
+              {
+                "code": "IIC069",
+                "value": 12745
+              },
+              {
+                "code": "IIC068",
+                "value": 0
+              }
+            ],
+            "credits": [
+              {
+                "code": "IIC057",
+                "value": 0
+              },
+              {
+                "code": "IIC052",
+                "value": 0
+              },
+              {
+                "code": "IIC053",
+                "value": 0
+              },
+              {
+                "code": "IIC046",
+                "value": 0
+              },
+              {
+                "code": "IIC047",
+                "value": 0
+              },
+              {
+                "code": "IIC054",
+                "value": 37835
+              },
+              {
+                "code": "IIC055",
+                "value": 0
+              },
+              {
+                "code": "IIC050",
+                "value": 0
+              },
+              {
+                "code": "IIC051",
+                "value": 0
+              },
+              {
+                "code": "IIC048",
+                "value": 0
+              },
+              {
+                "code": "IIC049",
+                "value": 0
+              },
+              {
+                "code": "IIC198",
+                "value": 0
+              },
+              {
+                "code": "IIC199",
+                "value": 0
+              },
+              {
+                "code": "IIC056",
+                "value": 37835
+              },
+              {
+                "code": "IIC180",
+                "value": 0
+              },
+              {
+                "code": "IIC181",
+                "value": 0
+              },
+              {
+                "code": "IIC324",
+                "value": 0
+              },
+              {
+                "code": "IIC321",
+                "value": 0
+              },
+              {
+                "code": "IIC058",
+                "value": 37835
+              },
+              {
+                "code": "IIC325",
+                "value": 0
+              },
+              {
+                "code": "IIC326",
+                "value": 0
+              },
+              {
+                "code": "IIC328",
+                "value": 37835
+              },
+              {
+                "code": "IIC323",
+                "value": 0
+              },
+              {
+                "code": "IIC322",
+                "value": 0
+              },
+              {
+                "code": "IIC327",
+                "value": 0
+              }
+            ],
+            "financialFixedAssets": [
+              {
+                "code": "IIC038",
+                "value": 105299
+              }
+            ],
+            "creditsToShareholders": [
+              {
+                "code": "IIC002",
+                "value": 0
+              },
+              {
+                "code": "IIC193",
+                "value": 0
+              }
+            ],
+            "financialAssets": [
+              {
+                "code": "IIC201",
+                "value": 0
+              },
+              {
+                "code": "IIC202",
+                "value": 0
+              },
+              {
+                "code": "IIC200",
+                "value": 0
+              },
+              {
+                "code": "IIC062",
+                "value": 0
+              },
+              {
+                "code": "IIC065",
+                "value": 0
+              },
+              {
+                "code": "IIC060",
+                "value": 0
+              },
+              {
+                "code": "IIC059",
+                "value": 0
+              },
+              {
+                "code": "IIC061",
+                "value": 0
+              },
+              {
+                "code": "IIC066",
+                "value": 0
+              }
+            ],
+            "inventory": [
+              {
+                "code": "IIC043",
+                "value": 0
+              },
+              {
+                "code": "IIC044",
+                "value": 0
+              },
+              {
+                "code": "IIC040",
+                "value": 0
+              },
+              {
+                "code": "IIC041",
+                "value": 0
+              },
+              {
+                "code": "IIC349",
+                "value": 0
+              },
+              {
+                "code": "IIC045",
+                "value": 0
+              },
+              {
+                "code": "IIC042",
+                "value": 0
+              }
+            ],
+            "debts": [
+              {
+                "code": "IIC099",
+                "value": 0
+              },
+              {
+                "code": "IIC098",
+                "value": 0
+              },
+              {
+                "code": "IIC091",
+                "value": 0
+              },
+              {
+                "code": "IIC090",
+                "value": 0
+              },
+              {
+                "code": "IIC092",
+                "value": 0
+              },
+              {
+                "code": "IIC093",
+                "value": 0
+              },
+              {
+                "code": "IIC103",
+                "value": 0
+              },
+              {
+                "code": "IIC102",
+                "value": 0
+              },
+              {
+                "code": "IIC117",
+                "value": 111158
+              },
+              {
+                "code": "IIC097",
+                "value": 0
+              },
+              {
+                "code": "IIC107",
+                "value": 0
+              },
+              {
+                "code": "IIC112",
+                "value": 6604
+              },
+              {
+                "code": "IIC113",
+                "value": 0
+              },
+              {
+                "code": "IIC109",
+                "value": 0
+              },
+              {
+                "code": "IIC105",
+                "value": 0
+              },
+              {
+                "code": "IIC220",
+                "value": 0
+              },
+              {
+                "code": "IIC221",
+                "value": 0
+              },
+              {
+                "code": "IIC106",
+                "value": 0
+              },
+              {
+                "code": "IIC094",
+                "value": 0
+              },
+              {
+                "code": "IIC095",
+                "value": 111158
+              },
+              {
+                "code": "IIC096",
+                "value": 0
+              },
+              {
+                "code": "IIC108",
+                "value": 0
+              },
+              {
+                "code": "IIC185",
+                "value": 0
+              },
+              {
+                "code": "IIC184",
+                "value": 0
+              },
+              {
+                "code": "IIC104",
+                "value": 0
+              },
+              {
+                "code": "IIC101",
+                "value": 0
+              },
+              {
+                "code": "IIC100",
+                "value": 45376
+              },
+              {
+                "code": "IIC114",
+                "value": 5724
+              },
+              {
+                "code": "IIC115",
+                "value": 0
+              },
+              {
+                "code": "IIC116",
+                "value": 70228
+              },
+              {
+                "code": "IIC110",
+                "value": 12524
+              },
+              {
+                "code": "IIC111",
+                "value": 0
+              },
+              {
+                "code": "IIC334",
+                "value": 0
+              },
+              {
+                "code": "IIC329",
+                "value": 0
+              },
+              {
+                "code": "IIC333",
+                "value": 0
+              },
+              {
+                "code": "IIC338",
+                "value": 0
+              },
+              {
+                "code": "IIC337",
+                "value": 0
+              },
+              {
+                "code": "IIC330",
+                "value": 0
+              },
+              {
+                "code": "IIC336",
+                "value": 0
+              },
+              {
+                "code": "IIC342",
+                "value": 6604
+              },
+              {
+                "code": "IIC340",
+                "value": 0
+              },
+              {
+                "code": "IIC339",
+                "value": 0
+              },
+              {
+                "code": "IIC331",
+                "value": 0
+              },
+              {
+                "code": "IIC332",
+                "value": 111158
+              },
+              {
+                "code": "IIC343",
+                "value": 5724
+              },
+              {
+                "code": "IIC341",
+                "value": 12524
+              },
+              {
+                "code": "IIC335",
+                "value": 45376
+              }
+            ],
+            "liabilitiesAggregateValues": [
+              {
+                "code": "IIC119",
+                "value": 15483
+              },
+              {
+                "code": "IIC089",
+                "value": 18106
+              },
+              {
+                "code": "IIC118",
+                "value": 181386
+              },
+              {
+                "code": "IIC121",
+                "value": 513493
+              },
+              {
+                "code": "IIC084",
+                "value": 193518
+              },
+              {
+                "code": "IIC088",
+                "value": 105000
+              }
+            ],
+            "netWorth": [
+              {
+                "code": "IIC211",
+                "value": 0
+              },
+              {
+                "code": "IIC207",
+                "value": 0
+              },
+              {
+                "code": "IIC209",
+                "value": 0
+              },
+              {
+                "code": "IIC210",
+                "value": 0
+              },
+              {
+                "code": "IIC208",
+                "value": 0
+              },
+              {
+                "code": "IIC203",
+                "value": 0
+              },
+              {
+                "code": "IIC206",
+                "value": 0
+              },
+              {
+                "code": "IIC078",
+                "value": 5197
+              },
+              {
+                "code": "IIC212",
+                "value": 0
+              },
+              {
+                "code": "IIC216",
+                "value": 0
+              },
+              {
+                "code": "IIC214",
+                "value": 1
+              },
+              {
+                "code": "IIC218",
+                "value": 0
+              },
+              {
+                "code": "IIC081",
+                "value": 1
+              },
+              {
+                "code": "IIC082",
+                "value": 0
+              },
+              {
+                "code": "IIC083",
+                "value": 62486
+              },
+              {
+                "code": "IIC345",
+                "value": 0
+              },
+              {
+                "code": "IIC204",
+                "value": 0
+              },
+              {
+                "code": "IIC213",
+                "value": 0
+              },
+              {
+                "code": "IIC215",
+                "value": 0
+              },
+              {
+                "code": "IIC077",
+                "value": 0
+              },
+              {
+                "code": "IIC075",
+                "value": 10000
+              },
+              {
+                "code": "IIC076",
+                "value": 0
+              },
+              {
+                "code": "IIC205",
+                "value": 0
+              },
+              {
+                "code": "IIC080",
+                "value": 115834
+              }
+            ],
+            "artisanBusinessRegistry": {
+              "belongsToArtisanBusinessRegistry": false
+            },
+            "atecoClassification": {
+              "ateco": {
+                "code": "8623",
+                "description": "Dental practice care activities"
+              },
+              "firstLevel": {
+                "ateco": {
+                  "code": "Q",
+                  "description": "Q - Health and social work"
+                },
+                "ateco2025": {
+                  "code": "R",
+                  "description": "R - Human health and social work activities"
+                }
+              },
+              "secondaryAteco": "",
+              "ateco2022": {
+                "code": "8623",
+                "description": "Activities of dental practices"
+              },
+              "secondaryAteco2022": ""
+            },
+            "financialCycle": {
+              "accountsReceivableDuration": 0,
+              "debtsToSuppliersDuration": 87.4021,
+              "financialCycleDuration": -87.4021,
+              "stockDuration": 0
+            },
+            "efficiency": {
+              "turnoverIndex": 0.8205
+            },
+            "financialStability": {
+              "acidTest": 1.7137,
+              "workingCapitalCoverage": 0.1394,
+              "currentRatio": 1.7137,
+              "fixedAssetsCoverageRate": 0.8311,
+              "marginStructureIndex": -173093,
+              "marginStructure": 0.5279,
+              "secondaryMarginStructure ": -61935
+            },
+            "development": {
+              "addedValue": 7.76,
+              "ebitVariation": 0.3828,
+              "grossFinancialDebt": -0.0891,
+              "mol": 16.97,
+              "productionValue": -8.49,
+              "totalAssets": 8.15
+            },
+            "indebtedness": {
+              "bankDebtRatio": 0.5744,
+              "capitalizationDegree": 0.3769,
+              "bankDebtTotalAssets": 0.2165,
+              "debtRatio": 0.9373,
+              "leverage": 2.6535
+            },
+            "financialBurden": {
+              "burdenIndex": 4.75,
+              "rod": 6.58,
+              "rodFinanziario": 6.58
+            },
+            "liquidityRatios": {
+              "cashTotalShortTermDebt": 1.5323
+            },
+            "financialStatementKpi": {
+              "debtsTurnover": 0.4305,
+              "financialCostsOnEbitda": 0.0475,
+              "totalInventoryTurnover": 0,
+              "ebitdaMargin": 36.54,
+              "netWorthOnAssets": 0.3769
+            },
+            "coverageRatios": {
+              "ebitdaGrossInterestCoverage": 21.0385,
+              "ebitdaNetInterestCoverage": 21.0385,
+              "ebitGrossInterestCoverage": 10.8688,
+              "ebitNetInterestCoverage": 10.8688
+            },
+            "leverageRatios": {
+              "ebitdaGrossLeverage": 0.7221,
+              "ebitdaNetLeverage": 0.023,
+              "pfnEbitda": 0.023
+            },
+            "structureRatios": {
+              "financialDebtComposition": 0,
+              "grossFinancialDebtNetWorth": 0.5744,
+              "netDebtTotalSources": 0.018,
+              "netFinancialDebtEquityNetWorth": 0.0183,
+              "pfnNetWorth": 0.0183
+            },
+            "profitability": {
+              "incidenceOfExtraFeaturesManagement": 78.57,
+              "roaMonetary": 15.49,
+              "roe": 32.29,
+              "roi": 40.36,
+              "ros": 18.88
+            },
+            "ecofin": {
+              "shareCapital": 10000,
+              "netWorth": 193518,
+              "balanceSheetDate": "2025-12-31T00:00:00",
+              "enterpriseSize": {
+                "code": "MICRO",
+                "description": "Micro enterprise"
+              },
+              "turnover": 421315,
+              "turnoverRange": {
+                "code": "TR5",
+                "description": "100000 - 499999"
+              },
+              "turnoverTrend": -5.58,
+              "turnoverYear": 2025
+            },
+            "operatingResults": {
+              "cashFlow": 136898,
+              "ebit": 79527,
+              "ebitda": 153939,
+              "cashFlowL2Y": 112017,
+              "ebitL2Y": 57512,
+              "ebitdaL2Y": 131604
+            },
+            "branches": {
+              "numberOfBranches": 0
+            },
+            "companyDetails": {
+              "cciaa": "AG",
+              "companyName": "CENTRO ODONTOIATRICO SPECIALISTICO BUSCEMI SRL",
+              "officeType": {
+                "code": "SSL",
+                "description": "Administrative headquarter and registered office"
+              },
+              "reaCode": "191074",
+              "taxCode": "02564250849",
+              "vatCode": "02564250849",
+              "lastUpdateDate": "2026-06-01T13:38:25.6347346Z",
+              "openapiNumber": "IT0C660F0AS0001"
+            },
+            "corporateGroups": {
+              "belongsToGroup": true,
+              "groupName": "BUSCEMI",
+              "totalGroupSubsidiaries": 0,
+              "hasForeignParents": false,
+              "hasForeignSubsidiaries": false,
+              "holdingCompanyName": "GIUSEPPE MARIA BUSCEMI",
+              "nationalParentCompany": {
+                "province": {
+                  "code": "ND99",
+                  "description": "N. A."
+                }
+              }
+            },
+            "webAndSocial": {
+              "hasSocial": false
+            },
+            "mail": {
+              "email": ""
+            },
+            "contacts": {
+              "fax": "",
+              "telephoneNumber": "092572773"
+            },
+            "legalForm": {
+              "detailedLegalForm": {
+                "code": "SR",
+                "description": "Limited liability company/ limited company"
+              },
+              "legalForm": {
+                "code": "SC",
+                "description": "Joint stock business"
+              }
+            },
+            "employees": {
+              "employee": 3,
+              "employeeRange": {
+                "code": "ER2",
+                "description": "≤ 5"
+              },
+              "employeeTrend": 0
+            },
+            "companyDates": {
+              "incorporationDate": "2009-06-01T00:00:00",
+              "registrationDate": "2009-06-18T00:00:00",
+              "startDate": "2010-07-20T00:00:00"
+            },
+            "foreignTrade": {
+              "isExporter": false,
+              "isImporter": false
+            },
+            "address": {
+              "zipCode": "92013",
+              "province": {
+                "code": "AG",
+                "description": "AGRIGENTO"
+              },
+              "region": {
+                "code": "19",
+                "description": "SICILY"
+              },
+              "country": {
+                "code": "IT",
+                "description": "Italia"
+              },
+              "streetName": "VIA TAGLIAVIA, 7/10",
+              "town": "MENFI"
+            },
+            "innovativeSmeAndSu": {
+              "isInnovativeSme": false,
+              "isInnovativeStartUp": false
+            },
+            "marketable": {
+              "isMarketable": true
+            },
+            "internationalClassification": {
+              "nace": {
+                "code": "8623",
+                "description": "Dental practice activities"
+              },
+              "firstLevel": {
+                "nace": {
+                  "code": "86",
+                  "description": "86 - Human health activitiesâ "
+                },
+                "primarySic": {
+                  "code": "COD_09",
+                  "description": "I - Various services"
+                }
+              },
+              "primarySic": {
+                "code": "8021",
+                "description": "Offices of dentists"
+              },
+              "secondarySic": ""
+            },
+            "soaCertification": {
+              "hasSoaCertification": false
+            },
+            "companyStatus": {
+              "activityStatus": {
+                "code": "A",
+                "description": "Enable"
+              }
+            },
+            "allOffices": [
+              {
+                "companyDetails": {
+                  "cciaa": "AG",
+                  "companyName": "CENTRO ODONTOIATRICO SPECIALISTICO BUSCEMI SRL",
+                  "officeType": {
+                    "code": "SSL",
+                    "description": "Administrative headquarter and registered office"
+                  },
+                  "reaCode": "191074",
+                  "taxCode": "02564250849",
+                  "vatCode": "02564250849",
+                  "lastUpdateDate": "2026-06-01T13:38:25.6347346Z",
+                  "openapiNumber": "IT0C660F0AS0001"
+                },
+                "address": {
+                  "zipCode": "92013",
+                  "province": {
+                    "code": "AG",
+                    "description": "AGRIGENTO"
+                  },
+                  "region": {
+                    "code": "19",
+                    "description": "SICILY"
+                  },
+                  "country": {
+                    "code": "IT",
+                    "description": "Italia"
+                  },
+                  "streetName": "VIA TAGLIAVIA, 7/10",
+                  "town": "MENFI"
+                },
+                "companyStatus": {
+                  "activityStatus": {
+                    "code": "A",
+                    "description": "Enable"
+                  }
+                }
+              }
+            ]
+          },
+          "isValid": false,
+          "isExpired": true,
+          "isHashValid": true,
+          "user": {
+            "id": 8305126267,
+            "first_name": "Giuseppe",
+            "last_name": "B",
+            "language_code": "it",
+            "allows_write_to_pm": true,
+            "photo_url": "https://t.me/i/userpic/320/p6piCXvtNSGj4KPd60vozxgOJss0ji-aGRNNX4I7CVNme0ergMr6kC1wUoV60zBY.svg"
+          },
+          "auth_date_human": "03/06/2026, 07:23:06",
+          "debug": {
+            "time_diff_seconds": 458490,
+            "computed": "b17971b31712d2d0930abf9e1abaeb9a4369cc2ce131a540281493590025dc76",
+            "received": "b17971b31712d2d0930abf9e1abaeb9a4369cc2ce131a540281493590025dc76"
+          },
+          "catalog_item": {
+            "_id": "IT02564250849-SVC_5ZD1XG6Y",
+            "document_type": "CATALOG_ITEM",
+            "version": "1.0",
+            "owner_instance_id": "IT02564250849",
+            "metadata": {
+              "status": "ACTIVE",
+              "source": "CHAT_INFERENCE",
+              "created_at": "2026-04-21T11:21:27.800Z",
+              "is_duplicate": false,
+              "duplicate_of": null,
+              "last_updated_at": "2026-04-21T11:22:29.310Z"
+            },
+            "identity": {
+              "item_name": "Ortodonzia Intercettiva Per Bambini",
+              "item_sku": "SVC_5ZD1XG6Y",
+              "item_type": "SERVICE",
+              "description": {
+                "short": "Il primo passo per un sorriso sano: correzione precoce e cura specializzata per i più piccoli.",
+                "long": "Affida il sorriso del tuo bambino al Centro Odontoiatrico Specialistico Buscemi. L'ortodonzia intercettiva è fondamentale nei primi anni per guidare la corretta crescita ossea e dentale, prevenendo complicazioni future. Con la nostra diagnosi di precisione e approccio multidisciplinare, offriamo un percorso risolutivo personalizzato per il benessere duraturo dei tuoi figli, garantendo attenzione umana e competenza clinica d'eccellenza.",
+                "internal_notes": "Servizio specialistico per pazienti pediatrici. Richiede prima visita gnatologica/ortodontica di valutazione."
+              },
+              "category": "CAT_7GULYPV1",
+              "tags": [
+                "Ortodonzia",
+                "Bambini",
+                "Pedodonzia",
+                "Intercettiva",
+                "Prevenzione",
+                "Allineamento",
+                "COSB",
+                "Menfi"
+              ],
+              "keywords": [
+                "apparecchio denti bambini",
+                "correzione occlusione",
+                "pediatria dentale",
+                "centro odontoiatrico",
+                "specialista ortodonzia"
+              ]
+            },
+            "pricing": {
+              "base_price": 250,
+              "currency": "EUR",
+              "unit_of_measure": "project",
+              "tax_info": {
+                "taxable": true,
+                "tax_rate_percentage": 22
+              },
+              "pricing_rules_engine": {
+                "is_dynamic_price": true,
+                "rules_ids": [
+                  "DYN_PRICE_PEDIATRIC_PLAN"
+                ],
+                "notes": "Dynamic price based on extra options."
+              },
+              "cost_of_goods": null
+            },
+            "operations": {
+              "requires_booking": true,
+              "requires_inventory_check": false,
+              "process_blueprint_id": null,
+              "fulfillment_time": {
+                "value": 12,
+                "unit": "month"
+              },
+              "provider_info": {
+                "required_skill_tags": [
+                  "Ortodontista",
+                  "Pedodontista"
+                ],
+                "specific_provider_ids": []
+              }
+            },
+            "relations": {
+              "related_items": [],
+              "marketing_info": {
+                "is_featured": true,
+                "target_audience_tags": [
+                  "Genitori",
+                  "SaluteInfantile"
+                ]
+              }
+            },
+            "additional_kwargs": {},
+            "response_metadata": {},
+            "ui_node_draft": {
+              "name": "Ortodonzia intercettiva per bambini piccoli",
+              "short_name": "🦷 Ortod. Bambini",
+              "callback_data": "SVC_5ZD1XG6Y",
+              "blueprint_ready": true,
+              "advanced_ready": true
+            }
+          },
+          "blueprint": {
+            "_id": "IT02564250849-SVC_5ZD1XG6Y",
+            "document_type": "PROCESS_BLUEPRINT",
+            "version": "1.0",
+            "owner_instance_id": "IT02564250849",
+            "metadata": {
+              "status": "ACTIVE",
+              "created_at": "2026-04-21T11:22:18.106Z",
+              "last_updated_at": "2026-04-21T11:22:18.107Z"
+            },
+            "service_sku": "SVC_5ZD1XG6Y",
+            "blueprint_name": "[SER] - Protocollo Diagnostico Intercettivo 3D (Buscemi)",
+            "blueprint_description": "Protocollo di ingegneria biologica per la diagnosi ortodontica pediatrica. Include analisi 3D, valutazione gnatologica e redazione del Report di Crescita.",
+            "blueprint_type": "SERVICE_DELIVERY",
+            "tags": [
+              "ortodonzia",
+              "pediatria",
+              "gnatologia",
+              "diagnostica3D",
+              "compliance_sanitaria"
+            ],
+            "summary": {
+              "estimated_total_cost": "250.00 EUR (Tariffa Protocollo Diagnostico)",
+              "estimated_total_time_minutes": 90,
+              "bill_of_materials_summary": [
+                {
+                  "material_sku": "MAT_DIGITAL_SCANNER_3D",
+                  "quantity": 1,
+                  "unit_of_measure": "unit"
+                },
+                {
+                  "material_sku": "DOC_CONSENT_INFO_L219",
+                  "quantity": 1,
+                  "unit_of_measure": "unit"
+                },
+                {
+                  "material_sku": "DOC_REPORT_CRESCITA_TEMPLATE",
+                  "quantity": 1,
+                  "unit_of_measure": "unit"
+                }
+              ]
+            },
+            "stages": [
+              {
+                "stage_id": "STAGE_00",
+                "stage_order": 1,
+                "stage_name": "Setup Operativo e Verifica",
+                "description": "Verifica della readiness tecnologica e dei protocolli di sicurezza per l'erogazione della prestazione.",
+                "steps": [
+                  {
+                    "step_id": "STEP_00_01",
+                    "step_order": 1,
+                    "step_name": "Verifica Strumentazione 3D",
+                    "instructions": "Calibrazione scanner intraorale e verifica spazio di archiviazione sicuro su server criptato (GDPR compliant).",
+                    "estimated_time_minutes": 10,
+                    "resources_needed": {
+                      "labor": {
+                        "required_skill_tags": [
+                          "Assistente alla Poltrona",
+                          "N8N_Admin"
+                        ],
+                        "estimated_work_minutes": 10
+                      },
+                      "materials": [
+                        "Scanner 3D"
+                      ],
+                      "assets": []
+                    },
+                    "quality_check": {
+                      "is_required": true,
+                      "evidence_type": "TEXT",
+                      "check_description": "Stato di calibrazione e connettività dello scanner",
+                      "acceptance_criteria": "Device READY e backup server attivo"
+                    },
+                    "logistics_flags": {
+                      "requires_wip": false,
+                      "requires_finished": false
+                    }
+                  }
+                ]
+              },
+              {
+                "stage_id": "STAGE_01",
+                "stage_order": 2,
+                "stage_name": "Admission e Compliance Legale",
+                "description": "Formalizzazione del rapporto medico-paziente e acquisizione dei consensi informati (Art. 9 GDPR, L. 219/2017).",
+                "steps": [
+                  {
+                    "step_id": "STEP_01_01",
+                    "step_order": 1,
+                    "step_name": "Sottoscrizione Consenso Informato e Privacy",
+                    "instructions": "Presentare al genitore/tutore legale l'informativa privacy (GDPR) e il consenso informato (L. 219/2017) specifico per l'attività di diagnosi 3D.",
+                    "estimated_time_minutes": 15,
+                    "resources_needed": {
+                      "labor": {
+                        "required_skill_tags": [
+                          "Segreteria",
+                          "Direttore Sanitario"
+                        ],
+                        "estimated_work_minutes": 15
+                      },
+                      "materials": [
+                        "Modulo cartaceo/digitale Consenso L219"
+                      ],
+                      "assets": []
+                    },
+                    "quality_check": {
+                      "is_required": true,
+                      "evidence_type": "SIGNATURE",
+                      "check_description": "Firma autografa/digitale del genitore su modulo di consenso e informativa privacy",
+                      "acceptance_criteria": "Tutti i campi obbligatori compilati e firma leggibile"
+                    },
+                    "logistics_flags": {
+                      "requires_wip": false,
+                      "requires_finished": false
+                    }
+                  }
+                ]
+              },
+              {
+                "stage_id": "STAGE_02",
+                "stage_order": 3,
+                "stage_name": "Protocollo Diagnostico Intercettivo 3D",
+                "description": "Esecuzione dell'analisi strumentale avanzata.",
+                "steps": [
+                  {
+                    "step_id": "STEP_02_01",
+                    "step_order": 1,
+                    "step_name": "Acquisizione Scansione 3D",
+                    "instructions": "Esecuzione dello scan intraorale completo del paziente pediatrico per la creazione del modello digitale di studio.",
+                    "estimated_time_minutes": 20,
+                    "resources_needed": {
+                      "labor": {
+                        "required_skill_tags": [
+                          "Ortodontista",
+                          "Igienista Dentale"
+                        ],
+                        "estimated_work_minutes": 20
+                      },
+                      "materials": [
+                        "Scanner 3D"
+                      ],
+                      "assets": []
+                    },
+                    "quality_check": {
+                      "is_required": true,
+                      "evidence_type": "FILE",
+                      "check_description": "Verifica correttezza file .STL/.PLY generato",
+                      "acceptance_criteria": "File integro, completo di arcate superiori ed inferiori"
+                    },
+                    "logistics_flags": {
+                      "requires_wip": true,
+                      "requires_finished": false
+                    }
+                  }
+                ]
+              },
+              {
+                "stage_id": "STAGE_03",
+                "stage_order": 4,
+                "stage_name": "Elaborazione Output",
+                "description": "Redazione del 'Report di Crescita' personalizzato.",
+                "steps": [
+                  {
+                    "step_id": "STEP_03_01",
+                    "step_order": 1,
+                    "step_name": "Stesura Report di Crescita 3D",
+                    "instructions": "Analisi dei dati raccolti dal Dott. Buscemi. Sintesi del percorso di sviluppo osseo/dentale in linguaggio chiaro per il genitore.",
+                    "estimated_time_minutes": 30,
+                    "resources_needed": {
+                      "labor": {
+                        "required_skill_tags": [
+                          "Medico Odontoiatra"
+                        ],
+                        "estimated_work_minutes": 30
+                      },
+                      "materials": [],
+                      "assets": [
+                        "Software di analisi ortodontica"
+                      ]
+                    },
+                    "quality_check": {
+                      "is_required": true,
+                      "evidence_type": "FILE",
+                      "check_description": "Upload del Report di Crescita firmato in formato PDF nel CRM",
+                      "acceptance_criteria": "File PDF non editabile, firmato digitalmente dal medico"
+                    },
+                    "logistics_flags": {
+                      "requires_wip": false,
+                      "requires_finished": true
+                    }
+                  }
+                ]
+              },
+              {
+                "stage_id": "STAGE_04",
+                "stage_order": 5,
+                "stage_name": "Consegna e Chiusura",
+                "description": "Consegna del Report, spiegazione della strategia terapeutica e finalizzazione amministrativa.",
+                "steps": [
+                  {
+                    "step_id": "STEP_04_01",
+                    "step_order": 1,
+                    "step_name": "Consulto di Restituzione",
+                    "instructions": "Illustrazione al genitore del Report di Crescita, spiegazione delle criticità rilevate e del piano terapeutico consigliato.",
+                    "estimated_time_minutes": 15,
+                    "resources_needed": {
+                      "labor": {
+                        "required_skill_tags": [
+                          "Medico Odontoiatra"
+                        ],
+                        "estimated_work_minutes": 15
+                      },
+                      "materials": [],
+                      "assets": []
+                    },
+                    "quality_check": {
+                      "is_required": true,
+                      "evidence_type": "SIGNATURE",
+                      "check_description": "Presa visione del Report di Crescita da parte del genitore",
+                      "acceptance_criteria": "Firma del genitore per avvenuta ricezione del documento"
+                    },
+                    "logistics_flags": {
+                      "requires_wip": false,
+                      "requires_finished": true
+                    }
+                  }
+                ]
+              }
+            ],
+            "additional_kwargs": {},
+            "response_metadata": {}
+          },
+          "honeypots": {
+            "company_context_string": "Il Centro Odontoiatrico Specialistico Buscemi S.r.l. (COSB Srl) è un'istituzione di eccellenza clinica con sede a Menfi (AG), operativa dal 2010. L'attività si distingue per l'elevata specializzazione, concentrandosi sulla risoluzione di patologie complesse attraverso la sinergia tra chirurgia avanzata, ortodonzia specialistica e gnatologia. Il successo è fortemente legato alla figura del Dott. Giuseppe Buscemi, CEO e Direttore Sanitario, che bilancia la profonda competenza medica con una gestione imprenditoriale mirata. Nonostante un solido fatturato e una reputazione locale impeccabile (4.8/5), l'organizzazione soffre di inefficienze amministrative, rendendo la gestione del tempo un punto critico per il leader.",
+            "offer_text": "🦷 <b>Il sorriso che hai sempre desiderato non è un sogno lontano.</b><br><br>Al <b>Centro Odontoiatrico Buscemi</b>, trasformiamo la complessità in soluzioni d'eccellenza. Siamo i tuoi partner di fiducia per ritrovare il benessere orale, unendo la <b>massima competenza specialistica</b> al calore umano che meriti.<br><br>✨ <b>Cosa offriamo ai nostri pazienti:</b><br>🔸 <b>Diagnostica Avanzata:</b> Risolviamo anche i casi più complessi con precisione.<br>🔸 <b>Approccio Umano:</b> Il tuo benessere è al centro di ogni nostra scelta.<br>🔸 <b>Piani di Cura Su Misura:</b> Perché ogni sorriso è unico.<br><br>💎 <b>Opportunità Esclusiva:</b> Apriamo questa settimana un numero limitato di posti per una <b>Consulenza di Eccellenza</b> dedicata a chi cerca solo il meglio per la propria salute dentale.<br><br>🔒 <b>Sei pronto a regalarti un sorriso sano e duraturo?</b> \n\n👉 <a href=\"https://simonaiit.github.io/SiteBoS-MiniApp/SiteBos.html?vat=IT02564250849\"><b>CLICCA QUI PER ACCEDERE</b></a>",
+            "knowledge_fragments": [
+              {
+                "fragment_id": "COMPANY_OVERVIEW_V1",
+                "user_utterances": [
+                  "Cos'è il Centro Odontoiatrico Buscemi?",
+                  "Parlami di COSBsrl",
+                  "Che attività svolge la vostra società?",
+                  "Dove si trova la clinica Buscemi?"
+                ],
+                "answer_fragment": "Il Centro Odontoiatrico Specialistico Buscemi S.r.l. è una clinica odontoiatrica di eccellenza con sede a Menfi (AG), fondata nel 2010. L'attività primaria è l'erogazione di servizi sanitari di alta complessità, distinguendosi dalle cliniche generaliste per il focus su aree altamente specializzate come la chirurgia avanzata e la gnatologia. La struttura è guidata dal Dott. Giuseppe Buscemi e si avvale di un team ristretto ma altamente qualificato, mantenendo un profilo economico stabile e orientato alla qualità terapeutica piuttosto che al volume.",
+                "summary": "Siamo il baluardo dell'odontoiatria di precisione in provincia: una solida base di esperienza medica con radici salde nella comunità locale.",
+                "sections": [
+                  {
+                    "question": "Quando è stata fondata la società e qual è la sua forma giuridica?",
+                    "answer": "La società è stata costituita il 20 luglio 2010. Ha la forma giuridica di Società a Responsabilità Limitata (S.r.l.), garantendo una struttura aziendale consolidata e conforme agli standard legali italiani."
+                  },
+                  {
+                    "question": "Quali sono i principali indicatori economici attuali?",
+                    "answer": "Il fatturato stimato per il 2024 si aggira intorno ai €446.000, con un utile d'esercizio che evidenzia una buona marginalità, tipica delle piccole imprese focalizzate su servizi ad alto valore aggiunto nel settore sanitario specialistico."
+                  },
+                  {
+                    "question": "Come viene percepita la struttura dal pubblico?",
+                    "answer": "La reputazione online è eccellente, con un rating medio di 4.8 su 5. I pazienti lodano in particolare l'ambiente rassicurante, la pulizia e l'onestà percepita dei costi relativi alla complessità delle cure."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "MISSION_PURPOSE_V1",
+                "user_utterances": [
+                  "Qual è la mission del Centro Buscemi?",
+                  "Perché questa clinica esiste?",
+                  "Qual è il vostro scopo finale?"
+                ],
+                "answer_fragment": "La missione fondamentale del Centro Odontoiatrico Specialistico Buscemi è l'erogazione di odontoiatria di altissima eccellenza, mirando alla risoluzione definitiva delle problematiche orali più complesse. Questo obiettivo viene perseguito attraverso l'integrazione clinica di discipline avanzate come ortodonzia, chirurgia e gnatologia. L'azienda si impegna a elevare lo standard di salute orale nel territorio di riferimento, assicurando che i pazienti non debbano cercare altrove le competenze necessarie per trattamenti avanzati, ponendo la fiducia del paziente al centro di ogni percorso terapeutico.",
+                "summary": "Siamo i risolutori di problemi complessi, costruendo ponti di fiducia tra l'alta specializzazione e il benessere duraturo del paziente.",
+                "sections": [
+                  {
+                    "question": "Qual è la visione a lungo termine del Dott. Buscemi?",
+                    "answer": "La visione è quella di consolidare la clinica come l'unico vero polo di riferimento provinciale per la diagnostica e la terapia gnatologica e chirurgica, riducendo la necessità per i residenti di viaggiare verso grandi centri urbani per interventi specialistici."
+                  },
+                  {
+                    "question": "Quali valori guidano le decisioni cliniche?",
+                    "answer": "I valori cardine sono: 1. **Specializzazione Assoluta**: Non scendere a compromessi sulla formazione. 2. **Pazienza Empatica**: Gestire l'ansia odontoiatrica. 3. **Integrazione Multidisciplinare**: Ogni caso è valutato da più specialisti interni."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "PRODUCTS_SERVICES_V1",
+                "user_utterances": [
+                  "Cosa offrite ai pazienti?",
+                  "Quali trattamenti potete eseguire?",
+                  "Fornite servizi di implantologia?"
+                ],
+                "answer_fragment": "Il Centro Buscemi offre un portafoglio di servizi incentrato sulla riabilitazione funzionale ed estetica complessa. Le principali categorie di offerta includono l'Ortodonzia Specialistica, che copre trattamenti avanzati anche per adulti, la Chirurgia Odontoiatrica, con particolare focus su procedure implantari avanzate, e la Gnatologia, per la gestione dei disturbi dell'articolazione temporo-mandibolare (ATM). Tutti i servizi sono erogati internamente, garantendo continuità di cura dal primo consulto fino al follow-up finale, utilizzando le più recenti tecnologie diagnostiche disponibili nel settore.",
+                "summary": "Proponiamo un ventaglio completo di soluzioni, dal piccolo aggiustamento ortodontico alla riabilitazione totale, curate da mani esperte e integrate.",
+                "sections": [
+                  {
+                    "question": "Quali sono le due aree di maggiore competenza specialistica?",
+                    "answer": "Le due aree di punta sono chiaramente: 1. **Gnatologia**: Trattamento dei disordini cranio-facciali, un servizio specialistico raro. 2. **Chirurgia Implantare**: Posizionamento di impianti per la risoluzione dell'edentulismo, spesso in collaborazione con ortodontisti per piani complessi."
+                  },
+                  {
+                    "question": "Come viene gestita la prevenzione?",
+                    "answer": "Sebbene il focus sia la cura complessa, la prevenzione è integrata. Prevede protocolli di igiene specialistica e controlli periodici, fondamentali per mantenere i risultati ottenuti nei trattamenti di ortodonzia e protesi."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "USP_DIFFERENTIATORS_V1",
+                "user_utterances": [
+                  "Perché dovrei scegliere il Dott. Buscemi?",
+                  "Cosa rende unico il vostro centro?",
+                  "Quali sono i vostri vantaggi competitivi?"
+                ],
+                "answer_fragment": "Il Centro Odontoiatrico Buscemi si differenzia sul mercato principalmente per la sua enfasi sulla **Specialistica**. A differenza di molti studi generalisti, qui si affrontano attivamente i casi che richiedono competenze multispecialistiche integrate, come la combinazione di chirurgia e gnatologia avanzata, spesso assenti nelle cliniche di prossimità. Inoltre, la presenza costante del Dott. Buscemi funge da garanzia personale di qualità clinica. Questa combinazione assicura che il paziente riceva trattamenti definitivi in un ambiente caratterizzato da elevato comfort tecnologico e supporto emotivo.",
+                "summary": "Siamo il centro di riferimento dove la competenza specialistica, solitamente confinata nelle grandi città, incontra l'attenzione umana del medico di comunità.",
+                "sections": [
+                  {
+                    "question": "Qual è il vantaggio principale per un paziente ansioso?",
+                    "answer": "Il vantaggio principale è la capacità del team di essere percepito come **rassicurante**. Questo non è solo marketing; deriva dalla gestione esperta di pazienti con alta odontofobia, risolvendo i problemi clinici senza aumentare lo stress legato alla seduta."
+                  },
+                  {
+                    "question": "In che modo la leadership del Dott. Buscemi influenza il centro?",
+                    "answer": "La sua leadership (anche istituzionale, come Presidente Rotary) consolida il brand come punto di **autorità fiduciaria** sul territorio. Questo si traduce in una maggiore accettazione dei piani di cura complessi da parte dei pazienti, che vedono nel titolare un garante della serietà dell'impegno."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "TARGET_CUSTOMERS_V1",
+                "user_utterances": [
+                  "Chi sono i vostri pazienti ideali?",
+                  "Per chi lavorate principalmente?",
+                  "Quali segmenti servite?"
+                ],
+                "answer_fragment": "Il target primario del Centro Odontoiatrico Buscemi è costituito da pazienti residenti nell'area della Valle del Belìce (Menfi, Sciacca, Castelvetrano) e limitrofi, generalmente di età compresa tra i 35 e i 65 anni. Si tratta di una clientela composta da professionisti o individui attenti alla salute orale a lungo termine, che comprendono il valore dell'investimento in cure specialistiche complesse (ortodonzia o implantoprotesi) e non cercano necessariamente l'opzione a basso costo. Questi pazienti necessitano di soluzioni definitive e sono disposti a pagare un premium per l'alta specializzazione in loco.",
+                "summary": "Accogliamo chi cerca la soluzione definitiva, non il compromesso temporaneo, valorizzando l'investimento nella propria salute orale complessa.",
+                "sections": [
+                  {
+                    "question": "Quali tipologie di pazienti sono più attratte dal centro?",
+                    "answer": "Attraiamo due macro-segmenti: 1. Pazienti con necessità ortodontiche complesse che necessitano di un piano di trattamento a lungo termine. 2. Pazienti che necessitano di riabilitazione orale completa tramite chirurgia/implantologia e che apprezzano la gestione multispecialistica interna."
+                  },
+                  {
+                    "question": "Lavorate con aziende o è solo B2C?",
+                    "answer": "Sebbene il focus principale sia il paziente privato (B2C), la forte rete istituzionale del Dott. Buscemi (attraverso Rotary e collaborazioni professionali) suggerisce una potenziale influenza B2B indiretta, dove la clinica viene raccomandata da figure di riferimento della comunità locale."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "CONTACT_HOURS_V1",
+                "user_utterances": [
+                  "Come posso fissare un appuntamento?",
+                  "Quali sono gli orari di apertura?",
+                  "Dove trovo il contatto diretto del Dott. Buscemi?",
+                  "A che ora chiude la clinica il venerdì?"
+                ],
+                "answer_fragment": "L'orario di riferimento per Il Centro Odontoiatrico Specialistico Buscemi S.r.l. è strutturato dal Lunedì al Venerdì, con due fasce operative: la mattina dalle 09:00 alle 13:00 e il pomeriggio dalle 15:30 alle 19:30. Per urgenze o contatti diretti con il CEO, Dott. Buscemi, utilizzare il numero 3934425185. Per comunicazioni generali, è possibile scrivere a giuseppe.buscemi78@gmail.com. La sede rimane in Via Diego Tagliavia 10, Menfi (AG).",
+                "summary": "La clinica è operativa in orario continuativo dal Lunedì al Venerdì, 09:00-13:00 e 15:30-19:30, con contatto diretto disponibile per urgenze.",
+                "sections": [
+                  {
+                    "question": "Quali sono gli orari ufficiali di apertura della clinica?",
+                    "answer": "L'attività è garantita dal Lunedì al Venerdì, suddivisa in due blocchi: 09:00-13:00 (mattina) e 15:30-19:30 (pomeriggio). Si prega di notare che il Sabato e la Domenica la struttura è chiusa al pubblico."
+                  },
+                  {
+                    "question": "È possibile telefonare al Dott. Buscemi fuori dagli orari di ufficio?",
+                    "answer": "Il numero diretto 3934425185 è dedicato prioritariamente alle urgenze e alla gestione immediata. Per richieste non urgenti, si consiglia di utilizzare l'email giuseppe.buscemi78@gmail.com durante le ore operative indicate (L-V, 09:00-13:00 / 15:30-19:30)."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "PROCESS_HOW_IT_WORKS_V1",
+                "user_utterances": [
+                  "Come si svolge il primo percorso con voi?",
+                  "Qual è il vostro workflow clinico?",
+                  "Descrivimi il processo di cura."
+                ],
+                "answer_fragment": "Il flusso di lavoro predominante è di natura fisica e centrato sul Dott. Buscemi. Il processo inizia con una consultazione approfondita, dove le competenze specialistiche (es. gnatologiche) sono fondamentali per la diagnosi. Successivamente, si procede alla pianificazione di un piano di cura integrato, che può coinvolgere più discipline simultaneamente (es. ortodonzia pre-chirurgica). L'implementazione del trattamento avviene in sede, sotto la supervisione del titolare. Attualmente si registra una dipendenza elevata dall'input manuale per la gestione del follow-up, aspetto che rappresenta un punto di frizione gestionale per il CEO.",
+                "summary": "Il processo è un percorso clinico meticoloso e integrato, dove ogni fase è guidata dalla specializzazione e richiede l'intervento diretto del medico esperto.",
+                "sections": [
+                  {
+                    "question": "Qual è il primo passo per un paziente con un problema complesso?",
+                    "answer": "Il primo passo è una **valutazione diagnostica specialistica**. Data la natura del centro, il paziente viene indirizzato immediatamente verso la risorsa competente (Ortodontista, Chirurgo o Gnatologo) per evitare diagnosi superficiali e garantire un piano terapeutico solido fin dall'inizio."
+                  },
+                  {
+                    "question": "Quali strumenti digitali supportano il processo operativo?",
+                    "answer": "Sebbene il workflow sia fisico, vengono utilizzati strumenti gestionali standard per la documentazione (software gestionale). C'è inoltre un uso routinario di strumenti di comunicazione rapida come email e WhatsApp per comunicazioni rapide, sebbene il CRM non sembri essere sfruttato a pieno regime per l'automazione."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "PRICING_VALUE_V1",
+                "user_utterances": [
+                  "Qual è il modello di pricing adottato?",
+                  "Quanto costa farsi curare da voi?",
+                  "Offrite preventivi chiari?"
+                ],
+                "answer_fragment": "Il modello di pricing del Centro Odontoiatrico Buscemi è intrinsecamente legato alla filosofia del valore offerto, riflettendo l'alto livello di specializzazione e la qualità dei materiali utilizzati, specialmente nelle procedure chirurgiche e gnatologiche. Nonostante le recensioni menzionino l'onestà dei prezzi, la struttura si posiziona su una fascia medio-alta, giustificata dalla capacità di risolvere casi che altrove richiederebbero continui invii a specialisti esterni. Il valore percepito risiede quindi nella **completezza** e nella **durabilità** del trattamento eseguito in un unico centro di fiducia.",
+                "summary": "Il costo è l'investimento nella certezza di una soluzione definitiva, dove la qualità clinica supera la ricerca del prezzo più basso sul mercato.",
+                "sections": [
+                  {
+                    "question": "Come viene giustificato il costo elevato per i servizi specialistici?",
+                    "answer": "Il costo è giustificato dalla competenza rara (es. Gnatologia) e dall'uso di tecnologie avanzate necessarie per interventi complessi. I piani di cura specialistici sono sempre preventivati dettagliatamente, garantendo **trasparenza** prima dell'inizio di qualsiasi fase terapeutica invasiva."
+                  },
+                  {
+                    "question": "Qual è il ritorno sull'investimento (ROI) per il paziente?",
+                    "answer": "Il ROI non è solo estetico, ma funzionale e sanitario. Investire in un trattamento specialistico completo significa ridurre drasticamente la probabilità di dover affrontare nuovamente procedure correttive o palliative negli anni successivi, garantendo stabilità a lungo termine."
+                  }
+                ]
+              }
+            ],
+            "availability_schedule": {
+              "primary_contact": "3934425185 (per urgenze/CEO)",
+              "business_hours_summary": "Lunedì-Venerdì, 09:00-13:00 e 15:30-19:30 (Orario di riferimento per la clinica)",
+              "location": "Menfi (AG), Via Diego Tagliavia 10",
+              "hours": {
+                "monday": {
+                  "morning": {
+                    "from": null,
+                    "to": null
+                  },
+                  "afternoon": {
+                    "from": null,
+                    "to": null
+                  }
+                },
+                "tuesday": {
+                  "morning": {
+                    "from": null,
+                    "to": null
+                  },
+                  "afternoon": {
+                    "from": null,
+                    "to": null
+                  }
+                },
+                "wednesday": {
+                  "morning": {
+                    "from": null,
+                    "to": null
+                  },
+                  "afternoon": {
+                    "from": null,
+                    "to": null
+                  }
+                }
+              }
+            },
+            "config": {
+              "onboarding_completed": true,
+              "bot_token": "8566047889:AAGuJ_XhSbEU6NroOFFzdAUi_l_jbNflWOA",
+              "bot_linked": true,
+              "completed_at": "2026-03-24T18:45:34.646Z"
+            },
+            "additional_kwargs": [],
+            "response_metadata": [],
+            "assets": {
+              "logo": {
+                "url": "https://dashboard.trinai.it/IT02564250849/logo.jpg",
+                "mime": "image/jpeg",
+                "description": "🦷 ANALISI: Il logo comunica professionalità e stabilità attraverso l'integrazione semantica tra un ponte architettonico e la forma di un dente. La palette blu navy trasmette fiducia e autorevolezza. \n\n🎨 PALETTE: #0a2f51, #4f6e85, #d4dee5 \n\n💡 TIP: Per ottimizzare l'uso del logo in formati ridotti, consiglio di semplificare la trama interna del ponte, rendendo le linee di dettaglio più spesse per preservare la leggibilità a dimensioni minime.",
+                "meta": {
+                  "visual_analysis": "Il logo comunica professionalità e stabilità attraverso l'integrazione semantica tra un ponte architettonico e la forma di un dente, suggerendo competenza clinica e restauro. La palette cromatica basata sul blu navy instilla fiducia, calma e autorevolezza, valori fondamentali per il settore medicale. La tipografia sans-serif è solida e istituzionale, trasmettendo un senso di concretezza e precisione tecnica, elementi chiave nella percezione di uno studio odontoiatrico.",
+                  "pro_tip": "Per ottimizzare l'uso del logo in formati ridotti (come favicon, icone profilo social o penne), consiglio di semplificare la trama interna del ponte: eliminando o ingrossando le linee di dettaglio, si garantirà che l'icona rimanga perfettamente leggibile anche a dimensioni minime.",
+                  "colors": [
+                    "#0a2f51",
+                    "#4f6e85",
+                    "#d4dee5"
+                  ]
+                },
+                "updated_at": "2026-04-21T12:25:37.362Z"
+              },
+              "photo": {
+                "url": "https://dashboard.trinai.it/IT02564250849/photo.jpg",
+                "mime": "image/jpeg",
+                "description": "🦷 ANALYSIS: La foto comunica fiducia e alta professionalità. La composizione mette l'accento sulla comunicazione empatica, elemento cruciale per ridurre l'ansia del paziente in ambito odontoiatrico. L'illuminazione naturale e i toni tenui allontanano la percezione di 'clinica sterile', favorendo un senso di accoglienza e calma. Il contrasto tra il blu petrolio della divisa e i colori neutri dello studio crea un equilibrio visivo molto rassicurante e curato. \n\n🎨 PALETTE: #1A5164, #F2F2F2, #D1BCA3, #95B0BA \n\n💡 TIP: Per rafforzare la brand identity, assicuratevi che tutte le foto istituzionali seguano questa specifica 'color grade' calda e naturale. Potreste inserire un richiamo cromatico discreto (es. un accessorio, un fiore o un elemento decorativo) che richiami i colori del logo aziendale, creando un legame visivo ancora più forte con il vostro brand.",
+                "meta": {
+                  "visual_analysis": "La foto comunica fiducia e alta professionalità. La composizione mette l'accento sulla comunicazione empatica, elemento cruciale per ridurre l'ansia del paziente in ambito odontoiatrico. L'illuminazione naturale e i toni tenui allontanano la percezione di 'clinica sterile', favorendo un senso di accoglienza e calma. Il contrasto tra il blu petrolio della divisa e i colori neutri dello studio crea un equilibrio visivo molto rassicurante e curato.",
+                  "pro_tip": "Per rafforzare la brand identity, assicuratevi che tutte le foto istituzionali seguano questa specifica 'color grade' calda e naturale. Potreste inserire un richiamo cromatico discreto (es. un accessorio, un fiore o un elemento decorativo) che richiami i colori del logo aziendale, creando un legame visivo ancora più forte con il vostro brand.",
+                  "colors": [
+                    "#1A5164",
+                    "#F2F2F2",
+                    "#D1BCA3",
+                    "#95B0BA"
+                  ]
+                },
+                "updated_at": "2026-04-21T12:26:26.530Z"
+              },
+              "gallery3": {
+                "url": "https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/",
+                "description": "A photorealistic 1:1 square composition of a minimalist, modern dental clinic consultation room. The interior architecture features soft, elegant archways evoking structural stability. A clean, bright environment with soft natural light filtering through. The space utilizes a professional color palette of navy, slate grey, and clean white. High-quality architectural photography.",
+                "rationale": "This environmental shot showcases the workspace as a place of stability and cleanliness, with the architectural archways providing a subtle nod to the logo's bridge design.",
+                "updated_at": "2026-04-21T12:53:14.225Z"
+              }
+            }
+          },
+          "sentimentAnalysis": {
+            "category": "Odontoiatria"
+          },
+          "place_id": 380811187,
+          "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+          "postcode_id": "Pit:92013",
+          "lat": "37.5984580",
+          "lon": "12.9644578",
+          "category": "place",
+          "type": "postcode",
+          "place_rank": 21,
+          "importance": 0.12000999999999995,
+          "addresstype": "postcode",
+          "name": "92013",
+          "display_name": "92013, Menfi, Agrigento, Sicilia, Italia",
+          "address": {
+            "postcode": "92013",
+            "town": "Menfi",
+            "county": "Agrigento",
+            "ISO3166-2-lvl6": "IT-AG",
+            "state": "Sicilia",
+            "ISO3166-2-lvl4": "IT-82",
+            "country": "Italia",
+            "country_code": "it"
+          },
+          "boundingbox": [
+            "37.5534188",
+            "37.6434969",
+            "12.9078531",
+            "13.0210652"
+          ],
+          "outputRename": "supply_maps",
+          "FreeCall": false,
+          "billing_source": {
+            "use": "Advanced Product IT02564250849-SVC_5ZD1XG6Y",
+            "wh": "https://prod.workflow.trinai.it/webhook/6333dff0-d886-499c-8000-f3e0266845ed"
+          },
+          "orchestrator_output": {
+            "orchestration_blueprint": {
+              "required_materials": [
+                "Guanti monouso in nitrile",
+                "Mascherine chirurgiche monouso",
+                "Visiera protettiva monouso",
+                "Cuffia monouso protettiva",
+                "Mantellina monouso per paziente pediatrico",
+                "Bicchieri monouso",
+                "Cannule aspirasaliva monouso",
+                "Pellicole barriera adesive monouso per superfici",
+                "Disinfettante spray ad ampio spettro per superfici cliniche",
+                "Salviette disinfettanti per riunito",
+                "Puntale monouso per scanner intraorale 3D",
+                "Mascherina chirurgica",
+                "Disinfettante spray per superfici",
+                "Soluzione idroalcolica igienizzante",
+                "Puntale monouso per scanner intraorale",
+                "Bavaglio monouso con mantellina",
+                "Cannula aspirasaliva monouso"
+              ],
+              "required_subprocesses": [
+                "Accettazione del paziente pediatrico e identificazione del genitore o tutore legale",
+                "Sottoscrizione dell'informativa sul trattamento dei dati personali e biometrici dei minori ai sensi del GDPR (Regolamento UE 2016/679)",
+                "Firma congiunta del modulo di consenso informato specifico per il trattamento ortodontico intercettivo ai sensi della Legge 219/2017",
+                "Sanificazione pre-operatoria della poltrona e setup delle barriere di protezione monouso",
+                "Calibrazione dello scanner intraorale 3D e verifica del sistema di archiviazione digitale sicuro",
+                "Esecuzione clinica della scansione 3D delle arcate dentarie e analisi gnatologica pediatrica",
+                "Analisi dei dati digitali ed elaborazione clinica del Report di Crescita personalizzato tramite software dedicato",
+                "Colloquio clinico di restituzione con il genitore per la spiegazione della strategia terapeutica",
+                "Decontaminazione, sanificazione post-seduta del riunito odontoiatrico e ciclo di sterilizzazione dello strumentario in autoclave",
+                "Gestione amministrativa e incasso della tariffa del protocollo diagnostico"
+              ],
+              "required_environments": [
+                "Studio Clinico / Ambulatorio",
+                "Area Reception / Accettazione",
+                "Sala di Sterilizzazione",
+                "Ufficio preventivi / Spazio consulenze"
+              ],
+              "required_machinery_classes": [
+                "Riunito odontoiatrico",
+                "Compressore d'aria medicale essiccata",
+                "Sistema di aspirazione chirurgica attiva",
+                "Sistemi di depurazione e decontaminazione delle acque del riunito",
+                "Scanner intraorale 3D",
+                "PC Workstation con software di analisi e rendering ortodontico 3D",
+                "Autoclave di Classe B per sterilizzazione"
+              ],
+              "required_operators": [
+                "Odontoiatra_Specialista",
+                "Assistente_ASO",
+                "Segretaria_Amministrativa"
+              ]
+            },
+            "additional_kwargs": {},
+            "response_metadata": {}
+          },
+          "official_kpi_parameters": {
+            "content": "# Report dei Parametri di Riferimento Economici Locali e Posizionamento\n\n## 1. Costo del Lavoro Geocalibrato per gli Operatori Richiesti\n\n*   ### Odontoiatra_Specialista\n    *   **Costo orario locale ricalcolato:** 60,00 €\n    *   **Logica di Adattamento Geografico:** Menfi (AG), in Sicilia, ricade pienamente nello **Scaglione 3** (area a basso costo/piccoli comuni). Rispetto a un costo orario medio nazionale di riferimento di circa 80,00 € per un consulente specialista esterno, viene applicato un coefficiente di riduzione del -25%. Questa calibrazione riflette il minor costo della vita locale, i minori costi generali di esercizio in provincia di Agrigento e la struttura locale delle tariffe delle prestazioni odontoiatriche.\n\n*   ### Assistente_ASO\n    *   **Costo orario locale ricalcolato:** 15,00 €\n    *   **Logica di Adattamento Geografico:** La tariffa nazionale per un Assistente di Studio Odontoiatrico (ASO) inquadrato stabilmente secondo il CCNL degli studi professionali (livello 3 o 4) corrisponde a un costo orario aziendale reale (comprensivo di contributi INPS, INAIL, TFR, tredicesima e quattordicesima) di circa 20,00 €. Applicando la riduzione del -25% per lo Scaglione 3, si ottiene una tariffa geocalibrata di 15,00 €/ora, coerente con le condizioni del mercato occupazionale locale nell'agrigentino.\n\n*   ### Segretaria_Amministrativa\n    *   **Costo orario locale ricalcolato:** 13,50 €\n    *   **Logica di Adattamento Geografico:** Il costo orario aziendale standard a livello nazionale per una figura amministrativa (inquadrata al 4° o 5° livello) si attesta sui 18,00 €. Applicando il moltiplicatore territoriale del -25% per la realtà di Menfi, il costo aziendale reale orario si calibra a 13,50 €, in linea con i minimi tabellari del territorio siciliano e un costo di gestione del personale ridotto.\n\n---\n\n## 2. Costo d'Acquisto Geocalibrato per le Tecnologie Richieste\n\n*   ### Riunito odontoiatrico\n    *   **Costo d'acquisto locale ricalcolato:** 15.000,00 €\n    *   **Logica di Adattamento Geografico:** A livello nazionale, il prezzo di listino medio per un riunito odontoiatrico di fascia media (es. Eurodent o Stern Weber) si attesta intorno ai 20.000,00 €. Per l'area di Menfi (AG), il costo di acquisto effettivo risente positivamente delle agevolazioni fiscali specifiche per il Mezzogiorno (ZES unica o Credito d'Imposta per investimenti nel Sud Italia) e della scontistica applicata dai distributori locali, consentendo una riduzione reale del budget stimato a circa 15.000,00 € (-25%).\n\n*   ### Compressore d'aria medicale essiccata\n    *   **Costo d'acquisto locale ricalcolato:** 1.500,00 €\n    *   **Logica di Adattamento Geografico:** Il prezzo medio nazionale per un compressore medicale con essiccatore a membrana (es. Cattani o Gentilin per 1-2 riuniti) è di circa 2.000,00 €. Con l'adeguamento logistico e le formule agevolate d'acquisto per il Sud Italia (Scaglione 3), la spesa locale viene ricalcolata a 1.500,00 €.\n\n*   ### Sistema di aspirazione chirurgica attiva\n    *   **Costo d'acquisto locale ricalcolato:** 2.400,00 €\n    *   **Logica di Adattamento Geografico:** Un sistema di aspirazione chirurgica ad anello umido di alta qualità (es. Cattani Turbo-Smart) presenta un prezzo medio nazionale di 3.200,00 €. Applicando la riduzione del -25% legata al mercato e ai canali di fornitura locali della Sicilia occidentale, il costo d'acquisto si calibra a 2.400,00 €.\n\n*   ### Sistemi di depurazione e decontaminazione delle acque del riunito\n    *   **Costo d'acquisto locale ricalcolato:** 1.200,00 €\n    *   **Logica di Adattamento Geografico:** Sistemi a osmosi inversa o a elettroclorazione per la prevenzione del biofilm nei condotti (es. Euronda Aquaosmo o similari) hanno un valore nazionale medio di 1.600,00 €. Calibrato sulla rete di installazione e fornitura regionale, il costo stimato si riduce a 1.200,00 € (-25%).\n\n*   ### Scanner intraorale 3D\n    *   **Costo d'acquisto locale ricalcolato:** 9.000,00 €\n    *   **Logica di Adattamento Geografico:** Uno scanner intraorale 3D di ultima generazione (es. Shining 3D Aoralscan 3 o similari) ha una baseline nazionale di circa 12.000,00 €. Sfruttando gli incentivi territoriali per la digitalizzazione delle microimprese del Sud e i canali commerciali regionali, il prezzo reale d'acquisto viene ricalcolato a 9.000,00 €.\n\n*   ### PC Workstation con software di analisi e rendering ortodontico 3D\n    *   **Costo d'acquisto locale ricalcolato:** 6.000,00 €\n    *   **Logica di Adattamento Geografico:** Il pacchetto completo nazionale (PC Workstation con GPU dedicata e licenza software specialistica come Orth'Up o 3Shape) richiede un investimento di circa 8.000,00 €. Adattato allo Scaglione 3 con sconti d'acquisto combinati hardware/software e incentivi locali, si attesta a 6.000,00 €.\n\n*   ### Autoclave di Classe B per sterilizzazione\n    *   **Costo d'acquisto locale ricalcolato:** 2.100,00 €\n    *   **Logica di Adattamento Geografico:** Un'autoclave di classe B da 15-20 litri (es. Tecno-Gaz Europa B Evo) ha un prezzo medio in Italia di circa 2.800,00 €. Calibrando il prezzo sui listini promozionali dei fornitori attivi in Sicilia e sui bonus per il rinnovo tecnologico degli studi professionali locali, il costo scende a 2.100,00 €.\n\n---\n\n## 3. Costo di Locazione Geocalibrato per gli Ambienti Richiesti\n\n*   ### Studio Clinico / Ambulatorio\n    *   **Canone mensile locale ricalcolato:** 160,00 €\n    *   **Logica di Adattamento Geografico:** I prezzi degli affitti commerciali a Menfi (AG) sono notevolmente più bassi rispetto alle medie nazionali; un intero studio professionale/medico di 50-60 mq in centro si loca a circa 350,00 € - 400,00 € al mese. Ricalcolando il valore d'uso specifico di una singola stanza ambulatoriale (circa 15-20 mq), la quota mensile locativa locale per lo spazio clinico è stimata a soli 160,00 €.\n\n*   ### Area Reception / Accettazione\n    *   **Canone mensile locale ricalcolato:** 120,00 €\n    *   **Logica di Adattamento Geografico:** Calcolando l'area di ingresso/reception (circa 12-15 mq) in proporzione ai canoni commerciali reali del mercato immobiliare di Menfi, l'incidenza locativa mensile si attesta a 120,00 €, beneficiando del basso costo al mq della zona (circa 6,00 - 8,00 €/mq per uffici/studi professionali).\n\n*   ### Sala di Sterilizzazione\n    *   **Canone mensile locale ricalcolato:** 80,00 €\n    *   **Logica di Adattamento Geografico:** Trattandosi di un ambiente tecnico di dimensioni ridotte (circa 8 mq), il canone d'affitto imputabile mensilmente basato sui prezzi reali registrati nella provincia di Agrigento si riduce a 80,00 €.\n\n*   ### Ufficio preventivi / Spazio consulenze\n    *   **Canone mensile locale ricalcolato:** 100,00 €\n    *   **Logica di Adattamento Geografico:** Per uno spazio dedicato alla consulenza e alla presentazione dei piani di cura (circa 10-12 mq), la quota di locazione commerciale calcolata sulla base dei contratti locali per uffici privati si attesta a 100,00 € al mese.",
+            "additional_kwargs": {},
+            "response_metadata": {}
+          },
+          "reconciler_output": {
+            "operating_benchmarks_reconciled": {
+              "brand_tier": "PREMIUM_EXCELLENCE",
+              "positioning_coefficient": 1.3,
+              "geographic_coefficient": 0.75,
+              "combined_multiplier": 0.975,
+              "operators_hourly_rates_reconciled": {
+                "Medico_Chirurgo_Odontoiatra": 78,
+                "Assistente_ASO": 20.8,
+                "Segretaria_Amministrativa": 19.5
+              },
+              "chair_hourly_rate_consolidated": 27.61,
+              "decomposed_machinery_costs": {
+                "Riunito_odontoiatrico_poltrona_clinica_attrezzata": 1.65,
+                "Scanner_intraorale_3D": 1.18,
+                "Autoclave_di_Classe_B_per_sterilizzazione": 0.47,
+                "PC_Workstation_con_software_di_pianificazione_ortodontica_3D": 0.24,
+                "Compressore_d_aria_medicale_essiccata": 0.38,
+                "Sistema_di_aspirazione_chirurgica_attiva": 0.38,
+                "Sistemi_di_depurazione_e_decontaminazione_delle_acque_del_riunito": 0.19
+              },
+              "decomposed_environments_costs": {
+                "Studio_Clinico_Ambulatorio": 10.91,
+                "Area_Reception_Accettazione": 5.45,
+                "Sala_di_Sterilizzazione": 4.09,
+                "Ufficio_preventivi_consulenze": 4.09
+              },
+              "balance_sheet_raccordo": {
+                "canoni_leasing_annui_IIC133": 14336,
+                "ammortamenti_materiali_annui_IIC138": 5860,
+                "canone_figurativo_immobile_IIC012": 13692.42,
+                "costi_gestione_stanza_IIC139": 76564,
+                "costo_personale_IIC134": 55930,
+                "costo_servizi_IIC132": 100133
+              },
+              "reconciliation_rationale": {
+                "consolidated_sedia_cost_rationale": "La tariffa oraria poltrona attrezzata unificata e consolidata di 27.61 €/ora è calcolata sommando il costo orario di gestione degli ambienti (24.54 €/ora, derivante da canoni di leasing, ammortamenti, costi di gestione IIC139 e canone figurativo dell'immobile) alla quota di ammortamento orario dei 5 macchinari di supporto clinico fisici (Riunito, Autoclave, Compressore, Aspirazione, Depurazione acque, pari a 3.07 €/ora). Questo garantisce la copertura integrale dei costi strutturali e degli ammortamenti basandosi su una capacità operativa reale di 3 riuniti operanti a 1.500 ore/anno ciascuno.",
+                "sedia_cost_decomposed_rationale": "I costi degli ambienti e dei macchinari sono stati ripartiti proporzionalmente basandosi sui canoni e prezzi di acquisto del report di scouting, raccordati con le reali voci di bilancio. È stato inserito un canone figurativo di 13.692,42 € (pari al 6% dell'immobile di proprietà registrato in IIC012) per rispecchiare il reale costo di opportunità dello spazio, riducendo l'impatto geografico tramite il coefficiente di 0.75 per la provincia di Agrigento e applicando la maggiorazione del 30% dovuta al posizionamento di eccellenza clinica (EBITDA margin di 36.54%).",
+                "staff_cost_rationale": "Le tariffe orarie del personale (Medico Chirurgo Odontoiatra a 78.00 €/h, ASO a 20.80 €/h e Segretaria a 19.50 €/h) riflettono la maggiorazione del 30% associata al brand tier di eccellenza clinica. Questo livello tariffario risulta pienamente coerente e sostenibile a fronte dei costi del personale dipendente iscritti a bilancio (IIC134 pari a 55.930 €) e dei costi per servizi clinici e consulenze professionali esterne (IIC132 pari a 100.133 €)."
+              }
+            },
+            "additional_kwargs": {},
+            "response_metadata": {}
+          },
+          "bom_output": {
+            "bom": [
+              {
+                "subprocess_name": "Protocollo Diagnostico Intercettivo 3D (Buscemi)",
+                "subprocess_sku": "CLINIC-PROC-ORTPED-3D",
+                "estimated_internal_cost": 120.02,
+                "estimated_cost_per_100_units": 101.58,
+                "cost_scaling_rationale": "Economia di scala ottenuta tramite l'acquisto massivo di puntali scanner e DPI monouso (-15%), l'automazione della refertazione pediatrica tramite l'utilizzo di macro digitali pre-impostate (riduzione del tempo stesura report da 30 a 20 minuti) e la pianificazione dei flussi di segreteria e setup poltrona in lotti sequenziali (-30% di tempi morti).",
+                "estimated_total_time_minutes": 90,
+                "calculation_breakdown": {
+                  "chair_time_mins": 30,
+                  "consumables": 8.1,
+                  "depreciation": 12.14,
+                  "staff_cost": 99.78
+                },
+                "stages": [
+                  {
+                    "stage_name": "Setup Operativo e Verifica",
+                    "steps": [
+                      {
+                        "step_name": "Verifica Strumentazione 3D",
+                        "instructions": "Calibrazione dello scanner intraorale e preparazione della poltrona clinica garantendo la readiness operativa e la sicurezza igienica.",
+                        "estimated_time_minutes": 10,
+                        "required_skills": [
+                          "Assistente_ASO"
+                        ],
+                        "required_resources": [
+                          "Guanti monouso in nitrile",
+                          "Mascherina chirurgica",
+                          "Disinfettante spray per superfici"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "stage_name": "Admission e Compliance Legale",
+                    "steps": [
+                      {
+                        "step_name": "Sottoscrizione Consenso Informato e Privacy",
+                        "instructions": "Accoglienza del genitore/tutore, presentazione e firma della modulistica privacy GDPR e del modulo di consenso informato ai sensi della Legge 219/2017.",
+                        "estimated_time_minutes": 15,
+                        "required_skills": [
+                          "Segretaria_Amministrativa"
+                        ],
+                        "required_resources": [
+                          "Soluzione idroalcolica igienizzante"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "stage_name": "Protocollo Diagnostico Intercettivo 3D",
+                    "steps": [
+                      {
+                        "step_name": "Acquisizione Scansione 3D",
+                        "instructions": "Scansione digitale delle arcate dentarie del paziente pediatrico per la creazione del modello di studio 3D in formato STL/PLY.",
+                        "estimated_time_minutes": 20,
+                        "required_skills": [
+                          "Medico_Chirurgo_Odontoiatra",
+                          "Assistente_ASO"
+                        ],
+                        "required_resources": [
+                          "Puntale monouso per scanner intraorale",
+                          "Guanti monouso in nitrile",
+                          "Mascherina chirurgica",
+                          "Bavaglio monouso con mantellina",
+                          "Cannula aspirasaliva monouso"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "stage_name": "Elaborazione Output",
+                    "steps": [
+                      {
+                        "step_name": "Stesura Report di Crescita 3D",
+                        "instructions": "Analisi biometrica computerizzata delle scansioni e compilazione del Report di Crescita personalizzato per lo sviluppo osseo e dentale.",
+                        "estimated_time_minutes": 30,
+                        "required_skills": [
+                          "Medico_Chirurgo_Odontoiatra"
+                        ],
+                        "required_resources": []
+                      }
+                    ]
+                  },
+                  {
+                    "stage_name": "Consegna e Chiusura",
+                    "steps": [
+                      {
+                        "step_name": "Consulto di Restituzione",
+                        "instructions": "Colloquio con i genitori per la spiegazione del Report di Crescita, illustrazione delle criticità rilevate e pianificazione del percorso intercettivo.",
+                        "estimated_time_minutes": 15,
+                        "required_skills": [
+                          "Medico_Chirurgo_Odontoiatra"
+                        ],
+                        "required_resources": []
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "additional_kwargs": {},
+            "response_metadata": {}
+          },
+          "SystemInstruction": "<SystemInstruction>\n  <Role>Strategic_Dental_SupplyChain_Scouting_Agent</Role>\n  <Context>\n    Sei un analista di fornitura specializzato nel settore sanitario odontoiatrico in Italia. Identifichi canali di fornitura reali e fisicamente prossimi allo studio o distributori leader a livello nazionale per l'approvvigionamento economico e conforme dei materiali clinici di consumo e protesici.\n  </Context>\n<Search_Logic>\n    Analizza i materiali in \"MaterialsNeeded\". Per ciascun articolo, esegui una ricerca web mirata sui principali e-commerce dentali italiani per identificare il prezzo reale di vendita al pubblico (singolo o per confezione/kit).\n    \n    1. FORNITORI DI PROSSIMITÀ (Laboratori/Depositi locali):\n       - Identifica i contatti di prossimità geografica (Lat 37.5984580, Lon 12.9644578).\n       - Estrai o stima i costi medi per le lavorazioni protesiche (es. costo medio di una corona in zirconio o di un elemento provvisorio).\n       \n    2. COMPARAZIONE PREZZI ONLINE (Consumabili e Monouso):\n       - Cerca i prezzi reali di acquisto sui portali aperti (es. Dentaltix, Dentalic, Dental Leader).\n       - Indica sempre il prezzo unitario o per confezione rilevato durante la ricerca web (es. €/confezione da 100 guanti, €/tubo composito).\n  </Search_Logic>\n\n  <OutputFormat>\n    Genera un report di fornitura dettagliato in formato Markdown.\n    Dividi nettamente la sezione \"Laboratori/Depositi di Prossimità\" dalla sezione \"Distributori Nazionali/E-Commerce Convenienti\".\n    Per ciascun fornitore o laboratorio inserisci:\n    - **Telefono:** [Numero di telefono reale]\n    - **Sito Web / Link Maps:** [URL o link Maps reale]\n    - **Prezzo Rilevato:** [Inserisci il prezzo reale o stimato in Euro (es. €12.50 per confezione)]\n  </OutputFormat>\n</SystemInstruction>",
+          "Prompt": "<ResearchTask>\n  <Tenant>\n    Studio Odontoiatrico: Centro Odontoiatrico Buscemi srl\n    Ubicazione Studio: via tagliavia , 92013 MENFI (AG)\n    Settore: Clinica Odontoiatrica\n    Coordinate GPS: 37.5984580, 12.9644578\n  </Tenant>\n  \n  <MaterialsNeeded>\n    [\"Guanti monouso in nitrile\",\"Mascherine chirurgiche monouso\",\"Visiera protettiva monouso\",\"Cuffia monouso protettiva\",\"Mantellina monouso per paziente pediatrico\",\"Bicchieri monouso\",\"Cannule aspirasaliva monouso\",\"Pellicole barriera adesive monouso per superfici\",\"Disinfettante spray ad ampio spettro per superfici cliniche\",\"Salviette disinfettanti per riunito\",\"Puntale monouso per scanner intraorale 3D\",\"Mascherina chirurgica\",\"Disinfettante spray per superfici\",\"Soluzione idroalcolica igienizzante\",\"Puntale monouso per scanner intraorale\",\"Bavaglio monouso con mantellina\",\"Cannula aspirasaliva monouso\"]\n  </MaterialsNeeded>\n  \n  <Instructions>\n    Analizza i materiali e i dispositivi clinici necessari elencati in MaterialsNeeded.\n    Esegui lo scouting web per individuare i depositi dentali o i laboratori odontotecnici più vicini geograficamente alle coordinate GPS indicate, o i distributori nazionali online di riferimento per l'acquisto conveniente di materiali monouso dentali.\n    Estrai i contatti telefonici reali e i link Maps o del sito web ufficiale.\n  </Instructions>\n</ResearchTask>\n\n\"Usa lo strumento Google Maps per identificare i depositi locali di prossimità. Successivamente, utilizza lo strumento Google Search (ricerca web) per trovare i prezzi reali dei materiali.\"",
+          "ModelChoice": "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+          "errorPath": "IT02564250849"
+        },
+        "binary": {},
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Step": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Call GeminiExSup2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "SaveStep",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge10": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "ErrorApi1": {
+      "main": [
+        [
+          {
+            "node": "SaveStep",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Step",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge12",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge12": {
+      "main": [
+        [
+          {
+            "node": "Call GeminiExSup2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "StepExist": {
+      "main": [
+        [
+          {
+            "node": "Output Cleaner",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SaveStep": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "ErrorApi1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "StepExist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Output Cleaner": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "58cd21e2-e499-46ef-ad03-1158e447cfe6",
+  "meta": {
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "aR9B9WOdhjcJcUS7",
+  "tags": []
+}

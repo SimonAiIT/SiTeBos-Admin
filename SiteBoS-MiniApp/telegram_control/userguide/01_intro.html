@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>01. Introduzione e Visione | SiTeBoS Guide</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { primary: '#000000', bg: '#fafafa', surface: '#ffffff', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #ffffff; color: #000000; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .content-area { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; }
+        
+        .prose > h1 { font-size: 2.5rem; font-weight: 900; tracking: -0.04em; line-height: 1.1; margin-bottom: 1.5rem; text-transform: uppercase; font-style: italic; }
+        .prose > h2 { font-size: 1.25rem; font-weight: 800; tracking: -0.02em; margin-top: 3rem; margin-bottom: 1rem; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 0.5rem; display: inline-block; }
+        .prose > p { font-size: 1rem; line-height: 1.7; color: #374151; margin-bottom: 1.5rem; }
+        .prose b { font-weight: 800; color: #000; }
+        .feature-card { background: #fafafa; border: 1px solid #eeeeee; padding: 2rem; border-radius: 2rem; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeIn 0.4s ease forwards; }
+
+        /* ── 3D CYLINDER STACK CSS (100% IDENTICAL TO dashboard.html & catalog.html) ── */
+        .dash-viewport-bg {
+            background-color: #ffffff !important;
+            background: radial-gradient(circle at 50% 50%, #ffffff 0%, #f4f5f8 100%) !important;
+            color: #0f172a !important;
+        }
+        .stack-container-3d {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            perspective: 1200px;
+            transform-style: preserve-3d;
+            flex-shrink: 0;
+        }
+        .platform-card-3d-mvp {
+            position: absolute;
+            top: 5%;
+            left: 14% !important;
+            width: 72% !important;
+            height: 90%;
+            background: #ffffff;
+            border: 1.5px solid transparent;
+            border-radius: 1.5rem;
+            color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            text-align: center;
+            padding: 1rem 1.2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.005);
+            transform-origin: center center;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease, filter 0.6s ease;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            cursor: pointer;
+        }
+        .platform-card-3d-mvp.active {
+            border-color: #cbd5e1;
+            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+        }
+        .btn-glass-minimal-mvp {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            color: #64748b;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Complete Prose Isolation Overrides */
+        #container-dashboard-mvp *, #container-catalog-mvp * { box-sizing: border-box; }
+        #container-dashboard-mvp h1, #container-dashboard-mvp h2, #container-dashboard-mvp h3, #container-dashboard-mvp h4, #container-dashboard-mvp p, #container-dashboard-mvp span,
+        #container-catalog-mvp h1, #container-catalog-mvp h2, #container-catalog-mvp h3, #container-catalog-mvp h4, #container-catalog-mvp p, #container-catalog-mvp span {
+            margin: 0; padding: 0; line-height: inherit;
+        }
+        .platform-card-3d-mvp h2 {
+            font-size: 13px !important; font-weight: 900 !important; line-height: 1.2 !important; text-transform: uppercase !important; color: #0f172a !important; margin: 0 !important;
+        }
+        .platform-card-3d-mvp h3 {
+            font-size: 11px !important; font-weight: 900 !important; line-height: 1.2 !important; text-transform: uppercase !important; color: #0f172a !important; margin-bottom: 2px !important;
+        }
+        .platform-card-3d-mvp p {
+            font-size: 9px !important; font-weight: 600 !important; line-height: 1.3 !important; color: #64748b !important; margin: 0 !important;
+        }
+    </style>
+</head>
+<body class="safe-area-inset min-h-screen pb-32">
+
+    <!-- TOP NAV -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-5 py-4 flex items-center justify-between">
+        <button onclick="location.href='index.html'" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
+            <i class="fas fa-arrow-left"></i> Index
+        </button>
+        <div class="text-[9px] font-black uppercase tracking-[0.2em] text-blue-600 italic">Capitolo 01</div>
+    </nav>
+
+    <main class="content-area animate-in">
+        <article class="prose">
+            <h1>Introduzione e Visione</h1>
+            <p class="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 mb-8 -mt-4">(Setup Intelligence Tiny Enterprise Business Operating System)</p>
+            
+            <p>
+                <b>SiTeBoS (Business Operating System)</b> non è un software, è un ecosistema digitale integrato che funge da sistema operativo per la tua azienda. 
+            </p>
+
+            <div class="bg-white border-2 border-black p-8 rounded-4xl my-10 space-y-4">
+                <p class="text-sm font-black uppercase tracking-[0.2em] text-blue-600 mb-2">La Differenza Fondamentale</p>
+                <p class="text-lg leading-relaxed italic font-bold text-black">
+                    "A differenza di un CRM tradizionale, che si limita a tracciare i contatti, SiTeBoS coordina attivamente la conoscenza aziendale e l'operatività tramite l'Intelligenza Artificiale."
+                </p>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════════════════
+                 MVP 1: DASHBOARD CONSOLE (100% REPLICA OF dashboard.html)
+                 ═══════════════════════════════════════════════════════════════ -->
+            <div class="my-10 rounded-3xl overflow-hidden border border-slate-200 shadow-2xl relative" id="container-dashboard-mvp">
+                <div class="bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-slate-800">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                        <span class="text-[8px] font-mono text-slate-400 uppercase tracking-widest ml-1">Console Direzionale</span>
+                    </div>
+                    <span class="text-[7px] font-mono text-blue-400 font-bold uppercase tracking-wider bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full">Console 3D Live MVP</span>
+                </div>
+
+                <div class="dash-viewport-bg p-5 relative min-h-[480px] flex flex-col justify-between select-none">
+                    <header class="flex justify-between items-center bg-white/85 backdrop-blur-md p-4 rounded-3xl border border-gray-200/50 shrink-0 shadow-sm z-50">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-black text-white rounded-2xl flex items-center justify-center font-black shadow-md text-sm">SB</div>
+                            <div>
+                                <h1 class="text-xs font-black uppercase tracking-tight leading-none text-black">TRINAI SRL</h1>
+                                <span class="text-[8px] font-bold uppercase tracking-widest text-gray-400 mt-1 block">Console Direzionale</span>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-100 px-3.5 py-1.5 rounded-2xl flex items-center gap-2">
+                            <i class="fas fa-bolt text-amber-500 text-[10px]"></i>
+                            <span class="text-[10px] font-black text-black">1.250 CR</span>
+                        </div>
+                    </header>
+
+                    <div id="mvp-submenu-header" class="hidden bg-white/80 border border-slate-200 backdrop-blur-md p-3 rounded-2xl flex items-center justify-between shadow-sm z-50 mt-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[10px]">
+                                <i id="mvp-submenu-icon" class="fas fa-folder-open"></i>
+                            </div>
+                            <span id="mvp-submenu-title" class="text-[10px] font-black uppercase tracking-widest text-slate-800">NOME SOTTOMENU</span>
+                        </div>
+                        <button onclick="mvpGoBack()" class="text-[8px] font-black uppercase tracking-widest text-blue-600 hover:text-black transition flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-xl">
+                            <i class="fas fa-arrow-left text-[7px]"></i> <span>Torna al Menu</span>
+                        </button>
+                    </div>
+
+                    <main class="relative flex-1 flex flex-col items-center justify-center z-10 w-full max-w-sm mx-auto py-8">
+                        <button onclick="mvpNavigate(-1)" class="btn-glass-minimal-mvp absolute top-0 left-1/2 -translate-x-1/2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-md">
+                            <i class="fas fa-chevron-up text-[10px]"></i>
+                        </button>
+
+                        <div id="mvp-stack-container" class="stack-container-3d"></div>
+
+                        <button onclick="mvpNavigate(1)" class="btn-glass-minimal-mvp absolute bottom-0 left-1/2 -translate-x-1/2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-md">
+                            <i class="fas fa-chevron-down text-[10px]"></i>
+                        </button>
+
+                        <div class="absolute right-0 top-1/2 -translate-y-1/2 z-50 py-3 px-2 bg-slate-100/90 border border-slate-200 rounded-full shadow-md backdrop-blur-sm">
+                            <div id="mvp-dot-indicators" class="flex flex-col gap-2 items-center"></div>
+                        </div>
+                    </main>
+
+                    <div id="mvp-toast" class="hidden fixed bottom-16 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-black uppercase px-4 py-2 rounded-2xl shadow-xl z-50 tracking-wider">
+                        Azione eseguita
+                    </div>
+
+                    <footer class="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-gray-400 select-none px-2 shrink-0 z-50">
+                        <span>SiteBoS V5.0</span>
+                        <span>TrinAi © 2026</span>
+                    </footer>
+                </div>
+
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig 1.1 — Interactive MVP Identico a dashboard.html: Clicca o naviga le schede 3D ed entra nei sottomenu
+                </div>
+            </div>
+
+            <h2>Perché SiTeBoS?</h2>
+            <p>
+                Il mercato attuale richiede agilità e precisione. SiTeBoS risolve i colli di bottiglia delle piccole imprese attraverso quattro pilastri fondamentali:
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-10 text-left">
+                <div class="feature-card space-y-3">
+                    <div class="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center"><i class="fas fa-brain"></i></div>
+                    <h3 class="font-black text-sm uppercase tracking-tight">Centralizzazione Know-How</h3>
+                    <p class="text-xs text-gray-500 leading-relaxed">Trasforma l'esperienza del titolare e dei tecnici in protocolli digitali (Blueprints) pronti all'uso.</p>
+                </div>
+                <div class="feature-card space-y-3">
+                    <div class="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center"><i class="fas fa-wand-magic-sparkles"></i></div>
+                    <h3 class="font-black text-sm uppercase tracking-tight">Automazione Contenuti</h3>
+                    <p class="text-xs text-gray-500 leading-relaxed">Genera automaticamente minisiti e articoli di blog partendo dai dati operativi reali della tua azienda.</p>
+                </div>
+                <div class="feature-card space-y-3">
+                    <div class="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center"><i class="fas fa-comments"></i></div>
+                    <h3 class="font-black text-sm uppercase tracking-tight">Interazione Proattiva</h3>
+                    <p class="text-xs text-gray-500 leading-relaxed">Il bot clienti non risponde solo a domande, ma guida l'utente verso l'acquisto o la richiesta di preventivo.</p>
+                </div>
+                <div class="feature-card space-y-3">
+                    <div class="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center"><i class="fas fa-shield-halved"></i></div>
+                    <h3 class="font-black text-sm uppercase tracking-tight">Controllo Totale</h3>
+                    <p class="text-xs text-gray-500 leading-relaxed">Gestione granulare del team, tracciamento delle missioni e monitoraggio dei costi AI in tempo reale.</p>
+                </div>
+            </div>
+
+            <h2>Ecosistema SiTeBoS</h2>
+            <p>
+                L'architettura SiTeBoS è progettata per essere "Zero Friction". Si integra nativamente con Telegram, offrendo interfacce enterprise senza la necessità di installare applicazioni esterne.
+            </p>
+
+            <!-- ═══════════════════════════════════════════════════════════════
+                 MVP 2: CATALOGO SERVICE MASTER (EXACT REPLICA OF gestione/catalog.html)
+                 ═══════════════════════════════════════════════════════════════ -->
+            <div class="my-10 rounded-3xl overflow-hidden border border-slate-200 shadow-2xl relative" id="container-catalog-mvp">
+                <div class="bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-slate-800">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                        <span class="text-[8px] font-mono text-slate-300 uppercase tracking-widest ml-1">Service Master</span>
+                    </div>
+                    <span class="text-[7px] font-mono text-emerald-400 font-bold uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">Service Master 3D MVP</span>
+                </div>
+
+                <div class="dash-viewport-bg p-5 relative min-h-[500px] flex flex-col justify-between select-none">
+                    
+                    <!-- HEADER -->
+                    <header class="flex justify-between items-start pt-1 shrink-0 z-50">
+                        <div>
+                            <div class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1 italic">
+                                Service Master
+                            </div>
+                            <h1 class="text-xs font-black tracking-tighter uppercase leading-none text-slate-900">Gestione Aziendale</h1>
+                        </div>
+                    </header>
+
+                    <!-- MACRO SELECTOR CAROUSEL (3D Cylindrical Horizontal matching catalog.html) -->
+                    <div class="w-[72%] select-none z-50 py-1 bg-white/60 border border-slate-200 rounded-2xl shadow-sm backdrop-blur-sm shrink-0 flex items-center justify-between mx-auto my-2">
+                        <button onclick="catMvpNavigateMacro(-1)" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-900 transition active:scale-75 shrink-0 z-50">
+                            <i class="fas fa-chevron-left text-xs"></i>
+                        </button>
+                        <div class="flex gap-2 items-center justify-center font-black text-[9px] uppercase tracking-wider">
+                            <button onclick="catMvpSetMacro('SER')" id="cat-btn-SER" class="px-3 py-1 rounded-xl bg-slate-900 text-white shadow-sm transition">Servizi</button>
+                            <button onclick="catMvpSetMacro('PRO')" id="cat-btn-PRO" class="px-3 py-1 rounded-xl text-slate-500 hover:text-slate-900 transition">Prodotti</button>
+                            <button onclick="catMvpSetMacro('SOP')" id="cat-btn-SOP" class="px-3 py-1 rounded-xl text-slate-500 hover:text-slate-900 transition">Procedure</button>
+                        </div>
+                        <button onclick="catMvpNavigateMacro(1)" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-900 transition active:scale-75 shrink-0 z-50">
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+
+                    <!-- SUBMENU HEADER (Level 2 items & Level 3 actions) -->
+                    <div id="cat-mvp-submenu-header" class="hidden w-[72%] mx-auto bg-white/80 border border-slate-200 backdrop-blur-md p-3 rounded-2xl flex items-center justify-between shadow-sm z-50 mt-1">
+                        <div class="flex items-center gap-2">
+                            <div class="w-5 h-5 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[9px] shadow-sm">
+                                <i class="fas fa-folder-open"></i>
+                            </div>
+                            <span id="cat-mvp-submenu-title" class="text-[9px] font-black uppercase tracking-widest text-slate-800">NAVIGAZIONE</span>
+                        </div>
+                        <button onclick="catMvpGoBack()" class="text-[8px] font-black uppercase tracking-widest text-blue-600 hover:text-black transition flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-xl">
+                            <i class="fas fa-arrow-left text-[7px]"></i> <span>Indietro</span>
+                        </button>
+                    </div>
+
+                    <!-- CAROUSEL VIEWPORT CONTAINER (3D VIEW MATCHING catalog.html) -->
+                    <main class="relative flex-1 flex flex-col items-center justify-center z-10 w-full max-w-sm mx-auto py-6">
+                        <button onclick="catMvpNavigate(-1)" class="btn-glass-minimal-mvp absolute top-0 left-1/2 -translate-x-1/2 z-50 w-8 h-8 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-md">
+                            <i class="fas fa-chevron-up text-[10px]"></i>
+                        </button>
+
+                        <div id="cat-mvp-stack-container" class="stack-container-3d"></div>
+
+                        <button onclick="catMvpNavigate(1)" class="btn-glass-minimal-mvp absolute bottom-0 left-1/2 -translate-x-1/2 z-50 w-8 h-8 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-md">
+                            <i class="fas fa-chevron-down text-[10px]"></i>
+                        </button>
+
+                        <div class="absolute right-0 top-1/2 -translate-y-1/2 z-50 py-3 px-2 bg-slate-100/90 border border-slate-200 rounded-full shadow-md backdrop-blur-sm">
+                            <div id="cat-mvp-dot-indicators" class="flex flex-col gap-2 items-center"></div>
+                        </div>
+                    </main>
+
+                    <!-- FOOTER STATS & NEW BUTTON MATCHING catalog.html -->
+                    <footer class="w-[72%] mx-auto space-y-2 shrink-0 z-50 pt-2 border-t border-slate-200">
+                        <button class="w-full bg-slate-900 text-white font-black py-2.5 rounded-xl shadow-md hover:bg-black transition-all flex items-center justify-center gap-2 text-[9px] uppercase tracking-widest">
+                            <i class="fas fa-plus text-[8px]"></i> <span>Nuova Categoria</span>
+                        </button>
+
+                        <div class="grid grid-cols-2 gap-2 text-left">
+                            <div class="bg-white border border-slate-200 p-2.5 rounded-xl flex items-center gap-2 shadow-sm">
+                                <div id="cat-stat-ghost" class="w-6 h-6 bg-slate-100 rounded-lg flex items-center justify-center font-black text-xs text-slate-500">1</div>
+                                <div class="text-[7px] font-black text-slate-400 uppercase tracking-widest">Suggeriti</div>
+                            </div>
+                            <div class="bg-white border border-slate-200 p-2.5 rounded-xl flex items-center gap-2 shadow-sm">
+                                <div id="cat-stat-active" class="w-6 h-6 bg-slate-900 rounded-lg flex items-center justify-center font-black text-xs text-white">2</div>
+                                <div class="text-[7px] font-black text-slate-400 uppercase tracking-widest">Attivi</div>
+                            </div>
+                        </div>
+                    </footer>
+
+                </div>
+
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig 1.2 — Interactive MVP Identico a gestione/catalog.html: Naviga nei 3 Livelli (Categorie → Voci Attive → Opzioni con Crea Guida AI)
+                </div>
+            </div>
+
+        </article>
+
+        <!-- PAGINATION -->
+        <div class="flex items-center justify-between mt-20 pt-10 border-t border-gray-100">
+            <a href="index.html" class="flex flex-col gap-1 items-start group text-left">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Precedente</span>
+                <span class="font-black text-xs uppercase group-hover:underline">Home Guide</span>
+            </a>
+            <a href="02_onboarding.html" class="flex flex-col gap-1 items-end group text-right">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Successivo</span>
+                <span class="font-black text-xs uppercase group-hover:underline text-blue-600">02. Onboarding <i class="fas fa-arrow-right ml-1"></i></span>
+            </a>
+        </div>
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         JAVASCRIPT ENGINES FOR BOTH MVPS
+         ═══════════════════════════════════════════════════════════════ -->
+    <script>
+        // ── MVP 1: DASHBOARD CONSOLE (EXACT REPLICA OF dashboard.html) ──────────
+        const mvpMainModules = [
+            {
+                id: "identity_hub",
+                label: "Configurazione",
+                desc: "Gestisci l'anagrafica aziendale, la verticalizzazione del settore ed il setup dei conti finanziari.",
+                icon: "fa-id-card",
+                sub: [
+                    { id: "bot_config", label: "Configurazione Bot", desc: "Gestisci i flussi di risposta, l'attivazione dell'IA e i parametri del bot Telegram.", icon: "fa-robot", path: "identity/bot_config.html" },
+                    { id: "edit_owner", label: "Dati Titolare", desc: "Visualizza e modifica i dati della tua azienda, IVA, e dettagli legali.", icon: "fa-user-tie", path: "identity/edit_owner.html" },
+                    { id: "advanced_setup", label: "Parametri Avanzati", desc: "Ingegneria dei flussi e setup delle categorie avanzate per la clinica/studio.", icon: "fa-sliders-h", path: "identity/advanced-setup.html" }
+                ]
+            },
+            {
+                id: "catalog",
+                label: "Gestione",
+                desc: "Il motore del business. Configura i prodotti, i servizi e la logica operativa delle SOP.",
+                icon: "fa-box-open",
+                path: "gestione/catalog.html"
+            },
+            {
+                id: "operativita",
+                label: "Operatività",
+                desc: "Evasione degli ordini e-commerce, pianificazione dell'agenda ed avvio delle commesse lavorative.",
+                icon: "fa-clock",
+                sub: [
+                    { id: "orders", label: "Ordini Live", desc: "Gestisci in tempo reale gli ordini in entrata ed il tracking di spedizione.", icon: "fa-shopping-cart", path: "operativita/orders-manager.html" },
+                    { id: "jobs", label: "Piano Lavori", desc: "Organizza le code di lavoro e pianifica le priorità operative.", icon: "fa-tasks", path: "operativita/job-create.html" },
+                    { id: "solver", label: "Percorsi AI", desc: "Algoritmi predittivi di ottimizzazione percorsi e logistica consegne.", icon: "fa-route", path: "operativita/pianificazione_itinerari.html" }
+                ]
+            },
+            {
+                id: "intelligence_hub",
+                label: "Analisi",
+                desc: "Analisi di mercato territoriali, controllo di gestione CFO, risorse umane e conformità DVR.",
+                icon: "fa-chart-line",
+                sub: [
+                    { id: "intel_gen", label: "Intelligence Gen.", desc: "Modulo di controllo direzionale e reportistica sintetica.", icon: "fa-brain", path: "agents/agent_intelligence.html" },
+                    { id: "intel_safety", label: "Sicurezza & Compl.", desc: "Verifica DVR, sicurezza sul lavoro e adempimenti normativi.", icon: "fa-shield-halved", path: "agents/assistente-sicurezza.html" },
+                    { id: "intel_mgmt", label: "Controllo Gestione", desc: "Monitoraggio flussi di cassa, bilancio e marginalità di studio.", icon: "fa-coins", path: "agents/controllo_gestione.html" },
+                    { id: "intel_warehouse", label: "Magazzino AI", desc: "Gestione ed ottimizzazione automatizzata delle scorte di magazzino.", icon: "fa-warehouse", path: "agents/intelligent-warehouse.html" }
+                ]
+            },
+            {
+                id: "support_hub",
+                label: "Supporto",
+                desc: "Gestione dei ticket di supporto tecnico e deviazione della chat ad operatori umani.",
+                icon: "fa-headset",
+                path: "supporto/support_hub.html"
+            },
+            {
+                id: "fine_tuning",
+                label: "Addestramento",
+                desc: "Esporta i dati di SiteBoS in formato JSONL per addestrare modelli linguistici personalizzati.",
+                icon: "fa-brain",
+                path: "fine-tuning/fine-tuning.html"
+            }
+        ];
+
+        let mvpModules = [...mvpMainModules];
+        let mvpCurrentLevel = 'main';
+        let mvpParentIdx = 0;
+        let mvpActiveIdx = 0;
+
+        function mvpBuildStack() {
+            const container = document.getElementById('mvp-stack-container');
+            const dots = document.getElementById('mvp-dot-indicators');
+            if (!container || !dots) return;
+
+            container.innerHTML = '';
+            dots.innerHTML = '';
+
+            mvpModules.forEach((mod, idx) => {
+                const card = document.createElement('div');
+                card.className = "platform-card-3d-mvp select-none";
+                card.id = `mvp-card-${idx}`;
+
+                const isSub = mvpCurrentLevel === 'sub';
+
+                card.innerHTML = `
+                    <div class="w-full text-left shrink-0">
+                        <span class="text-[8px] font-black uppercase tracking-widest text-slate-400 italic block">
+                            ${isSub ? 'Opzione Setup' : 'Modulo Console'}
+                        </span>
+                    </div>
+
+                    <div class="my-auto flex items-center gap-3 w-full px-1 text-left">
+                        <div class="w-10 h-10 bg-slate-950 text-white rounded-xl flex items-center justify-center text-lg shadow-md shrink-0">
+                            <i class="fas ${mod.icon}"></i>
+                        </div>
+                        <div class="overflow-hidden min-w-0 flex-1">
+                            <h3 class="text-[11px] font-black tracking-tight text-slate-900 leading-tight uppercase mb-0.5 truncate">${mod.label}</h3>
+                            <p class="text-[9px] text-slate-500 font-bold leading-tight normal-case line-clamp-2">${mod.desc}</p>
+                        </div>
+                    </div>
+
+                    <div class="w-full flex justify-between items-center shrink-0 pt-1 border-t border-slate-100">
+                        <span class="px-2 py-0.5 bg-slate-900 text-white rounded-full text-[7.5px] font-black uppercase tracking-widest">
+                            ${mod.sub ? mod.sub.length + ' Sottomenu' : 'Attivo'}
+                        </span>
+                        <span class="text-[7px] font-black uppercase tracking-wider text-blue-600 flex items-center gap-1">
+                            ${mod.sub ? 'Entra' : 'Apri'} <i class="fas fa-chevron-right text-[6px]"></i>
+                        </span>
+                    </div>
+                `;
+
+                card.onclick = () => {
+                    if (idx === mvpActiveIdx) {
+                        mvpOpenModule(mod);
+                    } else {
+                        mvpSelectIdx(idx);
+                    }
+                };
+
+                container.appendChild(card);
+
+                const dot = document.createElement('div');
+                dot.id = `mvp-dot-${idx}`;
+                dot.className = "w-2.5 h-2.5 rounded-full bg-slate-300 transition-all duration-300 cursor-pointer";
+                dot.onclick = () => mvpSelectIdx(idx);
+                dots.appendChild(dot);
+            });
+
+            mvpUpdateLayout();
+        }
+
+        function mvpUpdateLayout() {
+            mvpModules.forEach((_, idx) => {
+                const card = document.getElementById(`mvp-card-${idx}`);
+                const dot = document.getElementById(`mvp-dot-${idx}`);
+                if (!card) return;
+
+                const diff = idx - mvpActiveIdx;
+                let translateY = diff * 32;
+                let translateZ = -Math.abs(diff) * 70;
+                let rotateX = diff * -7;
+                let scale = 1 - Math.abs(diff) * 0.04;
+                let opacity = 0;
+                let zIndex = 100 - Math.abs(diff);
+
+                if (diff === 0) {
+                    opacity = 1;
+                    card.style.pointerEvents = 'auto';
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                    card.style.pointerEvents = 'none';
+                    if (Math.abs(diff) === 1) {
+                        opacity = 0.55;
+                    } else {
+                        opacity = 0;
+                    }
+                }
+
+                card.style.transform = `translate3d(0, ${translateY}px, ${translateZ}px) rotateX(${rotateX}deg) scale(${scale})`;
+                card.style.opacity = opacity;
+                card.style.zIndex = zIndex;
+
+                if (dot) {
+                    if (idx === mvpActiveIdx) {
+                        dot.className = "w-2.5 h-6 rounded-full bg-slate-900 transition-all duration-300";
+                    } else {
+                        dot.className = "w-2.5 h-2.5 rounded-full bg-slate-300 transition-all duration-300";
+                    }
+                }
+            });
+        }
+
+        function mvpSelectIdx(idx) {
+            if (idx >= 0 && idx < mvpModules.length) {
+                mvpActiveIdx = idx;
+                mvpUpdateLayout();
+            }
+        }
+
+        function mvpNavigate(dir) {
+            const next = mvpActiveIdx + dir;
+            if (next >= 0 && next < mvpModules.length) {
+                mvpSelectIdx(next);
+            }
+        }
+
+        function mvpOpenModule(mod) {
+            if (mod.sub && mod.sub.length > 0) {
+                mvpParentIdx = mvpActiveIdx;
+                mvpModules = mod.sub;
+                mvpCurrentLevel = 'sub';
+                mvpActiveIdx = 0;
+
+                const header = document.getElementById('mvp-submenu-header');
+                const title = document.getElementById('mvp-submenu-title');
+                const icon = document.getElementById('mvp-submenu-icon');
+                if (header && title && icon) {
+                    title.innerText = mod.label;
+                    icon.className = 'fas ' + mod.icon;
+                    header.classList.remove('hidden');
+                }
+
+                mvpBuildStack();
+            } else {
+                mvpShowToast('Modulo: ' + mod.label + ' (' + (mod.path || mod.id) + ')');
+            }
+        }
+
+        function mvpGoBack() {
+            if (mvpCurrentLevel === 'sub') {
+                mvpModules = mvpMainModules;
+                mvpCurrentLevel = 'main';
+                mvpActiveIdx = mvpParentIdx;
+
+                const header = document.getElementById('mvp-submenu-header');
+                if (header) header.classList.add('hidden');
+
+                mvpBuildStack();
+            }
+        }
+
+        function mvpShowToast(text) {
+            const toast = document.getElementById('mvp-toast');
+            if (!toast) return;
+            toast.innerText = text;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2200);
+        }
+
+        // ── MVP 2: SERVICE MASTER CATALOG 3-LEVEL ENGINE (EXACT MATCH FOR catalog.html) ──────
+        const catTree = {
+            SER: [
+                {
+                    level: "category",
+                    name: "Impianti & Domotica",
+                    short_name: "Impiantistica Civile",
+                    items: [
+                        {
+                            name: "Installazione Impianto Fotovoltaico 6kW",
+                            short_name: "⚡ Fotovoltaico 6kW",
+                            blueprint_ready: true,
+                            sku: "SER-FV-6KW",
+                            actions: [
+                                { label: "Informazioni Base", desc: "Modifica i dettagli e le caratteristiche generali.", icon: "fa-edit" },
+                                { label: "Informazioni Avanzate", desc: "Gestisci scomposizione costi e parametri.", icon: "fa-sliders" },
+                                { label: "Processo Aziendale", desc: "Configura la logica esecutiva passo-passo.", icon: "fa-diagram-project" },
+                                { label: "Stampa Documento", desc: "Stampa scheda tecnica e preventivo.", icon: "fa-print" }
+                            ]
+                        },
+                        {
+                            name: "Impianto Domotico KNX Smart Home",
+                            short_name: "🏠 Domotica KNX",
+                            blueprint_ready: false,
+                            sku: "SER-DOM-KNX",
+                            actions: []
+                        }
+                    ]
+                },
+                {
+                    level: "category",
+                    name: "Manutenzione Industriale",
+                    short_name: "Manutenzione",
+                    items: []
+                }
+            ],
+            PRO: [
+                {
+                    level: "category",
+                    name: "Asset Digitali & Software",
+                    short_name: "Asset Digitali",
+                    items: [
+                        {
+                            name: "Manuale Operativo SiTeBoS PDF",
+                            short_name: "📘 Guida SiTeBoS",
+                            blueprint_ready: true,
+                            sku: "DIG-PDF-01",
+                            actions: [
+  {
+    "label": "Informazioni Base",
+    "desc": "Modifica i dettagli e le caratteristiche generali del prodotto/servizio.",
+    "icon": "fa-edit"
+  },
+  {
+    "label": "Informazioni Avanzate",
+    "desc": "Gestisci la scomposizione dei costi, ricetta (BOM) e parametri avanzati.",
+    "icon": "fa-sliders"
+  },
+  {
+    "label": "Processo Aziendale",
+    "desc": "Configura la logica esecutiva passo-passo e la conformità di processo.",
+    "icon": "fa-diagram-project"
+  },
+  {
+    "label": "Web Blog Page",
+    "desc": "Gestisci e modifica gli articoli generati dall'IA per la tua vetrina.",
+    "icon": "fa-pen-nib"
+  },
+  {
+    "label": "Social Post",
+    "desc": "Visualizza e ottimizza i post pronti per la condivisione sui canali social.",
+    "icon": "fa-share-nodes"
+  },
+  {
+    "label": "Base Conoscenza",
+    "desc": "Istruisci l'assistente virtuale inserendo FAQ, manuali e materiali di supporto.",
+    "icon": "fa-brain"
+  },
+  {
+    "label": "Supervisor Hub",
+    "desc": "Monitora in tempo reale i task e lo stato di avanzamento operativo di questa voce.",
+    "icon": "fa-user-gear"
+  },
+  {
+    "label": "Stampa",
+    "desc": "Genera e stampa il documento tecnico con la scheda del servizio.",
+    "icon": "fa-print"
+  },
+  {
+    "label": "Crea Guida con AI",
+    "desc": "Genera automaticamente la guida digitale con l'intelligenza artificiale.",
+    "icon": "fa-brain",
+    "isAiGuide": true
+  }
+]
+                        },
+                        {
+                            name: "Licenza Software Cloud Dedicated",
+                            short_name: "🔑 Licenza Cloud",
+                            blueprint_ready: false,
+                            sku: "SOFT-LIC-YR",
+                            actions: []
+                        }
+                    ]
+                },
+                {
+                    level: "category",
+                    name: "Materiale Hardware",
+                    short_name: "Hardware",
+                    items: []
+                }
+            ],
+            SOP: [
+                {
+                    level: "category",
+                    name: "Blueprints Collaudo & Sicurezza",
+                    short_name: "Blueprints Collaudo",
+                    items: [
+                        {
+                            name: "SOP Collaudo Stringhe Fotovoltaiche",
+                            short_name: "📋 SOP Collaudo FV",
+                            blueprint_ready: true,
+                            sku: "SOP-FV-01",
+                            actions: [
+                                { label: "Modifica Protocollo SOP", desc: "4 Fasi esecutive • Strumenti CAT IV", icon: "fa-list-check" }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    level: "category",
+                    name: "Protocolli Sanificazione",
+                    short_name: "Sanificazione",
+                    items: []
+                }
+            ]
+        };
+
+        const macroList = ['SER', 'PRO', 'SOP'];
+        let catMacro = 'SER';
+        let catViewLevel = 'categories'; // 'categories' | 'items' | 'actions'
+        let catCurrentModules = [];
+        let catNavHistory = []; // stack of { viewLevel, modules, activeIdx, title }
+        let catActiveIdx = 0;
+
+        function catMvpSetMacro(key) {
+            catMacro = key;
+            catViewLevel = 'categories';
+            catNavHistory = [];
+            catCurrentModules = catTree[key];
+            catActiveIdx = 0;
+
+            macroList.forEach(k => {
+                const btn = document.getElementById('cat-btn-' + k);
+                if (btn) {
+                    if (k === key) {
+                        btn.className = 'px-3 py-1 rounded-xl bg-slate-900 text-white shadow-sm transition font-black';
+                    } else {
+                        btn.className = 'px-3 py-1 rounded-xl text-slate-500 hover:text-slate-900 transition';
+                    }
+                }
+            });
+
+            const header = document.getElementById('cat-mvp-submenu-header');
+            if (header) header.classList.add('hidden');
+
+            catMvpRenderStack();
+        }
+
+        function catMvpNavigateMacro(dir) {
+            const idx = macroList.indexOf(catMacro);
+            const next = (idx + dir + macroList.length) % macroList.length;
+            catMvpSetMacro(macroList[next]);
+        }
+
+        function catMvpRenderStack() {
+            const container = document.getElementById('cat-mvp-stack-container');
+            const dots = document.getElementById('cat-mvp-dot-indicators');
+            if (!container || !dots) return;
+
+            container.innerHTML = '';
+            dots.innerHTML = '';
+
+            catCurrentModules.forEach((mod, idx) => {
+                const card = document.createElement('div');
+                card.className = "platform-card-3d-mvp select-none";
+                card.id = `cat-card-${idx}`;
+
+                if (catViewLevel === 'categories') {
+                    // Category Card Layout matching catalog.html lines 1125-1168
+                    const items = mod.items || [];
+                    const activeCount = items.filter(i => i.blueprint_ready).length;
+
+                    card.innerHTML = `
+                        <div class="w-full flex justify-between items-center shrink-0">
+                            <span class="text-[8px] font-black uppercase tracking-widest text-slate-400 italic">Categoria ${catMacro}</span>
+                            <div class="flex gap-1">
+                                <span class="w-5 h-5 bg-slate-100 rounded flex items-center justify-center text-[8px] text-slate-400"><i class="fas fa-pen"></i></span>
+                            </div>
+                        </div>
+
+                        <div class="my-auto w-full text-center">
+                            <h2 class="text-xs font-black tracking-tight text-slate-900 uppercase mb-1">${mod.short_name || mod.name}</h2>
+                            <div class="flex justify-center items-center gap-1.5 mt-1">
+                                <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-full text-[8px] font-black uppercase tracking-wider">${items.length} Voci</span>
+                                ${activeCount > 0 ? `<span class="px-2 py-0.5 bg-blue-600 text-white rounded-full text-[8px] font-black uppercase tracking-wider">${activeCount} Attive</span>` : ''}
+                            </div>
+                        </div>
+
+                        <div class="w-full text-center shrink-0 border-t border-slate-100 pt-1">
+                            <span class="text-[7.5px] font-black uppercase tracking-widest text-blue-600 flex items-center justify-center gap-1">
+                                Espandi Categoria <i class="fas fa-chevron-right text-[6px]"></i>
+                            </span>
+                        </div>
+                    `;
+                } else if (catViewLevel === 'items') {
+                    // Item Card Layout matching catalog.html lines 1170-1211 (Servizi / Prodotti Attivi)
+                    const isReady = mod.blueprint_ready;
+
+                    card.innerHTML = `
+                        <div class="w-full flex justify-between items-center shrink-0">
+                            <span class="text-[8px] font-black uppercase tracking-widest text-slate-400 italic">SKU: ${mod.sku || 'N/A'}</span>
+                            <span class="text-[7px] font-bold px-2 py-0.5 rounded-full uppercase ${isReady ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}">
+                                ${isReady ? 'Attivo' : 'Suggerito'}
+                            </span>
+                        </div>
+
+                        <div class="my-auto flex items-center gap-3 w-full px-1 text-left">
+                            <div class="w-10 h-10 ${isReady ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-500'} rounded-xl flex items-center justify-center text-lg shadow-md shrink-0">
+                                <i class="fas ${mod.actions && mod.actions[0] && mod.actions[0].isAiGuide ? 'fa-brain text-purple-300' : 'fa-box-open'}"></i>
+                            </div>
+                            <div class="overflow-hidden min-w-0 flex-1">
+                                <h3 class="text-[11px] font-black tracking-tight text-slate-900 leading-tight uppercase mb-0.5 truncate">${mod.short_name || mod.name}</h3>
+                                <p class="text-[9px] text-slate-500 font-bold leading-tight normal-case line-clamp-2">${mod.name}</p>
+                            </div>
+                        </div>
+
+                        <div class="w-full flex justify-between items-center shrink-0 border-t border-slate-100 pt-1">
+                            <span class="text-[7.5px] font-black uppercase tracking-widest text-slate-400">
+                                ${mod.actions ? mod.actions.length + ' Opzioni' : 'Nessuna Azione'}
+                            </span>
+                            <span class="text-[7.5px] font-black uppercase tracking-wider text-blue-600 flex items-center gap-1">
+                                ${isReady ? 'Gestisci Servizio' : 'Attiva'} <i class="fas fa-chevron-right text-[6px]"></i>
+                            </span>
+                        </div>
+                    `;
+                } else {
+                    // Action Option Card Layout matching catalog.html lines 1213-1235
+                    const isAi = mod.isAiGuide;
+
+                    card.innerHTML = `
+                        <div class="w-full text-left shrink-0 flex justify-between items-center">
+                            <span class="text-[8px] font-black uppercase tracking-widest text-slate-400 italic">Opzione Gestione</span>
+                            ${isAi ? '<span class="px-2 py-0.5 bg-purple-100 text-purple-800 text-[7px] font-bold rounded-full">IA Generator</span>' : ''}
+                        </div>
+
+                        <div class="my-auto flex items-center gap-3 w-full px-1 text-left">
+                            <div class="w-10 h-10 ${isAi ? 'bg-purple-900 text-purple-200' : 'bg-slate-950 text-white'} rounded-xl flex items-center justify-center text-lg shadow-md shrink-0">
+                                <i class="fas ${mod.icon || 'fa-sliders'}"></i>
+                            </div>
+                            <div class="overflow-hidden min-w-0 flex-1">
+                                <h3 class="text-[11px] font-black tracking-tight text-slate-900 leading-tight uppercase mb-0.5 truncate">${mod.label}</h3>
+                                <p class="text-[9px] text-slate-500 font-bold leading-tight normal-case line-clamp-2">${mod.desc}</p>
+                            </div>
+                        </div>
+
+                        <div class="w-full text-right shrink-0 border-t border-slate-100 pt-1">
+                            <span class="text-[7.5px] font-black uppercase tracking-wider ${isAi ? 'text-purple-600' : 'text-blue-600'} flex items-center justify-end gap-1">
+                                ${isAi ? 'Esegui AI' : 'Apri'} <i class="fas fa-chevron-right text-[6px]"></i>
+                            </span>
+                        </div>
+                    `;
+                }
+
+                card.onclick = () => {
+                    if (idx === catActiveIdx) {
+                        catMvpClickModule(mod);
+                    } else {
+                        catActiveIdx = idx;
+                        catMvpUpdateLayout();
+                    }
+                };
+
+                container.appendChild(card);
+
+                const dot = document.createElement('div');
+                dot.id = `cat-dot-${idx}`;
+                dot.className = "w-2.5 h-2.5 rounded-full bg-slate-300 transition-all duration-300 cursor-pointer";
+                dot.onclick = () => { catActiveIdx = idx; catMvpUpdateLayout(); };
+                dots.appendChild(dot);
+            });
+
+            catMvpUpdateLayout();
+        }
+
+        function catMvpUpdateLayout() {
+            catCurrentModules.forEach((_, idx) => {
+                const card = document.getElementById(`cat-card-${idx}`);
+                const dot = document.getElementById(`cat-dot-${idx}`);
+                if (!card) return;
+
+                const diff = idx - catActiveIdx;
+                let translateY = diff * 32;
+                let translateZ = -Math.abs(diff) * 70;
+                let rotateX = diff * -7;
+                let scale = 1 - Math.abs(diff) * 0.04;
+                let opacity = diff === 0 ? 1 : (Math.abs(diff) === 1 ? 0.55 : 0);
+                let zIndex = 100 - Math.abs(diff);
+
+                card.style.transform = `translate3d(0, ${translateY}px, ${translateZ}px) rotateX(${rotateX}deg) scale(${scale})`;
+                card.style.opacity = opacity;
+                card.style.zIndex = zIndex;
+                card.style.pointerEvents = diff === 0 ? 'auto' : 'none';
+
+                if (dot) {
+                    dot.className = idx === catActiveIdx ? "w-2.5 h-6 rounded-full bg-slate-900 transition-all duration-300" : "w-2.5 h-2.5 rounded-full bg-slate-300 transition-all duration-300";
+                }
+            });
+        }
+
+        function catMvpNavigate(dir) {
+            const next = catActiveIdx + dir;
+            if (next >= 0 && next < catCurrentModules.length) {
+                catActiveIdx = next;
+                catMvpUpdateLayout();
+            }
+        }
+
+        function catMvpClickModule(mod) {
+            if (catViewLevel === 'categories') {
+                if (mod.items && mod.items.length > 0) {
+                    catNavHistory.push({ viewLevel: catViewLevel, modules: catCurrentModules, activeIdx: catActiveIdx, title: 'Categoria' });
+                    catViewLevel = 'items';
+                    catCurrentModules = mod.items;
+                    catActiveIdx = 0;
+                    catMvpUpdateHeader(mod.short_name || mod.name);
+                    catMvpRenderStack();
+                } else {
+                    mvpShowToast('Categoria Vuota / In Bozza');
+                }
+            } else if (catViewLevel === 'items') {
+                if (mod.actions && mod.actions.length > 0) {
+                    catNavHistory.push({ viewLevel: catViewLevel, modules: catCurrentModules, activeIdx: catActiveIdx, title: mod.short_name });
+                    catViewLevel = 'actions';
+                    catCurrentModules = mod.actions;
+                    catActiveIdx = 0;
+                    catMvpUpdateHeader(mod.short_name || mod.name);
+                    catMvpRenderStack();
+                } else {
+                    mvpShowToast('Voce: ' + mod.name);
+                }
+            } else if (catViewLevel === 'actions') {
+                if (mod.isAiGuide) {
+                    mvpShowToast('🤖 Generazione Guida con AI Avviata!');
+                } else {
+                    mvpShowToast('Opzione: ' + mod.label);
+                }
+            }
+        }
+
+        function catMvpUpdateHeader(title) {
+            const header = document.getElementById('cat-mvp-submenu-header');
+            const titleEl = document.getElementById('cat-mvp-submenu-title');
+            if (header && titleEl) {
+                titleEl.innerText = title;
+                header.classList.remove('hidden');
+            }
+        }
+
+        function catMvpGoBack() {
+            if (catNavHistory.length > 0) {
+                const prev = catNavHistory.pop();
+                catViewLevel = prev.viewLevel;
+                catCurrentModules = prev.modules;
+                catActiveIdx = prev.activeIdx;
+
+                if (catNavHistory.length === 0) {
+                    const header = document.getElementById('cat-mvp-submenu-header');
+                    if (header) header.classList.add('hidden');
+                } else {
+                    const last = catNavHistory[catNavHistory.length - 1];
+                    catMvpUpdateHeader(last.title);
+                }
+
+                catMvpRenderStack();
+            }
+        }
+
+        // Initialize MVPs on load
+        document.addEventListener('DOMContentLoaded', () => {
+            mvpBuildStack();
+            catMvpSetMacro('SER');
+        });
+    </script>
+</body>
+</html>

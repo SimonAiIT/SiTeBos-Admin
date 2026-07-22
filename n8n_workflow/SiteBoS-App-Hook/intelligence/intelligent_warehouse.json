@@ -1,0 +1,2328 @@
+{
+  "name": "intelligent_warehouse",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "19efc8b9-5579-4d01-8856-54deb0f3d294",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -4544,
+        -112
+      ],
+      "id": "9de5c81d-7c83-4482-a2c3-1273f4f458da",
+      "name": "Webhook",
+      "webhookId": "6d8cd891-3afe-4ffe-8d89-f4154190f12c"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.headers.host }}",
+              "rightValue": "prod.workflow.trinai.it",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "webhook-domain-check"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -4336,
+        -112
+      ],
+      "id": "913855c8-6711-4faa-a633-7c9de016790c",
+      "name": "Authorize Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"code\": 403,\n  \"message\": \"⛔️ ACCESS DENIED: Unauthorized User or Invalid Endpoint.\",\n  \"details\": \"L'autenticazione Telegram non ha superato i controlli di sicurezza.\"\n}",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -4336,
+        96
+      ],
+      "id": "089b2c19-16e4-4188-b7e7-3bb2355f6360",
+      "name": "⛔️ 403 Forbidden"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- 1. CONFIGURAZIONE ---\nconst BOT_TOKEN = \"8644939941:AAHPiZM3D9xg6TbHXGSiCfiXbA4q99fyuYQ\"; // Operator Bot Token\nconst initData = $input.item.json.body._auth;\n\nif (!initData) return { isValid: false, error: \"Dato _auth mancante\" };\n\n// --- 2. LIBRERIA CRIPTOGRAFICA PURE JS (SHA-256 & HMAC) ---\nconst CryptoJS = (function() {\n    function sha256(m) {\n        var h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];\n        var k = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];\n        var b = Array.from(typeof m === 'string' ? new TextEncoder().encode(m) : m);\n        var l = b.length * 8; b.push(0x80);\n        while ((b.length * 8) % 512 !== 448) b.push(0);\n        for (var i = 7; i >= 0; i--) b.push((l / Math.pow(2, i * 8)) & 0xff);\n        for (var i = 0; i < b.length; i += 64) {\n            var w = new Int32Array(64);\n            for (var j = 0; j < 16; j++) w[j] = (b[i + j * 4] << 24) | (b[i + j * 4 + 1] << 16) | (b[i + j * 4 + 2] << 8) | (b[i + j * 4 + 3]);\n            for (var j = 16; j < 64; j++) {\n                var s0 = ((w[j - 15] >>> 7) | (w[j - 15] << 25)) ^ ((w[j - 15] >>> 18) | (w[j - 15] << 14)) ^ (w[j - 15] >>> 3);\n                var s1 = ((w[j - 2] >>> 17) | (w[j - 2] << 15)) ^ ((w[j - 2] >>> 19) | (w[j - 2] << 13)) ^ (w[j - 2] >>> 10);\n                w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;\n            }\n            var [a, c, d, e, f, g, i_h, j_h] = h;\n            var v = [...h];\n            for (var j = 0; j < 64; j++) {\n                var S1 = ((v[4] >>> 6) | (v[4] << 26)) ^ ((v[4] >>> 11) | (v[4] << 21)) ^ ((v[4] >>> 25) | (v[4] << 7));\n                var ch = (v[4] & v[5]) ^ (~v[4] & v[6]);\n                var t1 = (v[7] + S1 + ch + k[j] + w[j]) | 0;\n                var S0 = ((v[0] >>> 2) | (v[0] << 30)) ^ ((v[0] >>> 13) | (v[0] << 19)) ^ ((v[0] >>> 22) | (v[0] << 10));\n                var maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);\n                var t2 = (S0 + maj) | 0;\n                v.unshift((t1 + t2) | 0); v.splice(8); v[4] = (v[4] + t1) | 0;\n            }\n            for (var i = 0; i < 8; i++) h[i] = (h[i] + v[i]) | 0;\n        }\n        return h.reduce((acc, val) => acc.concat([(val >>> 24) & 0xff, (val >>> 16) & 0xff, (val >>> 8) & 0xff, val & 0xff]), []);\n    }\n    if (typeof TextEncoder === \"undefined\") {\n        window.TextEncoder = function() {};\n        TextEncoder.prototype.encode = function(s) {\n            return new Uint8Array(unescape(encodeURIComponent(s)).split(\"\").map(c => c.charCodeAt(0)));\n        };\n    }\n    return {\n        hmac: function(key, message) {\n            var k = typeof key === 'string' ? Array.from(new TextEncoder().encode(key)) : key;\n            var m = Array.from(new TextEncoder().encode(message));\n            var b = 64;\n            if (k.length > b) k = sha256(k);\n            while (k.length < b) k.push(0);\n            var ipad = k.map(x => x ^ 0x36);\n            var opad = k.map(x => x ^ 0x5c);\n            var inner = sha256(ipad.concat(m));\n            return sha256(opad.concat(inner));\n        }\n    };\n})();\n\n// --- 3. LOGICA PARSING ---\nconst data = {};\ninitData.split('&').forEach(pair => {\n    const [k, v] = pair.split('=');\n    data[k] = decodeURIComponent(v);\n});\nconst hashReceived = data.hash;\nconst checkString = Object.keys(data)\n    .filter(k => k !== 'hash')\n    .sort()\n    .map(k => k + '=' + data[k])\n    .join('\\n');\n\n// --- 4. CALCOLO HASH TELEGRAM ---\nconst secretKey = CryptoJS.hmac(\"WebAppData\", BOT_TOKEN);\nconst computedHashBytes = CryptoJS.hmac(secretKey, checkString);\nconst computedHash = computedHashBytes.map(b => b.toString(16).padStart(2, '0')).join('');\n\n// --- 5. CONTROLLO SCADENZA (MAX 1 ORA) ---\nconst now = Math.floor(Date.now() / 1000);\nconst authDate = parseInt(data.auth_date);\nconst isExpired = (now - authDate) > 3600;\nconst isHashValid = (computedHash === hashReceived);\n\nreturn {\n    isValid: isHashValid && !isExpired,\n    user: data.user ? JSON.parse(data.user) : null\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4144,
+        -112
+      ],
+      "id": "08b8f5b8-0f4b-413b-889d-a899d04a35b4",
+      "name": "telegram_validator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -3936,
+        -112
+      ],
+      "id": "cb806ab3-eadf-4bd7-8033-936958fe319f",
+      "name": "Is Valid?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst rawAsh = item.ash || item.query?.ash || item.body?.ash;\n\nif (!rawAsh || typeof rawAsh !== \"string\") {\n  throw new Error(\"ASH non trovato nell'input.\");\n}\n\nconst [encodedPayload, signatureReceived] = rawAsh.split(\".\");\nif (!encodedPayload || !signatureReceived) {\n  throw new Error(\"Formato ASH non valido.\");\n}\n\nlet decodedPayload;\ntry {\n    decodedPayload = Buffer.from(encodedPayload, \"base64\").toString(\"utf8\");\n} catch (e) {\n    throw new Error(\"Errore decodifica Base64.\");\n}\n\nfunction verifySignature(payload, secret, receivedSig) {\n    let hash = 0;\n    const combined = payload + secret;\n    for (let i = 0; i < combined.length; i++) {\n        hash = ((hash << 5) - hash) + combined.charCodeAt(i);\n        hash = hash & hash; \n    }\n    const expectedSig = Math.abs(hash).toString(16);\n    return expectedSig === receivedSig;\n}\n\nif (!verifySignature(decodedPayload, SECRET_KEY, signatureReceived)) {\n    throw new Error(\"SECURITY: Firma ASH non valida o manomessa. Accesso negato.\");\n}\n\nconst parts = decodedPayload.split(\"|\");\nreturn [{ \n    json: {\n        ...item,\n        ids: {\n            owner_id: parts[0],\n            operator: parts[1],\n            timestamp: parts[2],\n            webhook: parts[3]\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3744,
+        -112
+      ],
+      "id": "63f5a8a3-1305-48f8-a36c-4d2df7998e7e",
+      "name": "Ash Decoder"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.chat_id\": {\n        \"$eq\": {{ parseInt($json.ids.owner_id) }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -3536,
+        -112
+      ],
+      "id": "2d75ac86-02ba-45db-9164-4dfcfdaf33cb",
+      "name": "Get Owner Data",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -3344,
+        -112
+      ],
+      "id": "fe9ea273-5e3f-4bf9-ad39-cdc6dbf13cc0",
+      "name": "Merge Owner Data"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "save_approved_items",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Save"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "save_expense",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SaveExpense"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "produce_semilavorato",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ProduceSemilavorato"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_semilavorati_list",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GetSemilavorati"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_actual_expenses",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GetActualExpenses"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_products_list",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GetProductsList"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "extract_xml",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ExtractXML"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "extract_pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "extract_photo",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "or"
+              },
+              "renameOutput": true,
+              "outputKey": "ExtractPDFPhoto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "extract_lotsnap_label",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ExtractLotsnapLabel"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "extract_lotsnap_document",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ExtractLotsnapDocument"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "extract_expense",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ExtractExpense"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -3136,
+        -112
+      ],
+      "id": "a0e11046-2d73-446b-9001-979e97e95dbb",
+      "name": "Action Router"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst items = item.body.items || [];\nconst flow = item.body.flow || 'INVOICE';\nconst owner_id = item.ids.owner_id;\nconst operator_id = item.ids.operator;\nconst timestamp = item.ids.timestamp;\n\n// 1. Genera documento fattura (fiscal tracking)\nconst total_amount = items.reduce((sum, i) => sum + (parseFloat(i.price || 0) * parseFloat(i.qty || 1)), 0);\nconst invoice_id = 'inv_' + flow + '_' + Date.now();\nconst invoiceDoc = {\n    _id: invoice_id,\n    owner_id: owner_id,\n    direction: item.body.direction || 'IN',\n    metadata: {\n        doc_number: 'DOC_' + Date.now().toString().slice(-6),\n        date: new Date().toISOString().split('T')[0],\n        totals: {\n            total_amount: total_amount\n        }\n    },\n    lines: items.map((i, idx) => ({\n        line_id: idx + 1,\n        raw_description: i.name,\n        qty: parseFloat(i.qty || 1),\n        unit_price: parseFloat(i.price || 0),\n        tax_rate: parseFloat(i.tax || 22),\n        account_code: i.account_code || '631.01000',\n        deductibility: parseFloat(i.deductibility ?? 100),\n        mapping: {\n            catalog_item_id: i.productId,\n            confidence: 'MANUAL',\n            mapped_at: new Date().toISOString()\n        }\n    })),\n    status: 'PROCESSED',\n    created_at: new Date().toISOString()\n};\n\n// 2. Genera documento lot_receipts (se flow LotSnap)\nlet lotReceiptDoc = null;\nif (flow === 'LOTSNAP') {\n    lotReceiptDoc = {\n        _id: 'rec_' + Date.now(),\n        owner_id: owner_id,\n        invoice_id: invoice_id,\n        received_at: new Date().toISOString(),\n        items: items.map(i => ({\n            product_id: i.productId,\n            lot_id: i.lot,\n            expiry_date: i.expiry,\n            quantity: parseFloat(i.qty || 1)\n        }))\n    };\n}\n\n// 3. Genera movimenti di magazzino per warehouse_inventory ledger\nconst stockMovements = items.map(i => ({\n    owner_id: owner_id,\n    product_id: i.productId,\n    name: i.name,\n    lot_id: i.lot || 'N/A',\n    expiry_date: i.expiry || 'N/A',\n    quantity: parseFloat(i.qty || 1),\n    price: parseFloat(i.price || 0),\n    direction: item.body.direction || 'IN',\n    type: 'PURCHASE',\n    related_doc_id: invoice_id,\n    operator_id: operator_id,\n    created_at: new Date().toISOString()\n}));\n\nreturn [{\n    json: {\n        ...item,\n        invoiceDoc,\n        lotReceiptDoc,\n        stockMovements,\n        flow\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2944,
+        -320
+      ],
+      "id": "b56fe513-920a-44bb-96b9-780bd5a6e26a",
+      "name": "Prep Save Invoices & Stock"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: $input.first().json.invoiceDoc }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2736,
+        -320
+      ],
+      "id": "06cbcc49-11c2-4464-8547-3939e8908332",
+      "name": "Extract Invoice Doc"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "invoices",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2544,
+        -320
+      ],
+      "id": "9e17d282-f96b-4700-a321-b965a4404d12",
+      "name": "Save Invoice DB",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const prep = $('Prep Save Invoices & Stock').first().json;\nreturn prep.stockMovements.map(m => ({ json: m }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2336,
+        -320
+      ],
+      "id": "53dc27ce-b7ae-422b-87f7-36a7dd06ad3f",
+      "name": "Extract Stock Entries"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "warehouse_inventory",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2144,
+        -320
+      ],
+      "id": "50c41c73-f941-45bb-9771-a24c73dd5afa",
+      "name": "Save Stock Entries DB",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Prep Save Invoices & Stock').first().json.flow }}",
+              "rightValue": "LOTSNAP",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1936,
+        -224
+      ],
+      "id": "9bdae765-05f5-41de-beb5-1000131af594",
+      "name": "Is LotSnap Flow?"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: $('Prep Save Invoices & Stock').first().json.lotReceiptDoc }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1744,
+        -224
+      ],
+      "id": "40073373-7b8e-4a55-859b-9de18e123995",
+      "name": "Extract Lot Receipt"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "lot_receipts",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1536,
+        -224
+      ],
+      "id": "2a74a15f-961d-4bed-bd11-825f9b329f55",
+      "name": "Save Lot Receipt DB",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $('Prep Save Invoices & Stock').first().json;\nconst owner = item.owner_data || {};\nconst items = item.body.items || [];\nconst direction = item.body.direction || 'IN';\n\nconst itemsList = items.map(i => `• <b>${i.name}</b> (Qtà: ${i.qty}, Lotto: ${i.lot || 'N/A'}, C.Conto: <code>${i.account_code || '631.01000'}</code>, Ded: ${i.deductibility ?? 100}%)`).join('\\n');\n\nlet msg = `📦 <b>MOVIMENTO DI MAGAZZINO (Vault v2)</b>\\n`;\nmsg += `━━━━━━━━━━━━━━━━━━━━\\n`;\nmsg += `⚙️ <b>DIREZIONE:</b> <code>${direction === 'IN' ? '📥 CARICO (IN)' : '📤 SCARICO (OUT)'}</code>\\n`;\nmsg += `👤 <b>OPERATORE:</b> <code>${item.ids?.operator || 'N/A'}</code>\\n`;\nmsg += `├ <b>Flusso:</b> <code>${item.flow || 'INVOICE'}</code>\\n`;\nmsg += `├ <b>ID Tenant:</b> <code>${item.ids?.owner_id || 'N/A'}</code>\\n\\n`;\n\nmsg += `🛒 <b>ARTICOLI REGISTRATI:</b>\\n${itemsList || 'Nessuno'}\\n`;\nmsg += `━━━━━━━━━━━━━━━━━━━━\\n`;\nmsg += `🔐 <i>Movimenti e allocazioni fiscali archiviate nel Vault.</i>`;\n\nconst telegramPayload = {\n    chat_id: owner.chat_id,\n    text: msg,\n    parse_mode: 'HTML'\n};\n\nreturn [{\n    json: {\n        telegramPayload: telegramPayload,\n        owner_data: owner\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1936,
+        -416
+      ],
+      "id": "0261b92d-c144-4637-b74d-a4f5e86ecbe1",
+      "name": "Prep Telegram Vault Msg"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1744,
+        -416
+      ],
+      "id": "05c44c1a-8b60-4d7e-9e58-cf2919f6f4f3",
+      "name": "Send Telegram Vault Notification",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1536,
+        -416
+      ],
+      "id": "fa6d66f9-0932-4a1e-80e8-763346d4a09b",
+      "name": "Respond Success Save"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst exp = item.body.expense || {};\nconst owner_id = item.ids.owner_id;\nconst operator_id = item.ids.operator;\n\nconst doc = {\n    _id: 'exp_' + Date.now(),\n    owner_id: owner_id,\n    merchant: exp.merchant,\n    date: exp.date || new Date().toISOString().split('T')[0],\n    total_amount: parseFloat(exp.total || 0),\n    vat_rate: parseFloat(exp.vat_rate || 22),\n    account_code: exp.account_code || '626.00202',\n    deductibility: parseFloat(exp.deductibility ?? 75),\n    operator_id: operator_id,\n    created_at: new Date().toISOString()\n};\n\nreturn [{ json: doc }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2944,
+        -16
+      ],
+      "id": "e50e77c2-83bd-4457-9b46-57acf120c454",
+      "name": "Prep Expense Document"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "expenses",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2736,
+        -16
+      ],
+      "id": "8834cfb2-15a0-4de9-b7f3-9c7c86835cba",
+      "name": "Save Expense DB",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2544,
+        -16
+      ],
+      "id": "52662c75-8937-4849-9b46-efa359471069",
+      "name": "Respond Success Expense"
+    },
+    {
+      "parameters": {
+        "operation": "findOne",
+        "collection": "service_catalog"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2944,
+        288
+      ],
+      "id": "ae199eab-2930-4d23-801b-75cb2fb7f4ee",
+      "name": "Find SOP Recipe",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "warehouse_inventory",
+        "options": {},
+        "query": "={\"owner_id\": \"{{ $('Action Router').first().json.ids.owner_id }}\"}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2736,
+        288
+      ],
+      "id": "d0054e9f-9f53-4de6-bcd0-63ab0e26f799",
+      "name": "Find Components Stock Logs",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sop = $('Find SOP Recipe').first().json;\nconst recipe = sop.materials || [];\nconst stockLogs = $input.all().map(i => i.json);\nconst request = $('Action Router').first().json;\nconst qtyToProduce = parseFloat(request.body.qty || 1);\nconst lotIdToAssign = request.body.lot_id;\nconst owner_id = request.ids.owner_id;\nconst operator_id = request.ids.operator;\n\n// 1. Calculate stock balances per product and lot (FIFO sorted by expiry)\nconst balances = {};\nstockLogs.forEach(log => {\n    const pId = log.product_id;\n    if (!pId) return;\n    const lId = log.lot_id || 'N/A';\n    const key = pId + '_' + lId;\n    if (!balances[key]) {\n        balances[key] = {\n            product_id: pId,\n            lot_id: lId,\n            expiry_date: log.expiry_date || 'N/A',\n            balance: 0\n        };\n    }\n    const qty = parseFloat(log.quantity || 0);\n    if (log.direction === 'IN' || log.type === 'PURCHASE' || log.type === 'PRODUCTION_OUTPUT') {\n        balances[key].balance += qty;\n    } else {\n        balances[key].balance -= qty;\n    }\n});\n\n// Convert to array and filter out empty balances, sort by expiry ascending (FIFO)\nconst lotList = Object.values(balances)\n    .filter(b => b.balance > 0)\n    .sort((a, b) => {\n        if (a.expiry_date === 'N/A') return 1;\n        if (b.expiry_date === 'N/A') return -1;\n        return new Date(a.expiry_date) - new Date(b.expiry_date);\n    });\n\nconst movements = [];\n\n// 2. Loop over materials in recipe and deduct using FIFO lots\nrecipe.forEach(material => {\n    const reqQty = parseFloat(material.qty || 0) * qtyToProduce;\n    let remaining = reqQty;\n    \n    // Find matching lots for this material\n    const matchingLots = lotList.filter(l => l.product_id === material.product_id);\n    \n    for (const lot of matchingLots) {\n        if (remaining <= 0) break;\n        const consume = Math.min(lot.balance, remaining);\n        \n        movements.push({\n            owner_id: owner_id,\n            product_id: lot.product_id,\n            name: material.name,\n            lot_id: lot.lot_id,\n            expiry_date: lot.expiry_date,\n            quantity: consume,\n            direction: 'OUT',\n            type: 'PRODUCTION_CONSUME',\n            related_doc_id: 'prod_' + lotIdToAssign,\n            operator_id: operator_id,\n            created_at: new Date().toISOString()\n        });\n        \n        remaining -= consume;\n        lot.balance -= consume;\n    }\n    \n    // If we couldn't fulfill completely from stock, log the remainder from N/A lot\n    if (remaining > 0) {\n        movements.push({\n            owner_id: owner_id,\n            product_id: material.product_id,\n            name: material.name,\n            lot_id: 'UNTRACKED',\n            expiry_date: 'N/A',\n            quantity: remaining,\n            direction: 'OUT',\n            type: 'PRODUCTION_CONSUME',\n            related_doc_id: 'prod_' + lotIdToAssign,\n            operator_id: operator_id,\n            created_at: new Date().toISOString()\n        });\n    }\n});\n\n// 3. Add the produced semilavorato lot entry (IN)\nmovements.push({\n    owner_id: owner_id,\n    product_id: request.body.sop_id, // SOP ID is the Digital Twin ID of the semilavorato\n    name: sop.blueprint_name || sop.name || 'Semilavorato Prodotto',\n    lot_id: lotIdToAssign,\n    expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default 30 days expiry\n    quantity: qtyToProduce,\n    direction: 'IN',\n    type: 'PRODUCTION_OUTPUT',\n    related_doc_id: 'prod_' + lotIdToAssign,\n    operator_id: operator_id,\n    created_at: new Date().toISOString()\n});\n\nreturn movements.map(m => ({ json: m }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2544,
+        288
+      ],
+      "id": "9a9fa2bc-0abb-4cde-8cb1-e55432750175",
+      "name": "FIFO Stock Deduction Logic"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "warehouse_inventory",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2336,
+        288
+      ],
+      "id": "2ed8e672-d483-4723-bfd0-6587a82e2485",
+      "name": "Insert Production Logs DB",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2144,
+        288
+      ],
+      "id": "320e0c1b-a754-45af-9e41-ea551881172c",
+      "name": "Respond Success Production"
+    },
+    {
+      "parameters": {
+        "collection": "service_catalog",
+        "options": {},
+        "query": "={\"owner_id\": \"{{ $json.ids.owner_id }}\", \"category\": \"Semilavorati\"}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2944,
+        592
+      ],
+      "id": "9d748860-994f-48f2-abb1-9334cac2d972",
+      "name": "Query Semilavorati SOPs DB",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { sops: $input.all().map(i => i.json) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2736,
+        592
+      ],
+      "id": "60a7aa99-9094-466f-aae8-cc274d4bf491",
+      "name": "Aggregate SOPs"
+    },
+    {
+      "parameters": {
+        "collection": "warehouse_inventory",
+        "options": {},
+        "query": "={\"owner_id\": \"{{ $('Action Router').first().json.ids.owner_id }}\"}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2544,
+        592
+      ],
+      "id": "57cb227b-cbc7-4e92-9992-c989ceb8ff15",
+      "name": "Query Stock Ledgers for Prod",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: {\n    sops: $('Aggregate SOPs').first().json.sops,\n    stockLogs: $input.all().map(i => i.json)\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2336,
+        592
+      ],
+      "id": "fbf2fe4b-de83-4d24-bdba-4a815c463919",
+      "name": "Aggregate Stock Logs"
+    },
+    {
+      "parameters": {
+        "jsCode": "const sops = $json.sops || [];\nconst stockLogs = $json.stockLogs || [];\n\n// Group logs to get current total balance per product\nconst productStock = {};\nstockLogs.forEach(log => {\n    const pId = log.product_id;\n    if (!pId) return;\n    if (productStock[pId] === undefined) productStock[pId] = 0;\n    const qty = parseFloat(log.quantity || 0);\n    if (log.direction === 'IN' || log.type === 'PURCHASE' || log.type === 'PRODUCTION_OUTPUT') {\n        productStock[pId] += qty;\n    } else {\n        productStock[pId] -= qty;\n    }\n});\n\n// Update each material in each SOP with its current available stock\nsops.forEach(sop => {\n    if (sop.materials && Array.isArray(sop.materials)) {\n        sop.materials.forEach(m => {\n            m.available_stock = productStock[m.product_id] || 0;\n        });\n    }\n});\n\nreturn [{ json: { sops } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2144,
+        592
+      ],
+      "id": "5d7f9850-33c5-460d-a09f-624f27c91a21",
+      "name": "Aggregate Stock and SOP Ingredients"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"sops\": {{ $json.sops }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1936,
+        592
+      ],
+      "id": "ba46b7fa-71c8-40ff-b74b-8bf89bef4b67",
+      "name": "Respond SOPs List"
+    },
+    {
+      "parameters": {
+        "collection": "invoices",
+        "options": {},
+        "query": "={\"owner_id\": \"{{ $json.ids.owner_id }}\", \"direction\": \"IN\"}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2944,
+        896
+      ],
+      "id": "546554fa-268e-47d9-adbc-3cdc5f95d868",
+      "name": "Query Inbound Invoices DB",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { invoices: $input.all().map(i => i.json) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2736,
+        896
+      ],
+      "id": "eb35c8c7-7d28-455c-85b5-e06fa6224836",
+      "name": "Aggregate Invoices"
+    },
+    {
+      "parameters": {
+        "collection": "expenses",
+        "options": {},
+        "query": "={\"owner_id\": \"{{ $('Action Router').first().json.ids.owner_id }}\"}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2544,
+        896
+      ],
+      "id": "36a0d14b-45cc-4d7a-b5da-b2949c38c9b2",
+      "name": "Query Expenses DB",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const invoices = $('Aggregate Invoices').first().json.invoices || [];\nconst expenses = $input.all().map(i => i.json);\n\n// Group all line items and expenses by account_code\nconst totals = {};\n\ninvoices.forEach(item => {\n    if (item.lines && Array.isArray(item.lines)) {\n        item.lines.forEach(line => {\n            const code = line.account_code || '631.01000';\n            if (totals[code] === undefined) totals[code] = 0;\n            const amt = parseFloat(line.unit_price || 0) * parseFloat(line.qty || 1);\n            totals[code] += amt;\n        });\n    }\n});\n\nexpenses.forEach(item => {\n    if (item.total_amount !== undefined && item.merchant) {\n        const code = item.account_code || '626.00202';\n        if (totals[code] === undefined) totals[code] = 0;\n        totals[code] += parseFloat(item.total_amount || 0);\n    }\n});\n\nreturn [{\n    json: {\n        actual_expenses: totals\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2336,
+        896
+      ],
+      "id": "8a17d57b-481a-4d76-ab6e-7183dbae23da",
+      "name": "Aggregate Financials by Account Code"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"actual_expenses\": {{ $json.actual_expenses }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2144,
+        896
+      ],
+      "id": "2fe23719-7624-444b-b96c-440285d7f772",
+      "name": "Respond Actual Expenses"
+    },
+    {
+      "parameters": {
+        "collection": "service_catalog",
+        "options": {},
+        "query": "={\"owner_id\": \"{{ $json.ids.owner_id }}\", \"name\": {\"$regex\": \"^\\\\[PRO\\\\]\"}}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2944,
+        1184
+      ],
+      "id": "db330169-b95a-4196-9ace-a1fbdb712222",
+      "name": "Query Products Catalog DB",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { products: $input.all().map(i => i.json) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2736,
+        1184
+      ],
+      "id": "8d45a31c-8ce1-4737-bd5c-a7aceaf284c7",
+      "name": "Aggregate Products"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"products\": {{ $json.products }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2544,
+        1184
+      ],
+      "id": "ecccaadd-bd35-44af-91b8-895cb74e0d2b",
+      "name": "Respond Products List"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst xmlText = item.body.xml_content || '';\n\n// Regex patterns to extract lines from Italian Electronic Invoice XML\nconst lines = [];\nconst lineRegex = /<DettaglioLinee>([\\s\\S]*?)<\\/DettaglioLinee>/g;\nlet match;\nlet idx = 1;\n\nwhile ((match = lineRegex.exec(xmlText)) !== null) {\n    const block = match[1];\n    const descMatch = block.match(/<Descrizione>([\\s\\S]*?)<\\/Descrizione>/);\n    const qtyMatch = block.match(/<Quantita>([\\s\\S]*?)<\\/Quantita>/);\n    const priceMatch = block.match(/<PrezzoUnitario>([\\s\\S]*?)<\\/PrezzoUnitario>/);\n    const vatMatch = block.match(/<AliquotaIVA>([\\s\\S]*?)<\\/AliquotaIVA>/);\n    const skuMatch = block.match(/<CodiceArticolo>[\\s\\S]*?<CodiceValore>([\\s\\S]*?)<\\/CodiceValore>[\\s\\S]*?<\\/CodiceArticolo>/);\n    \n    if (descMatch) {\n        lines.push({\n            line_id: idx++,\n            name: descMatch[1].trim(),\n            sku: skuMatch ? skuMatch[1].trim() : '',\n            qty: qtyMatch ? parseFloat(qtyMatch[1]) : 1,\n            price: priceMatch ? parseFloat(priceMatch[1]) : 0,\n            tax: vatMatch ? parseFloat(vatMatch[1]) : 22,\n            productId: '',\n            lot: '',\n            expiry: '',\n            account_code: '631.01000',\n            deductibility: 100\n        });\n    }\n}\n\nreturn [{\n    json: {\n        extractedLines: lines\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2944,
+        1488
+      ],
+      "id": "7b5ed105-398f-490f-b4d2-ee1b7a306103",
+      "name": "Parse XML Invoice Deterministic"
+    },
+    {
+      "parameters": {
+        "collection": "service_catalog",
+        "options": {},
+        "query": "={\"owner_id\": \"{{ $('Action Router').first().json.ids.owner_id }}\", \"name\": {\"$regex\": \"^\\\\[PRO\\\\]\"}}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2736,
+        1488
+      ],
+      "id": "9435eb82-219b-43eb-83ee-9822cc095176",
+      "name": "Query Catalog for XML Matching",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const products = $input.all().map(i => i.json);\nconst lines = $('Parse XML Invoice Deterministic').first().json.extractedLines || [];\n\n// Helper for lexical overlaps (Bigrams n-grams overlap)\nfunction calculateNgramOverlap(s1, s2) {\n    const getBigrams = str => {\n        const bigrams = new Set();\n        const s = str.toLowerCase().replace(/[^a-z0-9]/g, '');\n        for (let i = 0; i < s.length - 1; i++) bigrams.add(s.slice(i, i + 2));\n        return bigrams;\n    };\n    const b1 = getBigrams(s1);\n    const b2 = getBigrams(s2);\n    if (b1.size === 0 || b2.size === 0) return 0;\n    let intersection = 0;\n    b1.forEach(b => { if (b2.has(b)) intersection++; });\n    return intersection / Math.max(b1.size, b2.size);\n}\n\n// Perform lexical matching\nconst matchedItems = lines.map(line => {\n    let bestMatch = null;\n    let bestScore = 0;\n    \n    // Simple Brand Detector from description\n    const getBrand = name => {\n        const brands = [\"3m\", \"kerr\", \"coltene\", \"kuraray\", \"tokuyama\", \"henry schein\", \"schein\", \"krugg\", \"septodont\", \"dentsply\", \"zhermack\", \"kulzer\"];\n        const n = name.toLowerCase();\n        return brands.find(b => n.includes(b)) || \"\";\n    };\n    \n    const lineBrand = getBrand(line.name);\n    \n    products.forEach(p => {\n        const prodName = p.name.replace('[PRO] ', '');\n        const prodBrand = p.brand || getBrand(prodName);\n        \n        // Brand Mismatch Hard Filter\n        if (lineBrand && prodBrand && lineBrand !== prodBrand) {\n            return; // Score remains 0\n        }\n        \n        let score = 0;\n        \n        // 1. SKU Exact Match (Weight: 50)\n        if (line.sku && p.sku && line.sku.toLowerCase() === p.sku.toLowerCase()) {\n            score += 50;\n        }\n        \n        // 2. Brand Match (Weight: 15)\n        if (lineBrand && prodBrand && lineBrand === prodBrand) {\n            score += 15;\n        }\n        \n        // 3. Measure match (e.g. A2, 3g, 4ml) (Weight: 10)\n        const measureRegex = /\\b(\\d+g|\\d+ml|a[1-4]|b[1-4])\\b/gi;\n        const lineMeasures = line.name.match(measureRegex) || [];\n        const prodMeasures = prodName.match(measureRegex) || [];\n        if (lineMeasures.length > 0 && prodMeasures.length > 0 && lineMeasures[0].toLowerCase() === prodMeasures[0].toLowerCase()) {\n            score += 10;\n        }\n        \n        // 4. Title N-gram overlap (Weight: 8)\n        const overlap = calculateNgramOverlap(line.name, prodName);\n        score += overlap * 8;\n        \n        if (score > bestScore) {\n            bestScore = score;\n            bestMatch = p;\n        }\n    });\n    \n    const mapped = { ...line };\n    if (bestMatch && bestScore >= 15) {\n        mapped.productId = bestMatch._id;\n        mapped.name = bestMatch.name.replace('[PRO] ', '');\n        mapped.account_code = bestMatch.account_code || '631.01000';\n        mapped.deductibility = bestMatch.deductibility ?? 100;\n        mapped.confidence = bestScore >= 40 ? 'HIGH' : 'MEDIUM';\n    } else {\n        mapped.productId = '';\n        mapped.confidence = 'PENDING_REVIEW';\n    }\n    \n    mapped.match_score = bestScore;\n    return mapped;\n});\n\nreturn [{\n    json: {\n        items: matchedItems\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2544,
+        1488
+      ],
+      "id": "c45e5256-cb30-414c-9204-de963161c11d",
+      "name": "VENOMHEARTH XML Matching Engine"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"items\": {{ $json.items }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2336,
+        1488
+      ],
+      "id": "b287604d-fa9d-4beb-80e1-2084b98020e5",
+      "name": "Respond Extracted Items XML"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "asgn-sys-invoice",
+              "name": "SystemInstruction",
+              "value": "Sei un AI esperto in fatture passive italiane. Estrai in formato JSON l'elenco degli articoli. Rispondi esclusivamente con un JSON valido come questo: { \"items\": [ { \"name\": \"Nome articolo\", \"qty\": 1, \"price\": 10.50, \"tax\": 22, \"account_code\": \"631.01000\", \"deductibility\": 100 } ] }.",
+              "type": "string"
+            },
+            {
+              "id": "asgn-prompt-invoice",
+              "name": "Prompt",
+              "value": "Analizza questa fattura ed estrai righe articoli con quantità, prezzo unitario imponibile, aliquota IVA, conto fiscale e deducibilità stimata.",
+              "type": "string"
+            },
+            {
+              "id": "asgn-model-invoice",
+              "name": "=ModelChoice",
+              "value": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "asgn-key-invoice",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-err-invoice",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-ground-invoice",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "asgn-think-invoice",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "asgn-rename-invoice",
+              "name": "outputRename",
+              "value": "text",
+              "type": "string"
+            },
+            {
+              "id": "asgn-data-invoice",
+              "name": "data",
+              "value": "={{ $json.body.file_base64 || $json.body.xml_content || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-mime-invoice",
+              "name": "mimeType",
+              "value": "={{ $json.body.mimetype || 'image/jpeg' }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-free-invoice",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "asgn-billuse-invoice",
+              "name": "billing_source.use",
+              "value": "=Intelligent Warehouse invoice {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-billwh-invoice",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/19efc8b9-5579-4d01-8856-54deb0f3d294",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2944,
+        3584
+      ],
+      "id": "e9ab3456-43d5-4590-9bf8-7b0bd1d962fa",
+      "name": "Prep Gemini Extraction invoice"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -2736,
+        3584
+      ],
+      "id": "55650fd7-3c46-43e8-81bd-3df8e2b7a00f",
+      "name": "Gemini Call invoice"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst geminiResponse = item.text || item.content || \"\";\nlet result = {};\ntry {\n    const cleanJson = geminiResponse.replace(/```json/g, \"\").replace(/```/g, \"\").trim();\n    result = JSON.parse(cleanJson);\n} catch(e) {\n    console.error(\"Gemini Parse Error:\", e);\n}\nreturn [{ json: result }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2544,
+        3584
+      ],
+      "id": "a703206e-5f7e-4060-93ae-891adffd5b45",
+      "name": "Parse Gemini invoice"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2336,
+        3584
+      ],
+      "id": "bf8feb99-8e3f-4f1f-b0a8-75b544850207",
+      "name": "Respond Gemini invoice"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "asgn-sys-lotsnap_label",
+              "name": "SystemInstruction",
+              "value": "Sei un AI esperto in logistica medica. Estrai i dettagli logistici da questa foto dell'etichetta del prodotto. Rispondi esclusivamente in JSON: { \"lot_data\": { \"lot\": \"L123\", \"expiry\": \"2027-12-31\", \"brand\": \"3M\", \"suggested_name\": \"Filtek Supreme XTE\", \"account_code\": \"631.01000\", \"deductibility\": 100 } }.",
+              "type": "string"
+            },
+            {
+              "id": "asgn-prompt-lotsnap_label",
+              "name": "Prompt",
+              "value": "Analizza la foto di questa confezione di prodotto ed estrai il codice lotto, la data di scadenza (formato YYYY-MM-DD), il brand del produttore e il nome commerciale.",
+              "type": "string"
+            },
+            {
+              "id": "asgn-model-lotsnap_label",
+              "name": "=ModelChoice",
+              "value": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "asgn-key-lotsnap_label",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-err-lotsnap_label",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-ground-lotsnap_label",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "asgn-think-lotsnap_label",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "asgn-rename-lotsnap_label",
+              "name": "outputRename",
+              "value": "text",
+              "type": "string"
+            },
+            {
+              "id": "asgn-data-lotsnap_label",
+              "name": "data",
+              "value": "={{ $json.body.file_base64 || $json.body.xml_content || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-mime-lotsnap_label",
+              "name": "mimeType",
+              "value": "={{ $json.body.mimetype || 'image/jpeg' }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-free-lotsnap_label",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "asgn-billuse-lotsnap_label",
+              "name": "billing_source.use",
+              "value": "=Intelligent Warehouse lotsnap_label {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-billwh-lotsnap_label",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/19efc8b9-5579-4d01-8856-54deb0f3d294",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2944,
+        3888
+      ],
+      "id": "f3162fd2-c92f-45f4-b40d-b682ac8877f4",
+      "name": "Prep Gemini Extraction lotsnap_label"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -2736,
+        3888
+      ],
+      "id": "28b48156-cb0e-486e-8c60-13b2351a3b38",
+      "name": "Gemini Call lotsnap_label"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst geminiResponse = item.text || item.content || \"\";\nlet result = {};\ntry {\n    const cleanJson = geminiResponse.replace(/```json/g, \"\").replace(/```/g, \"\").trim();\n    result = JSON.parse(cleanJson);\n} catch(e) {\n    console.error(\"Gemini Parse Error:\", e);\n}\nreturn [{ json: result }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2544,
+        3888
+      ],
+      "id": "4c8a04d1-4e5f-4775-9429-f4083b0c688c",
+      "name": "Parse Gemini lotsnap_label"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2336,
+        3888
+      ],
+      "id": "39d65728-6edb-48c0-980e-4e3d90bfd6e5",
+      "name": "Respond Gemini lotsnap_label"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "asgn-sys-lotsnap_document",
+              "name": "SystemInstruction",
+              "value": "Sei un AI esperto in fatture passive. Estrai righe, quantità e prezzi degli articoli. Rispondi esclusivamente in JSON: { \"items\": [ { \"name\": \"Nome\", \"qty\": 1, \"price\": 12.50, \"tax\": 22 } ] }.",
+              "type": "string"
+            },
+            {
+              "id": "asgn-prompt-lotsnap_document",
+              "name": "Prompt",
+              "value": "Analizza questa fattura o scontrino ed estrai l'elenco delle righe acquisti con quantità e prezzo imponibile unitario.",
+              "type": "string"
+            },
+            {
+              "id": "asgn-model-lotsnap_document",
+              "name": "=ModelChoice",
+              "value": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "asgn-key-lotsnap_document",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-err-lotsnap_document",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-ground-lotsnap_document",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "asgn-think-lotsnap_document",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "asgn-rename-lotsnap_document",
+              "name": "outputRename",
+              "value": "text",
+              "type": "string"
+            },
+            {
+              "id": "asgn-data-lotsnap_document",
+              "name": "data",
+              "value": "={{ $json.body.file_base64 || $json.body.xml_content || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-mime-lotsnap_document",
+              "name": "mimeType",
+              "value": "={{ $json.body.mimetype || 'image/jpeg' }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-free-lotsnap_document",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "asgn-billuse-lotsnap_document",
+              "name": "billing_source.use",
+              "value": "=Intelligent Warehouse lotsnap_document {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-billwh-lotsnap_document",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/19efc8b9-5579-4d01-8856-54deb0f3d294",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2944,
+        4192
+      ],
+      "id": "a717faac-2bd5-4990-8794-cc7e85a07d4e",
+      "name": "Prep Gemini Extraction lotsnap_document"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -2736,
+        4192
+      ],
+      "id": "695d8141-a37c-47dc-a484-36df8750892d",
+      "name": "Gemini Call lotsnap_document"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst geminiResponse = item.text || item.content || \"\";\nlet result = {};\ntry {\n    const cleanJson = geminiResponse.replace(/```json/g, \"\").replace(/```/g, \"\").trim();\n    result = JSON.parse(cleanJson);\n} catch(e) {\n    console.error(\"Gemini Parse Error:\", e);\n}\nreturn [{ json: result }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2544,
+        4192
+      ],
+      "id": "b2e45c1c-7360-4389-a922-86ae7cde8422",
+      "name": "Parse Gemini lotsnap_document"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2336,
+        4192
+      ],
+      "id": "069acfcb-5066-45d0-8c0a-1854614f63be",
+      "name": "Respond Gemini lotsnap_document"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "asgn-sys-expense",
+              "name": "SystemInstruction",
+              "value": "Sei un AI esperto in contabilità aziendale italiana. Analizza questo scontrino/ricevuta e compila i campi di spesa. Categoria deve essere una tra [Ristorazione, Carburante Auto, Cancelleria/Ufficio, Consumo Uffici, Altri Indeducibili]. Assegna il conto fiscale corretto (es. 626.00202 per pasti, 621.00005 per carburante) e la deducibilità prevista (75% pasti, 40% carburante, 100% uffici). Rispondi esclusivamente in JSON: { \"expense\": { \"merchant\": \"Esercente\", \"date\": \"YYYY-MM-DD\", \"total\": 45.00, \"vat_rate\": 22, \"category\": \"Ristorazione\", \"account_code\": \"626.00202\", \"deductibility\": 75 } }.",
+              "type": "string"
+            },
+            {
+              "id": "asgn-prompt-expense",
+              "name": "Prompt",
+              "value": "Analizza questo scontrino di spesa operativa ed estrai merchant, data, importo totale lordo, aliquota IVA principale, categoria spesa, codice conto e deducibilità.",
+              "type": "string"
+            },
+            {
+              "id": "asgn-model-expense",
+              "name": "=ModelChoice",
+              "value": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "asgn-key-expense",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-err-expense",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-ground-expense",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "asgn-think-expense",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "asgn-rename-expense",
+              "name": "outputRename",
+              "value": "text",
+              "type": "string"
+            },
+            {
+              "id": "asgn-data-expense",
+              "name": "data",
+              "value": "={{ $json.body.file_base64 || $json.body.xml_content || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-mime-expense",
+              "name": "mimeType",
+              "value": "={{ $json.body.mimetype || 'image/jpeg' }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-free-expense",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "asgn-billuse-expense",
+              "name": "billing_source.use",
+              "value": "=Intelligent Warehouse expense {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "asgn-billwh-expense",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/19efc8b9-5579-4d01-8856-54deb0f3d294",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2944,
+        4496
+      ],
+      "id": "dcabe469-ee10-4192-b2b8-9566790e2364",
+      "name": "Prep Gemini Extraction expense"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -2736,
+        4496
+      ],
+      "id": "8b406e3a-f329-4ecb-8876-e019843b9c50",
+      "name": "Gemini Call expense"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst geminiResponse = item.text || item.content || \"\";\nlet result = {};\ntry {\n    const cleanJson = geminiResponse.replace(/```json/g, \"\").replace(/```/g, \"\").trim();\n    result = JSON.parse(cleanJson);\n} catch(e) {\n    console.error(\"Gemini Parse Error:\", e);\n}\nreturn [{ json: result }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2544,
+        4496
+      ],
+      "id": "80f1e038-11c9-442d-84e5-62003244d1d7",
+      "name": "Parse Gemini expense"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2336,
+        4496
+      ],
+      "id": "6d141624-ae07-438b-b387-31e1f5a012b8",
+      "name": "Respond Gemini expense"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Authorize Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Authorize Webhook": {
+      "main": [
+        [
+          {
+            "node": "telegram_validator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "telegram_validator": {
+      "main": [
+        [
+          {
+            "node": "Is Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Valid?": {
+      "main": [
+        [
+          {
+            "node": "Ash Decoder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ash Decoder": {
+      "main": [
+        [
+          {
+            "node": "Get Owner Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Owner Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Owner Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Owner Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Owner Data": {
+      "main": [
+        [
+          {
+            "node": "Action Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Action Router": {
+      "main": [
+        [
+          {
+            "node": "Prep Save Invoices & Stock",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prep Expense Document",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Find SOP Recipe",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Query Semilavorati SOPs DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Query Inbound Invoices DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Query Products Catalog DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse XML Invoice Deterministic",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prep Gemini Extraction invoice",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prep Gemini Extraction lotsnap_label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prep Gemini Extraction lotsnap_document",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prep Gemini Extraction expense",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Save Invoices & Stock": {
+      "main": [
+        [
+          {
+            "node": "Extract Invoice Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Invoice Doc": {
+      "main": [
+        [
+          {
+            "node": "Save Invoice DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Invoice DB": {
+      "main": [
+        [
+          {
+            "node": "Extract Stock Entries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Stock Entries": {
+      "main": [
+        [
+          {
+            "node": "Save Stock Entries DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Stock Entries DB": {
+      "main": [
+        [
+          {
+            "node": "Prep Telegram Vault Msg",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is LotSnap Flow?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Telegram Vault Msg": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Vault Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Telegram Vault Notification": {
+      "main": [
+        [
+          {
+            "node": "Respond Success Save",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is LotSnap Flow?": {
+      "main": [
+        [
+          {
+            "node": "Extract Lot Receipt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Lot Receipt": {
+      "main": [
+        [
+          {
+            "node": "Save Lot Receipt DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Expense Document": {
+      "main": [
+        [
+          {
+            "node": "Save Expense DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Expense DB": {
+      "main": [
+        [
+          {
+            "node": "Respond Success Expense",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find SOP Recipe": {
+      "main": [
+        [
+          {
+            "node": "Find Components Stock Logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Components Stock Logs": {
+      "main": [
+        [
+          {
+            "node": "FIFO Stock Deduction Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FIFO Stock Deduction Logic": {
+      "main": [
+        [
+          {
+            "node": "Insert Production Logs DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Production Logs DB": {
+      "main": [
+        [
+          {
+            "node": "Respond Success Production",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Semilavorati SOPs DB": {
+      "main": [
+        [
+          {
+            "node": "Aggregate SOPs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate SOPs": {
+      "main": [
+        [
+          {
+            "node": "Query Stock Ledgers for Prod",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Stock Ledgers for Prod": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Stock Logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Stock Logs": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Stock and SOP Ingredients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Stock and SOP Ingredients": {
+      "main": [
+        [
+          {
+            "node": "Respond SOPs List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Inbound Invoices DB": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Invoices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Invoices": {
+      "main": [
+        [
+          {
+            "node": "Query Expenses DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Expenses DB": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Financials by Account Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Financials by Account Code": {
+      "main": [
+        [
+          {
+            "node": "Respond Actual Expenses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Products Catalog DB": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Products": {
+      "main": [
+        [
+          {
+            "node": "Respond Products List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse XML Invoice Deterministic": {
+      "main": [
+        [
+          {
+            "node": "Query Catalog for XML Matching",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Catalog for XML Matching": {
+      "main": [
+        [
+          {
+            "node": "VENOMHEARTH XML Matching Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VENOMHEARTH XML Matching Engine": {
+      "main": [
+        [
+          {
+            "node": "Respond Extracted Items XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Gemini Extraction invoice": {
+      "main": [
+        [
+          {
+            "node": "Gemini Call invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Call invoice": {
+      "main": [
+        [
+          {
+            "node": "Parse Gemini invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Gemini invoice": {
+      "main": [
+        [
+          {
+            "node": "Respond Gemini invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Gemini Extraction lotsnap_label": {
+      "main": [
+        [
+          {
+            "node": "Gemini Call lotsnap_label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Call lotsnap_label": {
+      "main": [
+        [
+          {
+            "node": "Parse Gemini lotsnap_label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Gemini lotsnap_label": {
+      "main": [
+        [
+          {
+            "node": "Respond Gemini lotsnap_label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Gemini Extraction lotsnap_document": {
+      "main": [
+        [
+          {
+            "node": "Gemini Call lotsnap_document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Call lotsnap_document": {
+      "main": [
+        [
+          {
+            "node": "Parse Gemini lotsnap_document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Gemini lotsnap_document": {
+      "main": [
+        [
+          {
+            "node": "Respond Gemini lotsnap_document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Gemini Extraction expense": {
+      "main": [
+        [
+          {
+            "node": "Gemini Call expense",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Call expense": {
+      "main": [
+        [
+          {
+            "node": "Parse Gemini expense",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Gemini expense": {
+      "main": [
+        [
+          {
+            "node": "Respond Gemini expense",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "959210e8-5509-458e-a34a-8b88d02d10d0",
+  "meta": {
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "PCcC1Uswh0fxbBNQ",
+  "tags": []
+}

@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Supervisor Hub | SiteBoS</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #fafafa !important; color: #000000 !important; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .card, .section-card, .dark-card, .upload-box { 
+            background: white !important; 
+            border: 1px solid #eeeeee !important; 
+            box-shadow: none !important; 
+        }
+        input:focus, textarea:focus, select:focus { 
+            border-color: #000000 !important; 
+            box-shadow: none !important; 
+            outline: none !important;
+        }
+        .text-primary, .text-black, .text-blue-600, .text-black { color: #000000 !important; }
+        .bg-primary, .bg-black, .bg-black, .bg-black { background-color: #000000 !important; color: #ffffff !important; }
+        .border-primary, .border-black, .border-blue-600, .border-black { border-color: #000000 !important; }
+        .spinner { border-top-color: #000 !important; }
+        input[type="checkbox"]:checked { background-color: #000 !important; border-color: #000 !important; }
+        .fas, .far, .fal { font-weight: 900 !important; font-family: "Font Awesome 6 Free" !important; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { border: 2px solid rgba(0,0,0,0.1); border-top-color: #000; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+
+    <script>
+        // Blocco di Sicurezza: controlla tg.initData
+        (function() {
+            console.log("[Security] Checking WebApp initData...");
+            if (!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)) {
+                console.warn("[Security] Telegram WebApp initData missing!");
+                // Se siamo in un browser normale, mostriamo un avviso ma non blocchiamo tutto se vogliamo debuggare
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    console.info("[Security] Localhost detected, bypassing hard stop for debugging.");
+                } else {
+                    document.documentElement.innerHTML = `<body class="bg-black text-white flex items-center justify-center h-screen text-center p-10 font-sans"><div><h1 class="text-6xl mb-4">🚫</h1><h2 class="text-xl font-bold uppercase tracking-widest">Accesso Proibito</h2><p class="text-[10px] mt-4 opacity-50">Questa applicazione è accessibile solo tramite Telegram</p></div></body>`;
+                    window.stop();
+                }
+            } else {
+                console.log("[Security] WebApp initData found.");
+            }
+        })();
+    </script>
+</head>
+<body class="p-5 pb-24">
+
+    <!-- LOADER (Globale) -->
+    <div id="loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center space-y-4">
+        <div class="spinner"></div>
+        <div id="loader-text" class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-700">Inizializzazione...</div>
+    </div>
+
+    <div class="max-w-md mx-auto space-y-6 animate-fade-in hidden" id="app-content">
+        
+        <!-- HEADER -->
+        <header class="space-y-1 py-2 text-center">
+            <div id="category-badge" class="hidden px-2 py-0.5 bg-gray-100 text-gray-600 text-[6px] font-black uppercase tracking-widest rounded-full mb-1 inline-block">Categoria</div>
+            <div class="block">
+                <div class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1">Supervisor Hub</div>
+            </div>
+            <h1 id="main-title" class="text-xl font-black tracking-tighter uppercase leading-none">Supervisione</h1>
+            <p id="blueprint-desc" class="text-[8px] text-gray-600 font-medium px-6 hidden"></p>
+            <p id="header-status" class="text-[9px] font-bold text-gray-700 uppercase tracking-widest mt-1 italic">Recupero dati...</p>
+        </header>
+
+        <!-- DASHBOARD CONTAINER (Main Hub for specific SOP) -->
+        <div id="dashboard-container" class="space-y-6 hidden">
+            <div class="flex justify-between items-center mb-2">
+                <div class="space-y-0.5">
+                    <h2 class="text-[10px] font-black uppercase tracking-widest text-black">Hub Operativo</h2>
+                    <span id="sop-badge" class="text-[7px] font-bold text-gray-600 truncate max-w-[150px]">SKU: ---</span>
+                </div>
+                <button onclick="showHistory()" class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-xl active:scale-95 transition">
+                    <i class="fas fa-history text-[10px]"></i>
+                    <span id="session-count-badge" class="text-[8px] font-black uppercase tracking-widest">Sessioni (0)</span>
+                </button>
+            </div>
+            
+            <!-- MILESTONES (Single Step Supervision) -->
+            <div id="milestones-section" class="space-y-4">
+                <h2 class="text-xs font-black uppercase tracking-widest text-gray-600 border-b border-gray-50 pb-2">Milestones di Processo</h2>
+                <div id="milestones-list" class="space-y-1">
+                    <!-- JS populated from blueprint -->
+                </div>
+            </div>
+            
+            <button onclick="startNewSession()" class="w-full mt-6 py-5 bg-black text-white border border-black rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-black/10 active:scale-95 transition flex items-center justify-center gap-3">
+                <i class="fas fa-rocket"></i> Avvia Percorso Completo
+            </button>
+        </div>
+
+        <!-- HISTORY CONTAINER (Matrioska Style) -->
+        <div id="history-container" class="space-y-6 hidden animate-fade-in">
+            <!-- Premium Dashboard (Light Style) -->
+            <div class="card p-6 rounded-[2.5rem] bg-white border border-gray-100 space-y-6 shadow-sm">
+                <div class="flex justify-between items-center">
+                    <div class="space-y-0.5">
+                        <span class="text-[7px] font-black uppercase tracking-[0.2em] text-gray-600 italic">Global Efficiency</span>
+                        <h3 class="text-xl font-black tracking-tighter uppercase text-black">Audit Analytics</h3>
+                    </div>
+                    <div class="text-right flex flex-col items-end">
+                        <div id="global-performance-rank" class="text-3xl font-black italic tracking-tighter leading-none">---</div>
+                        <div id="global-performance-stars" class="flex gap-0.5 justify-end mt-1 text-[6px]">
+                            <!-- Stars populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4 pt-4 border-t border-gray-50">
+                    <div class="text-center space-y-1">
+                        <p class="text-[6px] font-black uppercase tracking-widest text-gray-600">Hits</p>
+                        <p id="stats-total-hits" class="text-lg font-black leading-none text-black">0</p>
+                    </div>
+                    <div class="text-center space-y-1">
+                        <p class="text-[6px] font-black uppercase tracking-widest text-gray-600">Sessions</p>
+                        <p id="stats-total-sessions" class="text-lg font-black leading-none text-black">0</p>
+                    </div>
+                    <div class="text-center space-y-1">
+                        <p class="text-[6px] font-black uppercase tracking-widest text-gray-600">Success</p>
+                        <p id="stats-success-rate" class="text-lg font-black leading-none text-green-500">0%</p>
+                    </div>
+                </div>
+
+                <!-- Evidence Distribution Matrix (Mini Bars) -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-[6px] font-black uppercase tracking-widest text-gray-600">
+                        <span>Evidence Mix</span>
+                        <span id="evidence-mix-summary" class="text-blue-400">---</span>
+                    </div>
+                    <div class="flex h-1 gap-1 rounded-full overflow-hidden bg-gray-50" id="evidence-bars">
+                        <!-- JS populated bars -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex bg-gray-100 p-1 rounded-xl gap-1">
+                <button onclick="switchHistoryTab('ACTIVE')" id="tab-ACTIVE" class="flex-1 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest bg-white shadow-sm transition-all">Attive</button>
+                <button onclick="switchHistoryTab('COMPLETED')" id="tab-COMPLETED" class="flex-1 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest text-gray-600 transition-all">Completate</button>
+            </div>
+
+            <!-- List -->
+            <div id="history-list" class="space-y-3">
+                <!-- JS populated -->
+            </div>
+        </div>
+
+        <!-- WIZARD CONTAINER -->
+        <div id="wizard-container" class="space-y-6 hidden animate-fade-in">
+            <!-- Back Navigation and Mini Dashboard -->
+            <div class="flex justify-between items-center gap-3">
+                <button onclick="goBackFromWizard()" class="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-xl active:scale-95 transition text-[8px] font-black uppercase tracking-widest text-gray-600">
+                    <i class="fas fa-arrow-left"></i> Indietro
+                </button>
+                <!-- Session Context Dashboard (Premium) -->
+                <div id="session-mini-dash" class="flex-1 flex gap-2 hidden">
+                    <div class="flex-1 bg-gray-100 rounded-xl p-1.5 flex items-center justify-between px-3">
+                        <span class="text-[6px] font-black uppercase text-gray-600">Progress</span>
+                        <span id="session-pct-badge" class="text-[8px] font-black">0%</span>
+                    </div>
+                    <div class="flex-1 bg-gray-100 rounded-xl p-1.5 flex items-center justify-between px-3">
+                        <span class="text-[6px] font-black uppercase text-gray-600">Step</span>
+                        <span id="session-step-counter" class="text-[8px] font-black">1/N</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="space-y-2">
+                <div class="w-full bg-gray-100 h-1 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-black transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Current Step Content -->
+            <div id="step-content" class="card rounded-3xl p-6 space-y-4">
+                <h2 id="step-title" class="text-sm font-black uppercase tracking-tight">Titolo Step</h2>
+                <p id="step-description" class="text-xs text-gray-700 font-medium">Descrizione di cosa fare...</p>
+                
+                <!-- NUOVO PULSANTE DI INIZIO -->
+                <button id="start-step-btn" onclick="startStep()" class="w-full py-4 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-play"></i> Inizia Step (Avvia Timer)
+                </button>
+
+                <!-- CONTENITORE INPUTS (Inizialmente nascosto) -->
+                <div id="step-inputs-container" class="hidden space-y-4">
+                    <div class="pt-2 space-y-3">
+                        <label class="text-[8px] font-black uppercase tracking-widest text-gray-600">Tipo Evidenza Richiesta</label>
+                        <div id="required-evidence-badge" class="inline-block px-3 py-1.5 bg-black text-white rounded-xl text-[9px] font-black uppercase tracking-widest">
+                            TESTO
+                        </div>
+                    </div>
+
+                    <div id="evidence-container" class="pt-2">
+                        <!-- TEXT -->
+                        <div id="ev-TEXT" class="evidence-panel">
+                            <textarea id="evidence-input-text" oninput="updateActionButtonState()" class="w-full bg-gray-50 border border-border rounded-xl p-4 text-xs outline-none focus:border-black transition-colors resize-none h-24 shadow-inner" placeholder="Inserisci nota o testo evidenza..."></textarea>
+                        </div>
+
+                        <!-- VISION -->
+                        <div id="ev-VISION" class="evidence-panel hidden space-y-2">
+                            <div class="relative w-full shadow-sm rounded-xl overflow-hidden bg-black aspect-[4/3]">
+                                <video id="camera-feed" class="hidden h-full w-full object-cover" autoplay playsinline muted></video>
+                                <canvas id="camera-canvas" class="hidden w-full h-full object-cover"></canvas>
+                                <div id="camera-placeholder" class="absolute inset-0 flex items-center justify-center text-neutral-800">
+                                    <i class="fas fa-camera text-2xl"></i>
+                                </div>
+                            </div>
+                            <button id="startCamBtn" onclick="startCamera()" class="w-full h-10 bg-black text-white rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition">
+                                <i class="fas fa-video mr-1"></i> Attiva Fotocamera
+                            </button>
+                            <button id="snapBtn" onclick="takePhoto()" class="hidden w-full h-10 bg-red-600 text-black rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition">
+                                🔴 Scatta Foto
+                            </button>
+                        </div>
+
+                        <!-- SIGNATURE -->
+                        <div id="ev-SIGNATURE" class="evidence-panel hidden space-y-2">
+                            <div class="bg-white border border-gray-200 rounded-xl p-1 shadow-sm overflow-hidden touch-none">
+                                <canvas id="signature-pad" class="w-full h-32 rounded-lg bg-gray-50 cursor-crosshair touch-none"></canvas>
+                            </div>
+                            <button onclick="clearSignature()" class="w-full h-8 bg-gray-100 text-black border border-border rounded-lg font-black text-[9px] uppercase tracking-widest active:scale-95 transition">Cancella Firma</button>
+                        </div>
+
+                        <!-- FILE -->
+                        <div id="ev-FILE" class="evidence-panel hidden space-y-2">
+                            <div class="border-2 border-dashed border-gray-200 bg-gray-50 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-black transition active:scale-95" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-cloud-upload text-2xl text-gray-500 mb-2"></i>
+                                <span class="text-[8px] font-black uppercase tracking-widest text-gray-700">Seleziona File</span>
+                            </div>
+                            <input type="file" id="fileInput" class="hidden" onchange="handleFileSelect(event)">
+                            <div id="fileNameDisplay" class="text-center text-[8px] font-black uppercase tracking-widest text-neutral-600 truncate">Nessun file</div>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-2">
+                        <button id="action-btn" onclick="handleActionButtonClick()" class="w-full py-4 bg-gray-50 text-gray-600 border border-border rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition cursor-pointer">
+                            <i class="fas fa-eye-slash mr-2"></i> Personal Vision
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPLETION SCREEN -->
+        <div id="completion-screen" class="hidden flex-col py-6 space-y-6 animate-fade-in">
+            <div class="flex flex-col items-center text-center space-y-2">
+                <div class="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center text-2xl mb-2">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h2 class="text-lg font-black uppercase tracking-tight">Supervisione Registrata</h2>
+                <p id="completion-desc" class="text-[10px] text-gray-700 font-medium px-6">Tutte le evidenze sono state salvate con successo.</p>
+            </div>
+
+            <!-- CARD ESITO AI STANDALONE -->
+            <div id="single-audit-result-card" class="hidden card p-6 rounded-3xl bg-white border border-gray-100 space-y-4 shadow-sm">
+                <div class="flex justify-between items-center pb-2 border-b border-gray-50">
+                    <span class="text-[7px] font-black uppercase tracking-widest text-gray-600">Audit Single Step</span>
+                    <span id="single-audit-badge" class="px-2 py-0.5 rounded text-[7px] font-black uppercase tracking-widest bg-gray-100 text-gray-700">Elaborato</span>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="space-y-0.5">
+                        <h4 class="text-[8px] font-black uppercase tracking-widest text-gray-600">Razionale AI</h4>
+                        <p id="single-audit-rationale" class="text-xs text-gray-700 font-medium italic leading-relaxed">---</p>
+                    </div>
+
+                    <div id="single-audit-extracted-container" class="space-y-0.5 hidden">
+                        <h4 class="text-[8px] font-black uppercase tracking-widest text-gray-600">Dati Estratti</h4>
+                        <p id="single-audit-extracted" class="text-[10px] font-mono bg-gray-50 p-2 rounded-lg text-gray-700">---</p>
+                    </div>
+
+                    <div id="single-audit-legal-container" class="space-y-0.5 hidden">
+                        <h4 class="text-[8px] font-black uppercase tracking-widest text-gray-600">Inquadramento Fiscale/Legale</h4>
+                        <p id="single-audit-legal" class="text-[10px] text-gray-700 font-medium">---</p>
+                    </div>
+
+                    <div id="single-audit-insight-container" class="space-y-0.5 hidden">
+                        <h4 class="text-[8px] font-black uppercase tracking-widest text-gray-600">Consiglio Strategico</h4>
+                        <p id="single-audit-insight" class="text-[10px] text-neutral-800 font-bold">---</p>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="tg.close()" class="w-full py-4 bg-black text-white border border-black rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition flex items-center justify-center gap-2">
+                Chiudi MiniApp
+            </button>
+        </div>
+
+        <!-- SESSION DETAIL CONTAINER (Premium Review) -->
+        <div id="session-detail-container" class="space-y-6 hidden animate-fade-in">
+            <!-- Performance Score Card (Light Style) -->
+            <div class="card p-8 rounded-[2.5rem] bg-white border border-gray-100 space-y-6 shadow-sm relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div class="space-y-1">
+                        <span class="text-[7px] font-black uppercase tracking-[0.2em] text-gray-600 italic">Performance Audit</span>
+                        <h3 id="detail-session-id" class="text-[9px] font-mono text-gray-600">ID: ---</h3>
+                    </div>
+                    <div class="text-right">
+                        <div id="performance-rank" class="text-5xl font-black italic tracking-tighter leading-none">---</div>
+                        <div id="performance-stars" class="flex gap-0.5 justify-end mt-1 text-[8px]">
+                            <!-- Stars populated by JS -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-6 pt-6 border-t border-gray-50">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-end">
+                            <p class="text-[6px] font-black uppercase text-gray-600 tracking-widest">Efficiency</p>
+                            <span id="speed-pct" class="text-[8px] font-black italic text-black">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-50 h-1.5 rounded-full overflow-hidden">
+                            <div id="speed-bar" class="h-full bg-blue-500 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                        </div>
+                        <p id="time-detail" class="text-[6px] font-bold text-gray-600 uppercase text-center">-- min / -- min</p>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-end">
+                            <p class="text-[6px] font-black uppercase text-gray-600 tracking-widest">Compliance</p>
+                            <span id="quality-pct" class="text-[8px] font-black italic text-green-500">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-50 h-1.5 rounded-full overflow-hidden">
+                            <div id="quality-bar" class="h-full bg-green-500 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                        </div>
+                        <p id="compliance-detail" class="text-[6px] font-bold text-gray-600 uppercase text-center">-- / -- Steps</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                        <span class="text-[7px] font-black uppercase tracking-widest text-gray-600">Audit Trail Certified</span>
+                    </div>
+                    <span id="detail-timestamp" class="text-[7px] font-bold text-black tracking-widest uppercase">---</span>
+                </div>
+            </div>
+
+            <!-- Audit Trail -->
+            <div class="space-y-4">
+                <h2 class="text-xs font-black uppercase tracking-widest text-gray-600 border-b border-gray-50 pb-2">Digital Audit Trail</h2>
+                <div id="audit-trail-list" class="space-y-3">
+                    <!-- JS populated -->
+                </div>
+            </div>
+
+            <!-- Rank Legend -->
+            <div class="card p-4 rounded-2xl bg-gray-50/50 border-none space-y-3">
+                <h4 class="text-[7px] font-black uppercase tracking-widest text-gray-600">Legenda Performance</h4>
+                <div class="grid grid-cols-2 gap-x-6 gap-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded bg-yellow-400 flex items-center justify-center text-[6px] font-black text-white text-center">S</span>
+                        <span class="text-[6px] font-bold text-gray-600 uppercase">Eccellenza (Oro)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded bg-blue-500 flex items-center justify-center text-[6px] font-black text-white">A</span>
+                        <span class="text-[6px] font-bold text-gray-600 uppercase">Ottimo (Blu)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded bg-green-500 flex items-center justify-center text-[6px] font-black text-white">B</span>
+                        <span class="text-[6px] font-bold text-gray-600 uppercase">Standard (Verde)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded bg-gray-300 flex items-center justify-center text-[6px] font-black text-white">C</span>
+                        <span class="text-[6px] font-bold text-gray-600 uppercase">Revisione (Grigio)</span>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="showHistory()" class="w-full py-4 bg-white border border-gray-100 text-gray-600 rounded-2xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition">
+                <i class="fas fa-arrow-left mr-2"></i> Torna alla Cronologia
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const WEBHOOK_URL = "https://prod.workflow.trinai.it/webhook/6f0037a3-3f47-49af-bfa2-0e40a05e49bf";
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.ready(); tg.expand();
+
+        function safeAlert(msg) {
+            if (tg && tg.initData) {
+                tg.showAlert(msg);
+            } else {
+                alert(msg);
+            }
+        }
+
+        function safeConfirm(msg, callback) {
+            if (tg && tg.initData) {
+                tg.showConfirm(msg, callback);
+            } else {
+                const res = confirm(msg);
+                callback(res);
+            }
+        }
+
+        function goBackFromWizard() {
+            document.getElementById('wizard-container').classList.add('hidden');
+            if (videoStream) {
+                videoStream.getTracks().forEach(t => t.stop());
+                videoStream = null;
+            }
+            if (tg.BackButton) tg.BackButton.hide();
+            initApp();
+        }
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const ash = urlParams.get('ash');
+        const sopId = urlParams.get('sop_id');
+        const sessionId = urlParams.get('session_id');
+        const stepId = urlParams.get('step_id');
+        
+        let currentSession = null;
+        let stepStartedAt = null;
+        let activeEvidenceType = 'TEXT';
+        let allSessions = [];
+        let historyTab = 'ACTIVE';
+        let videoStream = null;
+        let isDrawing = false, canvas, ctx;
+        let capturedPhotoB64 = null;
+        let selectedFileB64 = null;
+        let selectedFileMime = null;
+        let isSignatureDrawn = false;
+        let signatureInitialized = false;
+
+        function hasEvidence() {
+            if (activeEvidenceType === 'TEXT') {
+                return document.getElementById('evidence-input-text').value.trim().length > 0;
+            } else if (activeEvidenceType === 'VISION') {
+                return capturedPhotoB64 !== null;
+            } else if (activeEvidenceType === 'SIGNATURE') {
+                return isSignatureDrawn;
+            } else if (activeEvidenceType === 'FILE') {
+                return selectedFileB64 !== null;
+            }
+            return false;
+        }
+
+        function updateActionButtonState() {
+            const btn = document.getElementById('action-btn');
+            if (!btn) return;
+            
+            if (hasEvidence()) {
+                btn.innerHTML = `Conferma Step <i class="fas fa-arrow-right ml-1"></i>`;
+                btn.className = "w-full py-4 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition cursor-pointer";
+            } else {
+                btn.innerHTML = `<i class="fas fa-eye-slash mr-1"></i> Personal Vision`;
+                btn.className = "w-full py-4 bg-gray-50 text-gray-600 border border-border rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition cursor-pointer";
+            }
+        }
+
+        function handleActionButtonClick() {
+            if (hasEvidence()) {
+                submitStep();
+            } else {
+                skipStep();
+            }
+        }
+        
+        async function apiCall(action, payload = {}) {
+            // Categorico: Tutte le chiamate al Webhook devono essere POST
+            const method = 'POST';
+            const bodyData = { 
+                action, 
+                ash, 
+                sop_id: sopId, // Sempre incluso se presente
+                _auth: tg.initData,
+                ...payload 
+            };
+
+            console.log(`[API] Request: ${method} ${action}`, bodyData);
+
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(bodyData)
+                });
+
+                if (res.status === 501) {
+                    const errData = await res.json().catch(() => ({}));
+                    safeAlert(`Ci scusiamo, l'elaborazione non è andata a buon fine. L'evidenza caricata non è leggibile o non soddisfa i criteri richiesti. Prova a scattare nuovamente la foto o a ricaricare il file.`);
+                    return null;
+                }
+
+                if (!res.ok) throw new Error(`Network error: ${res.status}`);
+                const data = await res.json();
+                console.log(`[API] Success:`, data);
+                return data;
+            } catch (e) {
+                console.error("API Error:", e);
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                safeAlert(`Errore di comunicazione con il server n8n. Verifica la connessione.`);
+                return null;
+            }
+        }
+
+        function startStep() {
+            stepStartedAt = Date.now();
+            
+            // Salva il timestamp nel localStorage del dispositivo per prevenire crash/chiusure
+            const step = currentSession.steps[currentSession.current_step_index];
+            const stepIdKey = step.step_id || step.id;
+            localStorage.setItem(`step_start_${currentSession.id}_${stepIdKey}`, stepStartedAt);
+            
+            // Aggiorna la UI sbloccando i campi
+            document.getElementById('start-step-btn').classList.add('hidden');
+            document.getElementById('step-inputs-container').classList.remove('hidden');
+
+            if (activeEvidenceType === 'SIGNATURE') {
+                initSignaturePad();
+            }
+            updateActionButtonState();
+        }
+
+        async function initApp() {
+            if (!ash) {
+                document.body.innerHTML = `<div class="h-full flex items-center justify-center font-black text-red-500">ASH MISSING</div>`;
+                return;
+            }
+
+            // Validazione presenza sop_id
+            if (sopId) {
+                console.log("[Security] SOP_ID validated:", sopId);
+            } else {
+                console.warn("[Security] SOP_ID missing in URL parameters.");
+            }
+
+            showLoader('Caricamento dati...');
+            const data = await apiCall('GET', { sop_id: sopId });
+            
+            if (sessionId) {
+                loadSession(sessionId);
+            } else if (stepId && sopId) {
+                // Caso supervisione step singolo (stile certificator)
+                setupSingleStepSupervision(data, stepId);
+            } else {
+                renderDashboard(data);
+            }
+        }
+
+        function renderDashboard(data) {
+            // Handle array wrap if present
+            const root = Array.isArray(data) ? data[0] : data;
+            allSessions = (root && root.session) ? root.session : [];
+            const blueprint = (root && root.blueprint) ? root.blueprint : null;
+            const category = (root && root.category) ? root.category : null;
+
+            if (category) {
+                const catBadge = document.getElementById('category-badge');
+                catBadge.innerText = `${category.short_name || category.name} > ${category.subcategory?.short_name || category.subcategory?.name || ''}`;
+                catBadge.classList.remove('hidden');
+            }
+
+            let totalStepsInBlueprint = 0;
+            if (blueprint) {
+                document.getElementById('sop-badge').innerText = `SKU: ${blueprint.service_sku || sopId}`;
+                document.getElementById('main-title').innerText = blueprint.blueprint_name || 'Supervisione';
+                
+                const desc = document.getElementById('blueprint-desc');
+                if (blueprint.blueprint_description) {
+                    desc.innerText = blueprint.blueprint_description;
+                    desc.classList.remove('hidden');
+                }
+
+                // Render Milestones
+                const mList = document.getElementById('milestones-list');
+                if (mList) {
+                    mList.innerHTML = '';
+                    if (blueprint.stages) {
+                        blueprint.stages.forEach(stage => {
+                            const sHeader = document.createElement('div');
+                            sHeader.className = "text-[7px] font-black uppercase tracking-[0.2em] text-gray-600 mt-4 mb-2 border-l-2 border-gray-100 pl-2";
+                            sHeader.innerText = stage.stage_name;
+                            mList.appendChild(sHeader);
+
+                            stage.steps.forEach(step => {
+                                totalStepsInBlueprint++;
+                                const btn = document.createElement('button');
+                                btn.className = 'flex items-center justify-between p-3 bg-white border border-border rounded-xl active:scale-95 transition text-left w-full mb-1';
+                                const typeIcon = { 'TEXT': 'fa-pen', 'VISION': 'fa-camera', 'SIGNATURE': 'fa-signature', 'FILE': 'fa-file-upload' }[step.quality_check?.evidence_type] || 'fa-check-circle';
+                                btn.onclick = () => setupSingleStepSupervision(data, step.step_id);
+                                btn.innerHTML = `
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-black">
+                                            <i class="fas ${typeIcon} text-[10px]"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-[10px] font-black uppercase leading-tight">${step.step_name || step.title}</p>
+                                            <p class="text-[7px] font-bold text-gray-600 uppercase tracking-widest">${step.quality_check?.evidence_type || 'LOG'}</p>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-gray-400 text-[10px]"></i>
+                                `;
+                                mList.appendChild(btn);
+                            });
+                        });
+                    }
+                }
+            }
+
+            // --- PREMIUM ANALYTICS POPULATION ---
+            const totalSessions = allSessions.length;
+            const completedSessions = allSessions.filter(s => s.status === 'COMPLETED').length;
+            const successRate = totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0;
+            const totalHits = allSessions.reduce((acc, s) => acc + (s.total_steps_executed || 0), 0);
+            
+            // Global completion % based on blueprint steps
+            let globalEfficiency = 0;
+            if (totalSessions > 0 && totalStepsInBlueprint > 0) {
+                const totalPossibleSteps = totalSessions * totalStepsInBlueprint;
+                globalEfficiency = Math.min(100, Math.round((totalHits / totalPossibleSteps) * 100));
+            }
+
+            document.getElementById('session-count-badge').innerText = `Sessioni (${totalSessions})`;
+            document.getElementById('stats-total-hits').innerText = totalHits;
+            document.getElementById('stats-total-sessions').innerText = totalSessions;
+            document.getElementById('stats-success-rate').innerText = `${successRate}%`;
+            
+            // Calculate Global Rank based on efficiency and success rate
+            const globalScore = (globalEfficiency + successRate) / 2;
+            let gRank = 'B', gStars = 3, gColor = 'text-green-500';
+            if (globalScore >= 95) { gRank = 'S'; gStars = 5; gColor = 'text-yellow-400'; }
+            else if (globalScore >= 85) { gRank = 'A'; gStars = 4; gColor = 'text-blue-500'; }
+            else if (globalScore >= 70) { gRank = 'B'; gStars = 3; gColor = 'text-green-500'; }
+            else { gRank = 'C'; gStars = 2; gColor = 'text-gray-300'; }
+
+            const gRankEl = document.getElementById('global-performance-rank');
+            if (gRankEl) {
+                gRankEl.innerText = gRank;
+                gRankEl.className = `text-3xl font-black italic tracking-tighter leading-none ${gColor}`;
+            }
+            const gStarEl = document.getElementById('global-performance-stars');
+            if (gStarEl) {
+                gStarEl.innerHTML = '';
+                for(let i=0; i<5; i++) {
+                    const s = document.createElement('i');
+                    s.className = `fas fa-star ${i < gStars ? gColor : 'text-gray-50'}`;
+                    gStarEl.appendChild(s);
+                }
+            }
+
+            // Evidence Mix Visualization
+            const bars = document.getElementById('evidence-bars');
+            if (bars) {
+                bars.innerHTML = '';
+                const types = [
+                    { color: 'bg-white', w: '40%', label: 'VISION' },
+                    { color: 'bg-neutral-500', w: '30%', label: 'SIGN' },
+                    { color: 'bg-neutral-800', w: '20%', label: 'DOC' },
+                    { color: 'bg-green-500', w: '10%', label: 'TEXT' }
+                ];
+                types.forEach(t => {
+                    const b = document.createElement('div');
+                    b.className = `h-full ${t.color}`;
+                    b.style.width = t.w;
+                    bars.appendChild(b);
+                });
+                document.getElementById('evidence-mix-summary').innerText = 'Vision Heavy';
+            }
+            // -------------------------------------
+
+            document.getElementById('header-status').innerText = 'Hub Supervisione';
+            document.getElementById('wizard-container').classList.add('hidden');
+            document.getElementById('history-container').classList.add('hidden');
+            document.getElementById('dashboard-container').classList.remove('hidden');
+            hideLoader();
+        }
+
+        function showHistory() {
+            document.getElementById('dashboard-container').classList.add('hidden');
+            document.getElementById('session-detail-container').classList.add('hidden');
+            document.getElementById('history-container').classList.remove('hidden');
+            
+            if(tg.BackButton) {
+                tg.BackButton.show();
+                tg.BackButton.onClick(() => {
+                    document.getElementById('history-container').classList.add('hidden');
+                    document.getElementById('dashboard-container').classList.remove('hidden');
+                    tg.BackButton.hide();
+                });
+            }
+            renderHistoryList();
+        }
+
+        function switchHistoryTab(tab) {
+            historyTab = tab;
+            document.querySelectorAll('#history-container button[id^="tab-"]').forEach(b => {
+                b.classList.remove('bg-white', 'shadow-sm');
+                b.classList.add('text-gray-600');
+            });
+            const active = document.getElementById(`tab-${tab}`);
+            active.classList.add('bg-white', 'shadow-sm');
+            active.classList.remove('text-gray-600');
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            renderHistoryList();
+        }
+
+        function renderHistoryList() {
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+            
+            const filtered = allSessions.filter(s => {
+                if (historyTab === 'ACTIVE') return s.status !== 'COMPLETED';
+                return s.status === 'COMPLETED';
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="text-center py-10 text-gray-600 font-bold text-[9px] uppercase tracking-widest border border-dashed border-gray-100 rounded-2xl">Nessuna sessione ${historyTab === 'ACTIVE' ? 'attiva' : 'completata'}</div>`;
+                return;
+            }
+
+            filtered.forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'card rounded-2xl p-4 flex justify-between items-center cursor-pointer hover:border-black transition active:scale-95';
+                card.onclick = () => loadSession(s.certification_id || s.execution_id);
+                
+                const dateStr = s.timing?.started_at ? new Date(s.timing.started_at).toLocaleDateString('it-IT') : 'N/D';
+                const stepsInfo = s.total_steps_executed ? `${s.total_steps_executed} passi registrati` : 'Nessun passo';
+                
+                card.innerHTML = `
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-[10px] font-black uppercase tracking-tight truncate max-w-[180px]">${s.blueprint_info?.name || 'Supervisione'}</h3>
+                            <span class="text-[6px] px-1.5 py-0.5 bg-gray-50 rounded font-bold text-gray-600">${s.execution_id || 'ID'}</span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <p class="text-[8px] font-bold text-gray-600 uppercase tracking-widest"><i class="fas fa-calendar-alt"></i> ${dateStr}</p>
+                            <span class="text-[8px] font-black uppercase ${s.status === 'COMPLETED' ? 'text-green-600' : 'text-blue-500'}">${s.status}</span>
+                        </div>
+                        <p class="text-[7px] text-gray-600 font-medium mt-1 italic">${stepsInfo}</p>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-600 text-sm"></i>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function setupSingleStepSupervision(data, sid) {
+            const root = Array.isArray(data) ? data[0] : data;
+            const blueprint = (root && root.blueprint) ? root.blueprint : null;
+            
+            if (!blueprint) {
+                safeAlert("Blueprint non trovato.");
+                renderDashboard(data);
+                return;
+            }
+
+            let targetStep = null;
+            blueprint.stages.forEach(stage => {
+                const found = stage.steps.find(st => st.step_id === sid);
+                if (found) targetStep = found;
+            });
+
+            if (!targetStep) {
+                safeAlert("Step non trovato.");
+                renderDashboard(data);
+                return;
+            }
+
+            // Mock session for standalone log hit
+            currentSession = {
+                id: `log_${sopId}_${sid}_${Date.now()}`,
+                status: 'SINGLE_STEP',
+                current_step_index: 0,
+                steps: [targetStep]
+            };
+
+            if(tg.BackButton) {
+                tg.BackButton.show();
+                tg.BackButton.onClick(() => {
+                    document.getElementById('wizard-container').classList.add('hidden');
+                    initApp();
+                    tg.BackButton.hide();
+                });
+            }
+
+            document.getElementById('dashboard-container').classList.add('hidden');
+            renderCurrentStep();
+            hideLoader();
+        }
+
+        async function loadSession(id) {
+            showLoader('Recupero Sessione...');
+            document.getElementById('dashboard-container').classList.add('hidden');
+            document.getElementById('history-container').classList.add('hidden');
+            
+            if(tg.BackButton) {
+                tg.BackButton.show();
+                tg.BackButton.onClick(() => {
+                    document.getElementById('wizard-container').classList.add('hidden');
+                    document.getElementById('session-detail-container').classList.add('hidden');
+                    if (currentSession?.status === 'COMPLETED') showHistory();
+                    else initApp();
+                    tg.BackButton.hide();
+                });
+            }
+            
+            let data = await apiCall('GET_CERT_STATE', { session_id: id });
+            
+            if (data && data.session) {
+                currentSession = data.session;
+                if (currentSession.status === 'COMPLETED') {
+                    renderSessionDetail(data);
+                } else {
+                    renderCurrentStep();
+                }
+            } else {
+                safeAlert("Impossibile recuperare lo stato della sessione.");
+                initApp();
+            }
+            hideLoader();
+        }
+
+        function renderSessionDetail(data) {
+            const s = data.session;
+            const b = data.blueprint || null;
+            
+            document.getElementById('wizard-container').classList.add('hidden');
+            document.getElementById('session-detail-container').classList.remove('hidden');
+            document.getElementById('header-status').innerText = 'Dettaglio Audit';
+
+            document.getElementById('detail-session-id').innerText = `ID: ${s.execution_id || s.certification_id}`;
+            document.getElementById('detail-timestamp').innerText = s.timing?.closed_at ? new Date(s.timing.closed_at).toLocaleDateString('it-IT', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : 'N/D';
+
+            // --- PERFORMANCE EVALUATOR LOGIC ---
+            let complianceScore = 0;
+            let efficiencyScore = 0;
+
+            // 1. Compliance: Check non-skipped steps in audit trail
+            const totalSteps = (s.audit_trail && s.audit_trail.length > 0) ? s.audit_trail.length : 1;
+            if (s.audit_trail) {
+                const skips = s.audit_trail.filter(step => step.method?.includes('SKIP') || step.evidence_type === 'SKIP').length;
+                complianceScore = Math.round(((totalSteps - skips) / totalSteps) * 100);
+                document.getElementById('compliance-detail').innerText = `${totalSteps - skips} / ${totalSteps} STEPS`;
+            }
+
+            // 2. Efficiency: Duration vs Estimate
+            const actual = s.timing?.duration_minutes || 0;
+            const estimated = b?.summary?.estimated_total_time_minutes || 30;
+            if (s.timing?.duration_minutes !== undefined) {
+                efficiencyScore = Math.max(0, Math.min(100, Math.round(100 - ((actual - estimated) / estimated * 50))));
+                document.getElementById('time-detail').innerText = `${actual} MIN / ${estimated} MIN`;
+            } else {
+                efficiencyScore = 100;
+                document.getElementById('time-detail').innerText = `-- MIN / ${estimated} MIN`;
+            }
+
+            // UI Bars Update
+            document.getElementById('speed-bar').style.width = `${efficiencyScore}%`;
+            document.getElementById('speed-pct').innerText = `${efficiencyScore}%`;
+            document.getElementById('quality-bar').style.width = `${complianceScore}%`;
+            document.getElementById('quality-pct').innerText = `${complianceScore}%`;
+
+            // Rank Calculation & Styling
+            const avg = (complianceScore + efficiencyScore) / 2;
+            let rank = 'B', stars = 3, colorClass = 'text-green-500';
+            
+            if (avg >= 95) { rank = 'S'; stars = 5; colorClass = 'text-yellow-400'; }
+            else if (avg >= 85) { rank = 'A'; stars = 4; colorClass = 'text-blue-500'; }
+            else if (avg >= 70) { rank = 'B'; stars = 3; colorClass = 'text-green-500'; }
+            else { rank = 'C'; stars = 2; colorClass = 'text-gray-500'; }
+
+            const rankEl = document.getElementById('performance-rank');
+            rankEl.innerText = rank;
+            rankEl.className = `text-5xl font-black italic tracking-tighter leading-none ${colorClass}`;
+
+            const starEl = document.getElementById('performance-stars');
+            starEl.innerHTML = '';
+            for(let i=0; i<5; i++) {
+                const star = document.createElement('i');
+                star.className = `fas fa-star ${i < stars ? colorClass : 'text-gray-100'}`;
+                starEl.appendChild(star);
+            }
+
+            // Render Audit Trail List
+            const list = document.getElementById('audit-trail-list');
+            list.innerHTML = '';
+            if (s.audit_trail) {
+                s.audit_trail.forEach((step, idx) => {
+                    const row = document.createElement('div');
+                    row.className = 'flex gap-4 items-start relative';
+                    const isLast = idx === s.audit_trail.length - 1;
+                    const isSkip = step.method?.includes('SKIP') || step.evidence_type === 'SKIP';
+
+                    const hasAi = step.ai_success !== null && step.ai_success !== undefined;
+                    const aiStatusBadge = hasAi ? (step.ai_success ? '<span class="text-[6px] px-1.5 py-0.5 bg-green-50 text-green-600 rounded font-black uppercase">Conforme</span>' : '<span class="text-[6px] px-1.5 py-0.5 bg-red-50 text-red-600 rounded font-black uppercase">Respinta</span>') : '';
+
+                    row.innerHTML = `
+                        <div class="flex flex-col items-center">
+                            <div class="w-6 h-6 rounded-full ${isSkip ? 'bg-amber-50' : (hasAi && !step.ai_success ? 'bg-red-50' : 'bg-black')} flex items-center justify-center z-10 border border-neutral-100 shadow-sm">
+                                <i class="fas ${isSkip ? 'fa-eye-slash text-amber-500' : (hasAi && !step.ai_success ? 'fa-times text-red-500' : 'fa-check text-white')} text-[8px]"></i>
+                            </div>
+                            ${!isLast ? '<div class="w-0.5 bg-gray-50 flex-1 my-1"></div>' : ''}
+                        </div>
+                        <div class="flex-1 pb-4 space-y-1.5">
+                            <div class="flex justify-between items-start">
+                                <div class="space-y-0.5">
+                                    <h4 class="text-[10px] font-black uppercase leading-tight text-gray-800">${step.step_name || `Step ${idx+1}`}</h4>
+                                    <div class="flex items-center gap-1.5">
+                                        <p class="text-[6px] text-gray-600 font-bold uppercase tracking-widest">${step.method || 'SUPERVISOR_HIT'} • ${isSkip ? 'SKIP' : 'ACQUIRED'}</p>
+                                        ${aiStatusBadge}
+                                    </div>
+                                </div>
+                                <span class="text-[7px] font-bold text-gray-600">${step.timestamp ? new Date(step.timestamp).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'}) : ''}</span>
+                            </div>
+                            
+                            ${hasAi && !isSkip ? `
+                            <div class="bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-2 mt-1">
+                                <p class="text-[9px] text-gray-700 italic leading-relaxed">"${step.ai_rationale}"</p>
+                                ${step.ai_fiscal_legal_status ? `<p class="text-[7px] text-gray-600"><strong class="uppercase text-gray-600 tracking-wider">Inquadramento:</strong> ${step.ai_fiscal_legal_status}</p>` : ''}
+                                ${step.ai_strategic_insight ? `<p class="text-[7px] text-neutral-800"><strong class="uppercase text-gray-600 tracking-wider">Consiglio:</strong> ${step.ai_strategic_insight}</p>` : ''}
+                            </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    list.appendChild(row);
+                });
+            }
+        }
+
+        async function startNewSession() {
+            if (!sopId) {
+                tg.showAlert("ID Procedura mancante.");
+                return;
+            }
+            showLoader('Avvio supervisione...');
+            const data = await apiCall('SAVE', { sop_id: sopId });
+            
+            if (data && data.session_id) {
+                loadSession(data.session_id);
+            } else {
+                tg.showAlert("Impossibile avviare la sessione.");
+                hideLoader();
+            }
+        }
+
+        function renderCurrentStep() {
+            document.getElementById('wizard-container').classList.remove('hidden');
+            
+            const stepIndex = currentSession.current_step_index;
+            const step = currentSession.steps[stepIndex];
+            const total = currentSession.steps.length;
+            
+            // Session Dash Update
+            const miniDash = document.getElementById('session-mini-dash');
+            if (currentSession.status !== 'SINGLE_STEP') {
+                miniDash.classList.remove('hidden');
+                document.getElementById('session-step-counter').innerText = `${stepIndex + 1}/${total}`;
+                const pct = Math.round((stepIndex / total) * 100);
+                document.getElementById('session-pct-badge').innerText = `${pct}%`;
+                document.getElementById('progress-bar').style.width = `${pct}%`;
+            } else {
+                miniDash.classList.add('hidden');
+                document.getElementById('progress-bar').style.width = `100%`;
+            }
+
+            document.getElementById('header-status').innerText = currentSession.status === 'SINGLE_STEP' ? `Supervisione Singola` : `Supervisione Attiva`;
+            
+            document.getElementById('step-title').innerText = step.step_name || step.title;
+            document.getElementById('step-description').innerText = step.instructions || step.description;
+            
+            // Read blueprint logic
+            const requiredType = (step.quality_check && step.quality_check.evidence_type) ? step.quality_check.evidence_type : 'TEXT';
+            const typeNames = { 'TEXT': 'Nota di Testo', 'VISION': 'Fotografia Visiva', 'SIGNATURE': 'Firma Digitale', 'FILE': 'Documento / File' };
+            document.getElementById('required-evidence-badge').innerText = typeNames[requiredType] || requiredType;
+            
+            // Reset evidences
+            document.getElementById('evidence-input-text').value = '';
+            capturedPhotoB64 = null;
+            selectedFileB64 = null;
+            selectedFileMime = null;
+            isSignatureDrawn = false;
+            clearSignature();
+            document.getElementById('fileNameDisplay').innerText = 'Nessun file';
+            if (videoStream) videoStream.getTracks().forEach(t => t.stop());
+            document.getElementById('camera-feed').classList.add('hidden');
+            document.getElementById('camera-canvas').classList.add('hidden');
+            document.getElementById('camera-placeholder').classList.remove('hidden');
+            document.getElementById('startCamBtn').classList.remove('hidden');
+            document.getElementById('snapBtn').classList.add('hidden');
+            document.getElementById('snapBtn').innerText = "🔴 Scatta Foto";
+            if (document.getElementById('snapBtn').classList.contains('bg-green-600')) {
+                document.getElementById('snapBtn').classList.replace('bg-green-600', 'bg-red-600');
+            }
+            document.getElementById('snapBtn').disabled = false;
+            
+            // LOGICA DI RIPRISTINO DEL TIMER LOCALE
+            const stepIdKey = step.step_id || step.id;
+            const savedStart = localStorage.getItem(`step_start_${currentSession.id}_${stepIdKey}`);
+            
+            if (savedStart) {
+                // Se c'è un timer salvato in locale, lo ripristiniamo saltando il tasto "Inizia"
+                stepStartedAt = parseInt(savedStart);
+                document.getElementById('start-step-btn').classList.add('hidden');
+                document.getElementById('step-inputs-container').classList.remove('hidden');
+            } else {
+                // Altrimenti forziamo l'operatore a cliccare su "Inizia Step"
+                stepStartedAt = null;
+                document.getElementById('start-step-btn').classList.remove('hidden');
+                document.getElementById('step-inputs-container').classList.add('hidden');
+            }
+
+            setEvidenceType(requiredType);
+            updateActionButtonState();
+        }
+
+        async function submitStep() {
+            let evidenceData = null;
+            let mimeType = null;
+
+            if (activeEvidenceType === 'TEXT') {
+                evidenceData = document.getElementById('evidence-input-text').value.trim();
+                mimeType = "text/plain";
+                if (!evidenceData) { safeAlert("Inserisci un testo prima di proseguire."); return; }
+            } else if (activeEvidenceType === 'VISION') {
+                if (!capturedPhotoB64) { safeAlert("Scatta una foto prima di proseguire."); return; }
+                evidenceData = capturedPhotoB64;
+                mimeType = "image/jpeg";
+            } else if (activeEvidenceType === 'SIGNATURE') {
+                if(!canvas) { safeAlert("Errore Canvas"); return; }
+                const b = document.createElement('canvas'); b.width = canvas.width; b.height = canvas.height;
+                if (canvas.toDataURL() === b.toDataURL()) { safeAlert("Inserisci una firma prima di proseguire."); return; }
+                evidenceData = canvas.toDataURL('image/png').split(',')[1];
+                mimeType = "image/png";
+            } else if (activeEvidenceType === 'FILE') {
+                if (!selectedFileB64) { safeAlert("Seleziona un file prima di proseguire."); return; }
+                evidenceData = selectedFileB64;
+                mimeType = selectedFileMime;
+            }
+            
+            const stepIndex = currentSession.current_step_index;
+            const step = currentSession.steps[stepIndex];
+            
+            showLoader('Salvataggio...');
+            
+            // Calcola i secondi attivi di lavoro trascorsi dall'inizio dello step
+            const durationSeconds = stepStartedAt ? Math.round((Date.now() - stepStartedAt) / 1000) : 0;
+            
+            // API CALL: Se siamo in SINGLE_STEP usiamo un'azione di log specifica per evidence_logs
+            const action = currentSession.status === 'SINGLE_STEP' ? 'SAVE_LOG_STEP' : 'SAVE_CERT_UPDATE';
+            
+            const res = await apiCall(action, { 
+                session_id: currentSession.id, 
+                step_id: step.step_id || step.id, 
+                evidence_type: activeEvidenceType,
+                evidence: evidenceData,
+                mime_type: mimeType,
+                duration_seconds: durationSeconds
+            });
+            
+            if (res) {
+                // Rimuove il timestamp dal localStorage in caso di successo
+                const stepIdKey = step.step_id || step.id;
+                localStorage.removeItem(`step_start_${currentSession.id}_${stepIdKey}`);
+                
+                if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                
+                if (currentSession.status === 'SINGLE_STEP') {
+                    showCompletion(res.log_entry || res.ai_log || res);
+                    hideLoader();
+                    return;
+                }
+
+                currentSession.current_step_index++;
+                if (currentSession.current_step_index >= currentSession.steps.length) {
+                    await finishSession();
+                } else {
+                    renderCurrentStep();
+                    hideLoader();
+                }
+            } else {
+                hideLoader();
+            }
+        }
+
+        async function skipStep() {
+            safeConfirm("Sei sicuro di voler saltare questa supervisione? L'azione verrà registrata con timestamp.", async (ok) => {
+                if (!ok) return;
+                
+                const stepIndex = currentSession.current_step_index;
+                const step = currentSession.steps[stepIndex];
+                
+                showLoader('Registrazione PersonalVision...');
+                
+                // Calcola i secondi attivi di lavoro trascorsi dall'inizio dello step
+                const durationSeconds = stepStartedAt ? Math.round((Date.now() - stepStartedAt) / 1000) : 0;
+                
+                const action = currentSession.status === 'SINGLE_STEP' ? 'SAVE_LOG_STEP' : 'SAVE_CERT_UPDATE';
+
+                const res = await apiCall(action, { 
+                    session_id: currentSession.id, 
+                    step_id: step.step_id || step.id, 
+                    evidence_type: 'SKIP',
+                    evidence: `PERSONAL_VISION_SKIP_${new Date().toISOString()}`,
+                    mime_type: 'text/plain',
+                    duration_seconds: durationSeconds
+                });
+                
+                if (res) {
+                    // Rimuove il timestamp dal localStorage in caso di successo
+                    const stepIdKey = step.step_id || step.id;
+                    localStorage.removeItem(`step_start_${currentSession.id}_${stepIdKey}`);
+                    
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+
+                    if (currentSession.status === 'SINGLE_STEP') {
+                        showCompletion(res.log_entry || res.ai_log || res);
+                        hideLoader();
+                        return;
+                    }
+
+                    currentSession.current_step_index++;
+                    if (currentSession.current_step_index >= currentSession.steps.length) {
+                        await finishSession();
+                    } else {
+                        renderCurrentStep();
+                        hideLoader();
+                    }
+                } else {
+                    hideLoader();
+                }
+            });
+        }
+
+        async function finishSession() {
+            showLoader('Chiusura sessione...');
+            const res = await apiCall('SAVE_CERT_FINISH', { session_id: currentSession.id });
+            currentSession.status = 'COMPLETED';
+            if (res && res.session && res.blueprint) {
+                renderSessionDetail(res);
+            } else {
+                // Fallback: carichiamo tramite GET_CERT_STATE per mostrare il dettaglio premium
+                await loadSession(currentSession.id);
+            }
+            hideLoader();
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        }
+
+        function showCompletion(logEntry = null) {
+            document.getElementById('header-status').innerText = `Supervisione Chiusa`;
+            document.getElementById('wizard-container').classList.add('hidden');
+            
+            const completionScreen = document.getElementById('completion-screen');
+            const singleCard = document.getElementById('single-audit-result-card');
+            
+            if (logEntry) {
+                const success = logEntry.ai_success !== undefined ? logEntry.ai_success : (logEntry.success !== undefined ? logEntry.success : null);
+                const rationale = logEntry.ai_rationale || logEntry.rationale || '';
+                const extracted = logEntry.ai_extracted_value || logEntry.extracted_value || '';
+                const fiscal = logEntry.ai_fiscal_legal_status || logEntry.fiscal_legal_status || '';
+                const insight = logEntry.ai_strategic_insight || logEntry.strategic_insight || '';
+                
+                if (success !== null) {
+                    const badge = document.getElementById('single-audit-badge');
+                    if (success) {
+                        badge.innerText = 'Conforme';
+                        badge.className = 'px-2 py-0.5 rounded text-[7px] font-black uppercase tracking-widest bg-green-50 text-green-600';
+                    } else {
+                        badge.innerText = 'Respinta';
+                        badge.className = 'px-2 py-0.5 rounded text-[7px] font-black uppercase tracking-widest bg-red-50 text-red-600';
+                    }
+                    
+                    document.getElementById('single-audit-rationale').innerText = rationale;
+                    
+                    const extCont = document.getElementById('single-audit-extracted-container');
+                    if (extracted) {
+                        document.getElementById('single-audit-extracted').innerText = typeof extracted === 'object' ? JSON.stringify(extracted, null, 2) : extracted;
+                        extCont.classList.remove('hidden');
+                    } else {
+                        extCont.classList.add('hidden');
+                    }
+                    
+                    const legCont = document.getElementById('single-audit-legal-container');
+                    if (fiscal) {
+                        document.getElementById('single-audit-legal').innerText = fiscal;
+                        legCont.classList.remove('hidden');
+                    } else {
+                        legCont.classList.add('hidden');
+                    }
+                    
+                    const insCont = document.getElementById('single-audit-insight-container');
+                    if (insight) {
+                        document.getElementById('single-audit-insight').innerText = insight;
+                        insCont.classList.remove('hidden');
+                    } else {
+                        insCont.classList.add('hidden');
+                    }
+                    
+                    singleCard.classList.remove('hidden');
+                    document.getElementById('completion-desc').innerText = "L'evidenza è stata elaborata con successo dall'Audit Engine.";
+                } else {
+                    singleCard.classList.add('hidden');
+                    document.getElementById('completion-desc').innerText = "Tutte le evidenze sono state salvate con successo.";
+                }
+            } else {
+                singleCard.classList.add('hidden');
+                document.getElementById('completion-desc').innerText = "Tutte le evidenze sono state salvate con successo.";
+            }
+            
+            completionScreen.classList.remove('hidden');
+            completionScreen.classList.add('flex');
+        }
+
+        function showLoader(text) {
+            document.getElementById('loader').classList.remove('hidden');
+            if (text) document.getElementById('loader-text').innerText = text;
+            document.getElementById('app-content').classList.add('hidden');
+        }
+
+        function hideLoader() {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+        }
+
+        function setEvidenceType(type) {
+            activeEvidenceType = type;
+            document.querySelectorAll('.evidence-panel').forEach(p => p.classList.add('hidden'));
+            const target = document.getElementById(`ev-${type}`);
+            if (target) target.classList.remove('hidden');
+            
+            if (type === 'SIGNATURE') initSignaturePad();
+        }
+
+        async function startCamera() {
+            const video = document.getElementById('camera-feed');
+            const placeholder = document.getElementById('camera-placeholder');
+            const startBtn = document.getElementById('startCamBtn');
+            const snapBtn = document.getElementById('snapBtn');
+
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+                video.srcObject = videoStream;
+                video.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                startBtn.classList.add('hidden');
+                snapBtn.classList.remove('hidden');
+            } catch (err) {
+                console.error("Camera error:", err);
+                safeAlert("Impossibile accedere alla fotocamera.");
+            }
+        }
+
+        function takePhoto() {
+            const video = document.getElementById('camera-feed');
+            const canvasEl = document.getElementById('camera-canvas');
+            const snapBtn = document.getElementById('snapBtn');
+            
+            canvasEl.width = video.videoWidth;
+            canvasEl.height = video.videoHeight;
+            canvasEl.getContext('2d').drawImage(video, 0, 0);
+            
+            capturedPhotoB64 = canvasEl.toDataURL('image/jpeg').split(',')[1];
+            
+            video.classList.add('hidden');
+            canvasEl.classList.remove('hidden');
+            
+            snapBtn.innerText = "✅ Foto Acquisita";
+            snapBtn.classList.replace('bg-red-600', 'bg-green-600');
+            snapBtn.disabled = true;
+            
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            updateActionButtonState();
+        }
+
+        function initSignaturePad() {
+            canvas = document.getElementById('signature-pad');
+            ctx = canvas.getContext('2d');
+            
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            if (signatureInitialized) return;
+
+            const startDrawing = (e) => {
+                isDrawing = true;
+                isSignatureDrawn = true;
+                updateActionButtonState();
+                const pos = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y);
+            };
+
+            const draw = (e) => {
+                if (!isDrawing) return;
+                const pos = getPos(e);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                e.preventDefault();
+            };
+
+            const stopDrawing = () => {
+                isDrawing = false;
+            };
+
+            const getPos = (e) => {
+                const r = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: clientX - r.left, y: clientY - r.top };
+            };
+
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            window.addEventListener('mouseup', stopDrawing);
+
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('touchmove', draw, { passive: false });
+            canvas.addEventListener('touchend', stopDrawing);
+
+            signatureInitialized = true;
+        }
+
+        function clearSignature() {
+            if (!canvas || !ctx) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            isSignatureDrawn = false;
+            updateActionButtonState();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                selectedFileB64 = null;
+                selectedFileMime = null;
+                document.getElementById('fileNameDisplay').innerText = 'Nessun file';
+                updateActionButtonState();
+                return;
+            }
+
+            document.getElementById('fileNameDisplay').innerText = file.name;
+            selectedFileMime = file.type;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                selectedFileB64 = e.target.result.split(',')[1];
+                updateActionButtonState();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

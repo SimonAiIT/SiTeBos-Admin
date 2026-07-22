@@ -1,0 +1,2772 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Setup Avanzato Odontoiatrico | SiteBoS</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        (function () {
+            if (!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)) {
+                document.documentElement.innerHTML = `
+                    <body class="bg-black text-white flex items-center justify-center h-screen text-center p-10 font-sans">
+                        <div><h1 class="text-6xl mb-4">🚫</h1><h2 class="text-xl font-black uppercase tracking-widest">Accesso Proibito</h2></div>
+                    </body>`;
+                window.stop();
+            }
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #fafafa !important; color: #000000 !important; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .card-noir { background: white !important; border: 1px solid #eeeeee !important; box-shadow: 0 4px 12px rgba(0,0,0,0.01); border-radius: 1.5rem; }
+        .label-micro { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #a3a3a3; }
+        .fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .loader-spin {
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #000;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .accordion-header { cursor: pointer; transition: background-color 0.2s; }
+        .accordion-header:hover { background-color: #fcfcfc; }
+        .accordion-content { transition: max-height 0.3s ease-out; overflow: hidden; }
+    </style>
+</head>
+<body class="safe-area-inset min-h-screen flex flex-col pb-24">
+
+    <!-- STICKY HEADER & STEP INDICATOR -->
+    <header class="flex items-center justify-between px-6 py-4 border-b border-border bg-white sticky top-0 z-40">
+        <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-xl bg-black text-white text-xs font-black flex items-center justify-center" id="step-indicator">1</span>
+            <div>
+                <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block" id="step-desc-micro">Fase 1 di 3</span>
+                <h2 class="text-xs font-black uppercase tracking-wider text-black" id="step-title">Operatori e Staff</h2>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="flex gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-black transition-all duration-300" id="dot-step-1"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-gray-200 transition-all duration-300" id="dot-step-2"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-gray-200 transition-all duration-300" id="dot-step-3"></span>
+            </div>
+            <button id="btn-save-draft" onclick="saveDraftManually()" class="w-8 h-8 rounded-xl bg-gray-50 border border-border flex items-center justify-center text-gray-500 hover:bg-black hover:text-white hover:border-black active:scale-95 transition-all duration-200" title="Salva Bozza">
+                <i class="far fa-save text-xs"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-md w-full mx-auto p-6 space-y-6 fade-in-up">
+        
+        <!-- STEP 1: OPERATORI -->
+        <div id="section-step-1" class="space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-black uppercase tracking-tight">Staff dello Studio</h3>
+                    <p class="text-[10px] text-gray-400 font-medium leading-relaxed">Inserisci e configura tutti i collaboratori della struttura.</p>
+                </div>
+                <button onclick="openOperatorDrawer()" class="px-4 py-2.5 bg-black text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 active:scale-95 transition">
+                    <i class="fas fa-plus"></i> Aggiungi
+                </button>
+            </div>
+            
+            <div id="operators-grid" class="grid gap-3">
+                <!-- Operator Cards Rendered dynamically -->
+            </div>
+            
+            <!-- Cost Disclaimer Banner -->
+            <div class="text-[9px] text-gray-400 font-medium bg-gray-50 border border-border p-3.5 rounded-xl flex items-start gap-2 mt-3 leading-normal">
+                <i class="fas fa-info-circle text-gray-400 mt-0.5"></i>
+                <span>La generazione dell'invito e l'attivazione dello slot operatore richiedono l'addebito di 20 Crediti.</span>
+            </div>
+            
+            <div class="pt-6 border-t border-border flex justify-end">
+                <button onclick="nextStep()" class="w-full py-4 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition flex items-center justify-center gap-1.5">
+                    Avanti <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 2: ATTREZZATURE -->
+        <div id="section-step-2" class="space-y-6 hidden">
+            <!-- Capacity Check: Sale Operatorie Attive -->
+            <div class="card-noir p-4 flex items-center justify-between gap-4">
+                <div class="flex-1">
+                    <h4 class="font-black text-xs uppercase tracking-tight text-black">
+                        Sale Operatorie Attive
+                    </h4>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0 bg-gray-50 border border-border p-1 rounded-xl">
+                    <button type="button" onclick="changeChairsCount(-1)" class="w-7 h-7 bg-white text-black border border-border rounded-lg flex items-center justify-center font-bold text-xs active:scale-95 transition hover:bg-black hover:text-white">-</button>
+                    <input type="number" id="op-chairs-num" value="2" min="1" readonly class="w-8 text-center bg-transparent border-none text-xs font-black focus:outline-none select-none pointer-events-none">
+                    <button type="button" onclick="changeChairsCount(1)" class="w-7 h-7 bg-white text-black border border-border rounded-lg flex items-center justify-center font-bold text-xs active:scale-95 transition hover:bg-black hover:text-white">+</button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-black uppercase tracking-tight">Attrezzature e Asset</h3>
+                    <p class="text-[10px] text-gray-400 font-medium leading-relaxed">Censisci i riuniti e le grandi attrezzature tecnologiche.</p>
+                </div>
+                <button onclick="openMachineryDrawer()" class="px-4 py-2.5 bg-black text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 active:scale-95 transition">
+                    <i class="fas fa-plus"></i> Aggiungi
+                </button>
+            </div>
+
+            <div id="machinery-grid" class="grid gap-3">
+                <!-- Machinery/Attrezzature Cards Rendered dynamically -->
+            </div>
+
+            <div class="pt-6 border-t border-border flex gap-3">
+                <button onclick="prevStep()" class="flex-1 py-4 bg-white text-black border border-black rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition">
+                    Indietro
+                </button>
+                <button onclick="nextStep()" class="flex-1 py-4 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition flex items-center justify-center gap-1.5">
+                    Avanti <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 3: BILANCIO -->
+        <div id="section-step-3" class="space-y-6 hidden">
+            <div class="space-y-1">
+                <h3 class="text-sm font-black uppercase tracking-tight">Scomposizione Finanziaria</h3>
+                <p class="text-[10px] text-gray-400 font-medium leading-relaxed">Fornisci il bilancio per consentire l'allocazione esatta del costo sedia.</p>
+            </div>
+
+            <!-- Legacy elements hidden to preserve DOM compatibility with external checks -->
+            <div class="hidden">
+                <select id="tenant-type-select" onchange="changeTenantType(this.value)">
+                    <option value="Società">Società (S.r.l. / STP)</option>
+                    <option value="Libero Professionista">Libero Professionista (P.IVA)</option>
+                </select>
+                <select id="regime-select" onchange="changeRegime(this.value)">
+                    <option value="Ordinario">Regime Ordinario / Semplificato</option>
+                    <option value="Forfettario">Regime Forfettario</option>
+                </select>
+                <div id="regime-selection-wrapper"></div>
+                <div id="uploader-area"></div>
+                <button id="btn-genera"></button>
+            </div>
+
+            <!-- Scenario A: Forfettario Switch -->
+            <div id="box-forfettario" class="card-noir p-5 hidden">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-black uppercase tracking-tight block">Regime Forfettario</span>
+                        <p class="text-[9px] text-gray-500 font-medium">Aderisci al Regime Forfettario?</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="chk-forfettario" class="sr-only peer" onchange="toggleForfettarioChange(this.checked)">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Scenario B: Upload CEE Box -->
+            <div id="box-upload-cee" class="card-noir p-6 text-center border-2 border-dashed border-gray-300 hover:border-black cursor-pointer transition-colors relative hidden" onclick="triggerFileSelect()">
+                <i class="fas fa-file-pdf text-3xl text-gray-400 mb-2 block"></i>
+                <span class="text-xs font-black uppercase tracking-wider block">Carica Bilancio Depositato (CEE)</span>
+                <span class="text-[8px] text-gray-400 font-bold uppercase tracking-widest block mt-1">Seleziona PDF del Bilancio CEE</span>
+            </div>
+
+            <!-- Scenario A/C: Upload alternative box (Quadro RE/LM or Bilancio Interno/Redditi SP) -->
+            <div id="box-upload-professionista" class="card-noir p-6 text-center border-2 border-dashed border-gray-300 hover:border-black cursor-pointer transition-colors relative hidden" onclick="triggerFileSelect()">
+                <i class="fas fa-file-invoice-dollar text-3xl text-gray-400 mb-2 block"></i>
+                <span class="text-xs font-black uppercase tracking-wider block" id="upload-prof-title">Carica Modello Redditi / Quadro RE/LM</span>
+                <span class="text-[8px] text-gray-400 font-bold uppercase tracking-widest block mt-1">Seleziona PDF o Immagine</span>
+            </div>
+
+            <!-- Single Hidden File Input (re-used) -->
+            <input type="file" id="file-input" class="hidden" accept="application/pdf,image/*" onchange="handleFileSelect(event)">
+
+            <!-- Status Box -->
+            <div id="upload-status-box" class="card-noir p-4 bg-gray-50/50 border border-border">
+                <span class="text-[8px] font-black uppercase tracking-widest text-gray-400 block mb-1">Stato Configurazione</span>
+                <p id="upload-status-text" class="text-[10px] font-bold text-black uppercase leading-normal">Carica il documento fiscale per sbloccare il calcolo.</p>
+            </div>
+
+            <!-- Link for Manual Insertion -->
+            <div id="box-manual-insertion-link" class="text-center py-1">
+                <a href="javascript:void(0)" onclick="enableManualInsertion()" class="text-[10px] font-black uppercase tracking-wider text-gray-500 hover:text-black underline">
+                    Oppure inserisci i dati manualmente
+                </a>
+            </div>
+
+            <!-- Financials Detected Message -->
+            <div id="financials-detected-message" class="card-noir p-5 bg-white border-green-200 hidden">
+                <div class="flex items-center gap-3 text-green-700">
+                    <i class="fas fa-check-circle text-xl text-green-700"></i>
+                    <div>
+                        <span class="text-xs font-black uppercase tracking-tight block text-green-700">Dati Bilancio Rilevati</span>
+                        <p class="text-[9px] text-gray-500 font-medium">I dati di bilancio sono stati rilevati automaticamente da Registro Imprese.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <button id="btn-genera-scomposizione" onclick="executeDecompositionOrFinish()" class="w-full py-4 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed" disabled>
+                <i class="fas fa-magic"></i> Genera Scomposizione
+            </button>
+
+            <!-- ACCOUNTS GRID CONTAINER -->
+            <div id="financials-grid-container" class="space-y-4 hidden">
+                <div class="border-t border-border pt-4">
+                    <span class="label-micro">Bozza Scomposizione (DRAFT)</span>
+                    <p class="text-[9px] text-gray-400 font-medium mt-1">Valori proposti dall'AI. Modifica qualsiasi importo per rettificare il calcolo.</p>
+                </div>
+
+                <!-- SEZIONE A: Materiali Clinici -->
+                <div class="card-noir overflow-hidden border border-border">
+                    <div class="accordion-header p-5 flex justify-between items-center bg-gray-50/50" onclick="toggleAccordion('acc-a')">
+                        <span class="text-xs font-black uppercase tracking-tight">A. Materiali Clinici & Fornitori</span>
+                        <i class="fas fa-chevron-down text-xs text-gray-400 transition-transform duration-200" id="arrow-acc-a"></i>
+                    </div>
+                    <div id="acc-a" class="accordion-content hidden p-5 space-y-4" style="max-height: 0px;">
+                        <div class="space-y-3" id="group-a">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEZIONE B: Personale -->
+                <div class="card-noir overflow-hidden border border-border">
+                    <div class="accordion-header p-5 flex justify-between items-center bg-gray-50/50" onclick="toggleAccordion('acc-b')">
+                        <span class="text-xs font-black uppercase tracking-tight">B. Personale & Consulenti</span>
+                        <i class="fas fa-chevron-down text-xs text-gray-400 transition-transform duration-200" id="arrow-acc-b"></i>
+                    </div>
+                    <div id="acc-b" class="accordion-content hidden p-5 space-y-4" style="max-height: 0px;">
+                        <div class="space-y-3" id="group-b">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEZIONE C: Affitto & Utenze -->
+                <div class="card-noir overflow-hidden border border-border">
+                    <div class="accordion-header p-5 flex justify-between items-center bg-gray-50/50" onclick="toggleAccordion('acc-c')">
+                        <span class="text-xs font-black uppercase tracking-tight">C. Affitto, Mura & Utenze</span>
+                        <i class="fas fa-chevron-down text-xs text-gray-400 transition-transform duration-200" id="arrow-acc-c"></i>
+                    </div>
+                    <div id="acc-c" class="accordion-content hidden p-5 space-y-4" style="max-height: 0px;">
+                        <div class="space-y-3" id="group-c">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEZIONE D: Ammortamenti -->
+                <div class="card-noir overflow-hidden border border-border">
+                    <div class="accordion-header p-5 flex justify-between items-center bg-gray-50/50" onclick="toggleAccordion('acc-d')">
+                        <span class="text-xs font-black uppercase tracking-tight">D. Ammortamenti & Locazioni</span>
+                        <i class="fas fa-chevron-down text-xs text-gray-400 transition-transform duration-200" id="arrow-acc-d"></i>
+                    </div>
+                    <div id="acc-d" class="accordion-content hidden p-5 space-y-4" style="max-height: 0px;">
+                        <div class="space-y-3" id="group-d">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Warning Banner for Stale Data -->
+                <div id="financials-stale-warning" class="p-3.5 bg-amber-50 text-amber-900 border border-amber-200 rounded-xl text-[10px] font-bold leading-relaxed flex items-start gap-2 hidden">
+                    <span class="text-xs">⚠️</span>
+                    <div>
+                        Hai apportato modifiche allo staff (Fase 1) o alle attrezzature (Fase 2) dopo l'ultimo calcolo. Si raccomanda di ricalcolare per allineare i costi.
+                    </div>
+                </div>
+
+                <!-- Recalculate Button -->
+                <button id="btn-ricalcola" onclick="executeDecompositionOrFinish()" class="w-full py-3.5 border border-black text-black bg-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition flex items-center justify-center gap-1.5 hidden">
+                    <i class="fas fa-sync-alt"></i> Ricalcola Scomposizione
+                </button>
+
+                <!-- Totals Bar -->
+                <div class="card-noir p-5 bg-black text-white flex justify-between items-center">
+                    <div>
+                        <span class="text-[8px] font-black uppercase tracking-widest text-gray-400">Riepilogo Costi</span>
+                        <h4 class="text-xs font-black uppercase">Totale Inserito</h4>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-base font-black" id="financials-total-val">€ 0,00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3 ACTIONS -->
+            <div class="pt-6 border-t border-border flex gap-3">
+                <button onclick="prevStep()" class="flex-1 py-4 bg-white text-black border border-black rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition">
+                    Indietro
+                </button>
+                <button onclick="executeSaveConfiguration()" id="btn-completa" class="flex-1 py-4 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition flex items-center justify-center gap-1.5">
+                    Salva Configurazione <i class="fas fa-check"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- DRAWER FOR DYNAMIC DIALOGS -->
+    <div id="drawer-backdrop" class="fixed inset-0 bg-black/45 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300" onclick="closeDrawer()"></div>
+    <div id="drawer-container" class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-border z-50 rounded-t-3xl translate-y-full transition-transform duration-300 flex flex-col p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+        <!-- Drawer content injected via JS -->
+    </div>
+
+    <!-- LOADER OVERLAY -->
+    <div id="loader-overlay" class="fixed inset-0 bg-white/95 z-[100] hidden flex flex-col items-center justify-center p-10 text-center transition-opacity">
+        <div class="loader-spin mb-4"></div>
+        <h3 id="loader-title" class="text-sm font-black uppercase tracking-tighter mb-1">Caricamento...</h3>
+        <p id="loader-msg" class="text-[10px] text-gray-500 font-medium italic">Sincronizzazione in corso</p>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.ready();
+        tg.expand();
+
+        const WEBHOOK_URL = "https://prod.workflow.trinai.it/webhook/5a58b38d-dfe5-44c2-9d58-34309585c057";
+        const urlParams = new URLSearchParams(window.location.search);
+        let ash = urlParams.get('ash');
+        let msg = urlParams.get('msg');
+
+        if (ash && ash.includes('?msg=')) {
+            const parts = ash.split('?msg=');
+            ash = parts[0];
+            if (!msg) msg = parts[1];
+        }
+
+        // Global State variables
+        let currentStep = 1;
+        let tenantType = 'Società';
+        let taxRegime = 'Ordinario';
+        let isForfettario = false;
+        let operators = [];
+        let machinery = [];
+        let numberOfChairs = 2;
+        let profileType = 'societa_capitali';
+        let apiBalance = null;
+        let isManualInsertionActive = false;
+        let financialsSnapshot = "";
+
+        const attrezzaturePreset = {
+          "Attrezzatura di Base": [
+            { name: "Riunito Odontoiatrico (Fascia Base)", defaultPrice: 12000, usefulLife: 10 },
+            { name: "Riunito Odontoiatrico (Fascia Media)", defaultPrice: 18500, usefulLife: 10 },
+            { name: "Riunito Odontoiatrico (Fascia Premium)", defaultPrice: 25000, usefulLife: 12 },
+            { name: "Compressore d'Aria Medicale Secco con Essiccatore (1-2 riuniti)", defaultPrice: 1200, usefulLife: 8 },
+            { name: "Compressore d'Aria Medicale Secco con Essiccatore (2-3 riuniti)", defaultPrice: 1600, usefulLife: 8 },
+            { name: "Compressore d'Aria Medicale Secco con Essiccatore (4-5 riuniti - Centralizzato)", defaultPrice: 3500, usefulLife: 8 },
+            { name: "Sistema di Aspirazione Chirurgica ad Anello Umido", defaultPrice: 2000, usefulLife: 8 },
+            { name: "Sistema di Aspirazione Chirurgica ad Anello Secco", defaultPrice: 3200, usefulLife: 8 },
+            { name: "Radiografico Endorale a Parete (Generatore RX)", defaultPrice: 3000, usefulLife: 8 },
+            { name: "Inalatore per Sedazione Cosciente (Flussometro Meccanico con Carrello)", defaultPrice: 3800, usefulLife: 8 },
+            { name: "Inalatore per Sedazione Cosciente (Flussometro Elettronico Proporzionatore)", defaultPrice: 5500, usefulLife: 8 },
+            { name: "Sedation Machine / Flussometro Elettronico Intelligente (High-End)", defaultPrice: 7800, usefulLife: 8 }
+          ],
+
+          "Diagnostica e Radiologia": [
+            { name: "Ortopantomografo Digitale (OPT 2D - Fascia Base)", defaultPrice: 18000, usefulLife: 8 },
+            { name: "Ortopantomografo Digitale (OPT 2D - Fascia Media)", defaultPrice: 28000, usefulLife: 8 },
+            { name: "Teleradiografo del Cranio (Cefalometria)", defaultPrice: 15000, usefulLife: 8 },
+            { name: "TAC CBCT (Cone Beam 3D – FOV standard)", defaultPrice: 60000, usefulLife: 8 },
+            { name: "TAC CBCT (Cone Beam 3D – High-End, FOV esteso)", defaultPrice: 90000, usefulLife: 8 },
+            { name: "Sensore Digitale RVG Endorale (Size 1)", defaultPrice: 2000, usefulLife: 5 },
+            { name: "Sensore Digitale RVG Endorale (Size 2)", defaultPrice: 2200, usefulLife: 5 },
+            { name: "Scanner CR per Lastre ai Fosfori", defaultPrice: 6000, usefulLife: 5 },
+            { name: "Monitor Diagnostico Medicale (alta luminanza)", defaultPrice: 800, usefulLife: 6 }
+          ],
+
+          "Microscopia e Ingrandimenti": [
+            { name: "Sistemi d'Ingrandimento Galileiani TTL su caschetto/occhiali (Entry-Level)", defaultPrice: 1200, usefulLife: 6 },
+            { name: "Sistemi d'Ingrandimento Prismatici TTL personalizzati (Fascia Media)", defaultPrice: 2500, usefulLife: 6 },
+            { name: "Microscopio Operatorio Odontoiatrico (Fascia Entry, e.g. Zumax)", defaultPrice: 11000, usefulLife: 10 },
+            { name: "Microscopio Operatorio Odontoiatrico (High-End, e.g. Leica/Zeiss)", defaultPrice: 28000, usefulLife: 10 },
+            { name: "Kit Fotografia Clinica (Corpo Mirrorless/Reflex, Obiettivo Macro, Flash Anulare)", defaultPrice: 2200, usefulLife: 5 }
+          ],
+
+          "Sterilizzazione": [
+            { name: "Autoclave di Classe B 18-23 L (Fascia Base)", defaultPrice: 2600, usefulLife: 5 },
+            { name: "Autoclave di Classe B 23 L (Fascia Media - seconda/aut backup)", defaultPrice: 2800, usefulLife: 5 },
+            { name: "Autoclave di Classe B 24-28 L (Premium/High-End, e.g. Mocom Futura / Euronda E10)", defaultPrice: 7500, usefulLife: 5 },
+            { name: "Sistema Automatico Lavaggio, Lubrificazione e Sterilizzazione Manipoli (e.g. DAC Universal)", defaultPrice: 5200, usefulLife: 5 },
+            { name: "Termosigillatrice / Sigillatrice Rotativa", defaultPrice: 900, usefulLife: 5 },
+            { name: "Termodisinfettore / Lava-strumenti automatico", defaultPrice: 4000, usefulLife: 6 },
+            { name: "Vasca a Ultrasuoni per Strumenti", defaultPrice: 500, usefulLife: 5 },
+            { name: "Distillatore / Sistema Trattamento Acqua per Autoclave", defaultPrice: 500, usefulLife: 5 }
+          ],
+
+          "Strumenti Rotanti e Conservativa": [
+            { name: "Turbina ad Alta Velocità con Fibra Ottica (Fascia Base)", defaultPrice: 450, usefulLife: 4 },
+            { name: "Turbina ad Alta Velocità con Fibra Ottica (Fascia Media/Top)", defaultPrice: 600, usefulLife: 4 },
+            { name: "Contrangolo Moltiplicatore 1:5 (anello rosso - Fascia Base)", defaultPrice: 650, usefulLife: 4 },
+            { name: "Contrangolo Moltiplicatore 1:5 (anello rosso - Fascia Media/Top)", defaultPrice: 900, usefulLife: 4 },
+            { name: "Contrangolo 1:1 (anello blu)", defaultPrice: 500, usefulLife: 4 },
+            { name: "Contrangolo Riduttore 20:1 (Endodonzia/Chirurgia)", defaultPrice: 800, usefulLife: 4 },
+            { name: "Micromotore Elettrico ad Induzione per Riunito", defaultPrice: 1500, usefulLife: 4 },
+            { name: "Micromotore Pneumatico", defaultPrice: 400, usefulLife: 4 },
+            { name: "Ablatore a Ultrasuoni (Scaler) Stand-Alone o da Riunito", defaultPrice: 1400, usefulLife: 5 },
+            { name: "Lampada Fotopolimerizzante LED", defaultPrice: 600, usefulLife: 4 }
+          ],
+
+          "Endodonzia": [
+            { name: "Motore Endodontico con Movimento Reciprocante/Rotante", defaultPrice: 1800, usefulLife: 5 },
+            { name: "Localizzatore d'Apice Elettronico", defaultPrice: 700, usefulLife: 5 },
+            { name: "Sistema di Otturazione Termoplastica (pistola guttaperca)", defaultPrice: 1200, usefulLife: 5 },
+            { name: "Sistema di Condensazione Termica", defaultPrice: 700, usefulLife: 5 },
+            { name: "Lenti Ingrandimento TTL con LED", defaultPrice: 1500, usefulLife: 6 }
+          ],
+
+          "Chirurgia e Implantologia": [
+            { name: "Fisiodispenser per Chirurgia/Implantologia (Fascia Base)", defaultPrice: 2400, usefulLife: 5 },
+            { name: "Fisiodispenser per Chirurgia/Implantologia (Fascia Media/Top)", defaultPrice: 3600, usefulLife: 5 },
+            { name: "Unità Chirurgica Piezoelettrica (Fascia Media)", defaultPrice: 5200, usefulLife: 5 },
+            { name: "Unità Chirurgica Piezoelettrica (Fascia High-End)", defaultPrice: 8500, usefulLife: 5 },
+            { name: "Kit Chirurgico Implantare Completo (fresatori, guide, chiavi)", defaultPrice: 2200, usefulLife: 7 },
+            { name: "Set Strumentario Chirurgico (vassoi, retrattori, pinze, porta-aghi)", defaultPrice: 1800, usefulLife: 7 },
+            { name: "Aspiratore Chirurgico ad Alta Potenza (mobile)", defaultPrice: 1900, usefulLife: 8 },
+            { name: "Lampada Scialitica da Chirurgia (ceiling/stand)", defaultPrice: 3200, usefulLife: 10 },
+            { name: "Lampada Scialitica/Operatoria a LED", defaultPrice: 1800, usefulLife: 10 }
+          ],
+
+          "Parodontologia e Igiene": [
+            { name: "Riunito/Poltrona Dedicata all'Igienista", defaultPrice: 11000, usefulLife: 10 },
+            { name: "Ablatore a Ultrasuoni con Programmi Parodontali", defaultPrice: 1900, usefulLife: 5 },
+            { name: "Unità Air-Polishing / Air-Flow per Profilassi", defaultPrice: 4500, usefulLife: 6 },
+            { name: "Lampada Ingrandente con LED per Igiene/Parodontologia", defaultPrice: 700, usefulLife: 6 },
+            { name: "Telecamera Intraorale HD per Motivazione e Monitoraggio", defaultPrice: 1800, usefulLife: 5 }
+          ],
+
+          "Laser e Tecnologie Avanzate": [
+            { name: "Laser a Diodi Chirurgico/Terapeutico (Fascia Base/Entry)", defaultPrice: 3500, usefulLife: 5 },
+            { name: "Laser a Diodi Chirurgico/Terapeutico (Fascia Media/Top)", defaultPrice: 5200, usefulLife: 5 },
+            { name: "Laser ad Erbio (Soft and Hard Tissue - High-End)", defaultPrice: 24000, usefulLife: 5 },
+            { name: "Dispositivo per Terapia Fotodinamica (PDT)", defaultPrice: 3800, usefulLife: 5 },
+            { name: "Dispositivo per Diagnosi con Fluorescenza Cariosa", defaultPrice: 3200, usefulLife: 5 }
+          ],
+
+          "Gnatologia e Posturologia": [
+            { name: "Pedana Baropodometrica e Stabilometrica per Gnatologia", defaultPrice: 3500, usefulLife: 6 },
+            { name: "Kinesiografo ed Elettromiografo di Superficie", defaultPrice: 6800, usefulLife: 6 },
+            { name: "Arco Facciale e Articolatore Registrabile di precisione", defaultPrice: 1800, usefulLife: 10 }
+          ],
+
+          "Emergenza e Sicurezza Clinica": [
+            { name: "Defibrillatore Semiautomatico Esterno (DAE)", defaultPrice: 1200, usefulLife: 8 },
+            { name: "Kit Emergenze Mediche Completo (Bombola Ossigeno, Ambu, Farmaci Salvavita)", defaultPrice: 900, usefulLife: 5 }
+          ],
+
+          "Laboratorio Digitale 3D - Acquisizione": [
+            { name: "Scanner Intraorale 3D (fascia economica)", defaultPrice: 5500, usefulLife: 5 },
+            { name: "Scanner Intraorale 3D (fascia mid-range)", defaultPrice: 12000, usefulLife: 5 },
+            { name: "Scanner Intraorale 3D (fascia high-end)", defaultPrice: 22000, usefulLife: 5 },
+            { name: "Scanner da Banco per Modelli in Gesso", defaultPrice: 9000, usefulLife: 6 },
+            { name: "Workstation CAD per Odontoiatria Digitale", defaultPrice: 2800, usefulLife: 5 },
+            { name: "Software CAD/CAM Protesico (licenza iniziale)", defaultPrice: 9000, usefulLife: 5 }
+          ],
+
+          "Laboratorio Digitale 3D - Production Additiva": [
+            { name: "Stampante 3D Dentale a Resina (LCD/DLP – uso studio)", defaultPrice: 3200, usefulLife: 5 },
+            { name: "Stampante 3D Dentale High-End (DLP/4K)", defaultPrice: 5200, usefulLife: 5 },
+            { name: "Stazione di Lavaggio Resine (Wash Station)", defaultPrice: 900, usefulLife: 5 },
+            { name: "Forno di Post-Polimerizzazione UV (Cure Station)", defaultPrice: 1500, usefulLife: 5 }
+          ],
+
+          "Laboratorio Digitale 3D - Fresatura CAD/CAM": [
+            { name: "Fresatrice CAD/CAM 4 Assi da Banco", defaultPrice: 20000, usefulLife: 7 },
+            { name: "Fresatrice CAD/CAM 5 Assi (zirconia/metallo)", defaultPrice: 32000, usefulLife: 7 },
+            { name: "Sistema Aspirazione Polveri/Fresato per Fresatrice", defaultPrice: 2200, usefulLife: 6 }
+          ]
+        };
+        let financials = {};
+        let hasFinancials = false;
+        let uploadedFileData = null;
+        let uploadedFileName = "";
+        let uploadedFileMimeType = "";
+
+        // Modal State
+        let activeEditIndex = null;
+
+        // Account Schema definitions
+        const financialsMapping = {
+            a: [
+                // Spese per materiali clinici e laboratori (631.01xxx)
+                { code: "631.01000", label: "631.01000 - SPESA PER MATERIALE DENTALE", help: "Compositi, frese, impronte, anestetici e monouso dentale." },
+                { code: "631.01001", label: "631.01001 - SPESE PER MATERIALE DISINF. STERILIZ.", help: "Guanti, mascherine, buste per autoclave e disinfettanti." },
+                { code: "631.01002", label: "631.01002 - SPESE PER PROTESI FABBR. DA TERZI", help: "Fatture per protesi da laboratorio odontotecnico." },
+                { code: "631.01003", label: "631.01003 - SPESE PER PROTESI FABBR. DA TERZI (Ortodonzia/Altro)", help: "Seconda voce per protesi o dispositivi ortodontici." },
+                { code: "631.01004", label: "631.01004 - SPESE PER APPARECCHI ORTODONTICI", help: "Costo per mascherine invisibili, bracket e dispositivi." },
+                { code: "631.01005", label: "631.01005 - SMALTIMENTO RIFIUTI SPECIALI", help: "Contratto annuo per ritiro di taglienti e rifiuti speciali infettivi." },
+                { code: "631.01006", label: "631.01006 - SPESE PER PROTESI FABBR. IN PROPRIO", help: "Materiali per fabbricazione interna di dispositivi protesici." },
+                // Altre spese di gestione e servizi generali (631.00xxx)
+                { code: "631.00002", label: "631.00002 - ASSICURAZIONI NON OBBLIGATORIE", help: "Polizze furto, incendio dello studio, ecc." },
+                { code: "631.00005", label: "631.00005 - PUBBLICITA'", help: "Spese di marketing, campagne online o brochure." },
+                { code: "631.00007", label: "631.00007 - SPESE LEGALI", help: "Spese per consulenza o assistenza legale dello studio." },
+                { code: "631.00008", label: "631.00008 - SPESE POSTALI-AFFRANCATURA", help: "Spese di spedizione e affrancatura postale." },
+                { code: "631.00009", label: "631.00009 - RICERCA-ADDESTRAMENTO-FORMAZIONE", help: "Corsi di formazione interni o sicurezza sul lavoro." },
+                { code: "631.00011", label: "631.00011 - SPESE SERVIZI BANCARI", help: "Commissioni POS, tenuta conto e canoni bancari." },
+                { code: "631.00020", label: "631.00020 - CANCELLERIA", help: "Carta, penne, cartucce stampante e materiale d'ufficio." },
+                { code: "631.00023", label: "631.00023 - ABBONAMENTI-RIVISTE-GIORNALI-ECC.", help: "Riviste per la sala d'attesa o banche dati scientifiche." },
+                { code: "631.00026", label: "631.00026 - CONTR. ANNUALE ISCRIZIONE ORD. PROFES.", help: "Quota annua Albo dei Medici e Odontoiatri." },
+                { code: "631.00201", label: "631.00201 - ALTRE SPESE DOCUMENTATE", help: "Spese generiche documentate varie dello studio." },
+                { code: "631.00251", label: "631.00251 - ALTRI COSTI INDEDUCIBILI", help: "Spese e costi vari non deducibili fiscalmente." }
+            ],
+            b: [
+                // Costi del Personale (610.xxxx)
+                { code: "610.00001", label: "610.00001 - SALARI STIPENDI", help: "Somma delle retribuzioni nette mensili di ASO e Segretarie." },
+                { code: "610.00021", label: "610.00021 - ONERI SOCIALI INPS", help: "Contributi INPS a carico dello studio per i dipendenti." },
+                { code: "610.00031", label: "610.00031 - ONERI SOCIALI INAIL", help: "Premio INAIL per l'assicurazione contro gli infortuni sul lavoro." },
+                { code: "610.01001", label: "610.00101 - TFR ACCANTONATO", help: "Quota annuale accantonata per il Trattamento di Fine Rapporto (TFR)." },
+                { code: "610.00201", label: "610.00201 - ALTRI COSTI DEL PERSONALE", help: "Spese per visite mediche del lavoro, divise o welfare." },
+                { code: "610.01000", label: "610.01000 - SALARI E STIPENDI INDEDUCIBILI", help: "Quote di stipendi non deducibili fiscalmente." },
+                // Collaboratori e professionisti (612.xxxx)
+                { code: "612.00001", label: "612.00001 - COMPENSI A TERZI PER PRESTAZIONI", help: "Spese per commercialista, consulente del lavoro, RSPP." },
+                { code: "612.00005", label: "612.00005 - COMPEN. PROFESS. ATTINETI ATTIVITA'", help: "Fatture pagate a odontoiatri consulenti ed igienisti esterni con P.IVA." }
+            ],
+            c: [
+                // Spese Immobili (606.xxxx)
+                { code: "606.00001", label: "606.00001 - LOCAZIONE IMMOBILI STRUMENTALI", help: "Canone d'affitto mensile o annuale dei locali dello studio." },
+                { code: "606.00005", label: "606.00005 - RISCALDAMENTO-IMMOBILI STRUMENTALI", help: "Spese condominiali o utenze per riscaldamento dei locali." },
+                { code: "606.00007", label: "606.00007 - ACQUA-IMMOBILI STRUMENTALI", help: "Consumo idrico delle sale cliniche e servizi dello studio." },
+                { code: "606.00010", label: "606.00010 - SPESE CONDOMINIALI", help: "Quota condominiale ordinaria a carico del conduttore." },
+                // Consumi, Utenze e Spese Telefoniche (621.xxxx e 631.xxxx)
+                { code: "621.00001", label: "621.00001 - SPESE TELEFONIA FISSA (80%)", help: "Internet fibra e linea telefonica fissa dello studio." },
+                { code: "621.00002", label: "621.00002 - SPESE TELEFONIA MOBILE (80%)", help: "Spese per cellulari di servizio o della reception." },
+                { code: "621.00005", label: "621.00005 - CARBURANTI-LUBRIFIC. AUTO NON ASSEGN.", help: "Costi del carburante per auto aziendali o d'uso clinico." },
+                { code: "621.00031", label: "621.00031 - ENERGIA ELETTRICA", help: "Bollette per l'energia elettrica dei compressori e delle sale." },
+                { code: "631.00017", label: "631.00017 - SPESE AGGIORNAMENTO-MANUT. SOFTWARE", help: "Canone del software gestionale di studio o cloud radiografici." },
+                // Spese di Trasferta e Aggiornamento (626.xxxx)
+                { code: "626.00201", label: "626.00201 - SPESE AGGIORNAMENTO PROFESSIONALE", help: "Costi di corsi ECM, congressi e formazione clinica." },
+                { code: "626.00202", label: "626.00202 - PASTI-SOGGIOR. AGGIORN. PROFESS. (75%)", help: "Spese di vitto e alloggio legate ai corsi di aggiornamento." },
+                // Oneri e Bolli tributari (632.xxxx)
+                { code: "632.00001", label: "632.00001 - IMPOSTA BOLLO", help: "Marche da bollo per fatture o dichiarazioni." },
+                { code: "632.00002", label: "632.00002 - IMPOSTA REGISTRO", help: "Imposte di registro per contratti d'affitto o registrazioni legali." },
+                { code: "632.00005", label: "632.00005 - TASSA RIFIUTI", help: "Quota TARI annuale applicata alle superfici dello studio." },
+                { code: "632.00015", label: "632.00015 - VALORI BOLLATI", help: "Spese per l'acquisto di valori bollati ufficiali." }
+            ],
+            d: [
+                // Ammortamenti ordinari (601.xxxx)
+                { code: "601.00001", label: "601.00001 - AMM.TO ORDINARIO IMPIANTI GENERICI", help: "Ammortamento degli impianti elettrici e idraulici delle sale sedia." },
+                { code: "601.00004", label: "601.00004 - AMM.TO ORD. ATTREZZ. INDUS. COMM.", help: "Quota annua di usura per riuniti, radiografici e sterilizzatrici." },
+                { code: "601.00007", label: "601.00007 - AMM.TO ORD. MACC. ELETTROMEC. D'UFF.", help: "Quota d'usura per PC reception, server di studio e stampanti." },
+                { code: "601.00008", label: "601.00008 - AMM.TO ORDINARIO AUTOVETTURE", help: "Quota d'usura per vetture ad uso dello studio." },
+                { code: "601.00010", label: "601.00010 - AMM.TO ORDINARIO ARREDAMENTO", help: "Quota di usura per i mobili clinici, i mobili operativi e la sala d'attesa." },
+                { code: "601.00012", label: "601.00012 - AMM.TO BENI STRUM. INFERIORI 516,46", help: "Ammortamento immediato per piccoli strumenti (es: manipoli, turbine)." },
+                { code: "601.00013", label: "601.00013 - AMM.TO ORDINARIO TELEFONIA MOBILE", help: "Ammortamento di smartphone e tablet aziendali dello studio." },
+                { code: "601.00101", label: "601.00101 - AMMORTAMENTI (INDEDUCIBILI)", help: "Quote di ammortamento non deducibili fiscalmente." },
+                // Leasing (605.xxxx)
+                { code: "605.00001", label: "605.00001 - LEASING BENI MOBILI", help: "Canone leasing mensile per riuniti, autoclavi o grandi tecnologie." },
+                { code: "605.00061", label: "605.00061 - INTER. LEASING BENI MOBILI", help: "Interessi passivi legati ai canoni dei contratti di leasing." },
+                // Manutenzioni, Auto e Altri costi (631.xxxx e 635.xxxx)
+                { code: "631.00016", label: "631.00016 - ASSICURAZIONI R.C. PROFESSIONALI", help: "Premio per la polizza di responsabilità civile professionale dei medici." },
+                { code: "631.00101", label: "631.00101 - MANUT. RIPARAZ. AUTO NON ASSEGNATA", help: "Manutenzione e riparazione delle vetture aziendali dello studio." },
+                { code: "631.00103", label: "631.00103 - MANUTENZIONI-RIPARAZIONI", help: "Verifiche di legge su impianti, tarature autoclavi ed esperto qualificato." },
+                { code: "631.00111", label: "631.00111 - PEDAGGI AUTOST. AUTO NON ASSEGNATA", help: "Spese autostradali registrate per le auto dello studio." },
+                { code: "631.00121", label: "631.00121 - ASSICURAZIONI RCA AUTO NON ASSEGNATA", help: "Assicurazione obbligatoria per le auto dello studio." },
+                { code: "635.00001", label: "635.00001 - ABBUONI-ARROTONDAMENTI PASSIVI", help: "Arrotondamenti di cassa passivi o piccole perdite di bilancio." }
+            ]
+        };
+
+        window.onload = async () => {
+            initBackButton();
+            initFinancialsInputsHTML();
+            await loadData();
+        };
+
+        function showLoader(title, msg) {
+            document.getElementById('loader-title').innerText = title;
+            document.getElementById('loader-msg').innerText = msg;
+            document.getElementById('loader-overlay').classList.remove('hidden');
+        }
+
+        function hideLoader() {
+            document.getElementById('loader-overlay').classList.add('hidden');
+        }
+
+        // Initialize back button native behavior
+        function initBackButton() {
+            if (tg.BackButton) {
+                tg.BackButton.show();
+                tg.BackButton.onClick(handleBackNav);
+            }
+        }
+
+        function handleBackNav() {
+            if (currentStep === 1) {
+                tg.showConfirm("Vuoi tornare alla Dashboard?", (ok) => {
+                    if (ok) {
+                        location.href = `../dashboard/dashboard.html?ash=${ash}&msg=${msg || ''}&menu=identity_hub`;
+                    }
+                });
+            } else {
+                prevStep();
+            }
+        }
+
+        // STEP WIZARD NAVIGATION
+        function goToStep(step) {
+            currentStep = step;
+            
+            // Hide all steps
+            document.getElementById('section-step-1').classList.add('hidden');
+            document.getElementById('section-step-2').classList.add('hidden');
+            document.getElementById('section-step-3').classList.add('hidden');
+            
+            // Show target step
+            document.getElementById(`section-step-${step}`).classList.remove('hidden');
+            
+            // Update dots
+            document.getElementById('dot-step-1').className = `w-2.5 h-2.5 rounded-full ${step >= 1 ? 'bg-black' : 'bg-gray-200'}`;
+            document.getElementById('dot-step-2').className = `w-2.5 h-2.5 rounded-full ${step >= 2 ? 'bg-black' : 'bg-gray-200'}`;
+            document.getElementById('dot-step-3').className = `w-2.5 h-2.5 rounded-full ${step >= 3 ? 'bg-black' : 'bg-gray-200'}`;
+            
+            // Update indicator
+            document.getElementById('step-indicator').innerText = step;
+            document.getElementById('step-desc-micro').innerText = `Fase ${step} di 3`;
+            
+            // Update titles
+            const titles = ["", "Operatori e Staff", "Attrezzature e Asset", "Bilancio"];
+            document.getElementById('step-title').innerText = titles[step];
+            
+            if (step === 3) {
+                refreshStep3UI();
+            }
+        }
+
+        function changeChairsCount(delta) {
+            const input = document.getElementById('op-chairs-num');
+            if (!input) return;
+            let val = (parseInt(input.value) || 2) + delta;
+            if (val < 1) val = 1;
+            input.value = val;
+            numberOfChairs = val;
+            
+            const badge = document.getElementById('op-chairs-badge');
+            if (badge) {
+                badge.innerText = val;
+            }
+            
+            synchronizeBaseEquipment();
+        }
+
+        function initializeDefaultEquipment() {
+            machinery = [];
+            // 1. Add Riunito Odontoiatrico (Fascia Media) x numberOfChairs
+            for (let i = 0; i < numberOfChairs; i++) {
+                machinery.push({
+                    type: 'Riunito Odontoiatrico (Fascia Media)',
+                    year: new Date().getFullYear(),
+                    ownership: 'Proprietà',
+                    value: 18500,
+                    useful_life: 10
+                });
+            }
+            
+            // 2. Add Compressor depending on numberOfChairs
+            let compressorName = "Compressore d'Aria Medicale Secco con Essiccatore (1-2 riuniti)";
+            let compressorPrice = 1200;
+            if (numberOfChairs === 3) {
+                compressorName = "Compressore d'Aria Medicale Secco con Essiccatore (2-3 riuniti)";
+                compressorPrice = 1600;
+            } else if (numberOfChairs >= 4) {
+                compressorName = "Compressore d'Aria Medicale Secco con Essiccatore (4-5 riuniti - Centralizzato)";
+                compressorPrice = 3500;
+            }
+            machinery.push({
+                type: compressorName,
+                year: new Date().getFullYear(),
+                ownership: 'Proprietà',
+                value: compressorPrice,
+                useful_life: 8
+            });
+            
+            // 3. Add Aspiratore Chirurgica ad Anello Umido
+            machinery.push({
+                type: 'Sistema di Aspirazione Chirurgica ad Anello Umido',
+                year: new Date().getFullYear(),
+                ownership: 'Proprietà',
+                value: 2000,
+                useful_life: 8
+            });
+
+            // 4. Add Radiografico Endorale a Parete (Generatore RX)
+            machinery.push({
+                type: 'Radiografico Endorale a Parete (Generatore RX)',
+                year: new Date().getFullYear(),
+                ownership: 'Proprietà',
+                value: 3000,
+                useful_life: 8
+            });
+
+            // 5. Add Autoclave di Classe B 18-23 L (Fascia Base)
+            machinery.push({
+                type: 'Autoclave di Classe B 18-23 L (Fascia Base)',
+                year: new Date().getFullYear(),
+                ownership: 'Proprietà',
+                value: 2600,
+                useful_life: 5
+            });
+
+            // 6. Add Termosigillatrice / Sigillatrice Rotativa (Imbustatrice)
+            machinery.push({
+                type: 'Termosigillatrice / Sigillatrice Rotativa',
+                year: new Date().getFullYear(),
+                ownership: 'Proprietà',
+                value: 900,
+                useful_life: 5
+            });
+        }
+
+        function initializeDefaultStaff() {
+            const owner = operators.find(op => op.isOwner);
+            operators = [];
+            if (owner) {
+                operators.push(owner);
+            }
+            
+            // 1. Add Igienista Collaboratore
+            operators.push({
+                id: 'def-igienista',
+                name: 'Igienista Collaboratore',
+                role: 'Igienista',
+                contract: 'Partita IVA',
+                rate_type: 'percentage',
+                rate: 40
+            });
+            
+            // 2. Add ASO Assistente
+            operators.push({
+                id: 'def-aso',
+                name: 'ASO Assistente',
+                role: 'ASO (Assistente)',
+                contract: 'Dipendente (CCNL)',
+                level: '4° Livello Super (4°S)',
+                hours: 40,
+                salary: 1674.10
+            });
+            
+            // 3. Add Segretaria
+            operators.push({
+                id: 'def-segretaria',
+                name: 'Segretaria / Receptionist',
+                role: 'Segretaria / Receptionist',
+                contract: 'Dipendente (CCNL)',
+                level: '4° Livello',
+                hours: 40,
+                salary: 1614.12
+            });
+        }
+
+        function synchronizeBaseEquipment() {
+            // Find existing chair cards indices
+            const chairIndices = [];
+            machinery.forEach((m, idx) => {
+                const nameLower = (m.type || '').toLowerCase();
+                if (nameLower.includes('riunito') || nameLower.includes('poltrona')) {
+                    chairIndices.push(idx);
+                }
+            });
+            
+            const currentCount = chairIndices.length;
+            if (currentCount < numberOfChairs) {
+                // Add more chairs
+                const diff = numberOfChairs - currentCount;
+                for (let i = 0; i < diff; i++) {
+                    machinery.push({
+                        type: 'Riunito Odontoiatrico (Fascia Media)',
+                        year: new Date().getFullYear(),
+                        ownership: 'Proprietà',
+                        value: 18500,
+                        useful_life: 10
+                    });
+                }
+            } else if (currentCount > numberOfChairs) {
+                // Remove some chairs (from the end of the array, targeting chair cards)
+                const diff = currentCount - numberOfChairs;
+                for (let i = 0; i < diff; i++) {
+                    const targetIdx = chairIndices[chairIndices.length - 1 - i];
+                    machinery.splice(targetIdx, 1);
+                }
+            }
+            
+            // Adjust/ensure compressor matches numberOfChairs
+            const compressorIdx = machinery.findIndex(m => m.type && m.type.toLowerCase().includes('compressore'));
+            if (compressorIdx !== -1) {
+                const comp = machinery[compressorIdx];
+                if (comp.type.startsWith("Compressore d'Aria Medicale Secco con Essiccatore")) {
+                    let compressorName = "Compressore d'Aria Medicale Secco con Essiccatore (1-2 riuniti)";
+                    let compressorPrice = 1200;
+                    if (numberOfChairs === 3) {
+                        compressorName = "Compressore d'Aria Medicale Secco con Essiccatore (2-3 riuniti)";
+                        compressorPrice = 1600;
+                    } else if (numberOfChairs >= 4) {
+                        compressorName = "Compressore d'Aria Medicale Secco con Essiccatore (4-5 riuniti - Centralizzato)";
+                        compressorPrice = 3500;
+                    }
+                    comp.type = compressorName;
+                    comp.value = compressorPrice;
+                }
+            } else {
+                let compressorName = "Compressore d'Aria Medicale Secco con Essiccatore (1-2 riuniti)";
+                let compressorPrice = 1200;
+                if (numberOfChairs === 3) {
+                    compressorName = "Compressore d'Aria Medicale Secco con Essiccatore (2-3 riuniti)";
+                    compressorPrice = 1600;
+                } else if (numberOfChairs >= 4) {
+                    compressorName = "Compressore d'Aria Medicale Secco con Essiccatore (4-5 riuniti - Centralizzato)";
+                    compressorPrice = 3500;
+                }
+                machinery.push({
+                    type: compressorName,
+                    year: new Date().getFullYear(),
+                    ownership: 'Proprietà',
+                    value: compressorPrice,
+                    useful_life: 8
+                });
+            }
+            
+            // Ensure an aspiratore is there
+            const aspiratoreIdx = machinery.findIndex(m => m.type && (m.type.toLowerCase().includes('aspiratore') || m.type.toLowerCase().includes('aspirazione')));
+            if (aspiratoreIdx === -1) {
+                machinery.push({
+                    type: 'Sistema di Aspirazione Chirurgica ad Anello Umido',
+                    year: new Date().getFullYear(),
+                    ownership: 'Proprietà',
+                    value: 2000,
+                    useful_life: 8
+                });
+            }
+
+            // Ensure a radiografico endorale is there
+            const radiograficoIdx = machinery.findIndex(m => m.type && m.type.toLowerCase().includes('radiografico endorale'));
+            if (radiograficoIdx === -1) {
+                machinery.push({
+                    type: 'Radiografico Endorale a Parete (Generatore RX)',
+                    year: new Date().getFullYear(),
+                    ownership: 'Proprietà',
+                    value: 3000,
+                    useful_life: 8
+                });
+            }
+
+            // Ensure an autoclave is there
+            const autoclaveIdx = machinery.findIndex(m => m.type && m.type.toLowerCase().includes('autoclave'));
+            if (autoclaveIdx === -1) {
+                machinery.push({
+                    type: 'Autoclave di Classe B 18-23 L (Fascia Base)',
+                    year: new Date().getFullYear(),
+                    ownership: 'Proprietà',
+                    value: 2600,
+                    useful_life: 5
+                });
+            }
+            
+            renderMachinery();
+        }
+
+        async function nextStep() {
+            if (currentStep === 1) {
+                // Save state step 1
+                await saveStepData(1);
+                goToStep(2);
+            } else if (currentStep === 2) {
+                // Validation check
+                const operatorCount = operators.length;
+                const reunitoCount = machinery.filter(m => m.type && m.type.toLowerCase().includes('riunito')).length;
+                const chairsInput = document.getElementById('op-chairs-num');
+                const chairs = chairsInput ? (parseInt(chairsInput.value) || 0) : numberOfChairs;
+
+                if (chairs < 1) {
+                    tg.showAlert("Requisito Necessario: il numero di sale operatorie attive deve essere almeno 1.");
+                    return;
+                }
+                if (operatorCount < 1 || reunitoCount < 1) {
+                    tg.showAlert("Requisito Necessario: inserisci almeno 1 Operatore (nello Step 1) e almeno 1 Riunito Odontoiatrico (nello Step 2).");
+                    return;
+                }
+                numberOfChairs = chairs;
+                
+                // Save state step 2
+                await saveStepData(2);
+                goToStep(3);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                goToStep(currentStep - 1);
+            }
+        }
+
+        // SAVE STEP DATA ASYNC
+        function serializeOperatorsForSave() {
+            return operators.map(op => {
+                let chatIDVal = null;
+                if (op.id) {
+                    const parsed = parseInt(op.id);
+                    if (!isNaN(parsed) && String(parsed) === String(op.id).trim()) {
+                        chatIDVal = parsed;
+                    } else if (typeof op.id === 'number') {
+                        chatIDVal = op.id;
+                    }
+                }
+                
+                let systemRole = 'Operator';
+                if (op.isOwner) {
+                    systemRole = 'Owner';
+                } else if (op.contract === 'Partita IVA' || op.contract === 'P.IVA') {
+                    systemRole = 'External';
+                }
+                
+                return {
+                    OperatorName: op.name,
+                    OperatorChatID: chatIDVal,
+                    OperatorLanguage: op.OperatorLanguage || 'Italiano',
+                    FreeHandOperator: op.FreeHandOperator !== undefined ? op.FreeHandOperator : true,
+                    Role: systemRole,
+                    Job: op.role,
+                    isOwner: !!op.isOwner,
+                    contract: op.contract,
+                    level: op.level || '',
+                    hours: op.hours !== undefined ? op.hours : 40,
+                    salary: op.salary || 0,
+                    rate_type: op.rate_type || '',
+                    rate: op.rate !== undefined ? op.rate : 0,
+                    specialization: op.specialization || '',
+                    GeminiKey: op.geminiKey || '',
+                    status: op.status || '',
+                    invitation_code: op.invitation_code || ''
+                };
+            });
+        }
+
+        async function saveStepData(step) {
+            try {
+                const chairsInput = document.getElementById('op-chairs-num');
+                if (chairsInput) {
+                    numberOfChairs = parseInt(chairsInput.value) || numberOfChairs;
+                }
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        _auth: tg.initData,
+                        ash: ash,
+                        action: "save_dental_setup",
+                        current_step: step,
+                        tenant_type: tenantType,
+                        tax_regime: taxRegime,
+                        isForfettario: isForfettario,
+                        profile_type: profileType,
+                        operators: serializeOperatorsForSave(),
+                        machinery: machinery,
+                        number_of_chairs: numberOfChairs
+                    })
+                });
+            } catch (err) {
+                console.error("Autosave fallito:", err);
+            }
+        }
+
+        async function saveDraftManually() {
+            showLoader("Salvataggio", "Salvataggio bozza in corso...");
+            try {
+                const chairsInput = document.getElementById('op-chairs-num');
+                if (chairsInput) {
+                    numberOfChairs = parseInt(chairsInput.value) || numberOfChairs;
+                }
+                
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        _auth: tg.initData,
+                        ash: ash,
+                        action: "save_dental_setup",
+                        current_step: currentStep,
+                        tenant_type: tenantType,
+                        tax_regime: taxRegime,
+                        isForfettario: isForfettario,
+                        profile_type: profileType,
+                        operators: serializeOperatorsForSave(),
+                        machinery: machinery,
+                        number_of_chairs: numberOfChairs
+                    })
+                });
+
+                if (!response.ok) throw new Error("Errore nel salvataggio");
+                
+                const btn = document.getElementById('btn-save-draft');
+                if (btn) {
+                    const icon = btn.querySelector('i');
+                    if (icon) {
+                        icon.className = "fas fa-check text-green-600";
+                        setTimeout(() => {
+                            icon.className = "far fa-save text-gray-500";
+                        }, 2000);
+                    }
+                }
+                
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
+            } catch (err) {
+                console.error("Salvataggio fallito:", err);
+                tg.showAlert("Errore durante il salvataggio della bozza.");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // INITIALIZE LOAD DATA (POST)
+        async function loadData() {
+            showLoader("Caricamento", "Recupero dati di configurazione...");
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        _auth: tg.initData,
+                        ash: ash,
+                        action: "get_dental_setup"
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error("Errore risposta server.");
+                }
+                
+                const result = await response.json();
+                if (result) {
+                    profileType = result.profile_type || (result.tenant_type === 'Libero Professionista' ? 'professionista' : 'societa_capitali');
+                    apiBalance = result.api_balance || null;
+                    tenantType = result.tenant_type || 'Società';
+                    taxRegime = result.tax_regime || 'Ordinario';
+                    isForfettario = !!result.isForfettario || !!result.is_forfettario;
+                    
+                    let isAdvancedSetup = !!result.advanced_setup;
+                    if (result.financials) {
+                        if (result.financials.isForfettario === true || result.financials.isForfettario === 'true') {
+                            isForfettario = true;
+                            taxRegime = 'Forfettario';
+                        }
+                        populateFinancialsGrid(result.financials, false);
+                        financialsSnapshot = result.financials_snapshot || getStaffEquipmentSnapshot();
+                        if (isAdvancedSetup) {
+                            hasFinancials = true;
+                        } else {
+                            hasFinancials = false;
+                        }
+                    } else {
+                        hasFinancials = false;
+                    }
+                    operators = (result.operators || []).map(op => {
+                        let nameVal = op.name || op.OperatorName || '';
+                        let isOwner = !!op.isOwner || (op.Role && op.Role.toLowerCase() === 'owner') || (op.role && op.role.toLowerCase() === 'owner');
+                        
+                        let roleVal = op.Job || op.job || '';
+                        if (!roleVal) {
+                            if (op.Role && op.Role.toLowerCase() !== 'owner' && op.Role.toLowerCase() !== 'operator' && op.Role.toLowerCase() !== 'external') {
+                                roleVal = op.Role;
+                            } else if (op.role && op.role.toLowerCase() !== 'owner' && op.role.toLowerCase() !== 'operator' && op.role.toLowerCase() !== 'external') {
+                                roleVal = op.role;
+                            } else {
+                                roleVal = 'Odontoiatra';
+                            }
+                        }
+                        
+                        let contractVal = op.contract || op.Contract || (op.Role === 'External' ? 'Partita IVA' : 'Dipendente (CCNL)');
+                        let levelVal = op.level || op.Level || '';
+                        let hoursVal = op.hours !== undefined ? op.hours : (op.Hours !== undefined ? op.Hours : 40);
+                        let salaryVal = op.salary || op.Salary || '';
+                        
+                        if (isOwner && (roleVal.toLowerCase() === 'owner' || roleVal === 'Owner')) {
+                            roleVal = 'Odontoiatra';
+                            contractVal = 'Partita IVA';
+                        }
+                        
+                        if (roleVal === 'ASO') roleVal = 'ASO (Assistente)';
+                        else if (roleVal === 'Segretaria') roleVal = 'Segretaria / Receptionist';
+                        
+                        if (contractVal === 'Dipendente') contractVal = 'Dipendente (CCNL)';
+                        else if (contractVal === 'P.IVA') contractVal = 'Partita IVA';
+                        
+                        let opData = {
+                            id: op.id || op.OperatorChatID || null,
+                            name: nameVal,
+                            role: roleVal,
+                            isOwner: isOwner,
+                            contract: contractVal,
+                            level: levelVal,
+                            hours: hoursVal,
+                            salary: salaryVal,
+                            rate_type: op.rate_type || 'percentage',
+                            rate: op.rate !== undefined ? op.rate : (roleVal === 'Odontoiatra' ? 40 : 100),
+                            specialization: op.specialization || 'Generico / Generalista',
+                            geminiKey: op.GeminiKey || op.geminiKey || '',
+                            OperatorLanguage: op.OperatorLanguage || op.OperatorLenguage || 'Italiano',
+                            FreeHandOperator: op.FreeHandOperator !== undefined ? op.FreeHandOperator : true,
+                            status: op.status || '',
+                            invitation_code: op.invitation_code || ''
+                        };
+                        
+                        if (contractVal === 'Dipendente (CCNL)' && !isOwner) {
+                            const levelNormalizationMap = {
+                                'Quadri': 'Quadri (Q)',
+                                'Q': 'Quadri (Q)',
+                                '1° Livello': '1° Livello',
+                                'L1': '1° Livello',
+                                '2° Livello': '2° Livello',
+                                'L2': '2° Livello',
+                                '3° Livello Super': '3° Livello Super (3°S)',
+                                '3°S': '3° Livello Super (3°S)',
+                                'L3S': '3° Livello Super (3°S)',
+                                '3° Livello': '3° Livello',
+                                'L3': '3° Livello',
+                                '4° Livello Super': '4° Livello Super (4°S)',
+                                '4°S': '4° Livello Super (4°S)',
+                                'L4S': '4° Livello Super (4°S)',
+                                '4° Livello': '4° Livello',
+                                'L4': '4° Livello',
+                                '5° Livello': '5° Livello',
+                                'L5': '5° Livello',
+                                '6° Livello': '5° Livello',
+                                '7° Livello': '5° Livello'
+                            };
+
+                            let normalizedLevel = '4° Livello';
+                            if (opData.level) {
+                                const trimmed = opData.level.trim();
+                                if (baseSalaries[trimmed] !== undefined) {
+                                    normalizedLevel = trimmed;
+                                } else {
+                                    for (const [key, target] of Object.entries(levelNormalizationMap)) {
+                                        if (trimmed.toLowerCase().includes(key.toLowerCase())) {
+                                            normalizedLevel = target;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            opData.level = normalizedLevel;
+                        } else {
+                            if (!isOwner) {
+                                opData.level = '';
+                                opData.hours = 40;
+                            }
+                        }
+                        
+                        return opData;
+                    });
+                    
+                    // Check if owner exists in mapped operators list
+                    const ownerExists = operators.some(op => op.isOwner);
+                    if (!ownerExists) {
+                        const tgUser = (tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
+                        let ownerName = "Titolare";
+                        let ownerId = 'owner_1';
+                        if (tgUser) {
+                            ownerName = ((tgUser.first_name || '') + ' ' + (tgUser.last_name || '')).trim() || ownerName;
+                            ownerId = tgUser.id || ownerId;
+                        }
+                        operators.unshift({
+                            id: ownerId,
+                            name: ownerName.toUpperCase(),
+                            role: 'Odontoiatra',
+                            isOwner: true,
+                            contract: 'Partita IVA',
+                            level: '',
+                            hours: 40,
+                            salary: 0,
+                            rate_type: 'percentage',
+                            rate: 40,
+                            specialization: 'Generico / Generalista',
+                            geminiKey: ''
+                        });
+                    }
+
+                    // Sort to make sure Owner is always at the top/in head
+                    operators.sort((a, b) => {
+                        if (a.isOwner && !b.isOwner) return -1;
+                        if (!a.isOwner && b.isOwner) return 1;
+                        return 0;
+                    });
+                    
+                    const hasOnlyOwner = operators.length === 0 || (operators.length === 1 && operators[0].isOwner);
+                    if (hasOnlyOwner) {
+                        initializeDefaultStaff();
+                    }
+                    machinery = result.machinery || [];
+                    numberOfChairs = result.number_of_chairs !== undefined ? result.number_of_chairs : 2;
+                } else {
+                    tenantType = 'Società';
+                    taxRegime = 'Ordinario';
+                    isForfettario = false;
+                    operators = [];
+                    machinery = [];
+                    numberOfChairs = 2;
+                    initializeDefaultStaff();
+                }
+                
+                if (machinery.length === 0) {
+                    initializeDefaultEquipment();
+                } else {
+                    synchronizeBaseEquipment();
+                }
+                
+                // Set elements
+                document.getElementById('tenant-type-select').value = tenantType;
+                document.getElementById('regime-select').value = taxRegime;
+                const chairsInput = document.getElementById('op-chairs-num');
+                if (chairsInput) {
+                    chairsInput.value = numberOfChairs;
+                }
+                const badge = document.getElementById('op-chairs-badge');
+                if (badge) {
+                    badge.innerText = numberOfChairs;
+                }
+                
+                // Financials are already populated and checked at the start of loadData
+                
+                renderOperators();
+                renderMachinery();
+                
+                if (result && result.current_step) {
+                    goToStep(result.current_step);
+                } else {
+                    goToStep(1);
+                }
+            } catch (error) {
+                console.error("Caricamento fallito:", error);
+                goToStep(1);
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // DRAWER GESTION
+        function openDrawer() {
+            document.getElementById('drawer-backdrop').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('drawer-backdrop').classList.add('opacity-100');
+                document.getElementById('drawer-container').classList.remove('translate-y-full');
+            }, 10);
+        }
+
+        function closeDrawer() {
+            document.getElementById('drawer-container').classList.add('translate-y-full');
+            document.getElementById('drawer-backdrop').classList.remove('opacity-100');
+            setTimeout(() => {
+                document.getElementById('drawer-backdrop').classList.add('hidden');
+            }, 300);
+            activeEditIndex = null;
+        }
+
+        // STAFF/OPERATORS MANAGEMENT
+        function renderOperators() {
+            const grid = document.getElementById('operators-grid');
+            grid.innerHTML = '';
+            
+            if (operators.length === 0) {
+                grid.innerHTML = `<div class="card-noir p-5 text-center text-gray-400 italic text-xs">Nessun operatore inserito nello staff.</div>`;
+                return;
+            }
+
+            operators.forEach((op, idx) => {
+                let iconClass = 'fa-user-tie';
+                if (op.isOwner) iconClass = 'fa-crown';
+                else if (op.role === 'Odontoiatra') iconClass = 'fa-user-md';
+                else if (op.role === 'Igienista') iconClass = 'fa-tooth';
+                else if (op.role === 'Anestesista') iconClass = 'fa-syringe';
+                else if (op.role === 'ASO (Assistente)' || op.role === 'ASO') iconClass = 'fa-user-nurse';
+                else if (op.role === 'Segretaria / Receptionist' || op.role === 'Segretaria') iconClass = 'fa-keyboard';
+                else if (op.role === 'Clinic Manager / Coordinatore') iconClass = 'fa-briefcase';
+                else if (op.role === 'Direttore Sanitario') iconClass = 'fa-user-shield';
+                else if (op.role === 'Odontotecnico') iconClass = 'fa-teeth';
+                else if (op.role === 'Tecnico Manutentore') iconClass = 'fa-wrench';
+                else if (op.role === 'Ausiliario / Addetto Pulizie') iconClass = 'fa-broom';
+
+                let roleText = op.role;
+                if (op.role === 'Odontoiatra' && op.specialization) {
+                    roleText = `${op.role} (${op.specialization})`;
+                }
+
+                let contractLabel = roleText;
+                if (op.isOwner) {
+                    contractLabel = `Titolare (${roleText})`;
+                }
+                
+                if (op.contract === 'Dipendente (CCNL)' || op.contract === 'Dipendente') {
+                    contractLabel += op.level ? ` - Dipendente (${op.level})` : ` - Dipendente`;
+                } else if (op.contract === 'Partita IVA' || op.contract === 'P.IVA') {
+                    contractLabel += ` - P.IVA`;
+                }
+
+                let contractText = '';
+                if (op.contract === 'Dipendente (CCNL)' || op.contract === 'Dipendente') {
+                    const hoursVal = op.hours !== undefined ? op.hours : 40;
+                    contractText = `Lorde: €${parseFloat(op.salary || 0).toLocaleString('it-IT')}/mese (${hoursVal}h/sett)`;
+                } else {
+                    contractText = op.rate_type === 'hourly' 
+                        ? `Tariffa: €${op.rate}/ora` 
+                        : `Ingaggio: ${op.rate}% su prestazione`;
+                }
+
+                let actionButtonsHtml = '';
+                if (!op.isOwner) {
+                    let inviteBtnHtml = '';
+                    if (op.status === 'ACTIVE') {
+                        inviteBtnHtml = `
+                            <span class="px-2 py-1 bg-green-50 text-green-700 border border-green-200 text-[8px] font-black uppercase rounded-lg flex items-center gap-1">
+                                <i class="fas fa-check text-[8px]"></i> Attivo
+                            </span>
+                        `;
+                    } else if (op.status === 'PENDING' && op.invitation_code) {
+                        inviteBtnHtml = `
+                            <button onclick="copyPreexistingInvite('${op.invitation_code}')" class="px-2 py-1.5 bg-gray-100 hover:bg-black hover:text-white text-black text-[8px] font-black uppercase rounded-lg transition-colors flex items-center gap-1" title="Copia Link Invito esistente">
+                                <i class="fas fa-copy"></i> Copia
+                            </button>
+                        `;
+                    } else {
+                        inviteBtnHtml = `
+                            <button onclick="generateOperatorInvite('${op.id || idx}', '${op.role}')" class="px-2 py-1.5 bg-gray-100 hover:bg-black hover:text-white text-black text-[8px] font-black uppercase rounded-lg transition-colors" title="Genera Link Invito (Costo: 20 Crediti)">
+                                Invita
+                            </button>
+                        `;
+                    }
+
+                    actionButtonsHtml = `
+                        ${inviteBtnHtml}
+                        <button onclick="openOperatorDrawer(${idx})" class="w-7 h-7 bg-gray-50 text-gray-500 border border-border rounded-lg flex items-center justify-center active:scale-95 transition">
+                            <i class="fas fa-edit text-[10px]"></i>
+                        </button>
+                        <button onclick="deleteOperator(${idx})" class="w-7 h-7 bg-red-50 text-red-500 border border-red-100 rounded-lg flex items-center justify-center active:scale-95 transition">
+                            <i class="fas fa-trash text-[10px]"></i>
+                        </button>
+                    `;
+                } else {
+                    actionButtonsHtml = `
+                        <button onclick="openOperatorDrawer(${idx})" class="w-7 h-7 bg-gray-50 text-gray-500 border border-border rounded-lg flex items-center justify-center active:scale-95 transition">
+                            <i class="fas fa-edit text-[10px]"></i>
+                        </button>
+                        <span class="px-2 py-1 bg-black text-white text-[8px] font-black uppercase rounded-lg">Owner</span>
+                    `;
+                }
+
+                grid.innerHTML += `
+                    <div class="card-noir p-4 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center text-sm">
+                                <i class="fas ${iconClass}"></i>
+                            </div>
+                            <div>
+                                <span class="label-micro !text-gray-400">${contractLabel}</span>
+                                <h4 class="font-black text-xs uppercase tracking-tight text-black mt-0.5">${op.name}</h4>
+                                <span class="text-[9px] text-gray-500 font-bold block mt-0.5">${contractText}</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            ${actionButtonsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function openOperatorDrawer(idx = null) {
+            activeEditIndex = idx;
+            const isEdit = idx !== null;
+            const data = isEdit ? operators[idx] : { 
+                name: '', 
+                role: 'Odontoiatra', 
+                specialization: 'Generico / Generalista',
+                contract: 'Dipendente (CCNL)', 
+                level: '4° Livello',
+                hours: 40,
+                salary: '', 
+                rate_type: 'hourly', 
+                rate: '' 
+            };
+            
+            const container = document.getElementById('drawer-container');
+            container.innerHTML = `
+                <div class="flex justify-between items-center pb-2 border-b border-border">
+                    <h3 class="text-xs font-black uppercase tracking-tight text-black">${isEdit ? 'Modifica' : 'Aggiungi'} Operatore</h3>
+                    <button onclick="closeDrawer()" class="text-gray-400"><i class="fas fa-times-circle text-lg"></i></button>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="space-y-1">
+                        <label class="label-micro">Nome e Cognome</label>
+                        <input type="text" id="op-name" value="${data.name}" placeholder="Es: Dr. Rossi" class="w-full bg-gray-50 border border-border rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="label-micro">Ruolo</label>
+                            <select id="op-role" onchange="toggleOpRoleFields(this.value)" class="w-full bg-gray-50 border border-border rounded-xl px-3 py-2 text-xs font-bold focus:border-black outline-none transition appearance-none">
+                                <option value="Odontoiatra" ${data.role === 'Odontoiatra' ? 'selected' : ''}>Odontoiatra</option>
+                                <option value="Igienista" ${data.role === 'Igienista' ? 'selected' : ''}>Igienista</option>
+                                <option value="Anestesista" ${data.role === 'Anestesista' ? 'selected' : ''}>Anestesista</option>
+                                <option value="ASO (Assistente)" ${data.role === 'ASO (Assistente)' || data.role === 'ASO' ? 'selected' : ''}>ASO (Assistente)</option>
+                                <option value="Segretaria / Receptionist" ${data.role === 'Segretaria / Receptionist' || data.role === 'Segretaria' ? 'selected' : ''}>Segretaria / Receptionist</option>
+                                <option value="Clinic Manager / Coordinatore" ${data.role === 'Clinic Manager / Coordinatore' ? 'selected' : ''}>Clinic Manager / Coordinatore</option>
+                                <option value="Direttore Sanitario" ${data.role === 'Direttore Sanitario' ? 'selected' : ''}>Direttore Sanitario</option>
+                                <option value="Odontotecnico" ${data.role === 'Odontotecnico' ? 'selected' : ''}>Odontotecnico</option>
+                                <option value="Tecnico Manutentore" ${data.role === 'Tecnico Manutentore' ? 'selected' : ''}>Tecnico Manutentore</option>
+                                <option value="Ausiliario / Addetto Pulizie" ${data.role === 'Ausiliario / Addetto Pulizie' ? 'selected' : ''}>Ausiliario / Addetto Pulizie</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="label-micro">Inquadramento</label>
+                            <select id="op-contract" onchange="toggleOpContractFields(this.value)" class="w-full bg-gray-50 border border-border rounded-xl px-3 py-2 text-xs font-bold focus:border-black outline-none transition appearance-none">
+                                <option value="Dipendente (CCNL)" ${data.contract === 'Dipendente (CCNL)' || data.contract === 'Dipendente' ? 'selected' : ''}>Dipendente (CCNL)</option>
+                                <option value="Partita IVA" ${data.contract === 'Partita IVA' || data.contract === 'P.IVA' ? 'selected' : ''} id="opt-piva">Partita IVA</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- WARNING MSG FOR COMPLIANCE -->
+                    <div id="op-compliance-warning" class="p-3 bg-amber-50 text-amber-800 border border-amber-200 rounded-xl text-[10px] font-medium leading-relaxed hidden">
+                        ⚠️ Per conformità legale con la normativa sul lavoro, questo ruolo richiede obbligatoriamente l'inquadramento come dipendente subordinato.
+                    </div>
+
+                    <!-- SPECIALIZZAZIONE (Odontoiatra ONLY) -->
+                    <div id="op-specialization-wrapper" class="space-y-1 ${data.role === 'Odontoiatra' ? '' : 'hidden'}">
+                        <label class="label-micro">Specializzazione</label>
+                        <select id="op-specialization" class="w-full bg-gray-50 border border-border rounded-xl px-3 py-2 text-xs font-bold focus:border-black outline-none transition appearance-none">
+                            <option value="Chirurgo / Implantologo" ${data.specialization === 'Chirurgo / Implantologo' ? 'selected' : ''}>Chirurgo / Implantologo</option>
+                            <option value="Protesista" ${data.specialization === 'Protesista' ? 'selected' : ''}>Protesista</option>
+                            <option value="Ortodontista" ${data.specialization === 'Ortodontista' ? 'selected' : ''}>Ortodontista</option>
+                            <option value="Conservatore / Endodontista" ${data.specialization === 'Conservatore / Endodontista' ? 'selected' : ''}>Conservatore / Endodontista</option>
+                            <option value="Pedodontista" ${data.specialization === 'Pedodontista' ? 'selected' : ''}>Pedodontista</option>
+                            <option value="Medicina Estetica" ${data.specialization === 'Medicina Estetica' ? 'selected' : ''}>Medicina Estetica</option>
+                            <option value="Generico / Generalista" ${data.specialization === 'Generico / Generalista' ? 'selected' : ''}>Generico / Generalista</option>
+                        </select>
+                    </div>
+
+                    <!-- DIPENDENTE FIELDS -->
+                    <div id="op-dipendente-fields" class="space-y-3 ${data.contract === 'Dipendente (CCNL)' || data.contract === 'Dipendente' ? '' : 'hidden'}">
+                        <div class="space-y-1">
+                            <label class="label-micro">Livello Contratto</label>
+                            <select id="op-level" onchange="calculateSalary()" class="w-full bg-gray-50 border border-border rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition appearance-none">
+                                <option value="Quadri (Q)" ${data.level === 'Quadri (Q)' ? 'selected' : ''}>Quadri (Q) - Base: € 2.436,76</option>
+                                <option value="1° Livello" ${data.level === '1° Livello' ? 'selected' : ''}>1° Livello - Base: € 2.156,38</option>
+                                <option value="2° Livello" ${data.level === '2° Livello' ? 'selected' : ''}>2° Livello - Base: € 1.878,32</option>
+                                <option value="3° Livello Super (3°S)" ${data.level === '3° Livello Super (3°S)' ? 'selected' : ''}>3° Livello Super (3°S) - Base: € 1.742,30</option>
+                                <option value="3° Livello" ${data.level === '3° Livello' ? 'selected' : ''}>3° Livello - Base: € 1.726,37</option>
+                                <option value="4° Livello Super (4°S)" ${data.level === '4° Livello Super (4°S)' ? 'selected' : ''}>4° Livello Super (4°S) - Base: € 1.674,10</option>
+                                <option value="4° Livello" ${data.level === '4° Livello' || !data.level ? 'selected' : ''}>4° Livello - Base: € 1.614,12</option>
+                                <option value="5° Livello" ${data.level === '5° Livello' ? 'selected' : ''}>5° Livello - Base: € 1.502,19</option>
+                                <option value="Apprendistato finalizzato al 3°S (inquadrato al 4°S)" ${data.level === 'Apprendistato finalizzato al 3°S (inquadrato al 4°S)' ? 'selected' : ''}>Apprendistato finalizzato al 3°S (inquadrato al 4°S) - Base: € 1.674,10</option>
+                                <option value="Apprendistato finalizzato al 3° (inquadrato al 4°)" ${data.level === 'Apprendistato finalizzato al 3° (inquadrato al 4°)' ? 'selected' : ''}>Apprendistato finalizzato al 3° (inquadrato al 4°) - Base: € 1.614,12</option>
+                                <option value="Apprendistato finalizzato al 4°S (inquadrato al 5°)" ${data.level === 'Apprendistato finalizzato al 4°S (inquadrato al 5°)' ? 'selected' : ''}>Apprendistato finalizzato al 4°S (inquadrato al 5°) - Base: € 1.502,19</option>
+                                <option value="Apprendistato finalizzato al 4° (inquadrato al 5°)" ${data.level === 'Apprendistato finalizzato al 4° (inquadrato al 5°)' ? 'selected' : ''}>Apprendistato finalizzato al 4° (inquadrato al 5°) - Base: € 1.502,19</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="label-micro">Ore Settimanali di Lavoro</label>
+                                <input type="number" id="op-hours" value="${data.hours !== undefined ? data.hours : 40}" min="1" max="40" oninput="calculateSalary()" placeholder="40" class="w-full bg-gray-50 border border-border rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="label-micro">Costo Mensile Lordo (€)</label>
+                                <input type="number" id="op-salary" value="${data.salary || ''}" placeholder="Es: 2500" class="w-full bg-gray-50 border border-border rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PIVA FIELDS -->
+                    <div id="op-piva-fields" class="space-y-3 ${data.contract === 'Partita IVA' || data.contract === 'P.IVA' ? '' : 'hidden'}">
+                        <div class="space-y-1">
+                            <label class="label-micro">Tipo Compenso</label>
+                            <select id="op-rate-type" onchange="toggleOpRateInput(this.value)" class="w-full bg-gray-50 border border-border rounded-xl px-3 py-2 text-xs font-bold focus:border-black outline-none transition appearance-none">
+                                <option value="hourly" ${data.rate_type === 'hourly' ? 'selected' : ''}>Tariffa Oraria fissa (€/ora)</option>
+                                <option value="percentage" ${data.rate_type === 'percentage' ? 'selected' : ''}>Percentuale d'Ingaggio (% su tariffa)</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="label-micro" id="op-rate-label">${data.rate_type === 'hourly' ? 'Importo Orario (€)' : 'Valore Percentuale (%)'}</label>
+                            <input type="number" id="op-rate" value="${data.rate || ''}" placeholder="Es: 40" class="w-full bg-gray-50 border border-border rounded-xl px-3 py-2 text-xs font-bold focus:border-black outline-none transition">
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="saveOperatorFromDrawer()" class="w-full py-3 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition">
+                    ${isEdit ? 'Aggiorna' : 'Aggiungi'} Staff
+                </button>
+                ${(!isEdit || (!data.status || (data.status !== 'ACTIVE' && data.status !== 'PENDING'))) ? `
+                <p class="text-[9px] text-gray-400 font-medium text-center leading-normal mt-2">
+                    ℹ️ La generazione dell'invito e l'attivazione dello slot operatore richiedono l'addebito di 20 Crediti.
+                </p>
+                ` : ''}
+            `;
+            toggleOpRoleFields(data.role);
+            toggleOpContractFields(data.contract);
+            if ((data.contract === 'Dipendente (CCNL)' || data.contract === 'Dipendente') && !data.salary) {
+                calculateSalary();
+            }
+            openDrawer();
+        }
+
+        const baseSalaries = {
+            "Quadri (Q)": 2436.76,
+            "1° Livello": 2156.38,
+            "2° Livello": 1878.32,
+            "3° Livello Super (3°S)": 1742.30,
+            "3° Livello": 1726.37,
+            "4° Livello Super (4°S)": 1674.10,
+            "4° Livello": 1614.12,
+            "5° Livello": 1502.19,
+            "Apprendistato finalizzato al 3°S (inquadrato al 4°S)": 1674.10,
+            "Apprendistato finalizzato al 3° (inquadrato al 4°)": 1614.12,
+            "Apprendistato finalizzato al 4°S (inquadrato al 5°)": 1502.19,
+            "Apprendistato finalizzato al 4° (inquadrato al 5°)": 1502.19
+        };
+
+        function calculateSalary() {
+            const levelSelect = document.getElementById('op-level');
+            const hoursInput = document.getElementById('op-hours');
+            const salaryInput = document.getElementById('op-salary');
+            
+            if (!levelSelect || !hoursInput || !salaryInput) return;
+            
+            const selectedLevel = levelSelect.value;
+            const hours = parseFloat(hoursInput.value) || 0;
+            const baseSalary = baseSalaries[selectedLevel] || 0;
+            
+            const calculated = baseSalary * (hours / 40);
+            salaryInput.value = calculated.toFixed(2);
+        }
+
+        function toggleOpRoleFields(roleVal) {
+            const specWrapper = document.getElementById('op-specialization-wrapper');
+            if (roleVal === 'Odontoiatra') {
+                specWrapper.classList.remove('hidden');
+            } else {
+                specWrapper.classList.add('hidden');
+            }
+
+            const contractSelect = document.getElementById('op-contract');
+            const optPiva = document.getElementById('opt-piva');
+            const warningBox = document.getElementById('op-compliance-warning');
+            
+            const forcedRoles = ['ASO (Assistente)', 'ASO', 'Segretaria / Receptionist', 'Segretaria', 'Ausiliario / Addetto Pulizie'];
+            
+            if (forcedRoles.includes(roleVal)) {
+                if (contractSelect) contractSelect.value = 'Dipendente (CCNL)';
+                if (optPiva) {
+                    optPiva.disabled = true;
+                    optPiva.classList.add('hidden');
+                }
+                if (warningBox) warningBox.classList.remove('hidden');
+                toggleOpContractFields('Dipendente (CCNL)');
+            } else {
+                if (optPiva) {
+                    optPiva.disabled = false;
+                    optPiva.classList.remove('hidden');
+                }
+                if (warningBox) warningBox.classList.add('hidden');
+            }
+        }
+
+        function toggleOpContractFields(contractVal) {
+            const dipFields = document.getElementById('op-dipendente-fields');
+            const pivaFields = document.getElementById('op-piva-fields');
+            if (contractVal === 'Dipendente (CCNL)' || contractVal === 'Dipendente') {
+                dipFields.classList.remove('hidden');
+                pivaFields.classList.add('hidden');
+                calculateSalary();
+            } else {
+                dipFields.classList.add('hidden');
+                pivaFields.classList.remove('hidden');
+            }
+        }
+
+        function toggleOpRateInput(rateTypeVal) {
+            const label = document.getElementById('op-rate-label');
+            if (rateTypeVal === 'hourly') {
+                label.innerText = "Importo Orario (€)";
+            } else {
+                label.innerText = "Valore Percentuale (%)";
+            }
+        }
+
+        function saveOperatorFromDrawer() {
+            const name = document.getElementById('op-name').value.trim();
+            const role = document.getElementById('op-role').value;
+            const contract = document.getElementById('op-contract').value;
+            
+            if (!name) { tg.showAlert("Fornisci un nome identificativo."); return; }
+
+            const opData = {
+                id: activeEditIndex !== null ? operators[activeEditIndex].id : 'op_' + Date.now(),
+                name: name,
+                role: role,
+                contract: contract,
+                isOwner: activeEditIndex !== null ? !!operators[activeEditIndex].isOwner : false,
+                geminiKey: activeEditIndex !== null ? (operators[activeEditIndex].geminiKey || '') : '',
+                OperatorLanguage: activeEditIndex !== null ? (operators[activeEditIndex].OperatorLanguage || 'Italiano') : 'Italiano',
+                FreeHandOperator: activeEditIndex !== null ? (operators[activeEditIndex].FreeHandOperator !== undefined ? operators[activeEditIndex].FreeHandOperator : true) : true,
+                status: activeEditIndex !== null ? (operators[activeEditIndex].status || '') : '',
+                invitation_code: activeEditIndex !== null ? (operators[activeEditIndex].invitation_code || '') : ''
+            };
+
+            if (role === 'Odontoiatra') {
+                opData.specialization = document.getElementById('op-specialization').value;
+            } else {
+                opData.specialization = '';
+            }
+
+            if (contract === 'Dipendente (CCNL)' || contract === 'Dipendente') {
+                opData.level = document.getElementById('op-level').value;
+                opData.hours = parseInt(document.getElementById('op-hours').value) || 40;
+                opData.salary = parseFloat(document.getElementById('op-salary').value) || 0;
+                opData.rate_type = '';
+                opData.rate = 0;
+            } else {
+                opData.level = '';
+                opData.hours = 40;
+                opData.salary = 0;
+                opData.rate_type = document.getElementById('op-rate-type').value;
+                opData.rate = parseFloat(document.getElementById('op-rate').value) || 0;
+            }
+
+            if (activeEditIndex !== null) {
+                operators[activeEditIndex] = opData;
+            } else {
+                operators.push(opData);
+            }
+
+            // Re-sort to make sure Owner is in head
+            operators.sort((a, b) => {
+                if (a.isOwner && !b.isOwner) return -1;
+                if (!a.isOwner && b.isOwner) return 1;
+                return 0;
+            });
+
+            closeDrawer();
+            renderOperators();
+        }
+
+        function deleteOperator(idx) {
+            tg.showConfirm("Sicuro di voler rimuovere questo operatore?", (ok) => {
+                if (ok) {
+                    operators.splice(idx, 1);
+                    renderOperators();
+                }
+            });
+        }
+
+        async function generateOperatorInvite(opId, role) {
+            tg.showConfirm("La generazione dell'invito e l'attivazione dello slot operatore richiedono l'addebito di 20 Crediti. Vuoi procedere?", async (ok) => {
+                if (!ok) return;
+
+                showLoader("Generazione link", "Creazione invito operatore in corso...");
+                try {
+                    const response = await fetch(WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            _auth: tg.initData,
+                            ash: ash,
+                            action: "generate_operator_invite",
+                            operator_id: opId,
+                            role: role
+                        })
+                    });
+
+                    if (!response.ok) throw new Error("Errore chiamata server");
+                    
+                    const result = await response.json();
+                    const inviteLink = result.invite_link || result.url || "";
+                    
+                    if (inviteLink) {
+                        let code = result.invitation_code || "";
+                        if (!code && inviteLink.includes("start=")) {
+                            code = inviteLink.split("start=")[1];
+                        }
+                        
+                        const opIdx = operators.findIndex(o => o.id === opId);
+                        if (opIdx !== -1) {
+                            operators[opIdx].status = "PENDING";
+                            operators[opIdx].invitation_code = code;
+                            renderOperators();
+                            await saveStepData(1);
+                        }
+
+                        tg.showPopup({
+                            title: "Invito Generato",
+                            message: "Il link per completare la registrazione è pronto. Lo slot è attivo (addebito di 20 Crediti).",
+                            buttons: [
+                                { id: "copy", type: "default", text: "Copia Link" },
+                                { type: "cancel", text: "Chiudi" }
+                            ]
+                        }, function(button_id) {
+                            if (button_id === 'copy') {
+                                copyTextToClipboard(inviteLink);
+                                tg.showAlert("Link copiato negli appunti con successo.", () => {
+                                    location.reload();
+                                });
+                            } else {
+                                location.reload();
+                            }
+                        });
+                    } else {
+                        tg.showAlert("Nessun link generato dal server.");
+                    }
+                } catch (err) {
+                    console.error("Generazione invito fallita:", err);
+                    tg.showAlert("Errore durante la generazione dell'invito.");
+                } finally {
+                    hideLoader();
+                }
+            });
+        }
+
+        function copyTextToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text);
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                } catch (err) {
+                    console.error('Fallback copy failed', err);
+                }
+                document.body.removeChild(textArea);
+            }
+        }
+
+        function copyPreexistingInvite(invitationCode) {
+            const url = `https://t.me/TrinAi_Team_bot?start=${invitationCode}`;
+            copyTextToClipboard(url);
+            tg.showAlert("Link invito esistente copiato negli appunti!");
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred('success');
+            }
+        }
+
+        // MACHINERY/ASSET MANAGEMENT
+        function renderMachinery() {
+            const grid = document.getElementById('machinery-grid');
+            grid.innerHTML = '';
+            
+            if (machinery.length === 0) {
+                grid.innerHTML = `<div class="card-noir p-5 text-center text-gray-400 italic text-xs">Nessuna attrezzatura inserita.</div>`;
+                return;
+            }
+
+            machinery.forEach((mac, idx) => {
+                let iconClass = 'fa-tools'; // default
+                const nameLower = (mac.type || '').toLowerCase();
+                
+                if (nameLower.includes('riunito') || nameLower.includes('poltrona')) iconClass = 'fa-chair';
+                else if (nameLower.includes('compressore')) iconClass = 'fa-wind';
+                else if (nameLower.includes('aspiratore') || nameLower.includes('aspirazione')) iconClass = 'fa-filter';
+                else if (nameLower.includes('radiografico') || nameLower.includes('opt') || nameLower.includes('cbct') || nameLower.includes('tac') || nameLower.includes('cefalometria')) iconClass = 'fa-x-ray';
+                else if (nameLower.includes('scanner') || nameLower.includes('sensor') || nameLower.includes('rvg')) iconClass = 'fa-qrcode';
+                else if (nameLower.includes('microscopio') || nameLower.includes('ingrandimento') || nameLower.includes('ttl')) iconClass = 'fa-microscope';
+                else if (nameLower.includes('fotografia')) iconClass = 'fa-camera';
+                else if (nameLower.includes('autoclave') || nameLower.includes('sterilizz') || nameLower.includes('lava-strumenti') || nameLower.includes('termodisinfettore')) iconClass = 'fa-soap';
+                else if (nameLower.includes('laser')) iconClass = 'fa-bolt';
+                else if (nameLower.includes('stampante 3d') || nameLower.includes('fresatrice')) iconClass = 'fa-print';
+                else if (nameLower.includes('workstation') || nameLower.includes('pc') || nameLower.includes('software')) iconClass = 'fa-laptop';
+                else if (nameLower.includes('defibrillatore') || nameLower.includes('emergenz')) iconClass = 'fa-first-aid';
+                else if (nameLower.includes('turbina') || nameLower.includes('contrangolo') || nameLower.includes('micromotore') || nameLower.includes('ablatore') || nameLower.includes('scaler') || nameLower.includes('sigillatrice') || nameLower.includes('manipol')) iconClass = 'fa-sync-alt';
+
+                let ownershipText = '';
+                if (mac.ownership === 'Proprietà') {
+                    ownershipText = `Prezzo d'acquisto: €${parseFloat(mac.value).toLocaleString('it-IT')}`;
+                } else {
+                    ownershipText = `Leasing/Noleggio: €${parseFloat(mac.value).toLocaleString('it-IT')}/mese`;
+                }
+
+                grid.innerHTML += `
+                    <div class="card-noir p-4 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center text-sm">
+                                <i class="fas ${iconClass}"></i>
+                            </div>
+                            <div>
+                                <span class="label-micro !text-gray-400">${mac.ownership}</span>
+                                <h4 class="font-black text-xs uppercase tracking-tight text-black mt-0.5">${mac.type}</h4>
+                                <span class="text-[9px] text-gray-500 font-bold block mt-0.5">${ownershipText} (Amm. ${mac.useful_life} anni - ACQ: ${mac.year})</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="openMachineryDrawer(${idx})" class="w-7 h-7 bg-gray-50 text-gray-500 border border-border rounded-lg flex items-center justify-center active:scale-95 transition">
+                                <i class="fas fa-edit text-[10px]"></i>
+                            </button>
+                            <button onclick="deleteMachinery(${idx})" class="w-7 h-7 bg-red-50 text-red-500 border border-red-100 rounded-lg flex items-center justify-center active:scale-95 transition">
+                                <i class="fas fa-trash text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function isPresetType(name) {
+            for (const category of Object.values(attrezzaturePreset)) {
+                if (category.some(item => item.name === name)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function populateComboboxDropdown(query) {
+            const dropdown = document.getElementById('mac-combobox-dropdown');
+            if (!dropdown) return;
+            
+            const q = query.toLowerCase().trim();
+            const currentSelected = document.getElementById('mac-type').value;
+            
+            let html = '';
+            for (const [category, items] of Object.entries(attrezzaturePreset)) {
+                const filteredItems = items.filter(item => item.name.toLowerCase().includes(q));
+                if (filteredItems.length > 0) {
+                    html += `<div class="px-3 py-1.5 text-[8px] font-black text-gray-400 uppercase tracking-widest bg-gray-50/50 border-y border-border/50 sticky top-0 select-none">${category}</div>`;
+                    filteredItems.forEach(item => {
+                        const isSel = (item.name === currentSelected);
+                        html += `
+                            <div class="mac-combobox-option px-4 py-2.5 text-xs font-bold ${isSel ? 'bg-black text-white' : 'text-black hover:bg-black hover:text-white'} cursor-pointer transition-colors" data-value="${item.name}">
+                                ${item.name}
+                            </div>
+                        `;
+                    });
+                }
+            }
+            
+            const isCustomSelected = (currentSelected === 'Altra Attrezzatura (Personalizzata)');
+            html += `
+                <div class="mac-combobox-option px-4 py-2.5 text-xs font-bold ${isCustomSelected ? 'bg-black text-white' : 'text-gray-500 hover:bg-black hover:text-white'} cursor-pointer border-t border-border transition-colors italic" data-value="Altra Attrezzatura (Personalizzata)">
+                    Altra Attrezzatura (Personalizzata)
+                </div>
+            `;
+            
+            dropdown.innerHTML = html;
+        }
+
+        function selectComboboxValue(val) {
+            const hiddenType = document.getElementById('mac-type');
+            const visibleInput = document.getElementById('mac-combobox-input');
+            const dropdown = document.getElementById('mac-combobox-dropdown');
+            
+            if (hiddenType) hiddenType.value = val;
+            if (visibleInput) visibleInput.value = val;
+            if (dropdown) dropdown.classList.add('hidden');
+            
+            handleMacTypeChange(val);
+        }
+
+        function handleComboboxSelectionOnBlur() {
+            const visibleInput = document.getElementById('mac-combobox-input');
+            if (!visibleInput) return;
+            const typedVal = visibleInput.value.trim();
+            if (!typedVal) {
+                selectComboboxValue('Riunito Odontoiatrico (Fascia Media)');
+                return;
+            }
+            
+            let matched = null;
+            for (const categoryItems of Object.values(attrezzaturePreset)) {
+                const match = categoryItems.find(item => item.name.toLowerCase() === typedVal.toLowerCase());
+                if (match) {
+                    matched = match.name;
+                    break;
+                }
+            }
+            
+            if (matched) {
+                selectComboboxValue(matched);
+            } else {
+                selectComboboxValue('Altra Attrezzatura (Personalizzata)');
+                const customInput = document.getElementById('mac-custom-name');
+                if (customInput) {
+                    customInput.value = typedVal;
+                }
+            }
+        }
+
+        // Global listener for click outside combobox dropdown
+        document.addEventListener('click', function(e) {
+            const container = document.getElementById('mac-combobox-container');
+            const dropdown = document.getElementById('mac-combobox-dropdown');
+            if (container && dropdown && !container.contains(e.target)) {
+                if (!dropdown.classList.contains('hidden')) {
+                    dropdown.classList.add('hidden');
+                    handleComboboxSelectionOnBlur();
+                }
+            }
+        });
+
+        // Global listener for Enter key inside combobox input
+        document.addEventListener('keydown', function(e) {
+            if (e.target && e.target.id === 'mac-combobox-input' && e.key === 'Enter') {
+                e.preventDefault();
+                const dropdown = document.getElementById('mac-combobox-dropdown');
+                if (dropdown) dropdown.classList.add('hidden');
+                handleComboboxSelectionOnBlur();
+            }
+        });
+
+        function openMachineryDrawer(idx = null) {
+            activeEditIndex = idx;
+            const isEdit = idx !== null;
+            const data = isEdit ? machinery[idx] : { type: 'Riunito Odontoiatrico (Fascia Media)', year: new Date().getFullYear(), ownership: 'Proprietà', value: 18500, useful_life: 10 };
+            
+            const isPreset = isPresetType(data.type);
+            const isCustom = data.type && !isPreset && data.type !== 'Altra Attrezzatura (Personalizzata)';
+            
+            const container = document.getElementById('drawer-container');
+            container.innerHTML = `
+                <div class="flex justify-between items-center pb-2 border-b border-border">
+                    <h3 class="text-xs font-black uppercase tracking-tight text-black">${isEdit ? 'Modifica' : 'Aggiungi'} Attrezzatura</h3>
+                    <button onclick="closeDrawer()" class="text-gray-400"><i class="fas fa-times-circle text-lg"></i></button>
+                </div>
+                
+                <div class="space-y-3">
+                    <!-- UNIFIED SEARCHABLE COMBOBOX COMPONENT -->
+                    <div class="space-y-1 relative" id="mac-combobox-container">
+                        <label class="label-micro">Seleziona Attrezzatura</label>
+                        <div class="relative">
+                            <input type="text" id="mac-combobox-input" autocomplete="off" placeholder="Seleziona o digita per cercare..." class="w-full bg-gray-50 border border-border rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition cursor-pointer pr-10">
+                            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                        <!-- Floating Dropdown list -->
+                        <div id="mac-combobox-dropdown" class="absolute left-0 right-0 bottom-full mb-1 max-h-60 overflow-y-auto bg-white border border-border rounded-xl shadow-lg z-50 hidden">
+                            <!-- Populated dynamically -->
+                        </div>
+                        <!-- Hidden input to keep compatibility with existing JS -->
+                        <input type="hidden" id="mac-type" value="${isCustom ? 'Altra Attrezzatura (Personalizzata)' : data.type}">
+                    </div>
+
+                    <!-- NOME PERSONALIZZATO -->
+                    <div id="mac-custom-name-wrapper" class="space-y-1 ${isCustom ? '' : 'hidden'}">
+                        <label class="label-micro">Nome Attrezzatura Personalizzata</label>
+                        <input type="text" id="mac-custom-name" value="${isCustom ? data.type : ''}" placeholder="Es: Turbina speciale" class="w-full bg-gray-50 border border-border rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="label-micro">Anno Acquisto</label>
+                            <input type="number" id="mac-year" value="${data.year}" placeholder="Es: 2024" class="w-full bg-gray-50 border border-border rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="label-micro">Possesso</label>
+                            <select id="mac-ownership" onchange="handleMacOwnershipChange(this.value, false)" class="w-full bg-gray-50 border border-border rounded-xl px-3 py-2 text-xs font-bold focus:border-black outline-none transition appearance-none">
+                                <option value="Proprietà" ${data.ownership === 'Proprietà' ? 'selected' : ''}>Proprietà</option>
+                                <option value="Leasing/Noleggio" ${data.ownership === 'Leasing/Noleggio' ? 'selected' : ''}>Leasing / Noleggio</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="label-micro" id="mac-value-label">${data.ownership === 'Proprietà' ? 'Valore d\'acquisto (€)' : 'Canone Mensile (€)'}</label>
+                            <input type="number" id="mac-value" value="${data.value}" placeholder="Es: 18500" class="w-full bg-gray-50 border border-border rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="label-micro">Vita Utile (Anni)</label>
+                            <input type="number" id="mac-useful-life" value="${data.useful_life}" placeholder="Es: 10" class="w-full bg-gray-50 border border-border rounded-xl px-3 py-2.5 text-xs font-bold focus:border-black outline-none transition">
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="saveMachineryFromDrawer()" class="w-full py-3 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition">
+                    ${isEdit ? 'Aggiorna' : 'Aggiungi'} Attrezzatura
+                </button>
+            `;
+            
+            const comboboxInput = document.getElementById('mac-combobox-input');
+            if (comboboxInput) {
+                comboboxInput.value = isCustom ? 'Altra Attrezzatura (Personalizzata)' : data.type;
+                
+                comboboxInput.addEventListener('focus', function() {
+                    populateComboboxDropdown('');
+                    document.getElementById('mac-combobox-dropdown').classList.remove('hidden');
+                });
+                
+                comboboxInput.addEventListener('click', function() {
+                    populateComboboxDropdown(this.value);
+                    document.getElementById('mac-combobox-dropdown').classList.remove('hidden');
+                });
+                
+                comboboxInput.addEventListener('input', function() {
+                    populateComboboxDropdown(this.value);
+                    document.getElementById('mac-combobox-dropdown').classList.remove('hidden');
+                });
+            }
+
+            const dropdownEl = document.getElementById('mac-combobox-dropdown');
+            if (dropdownEl) {
+                dropdownEl.addEventListener('click', function(e) {
+                    const option = e.target.closest('.mac-combobox-option');
+                    if (option) {
+                        const val = option.getAttribute('data-value');
+                        selectComboboxValue(val);
+                    }
+                });
+            }
+
+            handleMacOwnershipChange(data.ownership, true);
+            openDrawer();
+        }
+
+        function handleMacTypeChange(selectedVal) {
+            const customWrapper = document.getElementById('mac-custom-name-wrapper');
+            const customInput = document.getElementById('mac-custom-name');
+            const valueInput = document.getElementById('mac-value');
+            const lifeInput = document.getElementById('mac-useful-life');
+            
+            if (selectedVal === 'Altra Attrezzatura (Personalizzata)') {
+                customWrapper.classList.remove('hidden');
+                if (customInput) customInput.value = '';
+                if (valueInput) valueInput.value = 0;
+                if (lifeInput) lifeInput.value = 0;
+            } else {
+                customWrapper.classList.add('hidden');
+                let foundItem = null;
+                for (const category of Object.values(attrezzaturePreset)) {
+                    const match = category.find(item => item.name === selectedVal);
+                    if (match) {
+                        foundItem = match;
+                        break;
+                    }
+                }
+                if (foundItem) {
+                    if (valueInput) valueInput.value = foundItem.defaultPrice;
+                    if (lifeInput) lifeInput.value = foundItem.usefulLife;
+                }
+            }
+            
+            const ownershipSelect = document.getElementById('mac-ownership');
+            if (ownershipSelect && ownershipSelect.value === 'Leasing/Noleggio') {
+                handleMacOwnershipChange(ownershipSelect.value, false);
+            }
+        }
+
+        function handleMacOwnershipChange(ownershipVal, isInit = false) {
+            const label = document.getElementById('mac-value-label');
+            const valueInput = document.getElementById('mac-value');
+            const typeSelect = document.getElementById('mac-type');
+            
+            if (ownershipVal === 'Proprietà') {
+                if (label) label.innerText = "Valore d'acquisto (€)";
+                if (!isInit) {
+                    let restoredVal = 0;
+                    if (typeSelect && typeSelect.value !== 'Altra Attrezzatura (Personalizzata)') {
+                        for (const category of Object.values(attrezzaturePreset)) {
+                            const match = category.find(item => item.name === typeSelect.value);
+                            if (match) {
+                                restoredVal = match.defaultPrice;
+                                break;
+                            }
+                        }
+                    } else {
+                        // For custom, reverse calculate purchase price from lease rate
+                        const rentVal = parseFloat(valueInput.value) || 0;
+                        restoredVal = Math.round(rentVal / 0.015);
+                    }
+                    if (valueInput) valueInput.value = restoredVal;
+                }
+            } else {
+                if (label) label.innerText = "Canone Mensile (€)";
+                if (!isInit) {
+                    let purchaseVal = parseFloat(valueInput.value) || 0;
+                    if (purchaseVal === 0 && typeSelect && typeSelect.value !== 'Altra Attrezzatura (Personalizzata)') {
+                        for (const category of Object.values(attrezzaturePreset)) {
+                            const match = category.find(item => item.name === typeSelect.value);
+                            if (match) {
+                                purchaseVal = match.defaultPrice;
+                                break;
+                            }
+                        }
+                    }
+                    const estimatedRent = purchaseVal * 0.015;
+                    if (valueInput) valueInput.value = estimatedRent.toFixed(2);
+                }
+            }
+        }
+
+        function saveMachineryFromDrawer() {
+            const selectEl = document.getElementById('mac-type');
+            let type = selectEl.value;
+            if (type === 'Altra Attrezzatura (Personalizzata)') {
+                type = document.getElementById('mac-custom-name').value.trim();
+                if (!type) { tg.showAlert("Fornisci un nome per l'attrezzatura personalizzata."); return; }
+            }
+            
+            const year = parseInt(document.getElementById('mac-year').value) || new Date().getFullYear();
+            const ownership = document.getElementById('mac-ownership').value;
+            const value = parseFloat(document.getElementById('mac-value').value) || 0;
+            const useful_life = parseInt(document.getElementById('mac-useful-life').value) || 8;
+
+            if (value <= 0) { tg.showAlert("Fornisci un importo economico valido."); return; }
+
+            const macData = {
+                type: type,
+                year: year,
+                ownership: ownership,
+                value: value,
+                useful_life: useful_life
+            };
+
+            if (activeEditIndex !== null) {
+                machinery[activeEditIndex] = macData;
+            } else {
+                machinery.push(macData);
+            }
+
+            closeDrawer();
+            renderMachinery();
+        }
+
+        function deleteMachinery(idx) {
+            tg.showConfirm("Sicuro di voler rimuovere questa attrezzatura?", (ok) => {
+                if (ok) {
+                    machinery.splice(idx, 1);
+                    renderMachinery();
+                }
+            });
+        }
+
+        // STEP 3: FINANCIALS / SCOMPOSIZIONE
+        function changeTenantType(val) {
+            tenantType = val;
+            refreshStep3UI();
+        }
+
+        function changeRegime(val) {
+            taxRegime = val;
+            isForfettario = (val === 'Forfettario');
+            refreshStep3UI();
+        }
+
+        function toggleForfettarioChange(checked) {
+            isForfettario = checked;
+            taxRegime = checked ? 'Forfettario' : 'Ordinario';
+            const regimeSelect = document.getElementById('regime-select');
+            if (regimeSelect) regimeSelect.value = taxRegime;
+            if (checked) {
+                isManualInsertionActive = false;
+            }
+            refreshStep3UI();
+        }
+
+        function triggerFileSelect() {
+            document.getElementById('file-input').click();
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            uploadedFileName = file.name;
+            uploadedFileMimeType = file.type || "";
+            const fileSizeMB = (file.size / 1024 / 1024).toFixed(2);
+            
+            const statusText = document.getElementById('upload-status-text');
+            if (statusText) {
+                statusText.innerText = `Documento caricato: ${file.name} (${fileSizeMB} MB).`;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                uploadedFileData = evt.target.result.split(',')[1];
+                enableDecompositionButton(true);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function enableDecompositionButton(active) {
+            const btn = document.getElementById('btn-genera-scomposizione');
+            if (!btn) return;
+            if (active) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function enableSaveConfigurationButton(active) {
+            const btn = document.getElementById('btn-completa');
+            if (!btn) return;
+            if (active) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function enableManualInsertion() {
+            isManualInsertionActive = true;
+            refreshStep3UI();
+        }
+
+        function checkManualFieldsFilled() {
+            if (!isManualInsertionActive) {
+                enableSaveConfigurationButton(true);
+                return true;
+            }
+            
+            // A. I 17 Conti Universali (Sempre Obbligatori)
+            const requiredCodes = [
+                "631.01000", "631.01001", "631.01005", "612.00001", "631.00011",
+                "631.00017", "606.00007", "621.00031", "621.00001", "632.00005",
+                "632.00001", "601.00001", "601.00004", "631.00016", "631.00103",
+                "626.00201", "626.00202"
+            ];
+
+            // B. Conti Condizionali
+            
+            // 1. Canone di Locazione
+            const hasOwnedProperty = machinery.some(mac => {
+                const typeLower = (mac.type || '').toLowerCase();
+                const isOwned = mac.ownership === 'Proprietà';
+                const isProperty = typeLower.includes('immobile') || 
+                                   typeLower.includes('fabbricato') || 
+                                   typeLower.includes('studio di proprietà') || 
+                                   typeLower.includes('locale') || 
+                                   typeLower.includes('mura');
+                return isOwned && isProperty;
+            });
+            if (!hasOwnedProperty) {
+                requiredCodes.push("606.00001", "606.00010");
+            }
+
+            // 2. Personale Dipendente
+            const hasCCNLStaff = operators.some(op => op.contract === 'Dipendente (CCNL)' || op.contract === 'Dipendente');
+            const isSocieta = profileType !== 'professionista';
+            if (isSocieta || hasCCNLStaff) {
+                requiredCodes.push("610.00001", "610.00021", "610.00031", "610.01001");
+            }
+
+            // 3. Collaboratori Medici Esterni
+            const hasPIvaClinico = operators.some(op => {
+                const r = (op.role || '').toLowerCase();
+                const isClinico = r.includes('odontoiatra') || r.includes('igienista') || r.includes('anestesista');
+                const isPIva = op.contract === 'Partita IVA' || op.contract === 'P.IVA';
+                return isClinico && isPIva;
+            });
+            if (hasPIvaClinico) {
+                requiredCodes.push("612.00005");
+            }
+
+            // 4. Attrezzature in Leasing
+            const currentYear = new Date().getFullYear();
+            const hasLeasingLast4Years = machinery.some(mac => {
+                const isLeasing = mac.ownership === 'Leasing/Noleggio' || mac.ownership === 'Leasing' || mac.ownership === 'Noleggio';
+                const isRecent = (currentYear - (parseInt(mac.year) || currentYear)) <= 4;
+                return isLeasing && isRecent;
+            });
+            if (hasLeasingLast4Years) {
+                requiredCodes.push("605.00001", "605.00061");
+            }
+
+            // 5. Autovettura Aziendale
+            const hasAuto = machinery.some(mac => {
+                const name = (mac.type || '').toLowerCase();
+                return name.includes('auto') || name.includes('veicolo') || name.includes('furgone') || name.includes('macchina') || name.includes('vettura');
+            });
+            if (hasAuto) {
+                requiredCodes.push("601.00008", "631.00101", "631.00121", "621.00005");
+            }
+
+            // Verifica dei valori dei campi selezionati come obbligatori
+            let allFilled = true;
+            requiredCodes.forEach(code => {
+                const el = document.getElementById(code);
+                if (el) {
+                    const val = parseFloat(el.value) || 0;
+                    if (val <= 0) {
+                        allFilled = false;
+                    }
+                } else {
+                    allFilled = false;
+                }
+            });
+
+            enableSaveConfigurationButton(allFilled);
+            return allFilled;
+        }
+
+        function getStaffEquipmentSnapshot() {
+            const opHash = operators.map(op => `${op.id}-${op.role}-${op.salary}-${op.hours}-${op.rate}`).join('|');
+            const macHash = machinery.map(mac => `${mac.type}-${mac.value}-${mac.ownership}`).join('|');
+            return `${opHash}#${macHash}`;
+        }
+
+        function refreshStep3UI() {
+            // Re-sync tenantType and taxRegime for legacy compatibility
+            if (profileType === 'professionista') {
+                tenantType = 'Libero Professionista';
+                taxRegime = isForfettario ? 'Forfettario' : 'Ordinario';
+            } else {
+                tenantType = 'Società';
+                taxRegime = 'Ordinario';
+            }
+
+            const tenantSelect = document.getElementById('tenant-type-select');
+            if (tenantSelect) tenantSelect.value = tenantType;
+            const regimeSelect = document.getElementById('regime-select');
+            if (regimeSelect) regimeSelect.value = taxRegime;
+
+            const boxUploadCEE = document.getElementById('box-upload-cee');
+            const boxUploadProfessionista = document.getElementById('box-upload-professionista');
+            const boxForfettario = document.getElementById('box-forfettario');
+            const chkForfettario = document.getElementById('chk-forfettario');
+            const btnScomposizione = document.getElementById('btn-genera-scomposizione');
+            const btnCompleta = document.getElementById('btn-completa');
+            const statusText = document.getElementById('upload-status-text');
+            const financialsMessage = document.getElementById('financials-detected-message');
+            const financialsGrid = document.getElementById('financials-grid-container');
+            const manualLinkBox = document.getElementById('box-manual-insertion-link');
+            const warningEl = document.getElementById('financials-stale-warning');
+            const btnRicalcola = document.getElementById('btn-ricalcola');
+
+            // Hide/reset elements initially
+            if (boxUploadCEE) boxUploadCEE.classList.add('hidden');
+            if (boxUploadProfessionista) boxUploadProfessionista.classList.add('hidden');
+            if (boxForfettario) boxForfettario.classList.add('hidden');
+            if (financialsMessage) financialsMessage.classList.add('hidden');
+            if (financialsGrid) financialsGrid.classList.add('hidden');
+            if (manualLinkBox) manualLinkBox.classList.remove('hidden');
+            if (warningEl) warningEl.classList.add('hidden');
+            if (btnRicalcola) btnRicalcola.classList.add('hidden');
+
+            // Reset buttons
+            if (btnScomposizione) {
+                btnScomposizione.classList.add('hidden');
+                btnScomposizione.disabled = true;
+                btnScomposizione.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+            if (btnCompleta) {
+                btnCompleta.classList.add('hidden');
+                btnCompleta.disabled = false;
+                btnCompleta.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+            // Check if we have pre-loaded/active financials (advanced_setup === true)
+            if (hasFinancials) {
+                if (financialsGrid) financialsGrid.classList.remove('hidden');
+                if (manualLinkBox) manualLinkBox.classList.add('hidden');
+                if (btnCompleta) {
+                    btnCompleta.classList.remove('hidden');
+                    btnCompleta.disabled = false;
+                    btnCompleta.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                
+                // Show Ricalcola button since grid is visible and it is not Forfettario
+                if (btnRicalcola && !isForfettario) {
+                    btnRicalcola.classList.remove('hidden');
+                }
+                
+                // Show warning banner if staff/equipment changed
+                if (warningEl && !isForfettario && financialsSnapshot) {
+                    const currentSnapshot = getStaffEquipmentSnapshot();
+                    if (financialsSnapshot !== currentSnapshot) {
+                        warningEl.classList.remove('hidden');
+                    }
+                }
+
+                if (statusText) statusText.innerText = "Configurazione di bilancio caricata. Modifica i valori o premi Salva Configurazione.";
+                return;
+            }
+
+            // Manual insertion override state
+            if (isManualInsertionActive) {
+                if (financialsGrid) financialsGrid.classList.remove('hidden');
+                if (manualLinkBox) manualLinkBox.classList.add('hidden');
+                if (btnCompleta) {
+                    btnCompleta.classList.remove('hidden');
+                }
+                if (statusText) statusText.innerText = "Inserimento manuale attivo. Compila tutti i campi con valori maggiori di 0.";
+                checkManualFieldsFilled();
+                return;
+            }
+
+            if (profileType === "professionista") {
+                if (boxForfettario) boxForfettario.classList.remove('hidden');
+                
+                if (chkForfettario) {
+                    chkForfettario.checked = isForfettario;
+                }
+
+                if (isForfettario) {
+                    // Scenario A1: Forfettario checked
+                    if (manualLinkBox) manualLinkBox.classList.add('hidden');
+                    if (btnCompleta) {
+                        btnCompleta.classList.remove('hidden');
+                        btnCompleta.disabled = false;
+                        btnCompleta.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                    if (statusText) statusText.innerText = "Regime Forfettario attivo. Pronto per completare.";
+                } else {
+                    // Scenario A2: Forfettario unchecked
+                    if (boxUploadProfessionista) boxUploadProfessionista.classList.remove('hidden');
+                    const uploadProfTitle = document.getElementById('upload-prof-title');
+                    if (uploadProfTitle) uploadProfTitle.innerText = "Carica Modello Redditi (Quadro RE)";
+                    
+                    if (btnScomposizione) btnScomposizione.classList.remove('hidden');
+
+                    if (uploadedFileData) {
+                        enableDecompositionButton(true);
+                        if (statusText) statusText.innerText = `Documento pronto: ${uploadedFileName || 'selezionato'}.`;
+                    } else {
+                        enableDecompositionButton(false);
+                        if (statusText) statusText.innerText = "Carica il Quadro RE/LM o il Modello Redditi";
+                    }
+                }
+
+            } else if (profileType === "societa_capitali") {
+                if (boxUploadCEE) boxUploadCEE.classList.remove('hidden');
+                if (btnScomposizione) btnScomposizione.classList.remove('hidden');
+
+                if (apiBalance) {
+                    enableDecompositionButton(true);
+                    if (financialsMessage) financialsMessage.classList.remove('hidden');
+                    if (boxUploadCEE) boxUploadCEE.classList.add('hidden');
+                    if (statusText) statusText.innerText = "Bilancio ufficiale rilevato automaticamente da Registro Imprese. Pronto.";
+                } else {
+                    if (uploadedFileData) {
+                        enableDecompositionButton(true);
+                        if (statusText) statusText.innerText = `Documento pronto: ${uploadedFileName || 'selezionato'}.`;
+                    } else {
+                        enableDecompositionButton(false);
+                        if (statusText) statusText.innerText = "Seleziona o trascina il PDF del Bilancio CEE";
+                    }
+                }
+
+            } else if (profileType === "societa_persone") {
+                if (boxUploadProfessionista) boxUploadProfessionista.classList.remove('hidden');
+                if (btnScomposizione) btnScomposizione.classList.remove('hidden');
+                
+                const uploadProfTitle = document.getElementById('upload-prof-title');
+                if (uploadProfTitle) uploadProfTitle.innerText = "Carica Bilancio Interno o Modello Redditi SP";
+
+                if (apiBalance) {
+                    enableDecompositionButton(true);
+                    if (financialsMessage) financialsMessage.classList.remove('hidden');
+                    if (boxUploadProfessionista) boxUploadProfessionista.classList.add('hidden');
+                    if (statusText) statusText.innerText = "Bilancio ufficiale rilevato automaticamente. Pronto.";
+                } else {
+                    if (uploadedFileData) {
+                        enableDecompositionButton(true);
+                        if (statusText) statusText.innerText = `Documento pronto: ${uploadedFileName || 'selezionato'}.`;
+                    } else {
+                        enableDecompositionButton(false);
+                        if (statusText) statusText.innerText = "Inserisci il Bilancio Interno o il Modello Redditi SP per procedere";
+                    }
+                }
+            }
+        }
+
+        async function executeDecompositionOrFinish() {
+            showLoader("Analisi", "Scomposizione finanziaria del bilancio con IA in corso...");
+            try {
+                const currentSnapshot = getStaffEquipmentSnapshot();
+                const payload = {
+                    _auth: tg.initData,
+                    ash: ash,
+                    action: "execute_financial_decomposition",
+                    operators: serializeOperatorsForSave(),
+                    machinery: machinery,
+                    api_balance: apiBalance,
+                    profile_type: profileType,
+                    isForfettario: isForfettario,
+                    financials_snapshot: currentSnapshot,
+                    advanced_setup: true
+                };
+                if (uploadedFileData) {
+                    payload.uploaded_file_data = uploadedFileData;
+                }
+                if (uploadedFileMimeType) {
+                    payload.uploaded_file_mimetype = uploadedFileMimeType;
+                }
+
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error("Errore chiamata server");
+                
+                const result = await response.json();
+                
+                if (isForfettario) {
+                    if (result && result.financials) {
+                        populateFinancialsGrid(result.financials);
+                    }
+                    await saveAndFinish();
+                    return;
+                }
+
+                if (result && result.financials) {
+                    populateFinancialsGrid(result.financials, false);
+                    financialsSnapshot = currentSnapshot;
+                    hasFinancials = true;
+                    isManualInsertionActive = false;
+                    refreshStep3UI();
+                } else {
+                    tg.showAlert("Errore: la scomposizione non ha prodotto dati finanziari validi.");
+                }
+            } catch (err) {
+                console.error("Scomposizione fallita:", err);
+                tg.showAlert("Errore durante l'elaborazione del bilancio.");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // INITIALIZE AND POPULATE ACCOUNTS GRID
+        function initFinancialsInputsHTML() {
+            const populateGroup = (groupKey, targetDivId) => {
+                const container = document.getElementById(targetDivId);
+                container.innerHTML = '';
+                
+                financialsMapping[groupKey].forEach(item => {
+                    container.innerHTML += `
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-baseline">
+                                <label class="text-[10px] font-black uppercase text-gray-700 tracking-wider">${item.label}</label>
+                            </div>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-xs font-bold text-gray-400">€</span>
+                                <input type="number" id="${item.code}" name="${item.code}" value="0" min="0" step="0.01" oninput="updateFinancialsTotal()" class="pl-7 pr-3 py-2.5 bg-gray-50 border border-border rounded-xl text-xs font-black text-black w-full focus:bg-white focus:border-black transition-all">
+                            </div>
+                            <span class="text-[8px] text-gray-400 font-bold block mt-0.5 leading-tight">${item.help}</span>
+                        </div>
+                    `;
+                });
+            };
+
+            populateGroup('a', 'group-a');
+            populateGroup('b', 'group-b');
+            populateGroup('c', 'group-c');
+            populateGroup('d', 'group-d');
+        }
+
+        function populateFinancialsGrid(financialsData, updateSnapshot = true) {
+            financials = financialsData;
+            Object.keys(financialsData).forEach(code => {
+                const el = document.getElementById(code);
+                if (el) {
+                    el.value = financialsData[code];
+                }
+            });
+            updateFinancialsTotal();
+            if (updateSnapshot) {
+                financialsSnapshot = getStaffEquipmentSnapshot();
+            }
+        }
+
+        function updateFinancialsTotal() {
+            let total = 0;
+            const codes = [...financialsMapping.a, ...financialsMapping.b, ...financialsMapping.c, ...financialsMapping.d].map(i => i.code);
+            
+            codes.forEach(code => {
+                const el = document.getElementById(code);
+                if (el) {
+                    const val = parseFloat(el.value) || 0;
+                    total += val;
+                    financials[code] = val;
+                }
+            });
+
+            document.getElementById('financials-total-val').innerText = "€ " + total.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            checkManualFieldsFilled();
+        }
+
+        // ACCORDION GESTION
+        function toggleAccordion(id) {
+            const content = document.getElementById(id);
+            const arrow = document.getElementById(`arrow-${id}`);
+            
+            if (content.classList.contains('hidden') || content.style.maxHeight === '0px' || !content.style.maxHeight || content.style.maxHeight === '0') {
+                // Open
+                content.classList.remove('hidden');
+                content.style.maxHeight = content.scrollHeight + 'px';
+                arrow.classList.add('rotate-180');
+                
+                // Allow dynamic changes by setting max-height to none after transition
+                setTimeout(() => {
+                    if (content.style.maxHeight !== '0px') {
+                        content.style.maxHeight = 'none';
+                    }
+                }, 300);
+            } else {
+                // Close
+                content.style.maxHeight = content.scrollHeight + 'px';
+                content.offsetHeight; // force reflow
+                
+                setTimeout(() => {
+                    content.style.maxHeight = '0px';
+                    arrow.classList.remove('rotate-180');
+                }, 10);
+
+                // Add hidden class back after transition finishes to maintain DOM cleanliness
+                setTimeout(() => {
+                    if (content.style.maxHeight === '0px') {
+                        content.classList.add('hidden');
+                    }
+                }, 310);
+            }
+        }
+
+        // SAVE & FINISH ACTIONS
+        async function executeSaveConfiguration() {
+            showLoader("Salvataggio", "Salvataggio configurazione in corso...");
+            try {
+                if (isManualInsertionActive) {
+                    updateFinancialsTotal();
+                }
+
+                const currentSnapshot = getStaffEquipmentSnapshot();
+                const payload = {
+                    _auth: tg.initData,
+                    ash: ash,
+                    action: "execute_financial_decomposition",
+                    operators: serializeOperatorsForSave(),
+                    machinery: machinery,
+                    api_balance: apiBalance,
+                    profile_type: profileType,
+                    isForfettario: isForfettario,
+                    financials: isForfettario ? { isForfettario: true } : financials,
+                    financials_snapshot: currentSnapshot,
+                    advanced_setup: true
+                };
+                if (uploadedFileData) {
+                    payload.uploaded_file_data = uploadedFileData;
+                }
+                if (uploadedFileMimeType) {
+                    payload.uploaded_file_mimetype = uploadedFileMimeType;
+                }
+
+                // Call execute_financial_decomposition webhook
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error("Errore chiamata server");
+                
+                financialsSnapshot = currentSnapshot;
+                await saveAndFinish();
+            } catch (err) {
+                console.error("Salvataggio fallito:", err);
+                tg.showAlert("Errore durante il salvataggio della configurazione.");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        async function saveAndFinish() {
+            updateFinancialsTotal();
+            showLoader("Salvataggio", "Salvataggio e chiusura della sessione in corso...");
+            
+            try {
+                const currentSnapshot = getStaffEquipmentSnapshot();
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        _auth: tg.initData,
+                        ash: ash,
+                        action: "save_dental_setup",
+                        current_step: 3,
+                        tenant_type: tenantType,
+                        tax_regime: taxRegime,
+                        isForfettario: isForfettario,
+                        profile_type: profileType,
+                        advanced_setup: true,
+                        operators: serializeOperatorsForSave(),
+                        machinery: machinery,
+                        number_of_chairs: numberOfChairs,
+                        financials: isForfettario ? { isForfettario: true } : financials,
+                        financials_snapshot: currentSnapshot
+                    })
+                });
+
+                if (!response.ok) throw new Error("Errore nel salvataggio");
+
+                financialsSnapshot = currentSnapshot;
+                tg.showAlert("Configurazione salvata con successo!", () => {
+                    // Navigate back to hub
+                    location.href = `../dashboard/dashboard.html?ash=${ash}&msg=${msg || ''}&menu=identity_hub`;
+                });
+            } catch (err) {
+                console.error("Salvataggio finale fallito:", err);
+                tg.showAlert("Errore durante il salvataggio della configurazione.");
+            } finally {
+                hideLoader();
+            }
+        }
+    </script>
+</body>
+</html>

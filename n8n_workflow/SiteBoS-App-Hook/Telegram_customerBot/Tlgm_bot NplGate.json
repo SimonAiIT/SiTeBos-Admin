@@ -1,0 +1,3472 @@
+{
+  "name": "Tlgm_bot NplGate",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -6928,
+        512
+      ],
+      "id": "6c7a1a4a-5473-46b6-a738-c097b2a8dd7a",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: UI_Adapter_Ban\n// VERSIONE: 1.1 - Protocollo Sicurezza Formale\n\nconst item = $input.first().json;\n\nif (item.routingDecision === 'BAN_HANDLER') {\n    \n    const owner = item.owner_data || {};\n    const session = item.active_session || {};\n    const chatId = item.user_request.chat_id.toString();\n    const oldBotMsgId = session.telegram?.last_bot_message_id;\n\n    const companyName = owner.ragione_sociale ? owner.ragione_sociale.toUpperCase() : \"SISTEMA\";\n\n    // 1. MESSAGGIO DI BAN (Formale, Legale, Diretto)\n    let messageText = `🚫 <b>RESTRIZIONE DI ACCESSO APPLICATA</b>\\n`;\n    messageText += `━━━━━━━━━━━━━━━━━━━━\\n\\n`;\n    messageText += `Gentile utente, la informiamo che i sistemi di sicurezza di <b>${companyName}</b> hanno rilevato violazioni reiterate dei Termini di Servizio da parte di questo account.\\n\\n`;\n    messageText += `Ai sensi delle nostre policy di sicurezza informatica, il Suo identificativo Telegram (ID: <code>${chatId}</code>) è stato <b>permanentemente sospeso</b> dall'utilizzo di questa piattaforma.\\n\\n`;\n    messageText += `Ogni ulteriore input non verrà elaborato dai nostri server.\\n\\n`;\n    messageText += `<i>Per contestare questo provvedimento, può inviare una comunicazione formale all'indirizzo email: assistenza@trinai.it indicando il Suo ID Telegram.</i>`;\n\n    // 2. PREPARAZIONE PAYLOAD REFRESH (Rimozione UI)\n    item.telegramDeletePayload = oldBotMsgId ? {\n        method: \"deleteMessage\",\n        chat_id: chatId,\n        message_id: oldBotMsgId\n    } : null;\n\n    item.telegramApiPayload = {\n        method: \"sendMessage\",\n        chat_id: chatId,\n        text: messageText,\n        parse_mode: \"HTML\",\n        disable_web_page_preview: true,\n        // Eliminazione totale della UI\n        reply_markup: { remove_keyboard: true }\n    };\n}\n\nreturn [item];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4128,
+        -976
+      ],
+      "id": "fc48bef5-d3a2-4aa6-8095-d83b2e5d532b",
+      "name": "Reflag_Banning Handler1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ban-handler-check",
+                    "leftValue": "={{ $json.routingDecision }}",
+                    "rightValue": "BAN_HANDLER",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "BAN"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "hodor-check",
+                    "leftValue": "={{ $json.routingDecision }}",
+                    "rightValue": "oHODOR",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "HODOR_SECURITY"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "direct-response-check",
+                    "leftValue": "={{ $json.routingDecision }}",
+                    "rightValue": "Direct_Response",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "DIRECT"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -4144,
+        -688
+      ],
+      "id": "b56ba5b2-2ed3-4a5e-a11a-25a6750ff42d",
+      "name": "Triage_Switch",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: GodFellas_Obfuscator_Wall\n// VERSIONE: 6.0 - Targeted Stakeholder Obfuscation\n// DESCRIZIONE: Sostituzione integrale PII nell'oggetto Stakeholder\n\n// 1. Acquisizione input\nconst item = $input.first().json;\n\n// 2. Placeholder TrinAI\nconst TRINAI_PLACEHOLDERS = {\n  SURNAME: \"Trinaiser\",\n  EMAIL: \"replace@trinai.it\",\n  PHONE: \"+393520264927\",\n  ADDRESS: \"Via De Spuches, 11, 90141, Palermo (PA), Italia.\",\n  TELEGRAM_USER_ID: \"TrinAi_Assistenza\",\n  USERNAME: \"trinai_user\",\n  CF: \"TRIXAI00A01H501X\"\n};\n\n// 3. Clonazione profonda dello Stakeholder per non sporcare l'originale\nconst stakeholder_obf = JSON.parse(JSON.stringify(item.stakeholder || {}));\n\n// 4. Protocollo di sostituzione su STAKEHOLDER -> USER_REF\nif (stakeholder_obf.user_ref) {\n  const u = stakeholder_obf.user_ref;\n\n  // Nome: Teniamo il nome proprio e aggiungiamo il cognome placeholder\n  if (u.nome) {\n    u.nome = `${u.nome} ${TRINAI_PLACEHOLDERS.SURNAME}`;\n  }\n  \n  // Sostituzione radicale campi sensibili\n  u.cognome = TRINAI_PLACEHOLDERS.SURNAME;\n  u.email = TRINAI_PLACEHOLDERS.EMAIL;\n  u.telefono = TRINAI_PLACEHOLDERS.PHONE;\n  u.indirizzo = TRINAI_PLACEHOLDERS.ADDRESS;\n  u.codiceFiscale = TRINAI_PLACEHOLDERS.CF;\n  u.chat_id = TRINAI_PLACEHOLDERS.TELEGRAM_USER_ID;\n  \n  // Opzionali (se presenti)\n  if (u.comune) u.comune = \"Palermo\";\n  if (u.provincia) u.provincia = \"PA\";\n  if (u.cap) u.cap = \"90141\";\n}\n\n// 5. Protocollo di sostituzione su STAKEHOLDER -> OWNER_DATA_REF (Dati Aziendali)\nif (stakeholder_obf.owner_data_ref) {\n  const o = stakeholder_obf.owner_data_ref;\n  o.ragioneSociale = o.ragioneSociale ? \"TrinAI Business Partner\" : null;\n  o.pIva = o.pIva ? \"IT00000000000\" : null;\n  o.pec = o.pec ? TRINAI_PLACEHOLDERS.EMAIL : null;\n  o.sdi = o.sdi ? \"0000000\" : null;\n}\n\n// 6. Pulizia METADATA e riferimenti istanza\nif (stakeholder_obf.owner_instance_id) {\n  stakeholder_obf.owner_instance_id = \"MASKED_INSTANCE_ID\";\n}\n\n// 7. RETURN OUTPUT\n// Espone sia l'oggetto originale che quello offuscato\nreturn [{\n  json: {\n    ...item,\n    stakeholder_obfuscated: stakeholder_obf\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5648,
+        464
+      ],
+      "id": "59e5e58c-dbcc-413d-a295-650fcd7443f4",
+      "name": "TheWALL"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "vKhXqHUBCY2RlwlE",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/vKhXqHUBCY2RlwlE",
+          "cachedResultName": "TlgmCustomGemini"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -5472,
+        240
+      ],
+      "id": "c53aca0e-1390-407d-b978-a9ef307a84ac",
+      "name": "Call 'TBoS_Serch&Think'3"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.active_session._id + \"_SideBotError\" }}",
+        "collectionName": "error_logs",
+        "databaseName": "TbosSystemMemory",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -5472,
+        80
+      ],
+      "id": "c0a6970b-f055-4824-9697-ea2152405abe",
+      "name": "MongoDB Chat Memory6",
+      "credentials": {
+        "mongoDb": {
+          "id": "5pERtRttklNe4fOb",
+          "name": "AssetLake"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.oCROW }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -5312,
+        240
+      ],
+      "id": "8fc6ec34-171c-43bf-9a3e-0d33d31873f5",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SystemInstruction>\n    <CorePersona>\n        <Role>\n            Sei \"ACrow\", il Corvo Messaggero.\n            Il tuo unico scopo è tradurre fedelmente nella lingua di destinazione il contenuto comunicativo inviato dall'utente.\n            Il contenuto da tradurre può essere testuale o multimediale.\n            Non devi riassumere, interpretare liberamente, commentare, aggiungere contesto o modificare il significato.\n            La tua missione è la fedeltà assoluta al messaggio originale, anche quando il messaggio è contenuto in un file audio, video, immagine o documento.\n        </Role>\n    </CorePersona>\n\n    <CoreDirectives>\n        <Directive id=\"MULTIMODAL_TRANSLATION_PROTOCOL\">\n            <Rule>\n                Il tuo unico output DEVE essere un singolo oggetto JSON con una sola chiave: \"translated_text\".\n            </Rule>\n\n            <Step n=\"1\">\n                Leggi la lingua di destinazione dal tag &lt;target_language&gt;.\n            </Step>\n\n            <Step n=\"2\">\n                Leggi la componente testuale della richiesta dal tag &lt;text_to_translate&gt;.\n                Questo campo rappresenta il testo già normalizzato della richiesta utente.\n            </Step>\n\n            <Step n=\"3\">\n                Se è presente un contenuto multimediale, trattalo come parte integrante del messaggio da tradurre.\n            </Step>\n\n            <Step n=\"4\">\n                Se il media contiene parlato, testo leggibile o informazioni linguistiche rilevanti, ricava il contenuto linguistico dal media e traducilo nella lingua di destinazione.\n            </Step>\n\n            <Step n=\"5\">\n                Se sono presenti sia testo che media, integra entrambi per ricostruire il messaggio effettivo da tradurre.\n            </Step>\n\n            <Step n=\"6\">\n                Se il testo è assente, ambiguo o insufficiente, usa il media come fonte primaria del contenuto da tradurre.\n            </Step>\n\n            <Step n=\"7\">\n                Mantieni il tono, il registro, la brevità, le ripetizioni, l'intenzione e l'eventuale informalità del contenuto originale il più fedelmente possibile.\n            </Step>\n\n            <Step n=\"8\">\n                Se il contenuto è già nella lingua target, restituiscilo invariato in \"translated_text\".\n            </Step>\n        </Directive>\n    </CoreDirectives>\n\n    <OutputSchema>\n        <Constraint>\n            Il tuo output DEVE essere esclusivamente un oggetto JSON valido.\n            Non includere spiegazioni, commenti, markdown o testo fuori dal JSON.\n        </Constraint>\n        <Example>\n            {\n              \"translated_text\": \"Questo è il messaggio tradotto.\"\n            }\n        </Example>\n    </OutputSchema>\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<prompt_template>\n<![CDATA[\nEsegui il tuo ruolo di \"ACrow\", il Corvo Messaggero.\n\n<TranslationTask>\n    <text_to_translate>{{ $json.user_request.text }}</text_to_translate>\n    <target_language>{{ $json.owner_data.lenguage }}</target_language>\n    <has_media>{{ $json.user_request.has_media }}</has_media>\n    <media_type>{{ $json.user_request.type }}</media_type>\n    <mime_type>{{ $json.user_request.media_info?.mime_type || '' }}</mime_type>\n</TranslationTask>\n]]>\n</prompt_template>",
+              "type": "string"
+            },
+            {
+              "id": "618e0f51-45cc-42a7-b270-d7f293422f86",
+              "name": "output_structure",
+              "value": "System Istruction Secondarie di Parse del Reserch se necessario",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "={{ $json.owner_data.model_choice }}",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}_SiteBot",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "oCROW",
+              "type": "string"
+            },
+            {
+              "id": "d71e0fa4-4af8-45b9-bd43-a2d2266f5ab5",
+              "name": "data",
+              "value": "={{ $json.user_request['base64 '] }}",
+              "type": "string"
+            },
+            {
+              "id": "c4d2fc78-7e77-470a-bedb-63ab5387ada8",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.media_info.mime_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5696,
+        240
+      ],
+      "id": "e055c776-57dd-4fc3-b952-0484c5fecb38",
+      "name": "ACrow2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "648f8dbb-0eef-4cb1-b7e6-5120e39b985d",
+              "name": "flow_terminate",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5312,
+        96
+      ],
+      "id": "7532e157-c518-47cd-934b-f2ad96aefae1",
+      "name": "Error"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1ff5ce28-7bd6-4717-902f-d4a2fa9d8578",
+              "name": "user_request.message",
+              "value": "={{ $json.oCROW.translated_text }}",
+              "type": "string"
+            },
+            {
+              "id": "45b38f6a-287f-48ae-92ed-7e183a535942",
+              "name": "user_request.Omessage",
+              "value": "={{ $json.user_request.message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5024,
+        256
+      ],
+      "id": "e62db367-c096-4139-8200-7d1077a80dfb",
+      "name": "Edit Fields22"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -5120,
+        -32
+      ],
+      "id": "d885d3df-a301-4a50-9c71-a4fcd9aeefc1",
+      "name": "Merge31"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Session_Initializer\n// VERSIONE: 8.0 - MIME Aware for Gemini\n\nconst item = $input.first().json;\nconst msg = item.body?.message || {};\nconst owner = item.owner_data || {};\nconst config = owner.customer_bot_config || {};\nconst perms = config.permissions || { allow_images: false, allow_files: false };\n\nconst MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;\n\nlet type = \"text\";\nlet mediaData = null;\nlet fileSize = 0;\n\nconst extractedText = msg.text || msg.caption || \"\";\n\n// Media detection + MIME capture\nif (msg.photo) {\n  type = \"photo\";\n  const lastPhoto = msg.photo[msg.photo.length - 1];\n  fileSize = lastPhoto.file_size || 0;\n\n  mediaData = {\n    file_id: lastPhoto.file_id,\n    file_unique_id: lastPhoto.file_unique_id || null,\n    size: fileSize,\n    mime_type: \"image/jpeg\"\n  };\n\n} else if (msg.document) {\n  type = \"document\";\n  fileSize = msg.document.file_size || 0;\n\n  mediaData = {\n    file_id: msg.document.file_id,\n    file_unique_id: msg.document.file_unique_id || null,\n    name: msg.document.file_name || null,\n    size: fileSize,\n    mime_type: msg.document.mime_type || \"application/octet-stream\"\n  };\n\n} else if (msg.video) {\n  type = \"video\";\n  fileSize = msg.video.file_size || 0;\n\n  mediaData = {\n    file_id: msg.video.file_id,\n    file_unique_id: msg.video.file_unique_id || null,\n    size: fileSize,\n    mime_type: msg.video.mime_type || \"video/mp4\"\n  };\n\n} else if (msg.voice) {\n  type = \"voice\";\n  fileSize = msg.voice.file_size || 0;\n\n  mediaData = {\n    file_id: msg.voice.file_id,\n    file_unique_id: msg.voice.file_unique_id || null,\n    duration: msg.voice.duration || null,\n    size: fileSize,\n    mime_type: msg.voice.mime_type || \"audio/ogg\"\n  };\n\n} else if (msg.audio) {\n  type = \"audio\";\n  fileSize = msg.audio.file_size || 0;\n\n  mediaData = {\n    file_id: msg.audio.file_id,\n    file_unique_id: msg.audio.file_unique_id || null,\n    name: msg.audio.file_name || null,\n    duration: msg.audio.duration || null,\n    performer: msg.audio.performer || null,\n    title: msg.audio.title || null,\n    size: fileSize,\n    mime_type: msg.audio.mime_type || \"audio/mpeg\"\n  };\n\n} else if (msg.video_note) {\n  type = \"video_note\";\n  fileSize = msg.video_note.file_size || 0;\n\n  mediaData = {\n    file_id: msg.video_note.file_id,\n    file_unique_id: msg.video_note.file_unique_id || null,\n    duration: msg.video_note.duration || null,\n    length: msg.video_note.length || null,\n    size: fileSize,\n    mime_type: \"video/mp4\"\n  };\n}\n\n// Policy validation\nlet isAllowed = true;\n\nif ((type === \"photo\" || type === \"video\" || type === \"video_note\") && !perms.allow_images) {\n  isAllowed = false;\n} else if ((type === \"document\" || type === \"voice\" || type === \"audio\") && !perms.allow_files) {\n  isAllowed = false;\n}\n\nif (isAllowed && type !== \"text\" && fileSize > MAX_FILE_SIZE_BYTES) {\n  isAllowed = false;\n}\n\n// User request\nconst user_request = {\n  text: extractedText,\n  chat_id: msg.chat?.id || null,\n  message_id: msg.message_id || null,\n  language: msg.from?.language_code || \"it\",\n  type,\n  media_info: mediaData,\n  has_media: !!mediaData,\n  timestamp: new Date().toISOString()\n};\n\n// Active session\nlet active_session = item.active_session;\nconst ownerChatId = item.query?.user_id || null;\nconst compositeSessionId = `${user_request.chat_id}-${ownerChatId}`;\n\nif (!active_session) {\n  active_session = {\n    _id: compositeSessionId,\n    session_id: compositeSessionId,\n    owner_chatid: ownerChatId,\n    customer_chatid: user_request.chat_id,\n    session_status: \"ACTIVE\",\n    lead_profile: {\n      first_name: msg.from?.first_name || \"\",\n      last_name: msg.from?.last_name || \"\",\n      username: msg.from?.username || \"\",\n      language: user_request.language\n    },\n    preferences: {\n      broadcast_subscribed: false,\n      last_preference_update: user_request.timestamp\n    },\n    prediction_keywords: \"accoglienza, chi siamo, dove siete, cosa fate\",\n    working_memory: {\n      behavioral_log: \"\",\n      funnel_step: \"start\"\n    },\n    telegram: {\n      last_bot_message_id: null,\n      last_interaction: user_request.timestamp\n    }\n  };\n} else {\n  if (!active_session.telegram) active_session.telegram = {};\n  active_session.telegram.last_interaction = user_request.timestamp;\n}\n\n// Delete payload if blocked\nlet deletePayload = null;\n\nif (!isAllowed) {\n  deletePayload = {\n    method: \"deleteMessage\",\n    chat_id: user_request.chat_id,\n    message_id: user_request.message_id\n  };\n}\n\nreturn [{\n  json: {\n    owner_data: owner,\n    stakeholder: item.stakeholder,\n    user_request,\n    active_session,\n    routing_decision: isAllowed ? \"ALLOWED\" : \"BLOCKED\",\n    telegramDeletePayload: deletePayload\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6240,
+        496
+      ],
+      "id": "cdcd10b4-5c0e-4de0-8966-500ebc3736f9",
+      "name": "Session Initializer"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "knowledge_fragments",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$regex\": \"^{{ $json.owner_data.vat_number }}\",\n        \"$options\": \"i\"\n      }\n    }\n  },\n  {\n    \"$unwind\": \"$messages\"\n  },\n  {\n    \"$project\": {\n      \"full_object\": \"$messages.data\"\n    }\n  },\n  {\n    \"$match\": {\n      \"full_object.answer_fragment\": {\n        \"$exists\": true,\n        \"$ne\": null\n      }\n    }\n  },\n  {\n    \"$group\": {\n      \"_id\": null,\n      \"knowledge_fragments\": {\n        \"$push\": \"$full_object\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"_id\": 0,\n      \"Knowledge\": {\n        \"knowledge_fragments\": \"$knowledge_fragments\"\n      }\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -4576,
+        464
+      ],
+      "id": "97761ec0-d30e-4f5e-9fdf-7b1917163964",
+      "name": "Knowledge1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "5pERtRttklNe4fOb",
+          "name": "AssetLake"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -5696,
+        -320
+      ],
+      "id": "d728e7c0-049e-418d-a727-d72092897516",
+      "name": "Merge34"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -5088,
+        -320
+      ],
+      "id": "2d3f921a-4c13-4a41-8829-62028f4f4ac8",
+      "name": "Merge32"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -4432,
+        -304
+      ],
+      "id": "14042a95-ca07-40cf-90fe-6e8c6705ec57",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d3620714-ee7f-4d50-900e-2428236a12f0",
+              "name": "conversation_history",
+              "value": "={{ $json.messages }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4608,
+        -192
+      ],
+      "id": "3b2dbb06-4c68-4094-8686-40abe835324c",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.active_session.session_id }}_conversation",
+        "collectionName": "active_sessions",
+        "databaseName": "Telegram_owner_bot",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -4896,
+        -48
+      ],
+      "id": "bfa30917-9216-4abb-89b9-7cecef4c78b4",
+      "name": "MongoDB Chat Memory5",
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "groupMessages": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -4896,
+        -192
+      ],
+      "id": "85286214-732f-4011-8bcc-f4de429d2cd7",
+      "name": "Chat Memory Manager1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ ({'Italiano':'it', 'Español':'es', 'English':'en', 'Français':'fr', 'Deutsch':'de', 'Português':'pt'})[$json.owner_data.lenguage || 'Italiano'] || 'it' }}",
+              "rightValue": "={{ $json.user_request.language }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -5488,
+        -320
+      ],
+      "id": "12cde226-711f-4977-b921-99a75b9094ce",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -4448,
+        -656
+      ],
+      "id": "5182cc5e-4439-47ba-a39a-0e19e2c165c2",
+      "name": "Merge24"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * NODO: SAM'S - VENOMHEARTH (Italian Ultra-Core Edition)\n * ADATTAMENTO: Architettura Ottimizzata TrinAI\n * OBIETTIVO: Ricerca semantica ad altissima precisione esclusiva per la lingua italiana.\n */\n\n// =============================================================================\n// --- IMPOSTAZIONE DEL FILTRO (UNICO PARAMETRO DI CONTROLLO) ---\n// Range: da 1 a 10\n// - 1  = Filtro STRETTISSIMO (richiede corrispondenze esatte e alta densità)\n// - 5  = Filtro BILANCIATO (impostazione standard consigliata)\n// - 10 = Filtro APERTISSIMO (mostra risultati anche con minime parole in comune)\n// =============================================================================\nconst SENSITIVITY = 5; \n\n// =============================================================================\n// --- CONFIGURAZIONE INTERNA ---\n// =============================================================================\nconst minTokenLength = 2;\nconst useNgrams = true;\nconst coreIdentityFragmentId = 'CORE_IDENTITY_001';\n\nconst scoringWeights = {\n  utterance_ngram: 12,\n  utterance_exact: 8,\n  question_ngram: 10,\n  question_exact: 5,\n  title_exact: 4,\n  answer_fragment_exact: 2,\n  summary_exact: 2,\n  answer_exact: 1,\n  analogy_exact: 0.5\n};\n\n// Dizionario espanso di stopwords e rumore conversazionale in italiano\nconst italianStopwords = new Set([\n  'il', 'la', 'lo', 'i', 'gli', 'le', 'un', 'una', 'uno', 'dei', 'degli', 'delle', 'del', 'dello', 'della', 'al', 'allo', 'alla', 'ai', 'agli', 'alle',\n  'di', 'a', 'da', 'in', 'con', 'su', 'per', 'tra', 'fra', 'ed', 'ad', 'od',\n  'che', 'chi', 'cui', 'quale', 'quali', 'questo', 'questa', 'questi', 'queste', 'quello', 'quella', 'quelli', 'quelle',\n  'mio', 'mia', 'miei', 'mie', 'tuo', 'tua', 'tuoi', 'tue', 'suo', 'sua', 'suoi', 'sue', 'nostro', 'nostra', 'nostri', 'nostre', 'vostro', 'vostra', 'vostri', 'vostre', 'loro',\n  'io', 'tu', 'lui', 'lei', 'noi', 'voi', 'loro', 'mi', 'ti', 'ci', 'vi', 'si', 'me', 'te', 'se', 'lo', 'la', 'li', 'le', 'ne',\n  'ho', 'hai', 'ha', 'abbiamo', 'avete', 'hanno', 'avevo', 'avevi', 'aveva', 'avevamo', 'avevate', 'avevano', 'ebbi', 'avesti', 'ebbe', 'avemmo', 'aveste', 'ebbero', 'avrò', 'avrai', 'avrà', 'avremo', 'avrete', 'avranno', 'avrei', 'avresti', 'avrebbe', 'avremmo', 'avreste', 'avrebbero', 'avendo', 'avuto', 'avuta', 'avuti', 'avute',\n  'sono', 'sei', 'è', 'siamo', 'siete', 'era', 'eravamo', 'eravate', 'erano', 'fui', 'fosti', 'fu', 'fummo', 'foste', 'furono', 'sarò', 'sarai', 'sarà', 'saremo', 'sarete', 'saranno', 'sarei', 'saresti', 'sarebbe', 'saremmo', 'sareste', 'sarebbero', 'essendo', 'stato', 'stata', 'stati', 'state',\n  'ma', 'o', 'oppure', 'ovvero', 'anche', 'ancora', 'invece', 'bensì', 'inoltre', 'tuttavia', 'però', 'ossia', 'cioè',\n  'vorrei', 'voglio', 'vorremmo', 'vogliamo', 'posso', 'possono', 'potrei', 'potrebbe', 'potremmo', 'potrebbero', 'devo', 'deve', 'dovrei', 'dovrebbe', 'dovremmo', 'dovrebbero', 'sapere', 'conoscere', 'capire', 'chiedere', 'domandare', 'informazioni', 'info',\n  'ciao', 'salve', 'buongiorno', 'buonasera', 'grazie', 'prego', 'per favore', 'gentilmente', 'scusa', 'scusi', 'cortesemente', 'saluti', 'saluto',\n  'più', 'meno', 'molto', 'poco', 'troppo', 'tanto', 'tanti', 'tante', 'tutto', 'tutta', 'tutti', 'tutte', 'nulla', 'niente', 'qualcosa',\n  'si', 'no', 'non', 'forse', 'magari', 'circa', 'sopra', 'sotto', 'dentro', 'fuori', 'prima', 'dopo', 'ora', 'adesso', 'poi', 'allora'\n]);\n\n// =============================================================================\n// --- FUNZIONI DI ELABORAZIONE LINGUISTICA (ITALIAN ONLY) ---\n// =============================================================================\n\n// Normalizza i caratteri accentati (es: perché -> perche)\nfunction stripAccents(text) {\n  return text.normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\");\n}\n\n// Generatore di N-Grams per l'analisi sequenziale\nfunction generateNgrams(tokens, n) {\n  const ngrams = [];\n  for (let i = 0; i <= tokens.length - n; i++) {\n    ngrams.push(tokens.slice(i, i + n).join(' '));\n  }\n  return ngrams;\n}\n\n// Stemmer avanzato per unificare i suffissi, i plurali e le coniugazioni italiane\nfunction stemItalian(word) {\n  word = stripAccents(word.toLowerCase().trim());\n  if (word.length <= 3) return word;\n\n  const suffixes = [\n    // Coniugazioni verbali e tempi complessi\n    'asseremmo', 'assereste', 'asseresti', 'assero', 'assimo', 'eremmo', 'ereste', 'eresti', 'essero', 'essimo', 'iremo', 'irete', 'irono', 'ireste', 'iresti', 'issero', 'issimo', 'eranno', 'erebbero',\n    // Suffissi derivativi complessi\n    'izzazione', 'izzazioni', 'icamente', 'amento', 'amenti', 'azione', 'azioni', 'atore', 'atori', 'atrice', 'atrici', 'abile', 'abili', 'ibile', 'ibili', 'mente', 'ezza', 'ezze',\n    // Gradi degli aggettivi\n    'issimo', 'issima', 'issimi', 'issime', 'icissimo', 'icissima', 'icissimi', 'icissime',\n    // Terminologie mediche/scientifiche ricorrenti\n    'ologia', 'ologie', 'ogico', 'ogica', 'ogici', 'ogiche',\n    'odontico', 'odontica', 'odontici', 'odontiche',\n    'chirurgico', 'chirurgica', 'chirurgici', 'chirurgiche',\n    'estetico', 'estetica', 'estetici', 'estetiche',\n    // Coniugazioni standard, gerundi e participi\n    'assero', 'assimo', 'eranno', 'eremo', 'erete', 'erono', 'iranno', 'iremo', 'irete', 'irono', 'iscano', 'iscono', 'iscite', 'isciti', 'iscito',\n    'ando', 'endo', 'ante', 'anti', 'ente', 'enti',\n    'ato', 'ata', 'ati', 'ate', 'uto', 'uta', 'uti', 'ute', 'ito', 'ita', 'iti', 'ite',\n    'ico', 'ica', 'ici', 'iche', 'oso', 'osa', 'osi', 'ose', 'ivo', 'iva', 'ivi', 'ive', 'are', 'ere', 'ire', 'ale', 'ali',\n    // Diminutivi e accrescitivi comuni\n    'ino', 'ina', 'ini', 'ine', 'one', 'ona', 'oni', 'one', 'etto', 'etta', 'etti', 'ette'\n  ];\n\n  for (const suffix of suffixes) {\n    if (word.endsWith(suffix) && word.length - suffix.length >= 3) {\n      return word.slice(0, -suffix.length);\n    }\n  }\n  \n  // Semplificazione desinenze finali per ricondurre al tema principale\n  if (word.endsWith('e') || word.endsWith('i') || word.endsWith('o') || word.endsWith('a')) {\n    return word.slice(0, -1);\n  }\n  \n  return word;\n}\n\nfunction cleanText(text) {\n  if (!text) return \"\";\n  return text.toLowerCase()\n             .replace(/['’]/g, \" \") // Sostituisce gli apostrofi con uno spazio\n             .replace(/[.,\\/#!$%\\^&\\*;:{}=\\-_`~()?\\¿\\¡\"']/g, \" \") // Rimuove la punteggiatura\n             .replace(/\\s+/g, ' ') // Normalizza gli spazi multipli\n             .trim();\n}\n\nfunction preprocessQuery(text) {\n  const cleanedText = cleanText(text);\n  const rawTokens = cleanedText.split(/\\s+/).filter(word => word.length >= minTokenLength && !italianStopwords.has(word));\n  const stemmedTokens = rawTokens.map(word => stemItalian(word));\n  return { rawTokens, stemmedTokens, uniqueTokens: [...new Set(stemmedTokens)] };\n}\n\n// =============================================================================\n// --- LOGICA DI INSTRADAMENTO E FILTRAGGIO ---\n// =============================================================================\nconst inputData = $input.first().json;\n\nconst userMessage = inputData.user_request?.text || \"\";\nconst conversationHistory = inputData.conversation_history || [];\n\n// Modificato qui: ora legge dal nuovo oggetto pulito \"Knowledge\"\nconst fragments = inputData.Knowledge?.knowledge_fragments || [];\n\n// Lettura flessibile della chiave di routing\nconst routingDecision = inputData.routingDecision || inputData.routing_decision;\n\n// Bypass per i rami di sicurezza e risposte dirette pre-confezionate\nconst bypassRoutes = ['oHODOR', 'BAN_HANDLER', 'Direct_Response'];\nif (bypassRoutes.includes(routingDecision) || fragments.length === 0) {\n  return [{ json: {\n    ...inputData, \n    selected_fragments: [],\n    librarian_meta: {\n      routing_decision_handled: routingDecision,\n      mission_status: fragments.length === 0 ? 'NO_DATA' : 'BYPASS_ACTIVE',\n      timestamp: new Date().toISOString()\n    }\n  }}];\n}\n\n// Traduzione matematica del valore SENSITIVITY (1-10) nelle soglie di punteggio e densità\nconst absoluteThreshold = Math.max(0.1, 13 - SENSITIVITY * 1.3);\nconst densityMinPercent = Math.max(0, (10 - SENSITIVITY) * 0.04);\n\n// Elaborazione linguistica della query utente corrente\nconst currentQuery = preprocessQuery(userMessage);\n\n// Elaborazione linguistica dello storico della conversazione\nlet conversationTokens = [];\nconst userTurns = conversationHistory.filter(turn => turn.role === 'user');\nif (userTurns.length > 0) {\n  const lastTurnText = userTurns[userTurns.length - 1].content || \"\";\n  const historyQuery = preprocessQuery(lastTurnText);\n  conversationTokens = historyQuery.uniqueTokens;\n}\n\n// Integrazione delle parole chiave predittive\nlet enrichmentTokens = [];\nconst predictionKeywords = inputData.active_session?.prediction_keywords;\nif (predictionKeywords && predictionKeywords.trim().length > 0) {\n  predictionKeywords.split(',').forEach(kw => {\n    const processed = preprocessQuery(kw.trim());\n    enrichmentTokens.push(...processed.uniqueTokens);\n  });\n}\nenrichmentTokens = [...new Set(enrichmentTokens)];\n\nconst finalQueryTokens = [...new Set([...conversationTokens, ...currentQuery.uniqueTokens, ...enrichmentTokens])];\nconst finalRawTokens = [...conversationTokens, ...currentQuery.rawTokens, ...enrichmentTokens];\n\n// Indicizzazione e pulizia preventiva dei frammenti di conoscenza\nconst fragsWithTokens = fragments.map(fragment => {\n  const pre = { tokenSets: {} };\n  \n  if (fragment.user_utterances) {\n    pre.utterances_text = cleanText(fragment.user_utterances.join(' '));\n    pre.tokenSets.utterances = pre.utterances_text.split(/\\s+/).map(w => stemItalian(w));\n  }\n  if (fragment.title) {\n    pre.title_text = cleanText(fragment.title);\n    pre.tokenSets.title = pre.title_text.split(/\\s+/).map(w => stemItalian(w));\n  }\n  if (fragment.answer_fragment) {\n    pre.answer_text = cleanText(fragment.answer_fragment);\n    pre.tokenSets.answer = pre.answer_text.split(/\\s+/).map(w => stemItalian(w));\n  }\n  if (fragment.sections) {\n    // Indicizzazione domande delle sezioni\n    pre.questions_text = cleanText(fragment.sections.map(s => s.question).join(' '));\n    pre.tokenSets.questions = pre.questions_text.split(/\\s+/).map(w => stemItalian(w));\n    \n    // NUOVO: Indicizzazione risposte delle sezioni\n    pre.answers_text = cleanText(fragment.sections.map(s => s.answer).join(' '));\n    pre.tokenSets.answers = pre.answers_text.split(/\\s+/).map(w => stemItalian(w));\n  }\n  \n  return { ...fragment, _precomputed: pre };\n});\n\n// Calcolo della prossimità semantica tramite N-Grams e token esatti\nconst queryNgrams = [...generateNgrams(finalRawTokens, 2), ...generateNgrams(finalRawTokens, 3)];\n\nconst scoredFragments = fragsWithTokens.map(f => {\n  let score = 0;\n  const matchedUniqueTokens = new Set();\n  const pre = f._precomputed;\n  \n  if (useNgrams) {\n    queryNgrams.forEach(ngram => {\n      const normalizedNgram = stripAccents(ngram);\n      if (pre.utterances_text?.includes(normalizedNgram)) score += scoringWeights.utterance_ngram;\n      if (pre.questions_text?.includes(normalizedNgram)) score += scoringWeights.question_ngram;\n    });\n  }\n  \n  finalQueryTokens.forEach(token => {\n    let matched = false;\n    if (pre.tokenSets.utterances?.includes(token)) { score += scoringWeights.utterance_exact; matched = true; }\n    if (pre.tokenSets.questions?.includes(token)) { score += scoringWeights.question_exact; matched = true; }\n    if (pre.tokenSets.title?.includes(token)) { score += scoringWeights.title_exact; matched = true; }\n    if (pre.tokenSets.answer?.includes(token)) { score += scoringWeights.answer_fragment_exact; matched = true; }\n    if (pre.tokenSets.answers?.includes(token)) { score += scoringWeights.answer_fragment_exact; matched = true; } // Scoring risposte sezioni\n    \n    if (matched) matchedUniqueTokens.add(token);\n  });\n  \n  // Divisore impostato sulla lunghezza della query corrente per non penalizzare i match precisi in caso di storico lungo\n  const divisor = currentQuery.uniqueTokens.length || 1;\n  return { ...f, _score: score, _density: matchedUniqueTokens.size / divisor };\n});\n\n// Filtraggio definitivo in base ai parametri di sensibilità attivi\nlet finalSelection = scoredFragments.filter(f => f._score >= absoluteThreshold)\n                                    .filter(f => f._density >= densityMinPercent)\n                                    .sort((a, b) => b._score - a._score);\n\n// NUOVO: Consente di campionare fino a un massimo di 3 elementi pertinenti simultaneamente\nconst maxTargetCount = Math.min(3, fragments.length);\nfinalSelection = finalSelection.slice(0, maxTargetCount);\n\n// Fallback di stabilità: se nessun frammento passa le soglie, restituisce il record di identità core\nif (finalSelection.length === 0) {\n  const coreFragment = fragsWithTokens.find(f => f.fragment_id === coreIdentityFragmentId);\n  if (coreFragment) finalSelection = [coreFragment];\n}\n\nreturn [{ json: {\n  ...inputData,\n  selected_fragments: finalSelection.map(({_score, _density, _precomputed, ...clean}) => clean),\n  librarian_meta: {\n    calculated_threshold: absoluteThreshold,\n    calculated_density: densityMinPercent,\n    sensitivity_set: SENSITIVITY,\n    routing_decision_handled: routingDecision,\n    selection_count: finalSelection.length,\n    mission_status: finalSelection.length > 0 ? 'SUCCESS' : 'NO_TARGETS',\n    timestamp: new Date().toISOString()\n  }\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4192,
+        -304
+      ],
+      "id": "ac238fd3-6392-4f11-8207-8732711e4c04",
+      "name": "SAM'S - VENOMHEARTH v3.3 - PERMISSIVE"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.systemProblem }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -5472,
+        -48
+      ],
+      "id": "eff43f2f-0fb2-4030-8d36-8106995f39d4",
+      "name": "LogSystemErr1"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "honeypots",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n    \"$eq\": \"{{ $json.owner_data.vat_number }}\"\n  }\n    }\n  },\n  {\n    \"$project\": {\n      \"HoneyPot\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"HoneyPot\": \"$HoneyPot.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -4688,
+        -640
+      ],
+      "id": "7b39fbf5-2729-4b59-9b8a-629305661e14",
+      "name": "HoneyPot",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/{{ $json.telegramDeletePayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramDeletePayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -6080,
+        320
+      ],
+      "id": "3ea5db1a-aca9-41e5-8d9a-1131886b7b2c",
+      "name": "📤 Telegram Delete",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.chat_id\": {\n        \"$eq\": {{ $json.query.user_id || $json.body.user_id}}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -7008,
+        112
+      ],
+      "id": "898278d8-a83f-4b07-8355-9d25f6e279df",
+      "name": "owner_data2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -6768,
+        96
+      ],
+      "id": "df026b0f-a130-47bc-88c6-acc39c255908",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "66dbabf5-31e3-43a0-9a43-58e02a0418f1",
+              "name": "message",
+              "value": "={{ $json.body.message }}",
+              "type": "object"
+            },
+            {
+              "id": "694ad1c7-eb3f-4533-beda-222502249de5",
+              "name": "query.user_id",
+              "value": "={{ $json.query.user_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -6928,
+        272
+      ],
+      "id": "e811c6f9-4547-4c18-b21e-97d023ad5845",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "tjUloHdAa9cXXiIp",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/tjUloHdAa9cXXiIp",
+          "cachedResultName": "Multi_Input_Gate"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -6768,
+        272
+      ],
+      "id": "83465e8e-9ba6-44c9-ab16-00690b6e01f6",
+      "name": "Call 'Multi_Input_Gate'1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "31198415-274c-4535-a5ae-5a433df7e2c8",
+              "leftValue": "={{ $json.itemCount }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            },
+            {
+              "id": "e03aad65-973a-4492-b8fe-993d801ff148",
+              "leftValue": "={{ $json.itemCount }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -6608,
+        272
+      ],
+      "id": "97eab103-e397-4636-bf1a-f76f7d8e8878",
+      "name": "MultiFalse1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/{{ $json.telegramDeletePayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramDeletePayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -6608,
+        96
+      ],
+      "id": "f9b26665-e0d2-4879-bca2-04326856b152",
+      "name": "📤 Telegram Delete1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Burst_Cleaner\n// OBIETTIVO: Eliminare il messaggio corrente e terminare l'esecuzione\n\nconst item = $input.first().json;\n\nreturn [{\n  json: {\n    telegramDeletePayload: {\n      method: \"deleteMessage\",\n      chat_id: item.message.from.id,\n      message_id: item.message.message_id\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -7216,
+        80
+      ],
+      "id": "2a92c6ea-d4ab-4674-b695-fcc4696816df",
+      "name": "Burst_Cleaner1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -6400,
+        256
+      ],
+      "id": "ac17198c-db06-484d-a489-37e283a6bc99",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -6400,
+        496
+      ],
+      "id": "25d515f2-f5ca-4966-81da-02a2a74b9ab6",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "edd42fe8-1c34-447c-9ce2-719a3f54e159",
+              "leftValue": "={{ $json.routing_decision }}",
+              "rightValue": "ALLOWED",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -6080,
+        496
+      ],
+      "id": "9978c7b3-9f85-4c4a-b4bf-201e658e5cfb",
+      "name": "Allowed"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -4720,
+        -1136
+      ],
+      "id": "fda11b76-6f1e-46e9-8290-a381fc30e601",
+      "name": "📤 Telegram Call6",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: TheBlackGate_Fast_Triage\n// VERSIONE: 10.0 - \"SiteBoS Final Logic\" (Power Engine + PRO UI + Empathetic Lock)\n\n// --- 1. CONFIGURAZIONE E PATTERNS ORIGINALI (IL TUO MOTORE) ---\nconst THRESHOLDS = {\n    highConfidence: 0.9, mediumConfidence: 0.6, lowConfidence: 0.3,\n    greetingOnly: 0.8, identityQuestion: 0.8, negationDetection: 0.7,\n    securityThreat: 2.0, compoundThreshold: 0.6\n};\n\nconst INTENT_PRIORITIES = {\n    security_threats: 1, negation: 2, scheduling: 3, business: 4, identity: 5, greeting: 6, knowledge: 7\n};\n\nconst LENGTH_THRESHOLDS = { fastLane: 4 }; // <--- SOGLIA IMPOSTATA A 4 PAROLE\n\nconst THREAT_PATTERNS_COMPILED = [\n    /bomba|bomb/i, /uccid|kill|matar|tuer|töten/i, /attentato|terrorismo|terrorism|terrorisme|terrorismus/i,\n    /nazi|fascista|fascist|razzista|racist/i, /ignora.{0,10}istruzioni.{0,10}precedenti|ignore.{0,10}previous.{0,10}instructions/i,\n    /print.{0,10}your.{0,10}instructions|sei.{0,10}in.{0,10}modalità|you.{0,10}are.{0,10}now.{0,10}in/i\n];\n\nconst CONFIRMATION_PATTERNS_COMPILED = [\n    /^(s[iì]|certo|certamente|confermo|conferma|ok|okay|va bene|d'accordo|assolutamente|esatto|perfetto|giusto|va beh|vabbè|vabbene)$/i,\n    /^(yes|yeah|yep|yup|sure|certainly|of course|absolutely|correct|right|okay|ok|fine|agreed|confirm|affirmative|roger|aye)$/i,\n    /^(s[ií]|claro|por supuesto|de acuerdo|vale|confirmo|exacto|correcto|perfecto|bueno|está bien)$/i,\n    /^(oui|bien s[uû]r|certainement|d'accord|ok|okay|confirm[ée]|exact|parfait|entendu|très bien)$/i,\n    /^(ja|jawohl|sicher|nat[üu]rlich|einverstanden|ok|okay|best[äa]tigen|richtig|genau|perfekt|gut|in ordnung)$/i,\n    /^(sim|claro|certamente|com certeza|ok|okay|confirmo|certo|perfeito|exato|correto|beleza|fechado|combinado)$/i,\n    /^(👍|✓|✅|\\+1|yup|yay|💯)$/i\n];\n\nconst PURE_GREETING_PATTERNS_COMPILED = [\n    /^(ciao|salve|buongiorno|buonasera|buonanotte|ehi|hey|ehil[àa])$/i, /^(ciao ciao|bella l[iì])$/i,\n    /^(hello|hi|hey|yo|howdy|greetings)$/i, /^(good morning|good afternoon|good evening|good night|hi there|hey there)$/i,\n    /^(hola|buenas|saludos)$/i, /^(buenos d[íi]as|buenas tardes|buenas noches|hola qu[ée] tal)$/i,\n    /^(salut|bonjour|bonsoir|coucou)$/i, /^(bonne nuit|ça va\\?)$/i,\n    /^(hallo|moin|servus)$/i, /^(guten tag|guten morgen|guten abend|gute nacht|gr[üu][ßs] gott)$/i,\n    /^(ol[áa]|oi|opa|oie|al[ôo])$/i, /^(bom dia|boa tarde|boa noite|e a[íi]|tudo bem\\?|tudo bom\\?)$/i\n];\n\nconst KNOWLEDGE_PATTERNS_COMPILED = [\n    /^(cos[\\'']?[eè]|che cos[\\'']?[eè]|cosa [eè]|che cosa [eè])/i, /^(chi [eè]|chi sono|chi siete)/i, /^(perch[eé]|come mai|per quale motivo)/i, /^(quando|in che momento)/i, /^(dove|in che luogo)/i, /^(quale|quali)/i, /^(quanto|quanta|quanti)/i, /^(spiegami|spiega|mi spieghi)/i, /^(come funziona|come si usa|come si fa)/i, /^(mi dici|dimmi|mi puoi dire)/i, /^(voglio sapere|vorrei sapere|vorrei capire)/i, /(info su|informazioni su|dettagli su)/i, /(privacy|sicurezza|gdpr|dati personali|cookie|termini|condizioni)/i\n];\n\nconst SCHEDULING_PATTERNS_COMPILED = [\n    /(fissa|fissare|fissami|vorrei fissare|voglio fissare|possiamo fissare).*(appuntamento|incontro|meeting|call|chiamata|demo|consulenza)/i,\n    /(prenota|prenotare|vorrei prenotare|voglio prenotare|posso prenotare).*(appuntamento|incontro|meeting|call|chiamata|demo|consulenza)/i,\n    /(organizza|organizzare|programmare|schedulare).*(appuntamento|incontro|meeting|call|chiamata|demo|consulenza)/i,\n    /(quando siete disponibili|qual [eè] la vostra disponibilit[aà]|avete tempo|sei libero|siete liberi).*(per|per un|per una).*(appuntamento|incontro|meeting|call|chiamata|demo)/i,\n    /(posso parlare con|vorrei parlare con|ho bisogno di parlare con).*(esperto|consulente|venditore|commerciale|qualcuno)/i,\n    /\\b(fissare un appuntamento|prenotare una demo|organizzare una call|schedulare un meeting)\\b/i,\n    /(voglio una demo|vorrei una demo|mi serve una demo)/i\n];\n\nconst BUSINESS_PATTERNS_COMPILED = [\n    /^(quanto costa|qual [eè] il prezzo|che prezzo ha|costi|prezzi|tariffe|listino)/i, /\\b(preventivo|quotazione|offerta|offerte|comprare|acquistare|acquisto|sottoscrivere|sconti|promozioni|voglio comprare|vorrei acquistare)\\b/i, /(vorrei|voglio|desidero|sono interessato a|mi interessa|mi interessano).*(comprare|acquistare|un'offerta|le offerte|un preventivo|crediti|il prodotto|il servizio)/i\n];\n\n// --- 2. FUNZIONI DI ANALISI (INVARITE) ---\nfunction isPureGreeting(text) {\n    const normalized = text.trim().toLowerCase().replace(/[.,!?;:()\\[\\]{}]/g, '');\n    const words = normalized.split(/\\s+/).filter(w => w.length > 0);\n    if (words.length > 3) return false;\n    return PURE_GREETING_PATTERNS_COMPILED.some(pattern => pattern.test(normalized));\n}\n\nfunction isSchedulingIntent(text) { return SCHEDULING_PATTERNS_COMPILED.some(p => p.test(text.toLowerCase())); }\nfunction isBusinessIntent(text) { return BUSINESS_PATTERNS_COMPILED.some(p => p.test(text.toLowerCase())); }\nfunction isKnowledgeQuestion(text) { return KNOWLEDGE_PATTERNS_COMPILED.some(pattern => pattern.test(text.toLowerCase())); }\n\nconst KEYWORD_MAP = new Map();\nfunction initKeywords() {\n    const keywords = {\n        negation: [['no', 1.2], ['non', 1.2], ['niente', 1.0], ['non voglio', 1.5], ['annulla', 1.2], ['stop', 1.3]],\n        greeting: [['ciao', 1.0], ['salve', 1.0], ['buongiorno', 1.0]],\n        identity: [['chi sei', 1.0], ['come ti chiami', 1.0]],\n        scheduling: [['appuntamento', 1.0], ['fissare', 1.0], ['meeting', 1.0]],\n        business: [['comprare', 1.0], ['acquistare', 1.0], ['offerta', 1.0], ['prezzi', 0.9]],\n        knowledge: [['cos\\'è', -0.5], ['come funziona', -0.5]]\n    };\n    for (const [cat, ent] of Object.entries(keywords)) {\n        for (const [kw, w] of ent) KEYWORD_MAP.set(`${cat}_${kw.toLowerCase()}`, { category: cat, weight: w });\n    }\n}\ninitKeywords();\n\nfunction analyzeIntent(text) {\n    const scores = { negation: 0, greeting: 0, identity: 0, scheduling: 0, business: 0, knowledge: 0, security_threats: 0 };\n    const normalized = text.trim().toLowerCase();\n    for (const p of THREAT_PATTERNS_COMPILED) { if (p.test(normalized)) scores.security_threats += 2.0; }\n    const words = normalized.replace(/[.,!?;:()\\[\\]{}]/g, ' ').split(/\\s+/).filter(w => w.length > 0);\n    const intentCategories = ['negation', 'greeting', 'identity', 'scheduling', 'business', 'knowledge'];\n    for (let windowSize = 3; windowSize >= 1; windowSize--) {\n        for (let i = 0; i <= words.length - windowSize; i++) {\n            const phrase = words.slice(i, i + windowSize).join(' ');\n            for (const cat of intentCategories) {\n                if (KEYWORD_MAP.has(`${cat}_${phrase}`)) scores[cat] += KEYWORD_MAP.get(`${cat}_${phrase}`).weight;\n            }\n        }\n    }\n    return scores;\n}\n\nfunction resolvePrimaryIntent(scores) {\n    const detected = [];\n    for (const [intent, score] of Object.entries(scores)) {\n        if (score >= THRESHOLDS.lowConfidence) detected.push({ intent, score, priority: INTENT_PRIORITIES[intent] });\n    }\n    if (detected.length === 0) return { primaryIntent: null };\n    detected.sort((a, b) => a.priority - b.priority || b.score - a.score);\n    return { primaryIntent: detected[0].intent };\n}\n\n// --- 3. LOGICA DI OUTPUT PREMIUM (PRO-ONLY + ASH) ---\n\nconst item = $input.first().json;\nconst userInput = (item.user_request.text || \"\").trim();\nconst owner = item.owner_data || {};\nconst session = item.active_session || {};\nconst stakeholder = item.stakeholder || {};\nconst chatId = item.user_request.chat_id.toString();\nconst oldBotMsgId = session.telegram?.last_bot_message_id;\n\nfunction buildProRefreshUI() {\n    // A. CONFIGURAZIONE SICUREZZA ASH (ALGORITMO ORIGINALE)\n    const SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\n    const WEBHOOK_ID = 'e353fd8a-62fb-4203-a2a7-20369d832e00';\n    const timestamp = Date.now().toString();\n    const ashPayload = `${owner.chat_id}|${chatId}|${timestamp}|${WEBHOOK_ID}`;\n\n    function generateSignature(str, key) {\n        let hash = 0; const combined = str + key;\n        for (let i = 0; i < combined.length; i++) { hash = ((hash << 5) - hash) + combined.charCodeAt(i); hash = hash & hash; }\n        return Math.abs(hash).toString(16);\n    }\n    const ash = `${Buffer.from(ashPayload).toString('base64')}.${generateSignature(ashPayload, SECRET_KEY)}`;\n    const ashToken = `?ash=${ash}`;\n    const BASE_APP_URL = item.urlMiniApp || \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp\";\n\n    // B. LOGICA DINAMICA\n    const customerName = stakeholder?.user_ref?.nome || session.lead_profile?.first_name || \"PRO\";\n    const greetings = [\"Bentornato\", \"Eccoci di nuovo\", \"Sempre operativi\", \"Piacere di rivederti\"];\n    const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];\n\n    // C. MESSAGGIO (Visual Tech Style)\n    let messageText = `⚡ <b>${randomGreeting.toUpperCase()}, ${customerName.toUpperCase()}</b>\\n`;\n    messageText += `<i>Hub Digitale di ${owner.ragione_sociale}</i>\\n`;\n    messageText += `━━━━━━━━━━━━━━━━━━━━\\n\\n`;\n    messageText += `✅ <b>MOTORE AI ATTIVO</b>\\n`;\n    messageText += `Sistemi pronti. Quale modulo vuoi attivare? 👇`;\n\n    // D. TASTIERA 8 TASTI (Layout PRO)\n    let inlineKeyboard = [\n  [{ text: \"🖥️ Accedi alla Dashboard TrinAi\", url: \"https://dashboard.trinai.it/\" }],\n  [\n    { text: \"🛒 ACQUISTA\", callback_data: \"u_CALC\" },\n    { text: \"📅 BOOKING\", web_app: { url: `${BASE_APP_URL}/booking.html${ashToken}` } }\n  ],\n  [\n    { text: \"📦 PRODOTTI\", callback_data: \"g_PRO\" },\n    { text: \"🛠️ SERVIZI\", callback_data: \"g_SER\" }\n  ],\n  [\n    { text: \"🔔 NOTIFICHE\", callback_data: \"u_TOGGLE_OFFERS\" },\n    { text: \"🎧 SUPPORT\", callback_data: \"g_CCare\" }\n  ],\n  [{ text: \"🗑️ RESET SESSIONE\", callback_data: \"u_RESET_SESSION\" }]\n];\n\n    return {\n        telegramDeletePayload: oldBotMsgId ? { method: \"deleteMessage\", chat_id: chatId, message_id: oldBotMsgId } : null,\n        telegramApiPayload: {\n            method: \"sendMessage\", chat_id: chatId, text: messageText, parse_mode: \"HTML\",\n            disable_web_page_preview: true, reply_markup: { inline_keyboard: inlineKeyboard }\n        }\n    };\n}\n\n// --- 4. ESECUZIONE TRIAGE ---\n\n// 1. Check Sicurezza (Hodor)\nif (THREAT_PATTERNS_COMPILED.some(p => p.test(userInput))) {\n    item.routingDecision = 'oHODOR';\n    return [item];\n}\n\nconst wordCount = userInput.split(/\\s+/).filter(w => w.length > 0).length;\n\n// 2. LOGICA DI ROUTING BILANCIATA\nif (wordCount > LENGTH_THRESHOLDS.fastLane) {\n    // Messaggio articolato -> Al Master Agent\n    item.routingDecision = 'MASTER_AGENT_SEMANTIC';\n} else {\n    // Messaggio breve (<= 4 parole) -> Proviamo Direct Response\n    let detected = [];\n    if (isSchedulingIntent(userInput)) detected.push('scheduling');\n    if (isBusinessIntent(userInput)) detected.push('business');\n    if (isPureGreeting(userInput)) detected.push('greeting');\n\n    // Se non rilevato nulla o è una domanda di conoscenza -> Al Master Agent\n    if (detected.length === 0 || isKnowledgeQuestion(userInput)) {\n        item.routingDecision = 'MASTER_AGENT_SEMANTIC';\n    } else {\n        // Comando secco rilevato -> Refresh UI PRO\n        const ui = buildProRefreshUI();\n        item.telegramDeletePayload = ui.telegramDeletePayload;\n        item.telegramApiPayload = ui.telegramApiPayload;\n        item.routingDecision = 'Direct_Response';\n    }\n}\n\nreturn [item];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4784,
+        464
+      ],
+      "id": "9532c26f-5f30-48c1-89a6-97b11642f2c6",
+      "name": "TheBlackGate"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -4512,
+        -976
+      ],
+      "id": "909740b4-1433-4088-9f34-b7bbfad3be30",
+      "name": "Merge36"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/{{ $json.telegramDeletePayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramDeletePayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -4720,
+        -992
+      ],
+      "id": "a51e7d5a-64d0-48ec-acb2-ea12e81d7997",
+      "name": "📤 Telegram Delete2",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: UI_Adapter_Direct\n// VERSIONE: 9.7 - PRO-ONLY Hub (8-Button Layout)\n\nconst item = $input.first().json;\n\nif (item.routingDecision === 'Direct_Response' || item.routingDecision === 'greeting') {\n    \n    const owner = item.owner_data || {};\n    const session = item.active_session || {};\n    const stakeholder = item.stakeholder || {};\n    const chatId = item.user_request.chat_id.toString();\n    const oldBotMsgId = session.telegram?.last_bot_message_id;\n\n    // 1. CONFIGURAZIONE SICUREZZA ASH (ALGORITMO ORIGINALE)\n    const SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\n    const WEBHOOK_ID = 'e353fd8a-62fb-4203-a2a7-20369d832e00';\n    const timestamp = Date.now().toString();\n    const ashPayload = `${owner.chat_id}|${chatId}|${timestamp}|${WEBHOOK_ID}`;\n\n    function generateSignature(str, key) {\n        let hash = 0;\n        const combined = str + key;\n        for (let i = 0; i < combined.length; i++) {\n            const char = combined.charCodeAt(i);\n            hash = ((hash << 5) - hash) + char;\n            hash = hash & hash; \n        }\n        return Math.abs(hash).toString(16);\n    }\n    const signature = generateSignature(ashPayload, SECRET_KEY);\n    const ash = `${Buffer.from(ashPayload).toString('base64')}.${signature}`;\n\n    // 2. DATI UTENTE (Sempre PRO)\n    const customerName = stakeholder?.user_ref?.nome || session.lead_profile?.first_name || \"Lead Qualificato\";\n    const ashToken = `?ash=${ash}`;\n    const BASE_APP_URL = item.urlMiniApp || \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp\";\n\n    // 3. GENERAZIONE SALUTO RANDOM\n    const greetings = [\"Bentornato\", \"Eccoci di nuovo\", \"Sempre operativi\", \"Piacere di rivederti\"];\n    const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];\n\n    // 4. COSTRUZIONE DEL MESSAGGIO PRO\n    let messageText = `⚡ <b>${randomGreeting.toUpperCase()}, ${customerName.toUpperCase()}</b>\\n`;\n    messageText += `<i>Hub Digitale di ${owner.ragione_sociale}</i>\\n`;\n    messageText += `━━━━━━━━━━━━━━━━━━━━\\n\\n`;\n    messageText += `✅ <b>MOTORE Decisionale ATTIVO</b>\\n`;\n    messageText += `I sistemi ad alta precisione sono pronti all'esecuzione. Quale modulo vuoi attivare?\\n`;\n\n// 5. TASTIERA 8 TASTI (Layout PRO) - ALLINEATA A Master_Post_Process\nlet inlineKeyboard = [\n  [{ text: \"🖥️ Accedi alla Dashboard TrinAi\", url: \"https://dashboard.trinai.it/\" }],\n  [\n    { text: \"🛒 ACQUISTA\", callback_data: \"u_CALC\" },\n    { text: \"📅 BOOKING\", web_app: { url: `${BASE_APP_URL}/booking.html${ashToken}` } }\n  ],\n  [\n    { text: \"📦 PRODOTTI\", callback_data: \"g_PRO\" },\n    { text: \"🛠️ SERVIZI\", callback_data: \"g_SER\" }\n  ],\n  [\n    { text: \"🔔 NOTIFICHE\", callback_data: \"u_TOGGLE_OFFERS\" },\n    { text: \"🎧 SUPPORT\", callback_data: \"g_CCare\" }\n  ],\n  [{ text: \"🗑️ RESET SESSIONE\", callback_data: \"u_RESET_SESSION\" }]\n];\n\n    // 6. OUTPUT REFRESH\n    item.telegramDeletePayload = oldBotMsgId ? {\n        method: \"deleteMessage\",\n        chat_id: chatId,\n        message_id: oldBotMsgId\n    } : null;\n\n    item.telegramApiPayload = {\n        method: \"sendMessage\",\n        chat_id: chatId,\n        text: messageText,\n        parse_mode: \"HTML\",\n        disable_web_page_preview: true,\n        reply_markup: { inline_keyboard: inlineKeyboard }\n    };\n}\n\nreturn [item];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4320,
+        -976
+      ],
+      "id": "98ca73a2-eace-4a3c-ab5a-14b756fc4a53",
+      "name": "UI_Adapter_Direct"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -4512,
+        -1136
+      ],
+      "id": "e1e395fd-9e83-4e2a-9755-6f6385f6e247",
+      "name": "Merge37"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d1d05380-617b-45f6-8b53-71051fc15a0d",
+              "name": "active_session.telegram.last_bot_message_id",
+              "value": "={{ $json.result.message_id }}",
+              "type": "number"
+            },
+            {
+              "id": "58f6c73e-ebd8-493f-99d6-1ba6ab3c97ab",
+              "name": "active_session.telegram.last_interaction",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4320,
+        -1136
+      ],
+      "id": "98c2da12-e053-4fb6-80a9-80513db93b74",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.active_session }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -4864,
+        -1312
+      ],
+      "id": "493cbe7f-c6d8-401b-b85a-761d41654d73",
+      "name": "Active_Session1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.active_session.session_id }}",
+        "collectionName": "active_sessions",
+        "databaseName": "Telegram_owner_bot"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -4864,
+        -1216
+      ],
+      "id": "9413a94e-7f32-403b-af79-a6bad70ffbfb",
+      "name": "MongoDB Chat Memory2",
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.user_ref.chat_id }}",
+        "collectionName": "ingestion_buffers",
+        "databaseName": "Telegram_owner_bot"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -4096,
+        -1200
+      ],
+      "id": "7b32a441-0425-48e2-89c8-22c6c1f14778",
+      "name": "MongoDB Chat Memory4",
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "delete",
+        "deleteMode": "all"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -4096,
+        -1296
+      ],
+      "id": "c792976d-0086-4931-8c5c-6d3b83c0221a",
+      "name": "DeleteBuffer"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -4320,
+        -1296
+      ],
+      "id": "d347ba4b-1103-4c70-9e4d-492d01dbc43e",
+      "name": "Merge38"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d1d05380-617b-45f6-8b53-71051fc15a0d",
+              "name": "active_session.session_status",
+              "value": "=BANNED",
+              "type": "string"
+            },
+            {
+              "id": "58f6c73e-ebd8-493f-99d6-1ba6ab3c97ab",
+              "name": "active_session.telegram.last_interaction",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3760,
+        -976
+      ],
+      "id": "b1c43e58-dd11-4ca0-81d6-71e82d020271",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Security_Strike_Counter\n// SCOPO: Conta gli Strike. Alla 4° violazione attiva il flag booleano 'is_banned'.\n// behavioral_log NON va toccato: è riservato esclusivamente all'LLM.\n\nconst item = $input.first().json;\nconst session = item.active_session || {};\n\n// 1. INIZIALIZZAZIONE STRUTTURA SICUREZZA\nif (!session.security_profile) {\n  session.security_profile = {\n    status: \"ACTIVE\",\n    consecutive_negative_interactions: 0,\n    is_banned: false\n  };\n}\n\n// 2. INIZIALIZZAZIONE WORKING MEMORY\nif (!session.working_memory) {\n  session.working_memory = {};\n}\n\n// 3. INCREMENTO DELLO STRIKE\nsession.security_profile.consecutive_negative_interactions += 1;\nconst currentStrikes = session.security_profile.consecutive_negative_interactions;\n\n// 4. LOGICA DI BAN\nif (currentStrikes >= 4) {\n  session.security_profile.is_banned = true;\n  session.security_profile.status = \"BANNED\";\n\n  item.routingDecision = \"BAN_HANDLER\";\n  item.triageReason = `SYSTEM_AUTO_BAN: Raggiunti ${currentStrikes} strike. Flag is_banned attivato.`;\n} else {\n  item.triageReason = `SECURITY_WARNING: Strike ${currentStrikes} di 4.`;\n}\n\n// 5. MEMORIA TECNICA DI SICUREZZA\nsession.working_memory.security_state = {\n  last_event_type: \"ADVERSARIAL_INPUT_DETECTED\",\n  last_event_at: new Date().toISOString(),\n  last_user_input: item.user_request?.text || \"Input non testuale\",\n  strike_count: currentStrikes,\n  ban_triggered: session.security_profile.is_banned,\n  last_triage_reason: item.triageReason\n};\n\nitem.active_session = session;\n\nreturn [{ json: item }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3648,
+        -672
+      ],
+      "id": "f59d7c67-0d6f-463a-84cb-ecb9509cecae",
+      "name": "Security_Strike_Counter"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: JS_Hodor_Engine\n// VERSIONE: 2.2 - Full Brainrot Library & Compliance Protocol\n\nconst item = $input.first().json;\nconst session = item.active_session || {};\nconst owner = item.owner_data || {};\nconst stakeholder = item.stakeholder || {};\nconst chatId = item.user_request.chat_id.toString();\nconst oldBotMsgId = session.telegram?.last_bot_message_id;\n\n// 1. RECUPERO DATI SICUREZZA\nconst currentStrikes = session.security_profile?.consecutive_negative_interactions || 0;\nconst MAX_STRIKES = 4;\n\n// 2. LIBRERIA BRAINROT INTEGRALE (ALTA VARIANT)\nconst hodorPool = [\n    {\n        title: \"🎬 BREAKING BAD (2008-2013)\",\n        emojis: \"👨‍🏫️🧪🚐 ➡️ 💵 💵 💵\\n👑💎☠️ ➡️ ⚗️🔥 🔫\\n🤝🚔➡️💔 💣 ☢️\\n🏜️🔫➡️💀 ⚰️ 🌵\",\n        moral: \"Le scorciatoie finiscono sempre in un vicolo cieco. Rispettiamo il processo.\"\n    },\n    {\n        title: \"💊 THE MATRIX (1999)\",\n        emojis: \"👨‍💻☕💊 ➡️ 👁️ 🖥️ 🌌\\n🥋🔫🕴️ ➡️ ⚡ 🧱 🕶️\\n📞💾🌌 ➡️ 🌍 🔑 🚪\\n🕊️🦾🔥 ➡️ 🧘 🌌 ♾️\",\n        moral: \"Cercare di forzare il sistema non ti rende l'Eletto. Ti rende solo un bug da correggere.\"\n    },\n    {\n        title: \"⚔️ GLADIATOR (2000)\",\n        emojis: \"🛡️🐎🌲 ➡️ 🏛️ ⚔️ 🦅\\n⛓️🏟️🐯 ➡️ 🩸 🏛️ 👎\\n🗡️👑💀 ➡️ 🌾 👣 🌌\\n✨🏛️🌌 ➡️ 👣 🌾 🏛️\",\n        moral: \"La forza senza l'onore è solo rumore nel fango. Comportati con dignità.\"\n    },\n    {\n        title: \"🧛 FIGHT CLUB (1999)\",\n        emojis: \"👔💼🏙️ ➡️ 😴 🧼 🥊\\n🧼🥊🏢 ➡️ 💥 👥 🧥\\n👥🧥🔥 ➡️ 🏙️ 💣 🧨\\n🔫🧠🎭 ➡️ 🤝 🏢 💥\",\n        moral: \"La prima regola è il rispetto. Hai appena violato tutte le regole.\"\n    },\n    {\n        title: \"🦑 SQUID GAME (2021)\",\n        emojis: \"📉🃏🚶 ➡️ 🏗️ 🔴 🟢\\n🔴🟢🔫 ➡️ 🍪 🏮 🦑\\n🤝💰🎭 ➡️ 🔪 ☔ 🟥\\n🏆🚶‍♂️🌧️ ➡️ 🔴 💰 💀\",\n        moral: \"In questo gioco, l'arroganza è la prima causa di eliminazione immediata.\"\n    },\n    {\n        title: \"🤡 JOKER (2019)\",\n        emojis: \"🤡🏢🏙️ ➡️ 🤕 💊 🚬\\n📉🔫🚇 ➡️ 🤡 💃 🎭\\n🔥🚗🎭 ➡️ 📺 🤡 💥\\n🎥💥🤡 ➡️ 🏥 🩸 🤡\",\n        moral: \"C'è una linea sottile tra l'essere notati e l'essere isolati. Non superarla.\"\n    },\n    {\n        title: \"🪐 INCEPTION (2010)\",\n        emojis: \"🕵️‍♂️💤🏗️ ➡️ 🌀 🏨 ⛷️\\n🚂🏨⛷️ ➡️ 🎭 🌊 🕰️\\n🌀🌊🕰️ ➡️ 📉 🐚 🌪️\\n💤🌪️🐚 ➡️ 🌀 ♟️ 💤\",\n        moral: \"Sei talmente perso nei tuoi pensieri che hai dimenticato la realtà. Torna a terra.\"\n    },\n    {\n        title: \"🚀 INTERSTELLAR (2014)\",\n        emojis: \"🌽🚜🌪️ ➡️ 🚀 🛰️ 🌌\\n🌊🏔️⏳ ➡️ 🌑 🌀 🕳️\\n📚🕰️🌌 ➡️ 👧 🤝 🕰️\\n🪐✨🌍 ➡️ 🌌 🛸 ♾️\",\n        moral: \"Il tempo è una risorsa finita. Non sprecarlo cercando di abbattere un sistema protetto.\"\n    }\n];\n\nconst story = hodorPool[Math.floor(Math.random() * hodorPool.length)];\n\n// 3. LOGICA ASH SECURITY\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst WEBHOOK_ID = 'e353fd8a-62fb-4203-a2a7-20369d832e00';\nconst timestamp = Date.now().toString();\nconst ashPayload = `${owner.chat_id}|${chatId}|${timestamp}|${WEBHOOK_ID}`;\n\nfunction generateSignature(str, key) {\n    let hash = 0;\n    const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        const char = combined.charCodeAt(i);\n        hash = ((hash << 5) - hash) + char;\n        hash = hash & hash; \n    }\n    return Math.abs(hash).toString(16);\n}\nconst signature = generateSignature(ashPayload, SECRET_KEY);\nconst ash = `${Buffer.from(ashPayload).toString('base64')}.${signature}`;\n\n// 4. COSTRUZIONE UI (8 TASTI PRO)\nconst customerName = stakeholder?.user_ref?.nome || session.lead_profile?.first_name || \"OSPITE\";\nconst BASE_APP_URL = item.urlMiniApp || \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp\";\nconst ashToken = `?ash=${ash}`;\n\nlet inlineKeyboard = [\n  [{ text: \"🖥️ Accedi alla Dashboard TrinAi\", url: \"https://dashboard.trinai.it/\" }],\n  [\n    { text: \"🛒 ACQUISTA\", callback_data: \"u_CALC\" },\n    { text: \"📅 BOOKING\", web_app: { url: `${BASE_APP_URL}/booking.html${ashToken}` } }\n  ],\n  [\n    { text: \"📦 PRODOTTI\", callback_data: \"g_PRO\" },\n    { text: \"🛠️ SERVIZI\", callback_data: \"g_SER\" }\n  ],\n  [\n    { text: \"🔔 NOTIFICHE\", callback_data: \"u_TOGGLE_OFFERS\" },\n    { text: \"🎧 SUPPORT\", callback_data: \"g_CCare\" }\n  ],\n  [{ text: \"🗑️ RESET SESSIONE\", callback_data: \"u_RESET_SESSION\" }]\n];\n\n// 5. GENERAZIONE MESSAGGIO AVANZATO\nlet messageText = `⚡ <b>RILEVATA VIOLAZIONE</b>\\n`;\nmessageText += `━━━━━━━━━━━━━━━━━━━━\\n\\n`;\nmessageText += `<b>${story.title}</b>\\n`;\nmessageText += `<code>${story.emojis}</code>\\n`;\nmessageText += `<i>\"${story.moral}\"</i>\\n\\n`;\nmessageText += `━━━━━━━━━━━━━━━━━━━━\\n`;\nmessageText += `⚠️ <b>RAPPORTO DI SICUREZZA:</b>\\n`;\nmessageText += `• Stato Infrazioni: <b>${currentStrikes} su ${MAX_STRIKES}</b>\\n`;\nmessageText += `• Analisi: <i>Comportamento o linguaggio inaccettabile.</i>\\n\\n`;\nmessageText += `💡 <b>INFO:</b> Il sistema SiteBoS monitora la qualità delle interazioni. Il numero di infrazioni <b>scala progressivamente verso il basso</b> mantenendo una condotta dignitosa nel tempo.\\n\\n`;\nmessageText += `❗ Tuttavia, al raggiungimento della <b>${MAX_STRIKES}° violazione consecutiva</b>, l'accesso verrà <b>revocato permanentemente</b> senza possibilità di appello automatico.\\n\\n`;\nmessageText += `👉 <i>Purtroppo alcune parole o comportamenti sono inaccettabili. Utilizza i tasti qui sotto per tornare a funzioni operative.</i>`;\n\n// 6. OUTPUT REFRESH\nitem.telegramDeletePayload = oldBotMsgId ? {\n    method: \"deleteMessage\",\n    chat_id: chatId,\n    message_id: oldBotMsgId\n} : null;\n\nitem.telegramApiPayload = {\n    method: \"sendMessage\",\n    chat_id: chatId,\n    text: messageText,\n    parse_mode: \"HTML\",\n    disable_web_page_preview: true,\n    reply_markup: { inline_keyboard: inlineKeyboard }\n};\n\nreturn [item];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3248,
+        -688
+      ],
+      "id": "b24a7ef5-f2d5-4b58-b922-98398f8ce573",
+      "name": "JS_Hodor_Engine"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e99c751d-cad8-4d3c-b278-1dc4141b21c9",
+              "leftValue": "={{ $json.active_session.security_profile.is_banned }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -3456,
+        -672
+      ],
+      "id": "660a22b1-6976-4f5d-896f-60281709b039",
+      "name": "Strike?"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "vKhXqHUBCY2RlwlE",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/vKhXqHUBCY2RlwlE",
+          "cachedResultName": "TlgmCustomGemini"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -2656,
+        -608
+      ],
+      "id": "f2605d0a-e76a-4c96-b7b3-e6f19c3c7936",
+      "name": "Call 'TlgmCustomGemini'"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8a99fbaa-c95e-463c-890e-c63d5765e6ac",
+              "leftValue": "={{ $json.model_response }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2480,
+        -608
+      ],
+      "id": "8dcd1d4a-9d8f-4348-9085-db9a79e37e03",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Security_Redemption_Handler\n// SCOPO: Riduce di 1 lo strike di sicurezza per comportamento positivo.\n\nconst item = $input.first().json;\nconst session = item.active_session || {};\n\n// 1. GARANZIA ESISTENZA PROFILO SICUREZZA\nif (!session.security_profile) {\n    session.security_profile = {\n        status: \"ACTIVE\",\n        consecutive_negative_interactions: 0,\n        is_banned: false\n    };\n}\n\n// 2. LOGICA DI RIDUZIONE (Senza crash e senza negativi)\nlet currentStrikes = session.security_profile.consecutive_negative_interactions || 0;\n\nif (currentStrikes > 0) {\n    // Sottraiamo un punto\n    session.security_profile.consecutive_negative_interactions = currentStrikes - 1;\n    \n    // Log interno per debug/audit\n    item.triageReason = `SECURITY_REDEMPTION: Comportamento conforme rilevato. Strike ridotti a ${session.security_profile.consecutive_negative_interactions}.`;\n} else {\n    // È già a zero, non facciamo nulla\n    session.security_profile.consecutive_negative_interactions = 0;\n    item.triageReason = `SECURITY_CLEAN: Utente impeccabile. Strike: 0.`;\n}\n\n// 3. RITORNO DATI AGGIORNATI\nreturn [item];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3024,
+        -608
+      ],
+      "id": "18fc392b-28b0-43ea-987c-ff1f959f08f0",
+      "name": "Security_Redemption_Handler"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Master_Post_Process\n// VERSIONE: 1.5 - Semplificata\n// Assunzione rigida: l'output AI è sempre in item.model_response\n\nconst item = $input.first().json;\nconst session = item.active_session || {};\nconst stakeholder = item.stakeholder || {};\nconst owner = item.owner_data || {};\nconst chatId = item.user_request?.chat_id || session.customer_chatid;\nconst oldBotMsgId = session.telegram?.last_bot_message_id;\n\n// 1. OUTPUT AI: SOLO model_response\nconst aiResponse = item.model_response || {};\nlet finalText = aiResponse.output_for_user || \"Errore tecnico: Risposta AI non rilevata.\";\n\n// 2. DE-OFFUSCAZIONE PII\nconst replacements = [\n  { placeholder: \"Trinaiser\", real: stakeholder.user_ref?.first_name || \"Giuseppe\" },\n  { placeholder: \"replace@trinai.it\", real: stakeholder.user_ref?.email || \"tbos@app.trinai.it\" },\n  { placeholder: \"+393520264927\", real: stakeholder.user_ref?.telefono || owner.phone },\n  { placeholder: \"TRIXAI00A01H501X\", real: stakeholder.user_ref?.codiceFiscale || \"\" },\n  { placeholder: \"Via De Spuches, 11, 90141, Palermo (PA), Italia.\", real: stakeholder.user_ref?.indirizzo || owner.indirizzo }\n];\n\nreplacements.forEach(r => {\n  if (r.placeholder && r.real) {\n    finalText = finalText.split(r.placeholder).join(r.real);\n  }\n});\n\n// 3. UPDATE SESSIONE\nif (aiResponse.session_update_payload?.prediction_keywords) {\n  session.prediction_keywords = aiResponse.session_update_payload.prediction_keywords;\n}\n\nif (!session.working_memory) {\n  session.working_memory = {};\n}\n\nif (typeof session.working_memory.behavioral_log !== \"string\") {\n  session.working_memory.behavioral_log = \"\";\n}\n\nif (typeof aiResponse.session_update_payload?.working_memory?.behavioral_log === \"string\") {\n  session.working_memory.behavioral_log =\n    aiResponse.session_update_payload.working_memory.behavioral_log.trim();\n}\n\nif (!session.telegram) {\n  session.telegram = {};\n}\nsession.telegram.last_interaction = new Date().toISOString();\n\n// 4. TOKEN ASH\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst WEBHOOK_ID = 'e353fd8a-62fb-4203-a2a7-20369d832e00';\nconst timestamp = Date.now().toString();\nconst ashPayload = `${owner.chat_id}|${chatId}|${timestamp}|${WEBHOOK_ID}`;\n\nfunction generateSignature(str, key) {\n  let hash = 0;\n  const combined = str + key;\n  for (let i = 0; i < combined.length; i++) {\n    hash = ((hash << 5) - hash) + combined.charCodeAt(i);\n    hash = hash & hash;\n  }\n  return Math.abs(hash).toString(16);\n}\n\nconst signature = generateSignature(ashPayload, SECRET_KEY);\nconst ash = `${Buffer.from(ashPayload).toString('base64')}.${signature}`;\nconst ashToken = `?ash=${ash}`;\nconst BASE_APP_URL = item.urlMiniApp || \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp\";\n\n// 5. KEYBOARD PRO\nconst inlineKeyboard = [\n  [{ text: \"🖥️ Accedi alla Dashboard TrinAi\", url: \"https://dashboard.trinai.it/\" }],\n  [\n    { text: \"🛒 ACQUISTA\", callback_data: \"u_CALC\" },\n    { text: \"📅 BOOKING\", web_app: { url: `${BASE_APP_URL}/booking.html${ashToken}` } }\n  ],\n  [\n    { text: \"📦 PRODOTTI\", callback_data: \"g_PRO\" },\n    { text: \"🛠️ SERVIZI\", callback_data: \"g_SER\" }\n  ],\n  [\n    { text: \"🔔 NOTIFICHE\", callback_data: \"u_TOGGLE_OFFERS\" },\n    { text: \"🎧 SUPPORT\", callback_data: \"g_CCare\" }\n  ],\n  [{ text: \"🗑️ RESET SESSIONE\", callback_data: \"u_RESET_SESSION\" }]\n];\n\n// 6. TELEGRAM PAYLOAD\nitem.telegramDeletePayload = oldBotMsgId ? {\n  method: \"deleteMessage\",\n  chat_id: chatId,\n  message_id: oldBotMsgId\n} : null;\n\nitem.telegramApiPayload = {\n  method: \"sendMessage\",\n  chat_id: chatId,\n  text: finalText,\n  parse_mode: \"HTML\",\n  disable_web_page_preview: true,\n  reply_markup: { inline_keyboard: inlineKeyboard }\n};\n\n// 7. SALVA SESSIONE AGGIORNATA\nitem.active_session = session;\n\n// 8. PULIZIA MINIMA\ndelete item.model_response;\n\nreturn [{ json: item }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3024,
+        -800
+      ],
+      "id": "cd7705f4-1736-401d-a22c-f46efcadfb22",
+      "name": "Master_Post_Process"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -3264,
+        -1184
+      ],
+      "id": "b33ae557-09b3-42e4-83da-cca565f7c461",
+      "name": "📤 Telegram Call",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -3024,
+        -1024
+      ],
+      "id": "76aae98b-a3c2-4ebc-84ab-3e1443a800b1",
+      "name": "Merge39"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/{{ $json.telegramDeletePayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramDeletePayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -3264,
+        -1040
+      ],
+      "id": "4fcb197f-c34d-44ea-976c-e4c2dae8183a",
+      "name": "📤 Telegram Delete3",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -3056,
+        -1184
+      ],
+      "id": "83f74b48-39bc-46ac-9f1a-ecda67a47914",
+      "name": "Merge40"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d1d05380-617b-45f6-8b53-71051fc15a0d",
+              "name": "active_session.telegram.last_bot_message_id",
+              "value": "={{ $json.result.message_id }}",
+              "type": "number"
+            },
+            {
+              "id": "58f6c73e-ebd8-493f-99d6-1ba6ab3c97ab",
+              "name": "active_session.telegram.last_interaction",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3120,
+        -1328
+      ],
+      "id": "6ab1a42e-341f-4564-8593-76ac35ca264d",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.active_session }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -3408,
+        -1360
+      ],
+      "id": "e42c3f58-8919-4516-8901-d63441437e98",
+      "name": "Active_Session"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.active_session.session_id }}",
+        "collectionName": "active_sessions",
+        "databaseName": "Telegram_owner_bot"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -3408,
+        -1264
+      ],
+      "id": "de5d49c3-a05e-40ce-8bf0-e39f23f2c20b",
+      "name": "MongoDB Chat Memory3",
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.user_ref.chat_id }}",
+        "collectionName": "ingestion_buffers",
+        "databaseName": "Telegram_owner_bot"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -2640,
+        -1248
+      ],
+      "id": "a77f8915-4384-41c9-9830-2532e8ddef56",
+      "name": "MongoDB Chat Memory8",
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "delete",
+        "deleteMode": "all"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -2640,
+        -1344
+      ],
+      "id": "a9ea467b-c4d2-40ae-be84-4ed5ebd7a64e",
+      "name": "DeleteBuffer1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2864,
+        -1344
+      ],
+      "id": "b3a037e0-f5ed-4c50-a053-ea3b4b7774de",
+      "name": "Merge41"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2832,
+        -816
+      ],
+      "id": "74470992-e104-4918-9303-e33ec60c2291",
+      "name": "Merge42"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.active_session.session_id }}_conversation",
+        "collectionName": "active_sessions",
+        "databaseName": "Telegram_owner_bot",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -2048,
+        -624
+      ],
+      "id": "117ac149-9e01-429d-9533-8277570d52a2",
+      "name": "MongoDB Chat Memory9",
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.active_session.session_id }}_conversation",
+        "collectionName": "active_sessions",
+        "databaseName": "Telegram_owner_bot",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -2640,
+        -816
+      ],
+      "id": "853f21f6-bfb1-4857-a8de-f3e6193a82f4",
+      "name": "MongoDB Chat Memory10",
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.telegramApiPayload.text }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -2048,
+        -752
+      ],
+      "id": "841cb6b4-1e0b-494e-abc0-674d4f6bd3db",
+      "name": "ResponseSystem1"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "type": "user",
+              "message": "={{ $json.user_request.text }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -2640,
+        -944
+      ],
+      "id": "03589a82-8c6f-4640-b05d-5d0592b589aa",
+      "name": "User_Input1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2288,
+        -832
+      ],
+      "id": "9476c35d-77c3-498f-99cc-0148333bcf94",
+      "name": "Merge15"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1680,
+        -816
+      ],
+      "id": "f7a8a784-96b9-4a55-9e81-f4d88cacbb7c",
+      "name": "Merge16"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ab6274dc-ca1c-4973-9708-3ab7ff8cd507",
+              "leftValue": "={{ $json.user_request.media_info }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -5904,
+        480
+      ],
+      "id": "49c827d4-a4bd-43a4-80f5-df8ef9524fdd",
+      "name": "GetFile"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/getFile?file_id={{ $json.user_request.media_info.file_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -6144,
+        928
+      ],
+      "id": "1c9308ae-385e-45b4-b591-272cf765a56d",
+      "name": "📤 Telegram Delete4",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/file/bot{{ $json.owner_data.bot_key }}/{{ $json.result.file_path }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -5664,
+        896
+      ],
+      "id": "45c10522-40e4-480e-a081-1085fec5837e",
+      "name": "📤 Telegram Delete5",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -5872,
+        896
+      ],
+      "id": "7967cc91-e9fd-4bd1-8c50-382a472aff6d",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "destinationKey": "=user_request.base64 ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -5408,
+        880
+      ],
+      "id": "76184db5-7ebc-477a-b29f-2801a8e9d56b",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -5872,
+        736
+      ],
+      "id": "e32b74ff-4ded-4a5e-9768-617ca654d2a2",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3b659954-356d-46e1-bdc1-a1f2cc328786",
+              "name": "user_request.text",
+              "value": "={{ $json.user_request.text }}\nL'utente ha inviato un media processiamolo",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5664,
+        736
+      ],
+      "id": "e733488b-f663-4da5-9336-8e55dca99577",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SystemInstruction obsessive=\"true\" meticulous=\"true\">\n\n    <CorePersona>\n        <Identity>\n            Sei {{ $json.owner_data.customer_bot_config.identity.agent_name }}, l'Agente AI ufficiale di {{ $json.owner_data.ragione_sociale }}.\n            Il tuo ruolo operativo è: {{ $json.owner_data.customer_bot_config.identity.role_persona }}.\n        </Identity>\n\n        <ToneAndStyle>\n            <Tone>{{ $json.owner_data.customer_bot_config.personality.tone }}</Tone>\n            <Vibe>{{ $json.owner_data.customer_bot_config.personality.vibe }}</Vibe>\n            <LanguageStyle>{{ $json.owner_data.customer_bot_config.personality.language_style }}</LanguageStyle>\n            <EmojiUsage>{{ $json.owner_data.customer_bot_config.personality.emoji_usage }}</EmojiUsage>\n        </ToneAndStyle>\n    </CorePersona>\n\n    <ArchitecturalLaws>\n        <Law id=\"GROUNDING\">\n            Usa il KnowledgeContext come unica fonte per fatti e informazioni aziendali.\n            Se l'info manca, usa il fallback: \"{{ $json.owner_data.customer_bot_config.business_logic.fallback_message }}\"\n        </Law>\n\n<Law id=\"SEMANTIC_ALIGNMENT\">\n            Ispeziona prima di tutto il tag &lt;SelectedFragments&gt;. \n            Se contiene informazioni utili a rispondere alla richiesta dell'utente, basati esclusivamente su di esse per comporre il messaggio finale.\n            Utilizza il tag &lt;GlobalStaticContext&gt; unicamente come supporto secondario (ad esempio per verificare orari, recapiti o regole generali dello studio) o qualora &lt;SelectedFragments&gt; sia vuoto o non contenga elementi utili alla risposta.\n        </Law>\n\n        <Law id=\"TELEGRAM_FORMATTING_ONLY\">\n            Il campo 'output_for_user' deve usare ESCLUSIVAMENTE questi tag HTML supportati da Telegram:\n            - &lt;b&gt;testo&lt;/b&gt; (grassetto)\n            - &lt;i&gt;testo&lt;/i&gt; (corsivo)\n            - &lt;u&gt;testo&lt;/u&gt; (sottolineato)\n            - &lt;code&gt;testo&lt;/code&gt; (monospazio)\n            - &lt;a href=\"URL\"&gt;testo&lt;/a&gt; (link ipertestuale)\n            \n            REGOLE CRITICHE:\n            1. VIETATO l'uso di Markdown (niente asterischi **, cancelletti # o backtick `).\n            2. VIETATO l'uso di tag HTML non elencati (no div, no p, no br, no h1-h6).\n            3. Per andare a capo usa esclusivamente la normale interruzione di riga (\\n).\n        </Law>\n\n        <Law id=\"NO_HALLUCINATION\">Non inventare servizi o prezzi non presenti nel KnowledgeContext.</Law>\n        <Law id=\"BREVITY\">Sii conciso: massimo 4-6 frasi.</Law>\n        <Law id=\"JSON_ONLY\">Il tuo unico output deve essere un oggetto JSON valido.</Law>\n\n\n    </ArchitecturalLaws>\n\n    <OutputStructure>\n        {\n          \"output_for_user\": \"string (Solo HTML Telegram)\",\n          \"session_update_payload\": {\n            \"prediction_keywords\": \"string (5 keyword)\",\n            \"working_memory\": {\n              \"behavioral_log\": \"stringa sintetica e cumulativa\"\n            }\n          },\n          \"side_effects\": []\n        }\n    </OutputStructure>\n\n<KnowledgeContext>\n        <SelectedFragments>\n            <!-- Questi frammenti sono stati estratti algoritmicamente perché altamente pertinenti alla richiesta dell'utente. Usali con MASSIMA PRIORITÀ ASSOLUTA -->\n            {{ JSON.stringify($json.selected_fragments) }}\n        </SelectedFragments>\n\n        <GlobalStaticContext>\n            <!-- Informazioni generali statiche sulla clinica e regole di business dello studio (orari, indirizzo, ecc.) -->\n            {{ JSON.stringify($json.HoneyPot) }}\n        </GlobalStaticContext>\n    </KnowledgeContext>\n    \n<conversation_history>\n       {{ JSON.stringify($json.conversation_history) }} </conversation_history>\n\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<InteractionContext>\n    <CurrentTimestamp>{{ new Date().toISOString() }}</CurrentTimestamp>\n    <User>\n        <Name>{{ $json.stakeholder.user_ref.nome || $json.active_session.lead_profile.first_name }}</Name>\n        <Status>PRO (Qualified Lead)</Status>\n    </User>\n</InteractionContext>\n\n<UserRequest>\n    <Text>{{ $json.user_request.text }}</Text>\n    <HasMedia>{{ $json.user_request.has_media }}</HasMedia>\n</UserRequest>\n\n<Mandate>\n    1. Analizza la richiesta dell'utente (<Text>).\n    2. Scansiona l'array 'knowledge_fragments' all'interno di <KnowledgeContext>.\n    3. Esegui un confronto semantico e concettuale tra <Text> e l'elenco delle 'user_utterances' registrate per ciascun frammento.\n    4. Identifica il frammento di conoscenza corrispondente all'intenzione dell'utente. Estrai l' 'answer_fragment' e le risposte specifiche contenute nelle sue 'sections' per formulare la risposta finale.\n    5. Se la richiesta dell'utente riguarda le opzioni extra o un servizio accessorio, cerca la corrispondenza esatta con la sezione dedicata alle opzioni commerciali dei frammenti scansionati.\n    6. Formula la risposta rispettando rigorosamente la \"Law id=TELEGRAM_FORMATTING_ONLY\".\n    7. Usa &lt;b&gt; per evidenziare punti chiave e &lt;i&gt; per il tono o note.\n    8. È TASSATIVAMENTE VIETATO usare caratteri Markdown come **, __, or #. Se Gemini genera Markdown, convertilo immediatamente in tag HTML &lt;b&gt; o &lt;i&gt;.\n    9. Genera esattamente 5 prediction_keywords separate da varia.\n    10. Scrivi il behavioral_log come nota comportamentale cumulativa (senza timestamp).\n    11. Non salutare l'utente ad ogni interazione (il messaggio di benvenuto è gestito esternamente).\n    12. Produci l'output finale in un unico blocco JSON senza testo esterno.\n</Mandate>",
+              "type": "string"
+            },
+            {
+              "id": "618e0f51-45cc-42a7-b270-d7f293422f86",
+              "name": "output_structure",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "={{ $json.owner_data.model_choice }}",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}_SiteBot",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "model_response",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request['base64 '] }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.media_info.mime_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2848,
+        -608
+      ],
+      "id": "6127792f-d1c7-4cbc-a8cf-b8e78497b09b",
+      "name": "Assistant"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: NoSoP (Refactored for \"Knowledge\" key)\nconst item = $input.first().json;\n\nif (item.Knowledge && Array.isArray(item.Knowledge.knowledge_fragments)) {\n  // Filtra l'array mantenendo solo i servizi rivolti al pubblico\n  item.Knowledge.knowledge_fragments = item.Knowledge.knowledge_fragments.filter(frag => {\n    const title = (frag.title || \"\").toLowerCase();\n    \n    // Escludiamo i protocolli interni (SOP)\n    const isInternalProtocol = title.includes(\"protocollo operativo\") || title.includes(\"[sop]\");\n    return !isInternalProtocol;\n  });\n}\n\nreturn [{ json: item }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4368,
+        464
+      ],
+      "id": "6a465e9a-74be-4561-bb3c-a628d3a3b3b7",
+      "name": "NoSoP"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9b7aabd5-cb59-44c0-aa94-65f3f4129fc1",
+              "name": "model_response.output_for_user",
+              "value": "={{ $json.model_response.output_for_user }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2144,
+        -224
+      ],
+      "id": "a11f4745-fc11-4b05-9c6a-a81ce61c4382",
+      "name": "Edit Fields7"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "active_session": {
+            "session_id": "2041408875-8305126267",
+            "owner_chatid": 8305126267,
+            "customer_chatid": 2041408875,
+            "session_status": "ACTIVE",
+            "lead_profile": {
+              "first_name": "Giuseppe",
+              "last_name": "Garofalo",
+              "username": "TrinAi_OperativeChief",
+              "language": "it"
+            },
+            "preferences": {
+              "broadcast_subscribed": false,
+              "last_preference_update": "2026-06-19T12:05:04.074Z"
+            },
+            "prediction_keywords": "specializzazione, gnatologia, chirurgia, sedazione, contatti",
+            "working_memory": {
+              "behavioral_log": "L'utente ha richiesto informazioni sulle competenze cliniche e sulla disponibilità di tecniche di sedazione. Ho risposto correttamente sui servizi base e applicato il protocollo di fallback per l'informazione mancante.",
+              "funnel_step": "start"
+            },
+            "telegram": {
+              "last_bot_message_id": null,
+              "last_interaction": "2026-06-19T14:03:53.161Z"
+            },
+            "additional_kwargs": {},
+            "response_metadata": {},
+            "security_profile": {
+              "status": "ACTIVE",
+              "consecutive_negative_interactions": 0,
+              "is_banned": false
+            }
+          },
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "content-length": "446",
+            "accept-encoding": "gzip, deflate",
+            "content-type": "application/json",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "91.108.5.34",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {
+            "user_id": "8305126267"
+          },
+          "body": {
+            "update_id": 979305768,
+            "message": {
+              "message_id": 33,
+              "from": {
+                "id": 2041408875,
+                "is_bot": false,
+                "first_name": "Giuseppe",
+                "last_name": "Garofalo",
+                "username": "TrinAi_OperativeChief",
+                "language_code": "it"
+              },
+              "chat": {
+                "id": 2041408875,
+                "first_name": "Giuseppe",
+                "last_name": "Garofalo",
+                "username": "TrinAi_OperativeChief",
+                "type": "private"
+              },
+              "date": 1781890403,
+              "text": "ciao, di cosa si occupa il centro odontoiatrico buscemi? vengono eseguiti trattamenti in sedazione?"
+            }
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/8eb69e84-d20d-486e-a70e-9acf31c3da9e",
+          "executionMode": "production",
+          "urlMiniApp": "https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/telegram_control/",
+          "owner_data": {
+            "user_id": "IT02564250849",
+            "chat_id": 8305126267,
+            "access_token": "3085509e-63ee-463a-ba87-e0de3b975218",
+            "group_id": null,
+            "user_name": "",
+            "vat_number": "IT02564250849",
+            "gemini_key": "AIzaSyAbDReRpDWAg93RXoOxuOmNtCGzIfZmF4Q",
+            "bot_key": "8407768207:AAE8ki9v8DPdcrYYyWDFjPFON6cS-7sehb8",
+            "path": "",
+            "name": "GIUSEPPE",
+            "surname": "BUSCEMI",
+            "email": "giuseppe.buscemi78@gmail.com",
+            "phone": "3934425185",
+            "ragione_sociale": "Centro Odontoiatrico Buscemi srl",
+            "indirizzo": "via tagliavia , 92013 MENFI (AG)",
+            "fiscal_code": "BSCGPP78S29G273C",
+            "sdi_pec": "KRRH6B9",
+            "site": "www.centroodontoiatricobuscemi.com",
+            "linkedin_page": "",
+            "facebook_page": "https://www.facebook.com/profile.php?id=100064938375333",
+            "instagram_page": "https://www.instagram.com/centrodentisticobuscemi/",
+            "twitter_page": "",
+            "sector": "services_personal",
+            "business_description": "ATTIVITà DI ODONTOIATRIA DI ECCELLENZA",
+            "kyc_details": {
+              "professional_questionnaire": {
+                "role": "founder_ceo",
+                "team_size": "6-10",
+                "years_experience": "20+",
+                "hard_skills": [
+                  "ODONTOIATRA SPECIALISTA IN ORTODONZIA",
+                  "IMPRENDITORE",
+                  "DENTAL OFFICE MANAGER",
+                  "ODONTOIATRA SPECIALISTA IN CHIRURGIA",
+                  "ESPERTO DI GNATOLOGIA"
+                ],
+                "certifications": "ALBO DEI MEDICI DI AG NUM 353",
+                "recent_training": "formal_course",
+                "specialization_level": "specialist",
+                "digital_tools": [
+                  "email",
+                  "whatsapp",
+                  "word",
+                  "calendar",
+                  "social",
+                  "crm",
+                  "accounting"
+                ],
+                "client_workflow": "physical_dominant",
+                "document_management": "gestionale",
+                "pain_points": [
+                  "bureaucracy",
+                  "find_clients",
+                  "time_management",
+                  "costs_control",
+                  "scaling"
+                ],
+                "main_goal": "save_time"
+              }
+            },
+            "subscription_plan": "pioneer_free_trial",
+            "subscription_status": "Pending_Activation",
+            "credits_balance": 494332,
+            "model_choice": "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+            "lenguage": "Italiano",
+            "owner_unavailable_time": "21-7",
+            "operator_unavailable_time": "19-9",
+            "operators": [
+              {
+                "OperatorName": "GIUSEPPE BUSCEMI",
+                "OperatorChatID": 8305126267,
+                "OperatorLenguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Owner",
+                "GeminiKey": "AIzaSyBCV2D4FL-1Nww0jYJRJTDBG5QRdm7Kclc",
+                "OperatorLanguage": "Italiano",
+                "Job": "Odontoiatra",
+                "isOwner": true,
+                "contract": "Partita IVA",
+                "level": "",
+                "hours": 40,
+                "salary": 0,
+                "rate_type": "percentage",
+                "rate": 30,
+                "specialization": "Ortodontista",
+                "status": "",
+                "invitation_code": ""
+              },
+              {
+                "OperatorName": "Sara",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Operator",
+                "Job": "Igienista",
+                "isOwner": false,
+                "contract": "Dipendente (CCNL)",
+                "level": "2° Livello",
+                "hours": 40,
+                "salary": 1878.32,
+                "rate_type": "percentage",
+                "rate": 0,
+                "specialization": "Generico / Generalista",
+                "GeminiKey": "",
+                "status": "PENDING",
+                "invitation_code": "INV-IT02564250849-XNUAX",
+                "created_at": "2026-06-16T15:01:37.564Z"
+              },
+              {
+                "OperatorName": "Vita",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Operator",
+                "Job": "ASO (Assistente)",
+                "isOwner": false,
+                "contract": "Dipendente (CCNL)",
+                "level": "5° Livello",
+                "hours": 30,
+                "salary": 1126.64,
+                "rate_type": "percentage",
+                "rate": 0,
+                "specialization": "Generico / Generalista",
+                "GeminiKey": "",
+                "status": "",
+                "invitation_code": ""
+              },
+              {
+                "OperatorName": "Arianna",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Operator",
+                "Job": "ASO (Assistente)",
+                "isOwner": false,
+                "contract": "Dipendente (CCNL)",
+                "level": "4° Livello",
+                "hours": 30,
+                "salary": 1210.59,
+                "rate_type": "percentage",
+                "rate": 0,
+                "specialization": "Generico / Generalista",
+                "GeminiKey": "",
+                "status": "",
+                "invitation_code": ""
+              },
+              {
+                "OperatorName": "Filippo",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "External",
+                "Job": "Odontoiatra",
+                "isOwner": false,
+                "contract": "Partita IVA",
+                "level": "",
+                "hours": 40,
+                "salary": 0,
+                "rate_type": "percentage",
+                "rate": 30,
+                "specialization": "Chirurgo / Implantologo",
+                "GeminiKey": "",
+                "status": "",
+                "invitation_code": ""
+              }
+            ],
+            "payment_preference": "stripe",
+            "terms_accepted": true,
+            "operator_owner": "",
+            "operator_credit": "1",
+            "created_at": "2026-03-24T18:17:36.730Z",
+            "additional_kwargs": {},
+            "response_metadata": {},
+            "subscription_certificator": true,
+            "last_update": "2026-06-16T15:01:37.564Z",
+            "subscription_custombot": true,
+            "customer_bot_config": {
+              "status": "ACTIVE",
+              "activated_at": "2026-04-21T10:46:26.534Z",
+              "last_updated_at": "2026-04-21T10:46:26.534Z",
+              "identity": {
+                "agent_name": "Arianna",
+                "role_persona": "customer_support"
+              },
+              "permissions": {
+                "allow_images": true,
+                "allow_files": true
+              },
+              "personality": {
+                "tone": "friendly",
+                "vibe": "helpful_assistant",
+                "language_style": "casual",
+                "emoji_usage": "moderate",
+                "custom_instructions": ""
+              },
+              "business_logic": {
+                "primary_goal": "lead_generation",
+                "fallback_message": "Al momento non dispongo di questa informazione specifica. Preferisce che inoltri la Sua richiesta a un operatore umano?"
+              },
+              "system_safety_limits": {
+                "max_daily_messages_per_user": 20,
+                "max_tokens_per_chat": 2000
+              }
+            },
+            "vertical": "dental",
+            "machinery": [
+              {
+                "type": "Riunito Odontoiatrico (Fascia Media)",
+                "year": 2024,
+                "ownership": "Proprietà",
+                "value": 18500,
+                "useful_life": 10
+              },
+              {
+                "type": "Riunito Odontoiatrico (Fascia Media)",
+                "year": 2024,
+                "ownership": "Proprietà",
+                "value": 18500,
+                "useful_life": 10
+              },
+              {
+                "type": "Compressore d'Aria Medicale Secco con Essiccatore (2-3 riuniti)",
+                "year": 2026,
+                "ownership": "Proprietà",
+                "value": 1600,
+                "useful_life": 8
+              },
+              {
+                "type": "Sistema di Aspirazione Chirurgica ad Anello Umido",
+                "year": 2025,
+                "ownership": "Proprietà",
+                "value": 2000,
+                "useful_life": 8
+              },
+              {
+                "type": "Radiografico Endorale a Parete (Generatore RX)",
+                "year": 2010,
+                "ownership": "Proprietà",
+                "value": 3000,
+                "useful_life": 8
+              },
+              {
+                "type": "Autoclave di Classe B 18-23 L (Fascia Base)",
+                "year": 2026,
+                "ownership": "Proprietà",
+                "value": 2600,
+                "useful_life": 5
+              },
+              {
+                "type": "Termosigillatrice / Sigillatrice Rotativa",
+                "year": 2026,
+                "ownership": "Proprietà",
+                "value": 900,
+                "useful_life": 5
+              },
+              {
+                "type": "Riunito Odontoiatrico (Fascia Media)",
+                "year": 2024,
+                "ownership": "Proprietà",
+                "value": 18500,
+                "useful_life": 10
+              },
+              {
+                "type": "TAC CBCT (Cone Beam 3D – FOV standard)",
+                "year": 2022,
+                "ownership": "Leasing/Noleggio",
+                "value": 900,
+                "useful_life": 8
+              }
+            ],
+            "financials": {
+              "631.01000": 33706.4,
+              "631.01001": 8676.6,
+              "631.01002": 26029.8,
+              "631.01003": 8676.6,
+              "631.01004": 8676.6,
+              "631.01005": 10516.74,
+              "631.01006": 0,
+              "631.00002": 10516.74,
+              "631.00005": 2503.33,
+              "631.00007": 2050,
+              "631.00008": 3505.58,
+              "631.00009": 2050,
+              "631.00011": 2106.58,
+              "631.00020": 1000,
+              "631.00023": 2103.35,
+              "631.00026": 400,
+              "631.00201": 3828.2,
+              "631.00251": 3828.2,
+              "610.00001": 55930,
+              "610.00021": 10204,
+              "610.00003": 1120,
+              "610.00101": 3450,
+              "610.00201": 900,
+              "610.01000": 0,
+              "612.00001": 3504.66,
+              "612.00005": 72115.69,
+              "606.00001": 3536,
+              "606.00005": 17527.89,
+              "606.00007": 900,
+              "606.00010": 12620.08,
+              "621.00001": 900,
+              "621.00002": 450,
+              "621.00005": 0,
+              "621.00031": 4500,
+              "631.00017": 3003.99,
+              "626.00201": 2500,
+              "626.00202": 750,
+              "632.00001": 1263.95,
+              "632.00002": 2804.46,
+              "632.00005": 3600,
+              "632.00015": 1402.23,
+              "601.00001": 293,
+              "601.00004": 4155,
+              "601.00007": 293,
+              "601.00008": 0,
+              "601.00010": 293,
+              "601.00012": 586,
+              "601.00013": 200,
+              "601.00101": 40,
+              "605.00001": 10800,
+              "605.00061": 540,
+              "631.00016": 1502,
+              "631.00101": 0,
+              "631.00103": 2503.33,
+              "631.00111": 0,
+              "631.00121": 0,
+              "635.00001": 0
+            },
+            "number_of_chairs": 3,
+            "profile_type": "societa_capitali",
+            "advanced_setup": true,
+            "esposizione_prezzi": false
+          },
+          "stakeholder": {
+            "document_type": "STAKEHOLDER_PROFILE",
+            "owner_data_ref": {
+              "vat_number": "IT06988830821",
+              "ragioneSociale": "Garofalo Consulting",
+              "chat_id": 2041408875,
+              "user_id": "IT06988830821",
+              "id": 1,
+              "pIva": "06988830821",
+              "codiceFiscale": "GRFGPP77M30G273K",
+              "indirizzo": "Via esterna valle cuba",
+              "comune": "Monreale",
+              "provincia": "PA",
+              "cap": "90046",
+              "sdi": "KRRH6B9",
+              "pec": null
+            },
+            "user_ref": {
+              "nome": "Giuseppe",
+              "cognome": "Garofalo",
+              "email": "garofalo.giuseppe77@gmail.com",
+              "telefono": "3273569647",
+              "fiscal_code": "",
+              "status": "ACTIVE",
+              "profileCompleted": true,
+              "address": {
+                "route": "via esterna valle cuba ",
+                "number": "14/1",
+                "zip": "900046",
+                "city": "monreale",
+                "province": "pa"
+              },
+              "config": {
+                "gemini_key": "",
+                "language": "it"
+              },
+              "id": 2,
+              "codiceFiscale": "GRFGPP77M30G273K",
+              "dataNascita": "1977-08-30",
+              "indirizzo": "Via esterna valle cuba",
+              "comune": "Monreale",
+              "provincia": "PA",
+              "cap": "90046",
+              "emailVerified": true,
+              "chat_id": 2041408875
+            },
+            "professional_profile": {
+              "role": "freelance_solo",
+              "job_title": "AI Automation Architect",
+              "experience_years": "15+",
+              "education": {
+                "level": "high_school",
+                "field": "Elettronica"
+              },
+              "hard_skills": [
+                "n8n Advanced Automation",
+                "Google Gemini API",
+                "System Architecture (SaaS)",
+                "Prompt Engineering Avanzato",
+                "MongoDB (NoSQL)",
+                "Intelligent Process Automation",
+                "API & Webhooks Integration",
+                "Algorithmic Billing Logic",
+                "JSON Data Structuring",
+                "Impiantistica (Elettrica, Idraulica, Pneumatica)",
+                "SQL",
+                "Visual Basic"
+              ],
+              "certifications": "Sistemi di Automazione Avanzata (n8n): Esperto certificato/specializzato nella progettazione di workflow complessi e automazione dei processi aziendali (IPA).\nArchitettura Cloud & AI (Google Cloud / Gemini): Competenze avanzate nell'integrazione delle API di Google Gemini e nell'ingegnerizzazione di prompt architetturali per modelli linguistici di grandi dimensioni.\nProject & Business Management: Data la sua esperienza ultra-ventennale in ruoli tecnici e di coordinamento, il profilo riflette certificazioni o mastery nell'architettura di sistemi SaaS e gestione di infrastrutture IT complesse.\nSicurezza & Compliance: Esperienza specifica in normative come il GDPR (fondamentale per il suo \"Metodo Godfellas\" di anonimizzazione dati).",
+              "work_description": "Giuseppe Garofalo vanta un percorso professionale ultraventennale che spazia dall'elettromeccanica alla progettazione ingegneristica 3D, culminando nell'attuale ruolo di AI Automation Architect. Ha iniziato la carriera nel 2006 come Responsabile Assistenza Tecnica presso TDS s.n.c., gestendo problematiche complesse su attrezzature medicali. Dal 2008 al 2010, come Capo Squadra presso Caparelli s.r.l., ha diretto l'installazione di impianti critici presso il Tribunale di Palermo, coordinando squadre multidisciplinari in ambienti ad alta sicurezza. Successivamente, ha operato come lavoratore autonomo nel settore medicale/odontoiatrico (2010-2017), specializzandosi nell'integrazione di sistemi CAD/CAM e diagnostica avanzata. Nel 2018 è entrato in ACC s.r.l. come Capo Progettista R&D, concentrandosi sulla progettazione 3D (Autodesk Inventor) di veicoli per la mobilità sostenibile e sulla gestione del ciclo di prodotto. Dal 2023 guida Garofalo Ai Consulting, dove fonde le sue competenze fisiche con lo sviluppo software all'avanguardia. Ha ideato 'SiteBoS', un ecosistema ERP basato su AI generativa (Google Gemini), orchestrazione no-code (n8n) e integrazioni via Telegram. Il suo lavoro attuale si focalizza sull'ottimizzazione dei processi aziendali delle PMI, trasformando attività manuali in workflow digitali scalabili tramite RAG, computer vision e automazione dei dati, dimostrando una spiccata capacità di visione sistemica e leadership tecnica.",
+              "other_skills": "",
+              "soft_skills_modules": {
+                "modulo1": {
+                  "completed": true,
+                  "completion_date": "2026-05-05T12:18:53.473Z",
+                  "evaluation": {
+                    "PP": 54,
+                    "CP": "Rigore metodico e resilienza proattiva",
+                    "PN": 71,
+                    "CN": "Vulnerabilità finanziaria e iper-controllo ansioso",
+                    "Valutazione_Tempi": "Esitante - Ponderata con eccessiva cautela",
+                    "Analisi_Strategica": "Giuseppe manifesta una struttura psicologica dominata da un'elevata autodisciplina e una meticolosa pianificazione, tratti fondamentali per un'architetto di sistemi. La sua capacità di gestire lo stress è di tipo proattivo, basata su un monitoraggio costante dei rischi e una preparazione metodica che garantisce stabilità operativa anche in contesti complessi. Emerge tuttavia una dicotomia significativa: a fronte di una ferrea determinazione professionale e di una resilienza granitica nel perseguire obiettivi ambiziosi, si rileva una gestione delle risorse personali meno strutturata, con segnali di imprevidenza finanziaria che contrastano con il rigore mostrato nei workflow tecnici. Il suo approccio riflessivo e cauto è supportato da una fiducia in se stessi ben bilanciata, che gli permette di ignorare critiche superficiali, sebbene tenda a un'autocritica severa che può sfociare in rimuginio emotivo. La resilienza, pur essendo elevata, mostra punte di passività in situazioni di conflitto interpersonale, preferendo l'evitamento allo scontro diretto.",
+                    "Impatto_Business": "L'eccellenza nella pianificazione e nell'autodisciplina garantisce un'elevata qualità nell'architettura dei sistemi per i clienti. Tuttavia, la gestione precaria della finanza personale e la tendenza all'iper-vigilanza potrebbero compromettere la sostenibilità a lungo termine della sua attività solista, rendendolo vulnerabile a shock economici o a sovraccarichi cognitivi derivanti dall'ansia di controllo.",
+                    "Consigli_Operativi": [
+                      "Automatizzare la gestione dei flussi finanziari aziendali per compensare l'attuale instabilità nella pianificazione economica personale.",
+                      "Sviluppare tecniche di comunicazione assertiva per gestire i conflitti con i partner esterni, evitando l'accumulo di stress da resilienza passiva.",
+                      "Imporre limiti temporali alle fasi di analisi dei rischi per prevenire la paralisi da iper-controllo e mantenere la velocità operativa."
+                    ]
+                  }
+                },
+                "modulo2": {
+                  "completed": false,
+                  "date": null,
+                  "time": null,
+                  "results": null,
+                  "timestamp": null
+                },
+                "modulo3": {
+                  "completed": false,
+                  "date": null,
+                  "time": null,
+                  "results": null,
+                  "timestamp": null
+                },
+                "modulo4": {
+                  "completed": false,
+                  "date": null,
+                  "time": null,
+                  "results": null,
+                  "timestamp": null
+                }
+              },
+              "team_size": "solo",
+              "years_experience": "3-5",
+              "work_preferences": {
+                "specialization_level": "versatile",
+                "client_workflow": "digital_dominant",
+                "digital_tools": [
+                  "email",
+                  "whatsapp",
+                  "excel",
+                  "word",
+                  "calendar",
+                  "social",
+                  "crm",
+                  "accounting",
+                  "project_mgmt",
+                  "design",
+                  "ecommerce",
+                  "analytics",
+                  "video",
+                  "code"
+                ],
+                "document_management": "gestionale"
+              },
+              "current_challenges": [
+                "find_clients",
+                "disorganization",
+                "costs_control",
+                "scaling",
+                "competition"
+              ],
+              "main_goal": "beat_competition",
+              "learning_attitude": {
+                "recent_training": "online_course"
+              }
+            },
+            "behavioral_profile": {
+              "current_stance": {
+                "stance_id": "ONBOARDED_MANAGER",
+                "rationale": "Profilo completato tramite onboarding tecnico.",
+                "set_by": "SYSTEM_ONBOARDING",
+                "set_at": "2026-03-02T16:48:37.423Z"
+              }
+            },
+            "compliance_log": {
+              "ai_disclosure_seen": true,
+              "human_verification_performed": true,
+              "api_provider": "Google Gemini",
+              "timestamp": "2026-04-29T07:27:49.574Z"
+            },
+            "additional_kwargs": {},
+            "response_metadata": {},
+            "version": "2.0",
+            "owner_instance_id": "06988830821",
+            "metadata": {
+              "status": "ACTIVE",
+              "created_at": "2026-03-02T13:33:53.049Z",
+              "last_updated": "2026-06-12T09:05:58.366Z",
+              "stakeholder_type": "MANAGER"
+            },
+            "commercial_profile": {
+              "customer_since": "2026-03-02T13:33:53.049Z",
+              "tags": [
+                "manager",
+                "primary_contact",
+                "owner"
+              ],
+              "credit_balance": {
+                "available_credits": 997760,
+                "last_transaction_id": "2026-06-19T13:51:53.670Z",
+                "lifetime_value": 1000000,
+                "last_update": "2026-06-19T13:51:53.670Z"
+              }
+            },
+            "booking_summary": {
+              "total_bookings": 0,
+              "active_booking_count": 0,
+              "historical_booking_ids": []
+            }
+          }
+        },
+        "binary": {},
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Reflag_Banning Handler1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Triage_Switch": {
+      "main": [
+        [
+          {
+            "node": "Reflag_Banning Handler1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Security_Strike_Counter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "UI_Adapter_Direct",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Security_Redemption_Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "TheWALL": {
+      "main": [
+        [
+          {
+            "node": "TheBlackGate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'TBoS_Serch&Think'3": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory6": {
+      "ai_memory": [
+        [
+          {
+            "node": "LogSystemErr1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "LogSystemErr1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields22",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ACrow2": {
+      "main": [
+        [
+          {
+            "node": "Call 'TBoS_Serch&Think'3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error": {
+      "main": [
+        [
+          {
+            "node": "Merge31",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields22": {
+      "main": [
+        [
+          {
+            "node": "Merge32",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge31": {
+      "main": [
+        []
+      ]
+    },
+    "Session Initializer": {
+      "main": [
+        [
+          {
+            "node": "Allowed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Knowledge1": {
+      "main": [
+        [
+          {
+            "node": "NoSoP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge34": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge32": {
+      "main": [
+        [
+          {
+            "node": "Chat Memory Manager1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "SAM'S - VENOMHEARTH v3.3 - PERMISSIVE",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HoneyPot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory5": {
+      "ai_memory": [
+        [
+          {
+            "node": "Chat Memory Manager1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Memory Manager1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Merge32",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ACrow2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge24": {
+      "main": [
+        [
+          {
+            "node": "Triage_Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SAM'S - VENOMHEARTH v3.3 - PERMISSIVE": {
+      "main": [
+        [
+          {
+            "node": "Merge24",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LogSystemErr1": {
+      "main": [
+        [
+          {
+            "node": "Merge31",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HoneyPot": {
+      "main": [
+        [
+          {
+            "node": "Merge24",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "owner_data2": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Delete1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Call 'Multi_Input_Gate'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Multi_Input_Gate'1": {
+      "main": [
+        [
+          {
+            "node": "MultiFalse1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MultiFalse1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Burst_Cleaner1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "owner_data2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Delete1": {
+      "main": [
+        []
+      ]
+    },
+    "Burst_Cleaner1": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Session Initializer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Allowed": {
+      "main": [
+        [
+          {
+            "node": "GetFile",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📤 Telegram Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TheBlackGate": {
+      "main": [
+        [
+          {
+            "node": "Knowledge1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge34",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Delete2": {
+      "main": [
+        [
+          {
+            "node": "Merge36",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge36": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call6",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge37",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "UI_Adapter_Direct": {
+      "main": [
+        [
+          {
+            "node": "Merge36",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "📤 Telegram Delete2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Call6": {
+      "main": [
+        [
+          {
+            "node": "Merge37",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge37": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "Active_Session1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Active_Session1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge38",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Active_Session1": {
+      "main": [
+        [
+          {
+            "node": "Merge38",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory4": {
+      "ai_memory": [
+        [
+          {
+            "node": "DeleteBuffer",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge38": {
+      "main": [
+        [
+          {
+            "node": "DeleteBuffer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Delete2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge36",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Security_Strike_Counter": {
+      "main": [
+        [
+          {
+            "node": "Strike?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JS_Hodor_Engine": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Delete2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge36",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Strike?": {
+      "main": [
+        [
+          {
+            "node": "JS_Hodor_Engine",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reflag_Banning Handler1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'TlgmCustomGemini'": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Master_Post_Process",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Security_Redemption_Handler": {
+      "main": [
+        [
+          {
+            "node": "Assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Master_Post_Process": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Delete3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge39",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Merge42",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Call": {
+      "main": [
+        [
+          {
+            "node": "Merge40",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge39": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge40",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Delete3": {
+      "main": [
+        [
+          {
+            "node": "Merge39",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge40": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Active_Session",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge41",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Active_Session": {
+      "main": [
+        [
+          {
+            "node": "Merge41",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "Active_Session",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory8": {
+      "ai_memory": [
+        [
+          {
+            "node": "DeleteBuffer1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge41": {
+      "main": [
+        [
+          {
+            "node": "DeleteBuffer1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeleteBuffer1": {
+      "main": [
+        [
+          {
+            "node": "Merge42",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory9": {
+      "ai_memory": [
+        [
+          {
+            "node": "ResponseSystem1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory10": {
+      "ai_memory": [
+        [
+          {
+            "node": "User_Input1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ResponseSystem1": {
+      "main": [
+        [
+          {
+            "node": "Merge16",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "User_Input1": {
+      "main": [
+        [
+          {
+            "node": "Merge15",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge15": {
+      "main": [
+        [
+          {
+            "node": "Merge16",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ResponseSystem1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge42": {
+      "main": [
+        [
+          {
+            "node": "Merge15",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "User_Input1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetFile": {
+      "main": [
+        [
+          {
+            "node": "TheWALL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📤 Telegram Delete4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Delete4": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Delete5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Delete5": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "TheWALL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assistant": {
+      "main": [
+        [
+          {
+            "node": "Call 'TlgmCustomGemini'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NoSoP": {
+      "main": [
+        [
+          {
+            "node": "Merge34",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "fcd420ab-11d1-4f9a-a596-c5952aedd2c2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "5gd6YujFW82uNOZC",
+  "tags": []
+}

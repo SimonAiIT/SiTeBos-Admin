@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Service Master | SiteBoS</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* SiteBoS Architect Alignment */
+        body {
+            background-color: #fafafa !important;
+            color: #000000 !important;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .card-noir {
+            background: white !important;
+            border: 1px solid #eeeeee !important;
+            border-radius: 1.5rem;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-top-color: #000;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .prod-status-ghost {
+            border-left: 3px solid #f3f4f6;
+            background: #ffffff;
+        }
+
+        .prod-status-active {
+            border-left: 3px solid #000000;
+            background: #fcfcfc;
+        }
+
+        .macro-btn.active {
+            background-color: #000 !important;
+            color: #fff !important;
+        }
+
+        .macro-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Touch target enhancement */
+        .btn-touch {
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body class="bg-bg text-black pb-10 overflow-x-hidden">
+
+    <!-- LOADER -->
+    <div id="loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center space-y-4">
+        <div class="spinner"></div>
+        <p class="text-[8px] font-black uppercase tracking-widest text-gray-400">Architect Engine...</p>
+    </div>
+
+    <div id="app-content" class="max-w-md mx-auto p-5 space-y-6 hidden">
+
+        <!-- HEADER -->
+        <header class="flex justify-between items-start pt-2 fade-in-up">
+            <div>
+                <div
+                    class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1 italic">
+                    Service Master</div>
+                <h1 class="text-xl font-black tracking-tighter uppercase leading-none">Gestione Aziendale</h1>
+            </div>
+            <button
+                class="w-10 h-10 bg-white border border-border rounded-xl flex items-center justify-center text-black shadow-sm active:scale-90 transition"
+                onclick="loadCatalog(true)">
+                <i class="fas fa-sync-alt text-xs"></i>
+            </button>
+        </header>
+
+        <!-- MACRO SELECTOR -->
+        <nav class="flex bg-gray-100 p-1 rounded-2xl gap-1 fade-in-up">
+            <button onclick="setMacro('SOP')" id="btn-SOP"
+                class="macro-btn flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest active">Procedure</button>
+            <button onclick="setMacro('SER')" id="btn-SER"
+                class="macro-btn flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400">Servizi</button>
+            <button onclick="setMacro('PRO')" id="btn-PRO"
+                class="macro-btn flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400">Prodotti</button>
+        </nav>
+
+        <!-- STATS -->
+        <div class="grid grid-cols-2 gap-3 fade-in-up">
+            <div class="card-noir p-4 flex items-center gap-3">
+                <div id="count-ghost"
+                    class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center font-black text-xs text-gray-400">
+                    0</div>
+                <div class="text-[7px] font-black text-gray-400 uppercase tracking-widest">In Bozza</div>
+            </div>
+            <div class="card-noir p-4 flex items-center gap-3">
+                <div id="count-active"
+                    class="w-8 h-8 bg-black rounded-lg flex items-center justify-center font-black text-xs text-white">0
+                </div>
+                <div class="text-[7px] font-black text-gray-400 uppercase tracking-widest">Attivi</div>
+            </div>
+        </div>
+
+        <button
+            class="w-full bg-black text-white font-black py-4 rounded-2xl shadow-md hover:bg-neutral-800 transition-all flex items-center justify-center gap-3 active:scale-[0.98] text-[10px] uppercase tracking-widest fade-in-up"
+            onclick="goToAddCategory()">
+            <i class="fas fa-plus"></i> Nuova Categoria
+        </button>
+
+        <!-- LISTA CATEGORIE -->
+        <div id="catalog-list" class="space-y-4 fade-in-up"></div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden text-center py-20">
+            <i class="fas fa-box-open text-4xl text-gray-100 mb-4"></i>
+            <p class="text-[10px] font-black uppercase text-gray-300 tracking-widest">Nessun protocollo trovato</p>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT CATEGORY -->
+    <div id="edit-cat-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[2500] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 border border-border shadow-2xl">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1 italic">
+                        Categoria
+                    </div>
+                    <h3 class="text-lg font-black tracking-tighter uppercase leading-none">Modifica Categoria</h3>
+                </div>
+                <button onclick="closeEditModal()" class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center active:scale-90 transition">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-3">
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black text-gray-400 uppercase ml-1">Nome Completo</label>
+                    <input type="text" id="edit-cat-long" class="w-full bg-gray-50 p-3 rounded-xl text-xs font-bold border border-transparent focus:border-black outline-none transition">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black text-gray-400 uppercase ml-1">Etichetta Breve (con eventuale icona)</label>
+                    <input type="text" id="edit-cat-short" class="w-full bg-gray-50 p-3 rounded-xl text-xs font-bold border border-transparent focus:border-black outline-none transition">
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeEditModal()" class="flex-1 py-3 bg-gray-50 text-black border border-border rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition">
+                    Annulla
+                </button>
+                <button onclick="saveEditCategory()" class="flex-1 py-3 bg-black text-white rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition">
+                    Salva
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT PRODUCT -->
+    <div id="edit-prod-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[2500] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 border border-border shadow-2xl">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1 italic">
+                        Voce
+                    </div>
+                    <h3 class="text-lg font-black tracking-tighter uppercase leading-none">Modifica Voce</h3>
+                </div>
+                <button onclick="closeEditProdModal()" class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center active:scale-90 transition">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-4 gap-3">
+                <div class="col-span-1 space-y-1">
+                    <label class="text-[8px] font-black text-gray-400 uppercase ml-1">Icona</label>
+                    <input type="text" id="edit-prod-icon" readonly onclick="openEmojiPickerDrawer()" placeholder="💡" class="w-full bg-gray-50 p-3 rounded-xl text-center text-sm font-bold border border-transparent focus:border-black outline-none cursor-pointer transition select-none">
+                </div>
+                <div class="col-span-3 space-y-1">
+                    <label class="text-[8px] font-black text-gray-400 uppercase ml-1">Etichetta/Descrizione</label>
+                    <input type="text" id="edit-prod-text" placeholder="Nome Servizio" class="w-full bg-gray-50 p-3 rounded-xl text-xs font-bold border border-transparent focus:border-black outline-none transition">
+                </div>
+            </div>
+
+            <!-- EMOJI PRESETS -->
+            <!-- EMOJI PRESETS + DISCOVER MORE -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center ml-1">
+                    <label class="text-[8px] font-black text-gray-400 uppercase">Icone Consigliate</label>
+                    <button type="button" onclick="openEmojiPickerDrawer()" class="text-[8px] font-black uppercase text-blue-600 hover:text-blue-800 transition flex items-center gap-1">
+                        <i class="fas fa-search text-[8px]"></i> Cerca Altre
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-1.5 p-2 bg-gray-50 rounded-2xl justify-between">
+                    <button type="button" onclick="setPresetEmoji('🦷')" class="w-7 h-7 rounded-lg hover:bg-gray-200/80 active:scale-90 transition flex items-center justify-center text-sm">🦷</button>
+                    <button type="button" onclick="setPresetEmoji('💰')" class="w-7 h-7 rounded-lg hover:bg-gray-200/80 active:scale-90 transition flex items-center justify-center text-sm">💰</button>
+                    <button type="button" onclick="setPresetEmoji('📦')" class="w-7 h-7 rounded-lg hover:bg-gray-200/80 active:scale-90 transition flex items-center justify-center text-sm">📦</button>
+                    <button type="button" onclick="setPresetEmoji('🛠️')" class="w-7 h-7 rounded-lg hover:bg-gray-200/80 active:scale-90 transition flex items-center justify-center text-sm">🛠️</button>
+                    <button type="button" onclick="setPresetEmoji('📅')" class="w-7 h-7 rounded-lg hover:bg-gray-200/80 active:scale-90 transition flex items-center justify-center text-sm">📅</button>
+                    <button type="button" onclick="setPresetEmoji('👥')" class="w-7 h-7 rounded-lg hover:bg-gray-200/80 active:scale-90 transition flex items-center justify-center text-sm">👥</button>
+                    <button type="button" onclick="setPresetEmoji('📈')" class="w-7 h-7 rounded-lg hover:bg-gray-200/80 active:scale-90 transition flex items-center justify-center text-sm">📈</button>
+                    <button type="button" onclick="setPresetEmoji('🛍️')" class="w-7 h-7 rounded-lg hover:bg-gray-200/80 active:scale-90 transition flex items-center justify-center text-sm">🛍️</button>
+                    <button type="button" onclick="setPresetEmoji('🧼')" class="w-7 h-7 rounded-lg hover:bg-gray-200/80 active:scale-90 transition flex items-center justify-center text-sm">🧼</button>
+                    <button type="button" onclick="setPresetEmoji('📋')" class="w-7 h-7 rounded-lg hover:bg-gray-200/80 active:scale-90 transition flex items-center justify-center text-sm">📋</button>
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeEditProdModal()" class="flex-1 py-3 bg-gray-50 text-black border border-border rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition">
+                    Annulla
+                </button>
+                <button onclick="saveEditProduct()" class="flex-1 py-3 bg-black text-white rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition">
+                    Salva
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EMOJI PICKER DRAWER -->
+    <div id="emoji-picker-drawer" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[3500] hidden transition-all duration-300 translate-y-full flex items-end">
+        <div class="bg-white rounded-t-[2.5rem] p-6 w-full max-h-[70vh] flex flex-col space-y-4 shadow-2xl relative">
+            <div class="flex justify-between items-center pb-2 border-b border-gray-100">
+                <span class="text-xs font-black uppercase tracking-wider text-black">Seleziona Emoji</span>
+                <button onclick="closeEmojiPickerDrawer()" class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center active:scale-90 transition">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+            <div id="emoji-picker-container" class="flex-1 overflow-y-auto flex items-center justify-center min-h-[320px]">
+                <div id="emoji-picker-loader" class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRODUCT HUB (FULL-SCREEN DASHBOARD) -->
+    <div id="hub-drawer"
+        class="fixed inset-0 bg-bg z-[2000] hidden transition-all duration-300 translate-y-full overflow-y-auto flex flex-col">
+        <div class="flex-1 max-w-md w-full mx-auto p-6 space-y-6 flex flex-col justify-between">
+            <div class="space-y-6">
+                <!-- Header -->
+                <div class="flex justify-between items-start pt-4">
+                    <div>
+                        <div
+                            class="inline-block px-2.5 py-1 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-md mb-1 italic">
+                            Product Hub</div>
+                        <h3 id="hub-product-name" class="text-xl font-black tracking-tighter uppercase leading-none mt-1">Nome Prodotto</h3>
+                        <p id="hub-product-sku" class="text-[8px] font-black text-gray-400 uppercase mt-1.5 tracking-widest">SKU: ---</p>
+                    </div>
+                    <button onclick="closeHub()"
+                        class="w-10 h-10 bg-white border border-border rounded-full flex items-center justify-center active:scale-90 transition shadow-sm"><i
+                            class="fas fa-times text-xs"></i></button>
+                </div>
+
+                <!-- GRID DASHBOARD -->
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="launchSubEditor('edit-product.html')"
+                        class="card-noir p-6 flex flex-col items-center justify-center gap-3 active:scale-95 transition group hover:border-black">
+                        <div
+                            class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                            <i class="fas fa-edit text-lg"></i>
+                        </div>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Dettagli & Prezzi</span>
+                    </button>
+
+                    <button onclick="launchSubEditor('edit-knowledge.html')"
+                        class="card-noir p-6 flex flex-col items-center justify-center gap-3 active:scale-95 transition group hover:border-black">
+                        <div
+                            class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                            <i class="fas fa-book-open text-lg"></i>
+                        </div>
+                        <span class="text-[9px] font-black uppercase tracking-widest">User Guide</span>
+                    </button>
+
+                    <button id="hub-blueprint-btn" onclick="openBlueprintEditor()"
+                        class="card-noir p-6 flex flex-col items-center justify-center gap-3 active:scale-95 transition group hover:border-black">
+                        <div
+                            class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                            <i class="fas fa-project-diagram text-lg"></i>
+                        </div>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Logica Operativa</span>
+                    </button>
+
+                    <button id="hub-advanced-btn" onclick="openAdvancedManagement()"
+                        class="card-noir p-6 flex flex-col items-center justify-center gap-3 active:scale-95 transition group hover:border-black">
+                        <div
+                            class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                            <i class="fas fa-layer-group text-lg"></i>
+                        </div>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Gestione Avanzata</span>
+                    </button>
+
+                    <button id="hub-security-btn" onclick="toggleSecurityAssistant()"
+                        class="card-noir p-6 flex flex-col items-center justify-center gap-3 active:scale-95 transition group hover:border-black">
+                        <div id="hub-security-icon-container"
+                            class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center transition-colors">
+                            <i class="fas fa-shield-halved text-lg"></i>
+                        </div>
+                        <span id="hub-security-text" class="text-[9px] font-black uppercase tracking-widest">Sicurezza</span>
+                    </button>
+
+                    <button id="hub-blog-btn" onclick="launchSubEditor('edit-blog.html')"
+                        class="card-noir p-6 flex flex-col items-center justify-center gap-3 active:scale-95 transition group hover:border-black hidden">
+                        <div
+                            class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                            <i class="fas fa-pen-nib text-lg"></i>
+                        </div>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Blog & Story</span>
+                    </button>
+
+                    <button id="hub-social-btn" onclick="openSocialViewer()"
+                        class="card-noir p-6 flex flex-col items-center justify-center gap-3 active:scale-95 transition group hover:border-black hidden">
+                        <div
+                            class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                            <i class="fas fa-share-nodes text-lg"></i>
+                        </div>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Social Posts</span>
+                    </button>
+
+                    <button onclick="launchSubEditor('supervisor_hub.html')"
+                        class="card-noir p-6 flex flex-col items-center justify-center gap-3 active:scale-95 transition group group-hover:border-black">
+                        <div
+                            class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                            <i class="fas fa-user-tie text-lg"></i>
+                        </div>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Supervisor Hub</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bottom Back Button -->
+            <div class="pt-6 border-t border-gray-100 mt-auto">
+                <button onclick="closeHub()"
+                    class="w-full py-4 bg-white text-black border border-border rounded-2xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition shadow-sm flex items-center justify-center gap-2">
+                    <i class="fas fa-chevron-left text-[9px]"></i> Torna al Catalogo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QUICK EDITOR DRAWER (MATRIOSKA FRAME) -->
+    <div id="quick-editor-drawer"
+        class="fixed inset-0 bg-white z-[3000] hidden transition-all duration-300 translate-y-full flex flex-col">
+        <iframe id="quickEditorFrame" class="w-full h-full border-none" src="about:blank"></iframe>
+    </div>
+
+    <!-- SOCIAL VIEWER DRAWER -->
+    <div id="social-viewer-drawer"
+        class="fixed inset-0 bg-gray-50 z-[4000] hidden transition-all duration-300 translate-y-full overflow-y-auto">
+        <div class="max-w-md mx-auto p-6 space-y-6">
+            <header class="flex justify-between items-center">
+                <h3 class="text-xl font-black uppercase tracking-tighter italic">Social Hub</h3>
+                <button onclick="closeSocialViewer()"
+                    class="w-10 h-10 bg-white border border-border rounded-xl flex items-center justify-center active:scale-90 transition shadow-sm"><i
+                        class="fas fa-times"></i></button>
+            </header>
+
+            <div id="social-content-container" class="space-y-6 pb-20">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+        const WEBHOOK_URL = "https://prod.workflow.trinai.it/webhook/0fff7fa2-bcb2-4b50-a26b-589b7054952e";
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.ready(); tg.expand();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let ash = urlParams.get('ash');
+        let msg = urlParams.get('msg');
+
+        // Robust parsing for dirty ash: TOKEN?msg=ID
+        if (ash && ash.includes('?msg=')) {
+            const parts = ash.split('?msg=');
+            ash = parts[0];
+            if (!msg) msg = parts[1];
+        }
+
+        let fullCatalog = [], currentMacro = 'SOP', currentEditingCatId = null, currentProductData = null;
+
+        async function loadCatalog(force = false) {
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('app-content');
+            if (force) loader.classList.remove('hidden');
+
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "get_catalog", _auth: tg.initData, ash: ash, msg: msg })
+                });
+                const raw = await res.json();
+                const data = Array.isArray(raw) ? raw[0] : (raw.catalog || raw);
+                fullCatalog = data.categories || data.catalog?.categories || [];
+                renderCatalog();
+            } catch (e) {
+                console.error("Load Error:", e);
+                tg.HapticFeedback.notificationOccurred("error");
+            } finally {
+                loader.classList.add('hidden');
+                content.classList.remove('hidden');
+            }
+        }
+
+        function setMacro(macro) {
+            currentMacro = macro;
+            document.querySelectorAll('.macro-btn').forEach(b => {
+                b.classList.remove('active', 'text-white');
+                b.classList.add('text-gray-400');
+            });
+            const activeBtn = document.getElementById('btn-' + macro);
+            activeBtn.classList.add('active', 'text-white');
+            activeBtn.classList.remove('text-gray-400');
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            renderCatalog();
+        }
+
+        function renderCatalog() {
+            const container = document.getElementById("catalog-list");
+            container.innerHTML = "";
+            const filtered = fullCatalog.filter(c => c.macrocategories === currentMacro);
+
+            if (filtered.length === 0) {
+                document.getElementById("empty-state").classList.remove('hidden');
+                document.getElementById('count-active').innerText = "0";
+                document.getElementById('count-ghost').innerText = "0";
+                return;
+            }
+            document.getElementById("empty-state").classList.add('hidden');
+
+            let activeTotal = 0, ghostTotal = 0;
+
+            filtered.forEach(cat => {
+                const subcats = cat.subcategories || [];
+                const activeSubcats = subcats.filter(p => p.blueprint_ready).length;
+
+                const catEl = document.createElement("div");
+                catEl.className = "card-noir overflow-hidden transition-all fade-in-up";
+
+                catEl.innerHTML = `
+                <div class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition" onclick="toggleCat(this)">
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 bg-black text-white rounded-lg flex items-center justify-center font-black text-[10px]">${subcats.length}</div>
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-2">
+                                <span class="font-black text-xs uppercase tracking-tight">${cat.short_name || cat.name}</span>
+                                ${activeSubcats > 0 ? `<span class="bg-blue-600 text-white text-[7px] px-1.5 py-0.5 rounded-full font-black shadow-sm">${activeSubcats}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2"> 
+                        <button class="btn-touch text-gray-300 hover:text-black transition" onclick="event.stopPropagation(); openEditModal('${cat.name}', '${cat.short_name || ''}', '${cat.callback_data}')">
+                            <i class="fas fa-pen text-base"></i> 
+                        </button>
+                        <button class="btn-touch text-gray-300 hover:text-red-500 transition" onclick="event.stopPropagation(); deleteCategory('${cat.callback_data}', '${cat.name}')">
+                            <i class="fas fa-trash text-base"></i>
+                        </button>
+                        <i class="fas fa-chevron-down text-[10px] text-gray-200 transition-transform ml-1 mr-2"></i>
+                    </div>
+                </div>
+                <div class="cat-body border-t border-gray-50 hidden">
+                    <div class="p-3 bg-gray-50/50 flex justify-center border-b border-gray-50">
+                        <button class="text-[8px] font-black uppercase tracking-widest text-black/40 hover:text-black transition" onclick="goToAddProduct('${cat.callback_data}')">+ Aggiungi Voce</button>
+                    </div>
+                    <div class="prod-list"></div>
+                </div>`;
+
+                const prodList = catEl.querySelector(".prod-list");
+                subcats.forEach(prod => {
+                    if (prod.blueprint_ready) activeTotal++; else ghostTotal++;
+                    const isSecurity = prod.show_in_security_assistant === true;
+                    const statusClass = isSecurity 
+                        ? 'border-l-[3px] border-l-green-600 bg-green-50/20' 
+                        : (prod.blueprint_ready ? 'prod-status-active' : 'prod-status-ghost');
+                    
+                    const shieldIcon = isSecurity 
+                        ? ' <i class="fas fa-shield-halved text-green-600 text-[9px] ml-1.5" title="Mostra in Assistente Sicurezza"></i>' 
+                        : '';
+                    
+                    const pEl = document.createElement("div");
+                    pEl.className = `flex justify-between items-center p-4 border-b border-gray-50 last:border-b-0 ${statusClass}`;
+                    pEl.innerHTML = `
+                    <div class="flex-1 pr-4 cursor-pointer select-none prod-info-area">
+                        <p class="font-bold text-[11px] uppercase tracking-tight leading-tight flex items-center">${prod.short_name || prod.name}${shieldIcon}</p>
+                        <p class="text-[7px] font-medium text-gray-400 uppercase tracking-widest mt-0.5">${prod.blueprint_ready ? 'Attivo' : 'Suggerito'}</p>
+                    </div>
+                    <div class="flex gap-3 items-center">
+                        <button class="w-10 h-10 bg-white border border-border text-red-400 rounded-lg flex items-center justify-center active:scale-90 transition shadow-sm" onclick="deleteProduct('${prod.callback_data}', '${prod.name}')">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                        <button class="px-5 h-10 ${prod.blueprint_ready ? 'bg-black text-white' : 'bg-gray-100 text-black'} rounded-xl text-[8px] font-black uppercase tracking-widest active:scale-90 transition shadow-sm" onclick="openProduct('${prod.blueprint_ready ? 'edit-blueprint.html' : 'add-product.html'}', '${prod.callback_data}', '${cat.callback_data}')">
+                            ${prod.blueprint_ready ? 'Gestisci' : 'Attiva'}
+                        </button>
+                    </div>`;
+                    const infoArea = pEl.querySelector(".prod-info-area");
+                    setupProductGestures(infoArea, prod);
+                    prodList.appendChild(pEl);
+                });
+                container.appendChild(catEl);
+            });
+
+            document.getElementById('count-active').innerText = activeTotal;
+            document.getElementById('count-ghost').innerText = ghostTotal;
+        }
+
+        function toggleCat(el) {
+            const body = el.nextElementSibling;
+            const icon = el.querySelector('.fa-chevron-down');
+            const isOpen = !body.classList.contains('hidden');
+            document.querySelectorAll('.cat-body').forEach(b => b.classList.add('hidden'));
+            document.querySelectorAll('.fa-chevron-down').forEach(i => i.classList.remove('rotate-180'));
+            if (!isOpen) { body.classList.remove('hidden'); icon.classList.add('rotate-180'); }
+        }
+
+        window.goToAddCategory = () => { location.href = `add-category.html?ash=${ash}&msg=${msg || ''}&macro=${currentMacro}`; };
+        window.goToAddProduct = (catId) => { location.href = `add-product.html?ash=${ash}&msg=${msg || ''}&catId=${catId}`; };
+
+        let currentSopId = null;
+        let currentSocialData = null;
+        let currentVatNumber = null;
+        let currentSecurityState = false;
+
+        function updateSecurityBtnUI() {
+            const btn = document.getElementById('hub-security-btn');
+            const container = document.getElementById('hub-security-icon-container');
+            const text = document.getElementById('hub-security-text');
+            if (!btn || !container || !text) return;
+
+            if (currentSecurityState) {
+                container.className = "w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center";
+                text.className = "text-[9px] font-black uppercase tracking-widest text-green-600 font-bold mt-1";
+                text.innerText = "Sicurezza: ON";
+            } else {
+                container.className = "w-12 h-12 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center";
+                text.className = "text-[9px] font-black uppercase tracking-widest mt-1";
+                text.innerText = "Sicurezza: OFF";
+            }
+        }
+
+        window.toggleSecurityAssistant = async () => {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            
+            // Optimistic UI update
+            currentSecurityState = !currentSecurityState;
+            updateSecurityBtnUI();
+
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'toggle_security',
+                        product_id: currentSopId,
+                        ash: ash,
+                        msg: msg,
+                        _auth: tg.initData
+                    })
+                });
+                const result = await res.json();
+                
+                if (result && result.status === 'success') {
+                    currentSecurityState = result.new_state === true;
+                    updateSecurityBtnUI();
+                    
+                    // Update local catalog data
+                    const match = fullCatalog.flatMap(c => c.subcategories).find(p => p.callback_data === currentSopId);
+                    if (match) {
+                        match.show_in_security_assistant = currentSecurityState;
+                    }
+                    renderCatalog();
+                } else {
+                    currentSecurityState = !currentSecurityState;
+                    updateSecurityBtnUI();
+                    tg.showAlert("Errore durante il salvataggio dello stato di sicurezza.");
+                }
+            } catch (e) {
+                console.error("Security Toggle Error:", e);
+                currentSecurityState = !currentSecurityState;
+                updateSecurityBtnUI();
+                tg.showAlert("Errore di connessione.");
+            }
+        };
+
+        window.openAdvancedManagement = () => {
+            const match = fullCatalog.flatMap(c => c.subcategories).find(p => p.callback_data === currentSopId);
+            const itemType = currentProductData?.identity?.item_type || match?.item_type || '';
+            
+            // Rilevamento esteso del tipo semilavorato con fallback per compatibilità
+            const isSemi = itemType === 'SEMI_FINISHED' || 
+                           itemType === 'semilavorato' || 
+                           itemType === 'SEMI_FINISHED_PRODUCT' ||
+                           currentProductData?.blueprint_type === 'SOP_SEMILAVORATO' ||
+                           (currentSopId && currentSopId.includes("SEMI"));
+
+            if (currentMacro === 'SOP' && !isSemi) {
+                tg.showAlert("La Gestione Avanzata non è disponibile per le Procedure (SOP).");
+                return;
+            }
+
+            // Se l'elemento è già attivo nel catalogo (blueprint_ready === true), evitiamo il reindirizzamento forzato
+            const isAdvancedReady = (currentProductData?.ui_node_draft?.advanced_ready === true) || (match?.blueprint_ready === true);
+            
+            if (!isAdvancedReady) {
+                launchSubEditor('edit-product.html?open_advanced=true');
+            } else {
+                // Se siamo nel tab dei Prodotti (PRO) o dei Semilavorati (SOP), apriamo l'editor dei prodotti, altrimenti quello dei servizi
+                const page = (currentMacro === 'PRO' || (currentMacro === 'SOP' && isSemi)) ? 'edit-advanced-product.html' : 'edit-advanced.html';
+                launchSubEditor(page);
+            }
+        };
+
+        window.openBlueprintEditor = () => {
+            // Se siamo nella scheda dei Prodotti (PRO) o dei Semilavorati (SOP), apriamo l'editor di prodotto
+            const page = (currentMacro === 'PRO' || currentMacro === 'SOP') ? 'edit-blueprint-product.html' : 'edit-blueprint.html';
+            launchSubEditor(page);
+        };
+
+        window.openProduct = async (page, pId, catId) => {
+            if (page === 'edit-blueprint.html') {
+                currentSopId = pId;
+                
+                // Reset preventivo dello stato per evitare conflitti tra prodotti diversi
+                currentSocialData = null; 
+                currentVatNumber = null; 
+                currentProductData = null; 
+
+                const match = fullCatalog.flatMap(c => c.subcategories).find(p => p.callback_data === pId);
+                document.getElementById('hub-product-name').innerText = match ? (match.short_name || match.name) : 'Dettagli Prodotto';
+                document.getElementById('hub-product-sku').innerText = `ID: ${pId}`;
+
+                // Configurazione visiva del pulsante avanzato in base al tipo di elemento
+                const isSemi = match && (match.item_type === 'SEMI_FINISHED' || match.item_type === 'semilavorato' || match.item_type === 'SEMI_FINISHED_PRODUCT');
+                const advancedBtn = document.getElementById('hub-advanced-btn');
+                if (advancedBtn) {
+                    if (currentMacro === 'SOP' && !isSemi) {
+                        advancedBtn.classList.add('opacity-40');
+                    } else {
+                        advancedBtn.classList.remove('opacity-40');
+                    }
+                }
+
+                // Inizializzazione stato sicurezza
+                currentSecurityState = match && match.show_in_security_assistant === true;
+                updateSecurityBtnUI();
+
+                try {
+                    const res = await fetch(WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'get_ghost_info', sop_id: pId, ash: ash, msg: msg, _auth: tg.initData })
+                    });
+                    const info = await res.json();
+                    const rawInfo = Array.isArray(info) ? info[0] : info;
+                    currentProductData = rawInfo;
+                    currentVatNumber = rawInfo.vat_number || rawInfo.vatnumber || rawInfo.vat || '';
+
+                    // Gestione Blog
+                    const blogBtn = document.getElementById('hub-blog-btn');
+                    blogBtn.classList.remove('hidden');
+                    if (rawInfo.blog_active) {
+                        blogBtn.onclick = () => launchSubEditor('edit-blog.html');
+                        blogBtn.innerHTML = `
+                        <div class="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center">
+                            <i class="fas fa-pen-nib text-lg"></i>
+                        </div>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Blog & Story</span>`;
+                    } else {
+                        blogBtn.onclick = () => activateService('blog');
+                        blogBtn.innerHTML = `
+                        <div class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200 relative group-hover:scale-105 transition-all">
+                            <i class="fas fa-pen-nib text-lg"></i>
+                        </div>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-blue-600 mt-1 font-bold">Attiva Blog</span>`;
+                    }
+
+                    // Gestione Social Post
+                    const socialBtn = document.getElementById('hub-social-btn');
+                    socialBtn.classList.remove('hidden');
+                    if (rawInfo.post) {
+                        currentSocialData = rawInfo.post;
+                        socialBtn.onclick = () => openSocialViewer();
+                        socialBtn.innerHTML = `
+                        <div class="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center">
+                            <i class="fas fa-share-nodes text-lg"></i>
+                        </div>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Social Posts</span>`;
+                    } else {
+                        socialBtn.onclick = () => activateService('social');
+                        socialBtn.innerHTML = `
+                        <div class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200 relative group-hover:scale-105 transition-all">
+                            <i class="fas fa-share-nodes text-lg"></i>
+                        </div>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-blue-600 mt-1 font-bold">Attiva Social</span>`;
+                    }
+                } catch (e) { 
+                    console.error("Ghost Info Error:", e); 
+                }
+
+                const hub = document.getElementById('hub-drawer');
+                hub.classList.remove('hidden');
+                setTimeout(() => hub.classList.remove('translate-y-full'), 10);
+
+                if (tg.BackButton) {
+                    tg.BackButton.show();
+                    tg.BackButton.onClick(closeHub);
+                }
+                return;
+            }
+            location.href = `${page}?ash=${ash}&msg=${msg || ''}&productId=${pId}&catId=${catId}&ghostId=${pId}`;
+        };
+
+        window.activateService = async (type) => {
+            const wh = type === 'blog' ? "https://prod.workflow.trinai.it/webhook/914bd78e-8a41-46d7-8935-7eb73cbbae66" : "https://prod.workflow.trinai.it/webhook/8fc050ca-41cd-4469-989c-269a113a00f9";
+            const cost = type === 'blog' ? 10 : 10; // Costo indicativo
+            const actionValue = type === 'blog' ? 'create' : 'activate_social';
+            tg.showConfirm(`Attivare ${type.toUpperCase()}? (Costo: ${cost} crediti). Il contenuto verrà generato e inviato su Telegram.`, ok => {
+                if (ok) {
+                    fetch(wh, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: actionValue, sop_id: currentSopId, ash: ash, msg: msg, _auth: tg.initData }),
+                        keepalive: true
+                    });
+                    
+                    setTimeout(() => {
+                        tg.close();
+                    }, 3000);
+                }
+            });
+        };
+
+        function openSocialViewer() {
+            if (!currentSocialData) return;
+            const container = document.getElementById('social-content-container');
+            container.innerHTML = '';
+
+            // Psicologia
+            if (currentSocialData.psycological_analysis) {
+                const psi = currentSocialData.psycological_analysis;
+                container.innerHTML += `
+                <section class="bg-black text-white rounded-[2rem] p-6 space-y-5 shadow-xl">
+                    <span class="text-[8px] font-black uppercase tracking-[0.2em] text-neutral-500 italic">Analisi Psicologica AI</span>
+                    <div class="space-y-4">
+                        <div><p class="text-[7px] font-black uppercase text-neutral-500 mb-1">Emotional Drivers</p><p class="text-[11px] font-medium leading-relaxed">${psi.emotional_drivers}</p></div>
+                        <div><p class="text-[7px] font-black uppercase text-neutral-500 mb-1">Logical Drivers</p><p class="text-[11px] font-medium leading-relaxed">${psi.logical_drivers}</p></div>
+                        <div><p class="text-[7px] font-black uppercase text-neutral-500 mb-1">Cognitive Biases</p><p class="text-[11px] font-medium leading-relaxed italic text-neutral-400">${psi.cognitive_biases_used}</p></div>
+                    </div>
+                </section>
+            `;
+            }
+
+            // Social Platforms
+            const platforms = [
+                { id: 'linkedin', icon: 'fa-linkedin', label: 'LinkedIn Professional' },
+                { id: 'facebook', icon: 'fa-facebook', label: 'Facebook Community' },
+                { id: 'instagram', icon: 'fa-instagram', label: 'Instagram Visual' },
+                { id: 'x', icon: 'fa-x-twitter', label: 'X (Twitter) Viral' },
+                { id: 'tiktok', icon: 'fa-tiktok', label: 'TikTok POV' }
+            ];
+
+            platforms.forEach(p => {
+                if (currentSocialData[p.id]) {
+                    container.innerHTML += `
+                    <div class="card-noir p-6 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[8px] font-black uppercase tracking-widest text-gray-300"><i class="fab ${p.icon} mr-1"></i> ${p.label}</span>
+                            <button onclick="copyToClipboard('post-text-${p.id}')" class="text-[8px] font-black uppercase bg-gray-100 px-3 py-1.5 rounded-lg active:scale-90 transition">Copia</button>
+                        </div>
+                        <p id="post-text-${p.id}" class="text-[11px] font-medium leading-relaxed text-gray-800">${currentSocialData[p.id]}</p>
+                    </div>
+                `;
+                }
+            });
+
+            // Prompt & Visual
+            if (currentSocialData.prompt || currentSocialData.veo_master_prompt_8s) {
+                container.innerHTML += `
+                <section class="card-noir p-6 space-y-5 border-dashed">
+                    <span class="text-[8px] font-black uppercase tracking-widest text-gray-300 italic">Visual & Prompts (AI Generation)</span>
+                    
+                    ${currentSocialData.prompt ? `
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <p class="text-[7px] font-black uppercase text-gray-400">Image Prompt (Gemini/MJ)</p>
+                                <button onclick="copyToClipboard('prompt-img')" class="text-[7px] font-black uppercase text-blue-500">Copia Prompt</button>
+                            </div>
+                            <textarea id="prompt-img" class="w-full bg-gray-50 p-4 rounded-xl text-[9px] font-mono leading-tight border border-gray-100 text-gray-600 focus:border-black focus:bg-white transition-all outline-none resize-y" rows="3">${currentSocialData.prompt}</textarea>
+                        </div>
+                    ` : ''}
+
+                    ${currentSocialData.veo_master_prompt_8s ? `
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <p class="text-[7px] font-black uppercase text-gray-400">Video Master Prompt (VEO)</p>
+                                <button onclick="copyToClipboard('prompt-video')" class="text-[7px] font-black uppercase text-blue-500">Copia Prompt</button>
+                            </div>
+                            <textarea id="prompt-video" class="w-full bg-gray-50 p-4 rounded-xl text-[9px] font-mono leading-tight border border-gray-100 text-gray-600 focus:border-black focus:bg-white transition-all outline-none resize-y" rows="3">${currentSocialData.veo_master_prompt_8s}</textarea>
+                        </div>
+                    ` : ''}
+                </section>
+            `;
+            }
+
+            // Genera Video / Immagine Buttons
+            container.innerHTML += `
+            <div class="pt-6 grid grid-cols-2 gap-3">
+                <button onclick="generateImage()" class="w-full bg-black text-white font-black py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 active:scale-95 transition text-[10px] uppercase tracking-widest">
+                    <i class="fas fa-image"></i> Genera Immagine AI
+                </button>
+                <button onclick="generateVideo()" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 active:scale-95 transition text-[10px] uppercase tracking-widest">
+                    <i class="fas fa-video"></i> Genera Video AI
+                </button>
+            </div>
+        `;
+
+            const drawer = document.getElementById('social-viewer-drawer');
+            drawer.classList.remove('hidden');
+            setTimeout(() => drawer.classList.remove('translate-y-full'), 10);
+
+            if (tg.BackButton) {
+                tg.BackButton.show();
+                tg.BackButton.onClick(closeSocialViewer);
+            }
+        }
+
+        function closeSocialViewer() {
+            const drawer = document.getElementById('social-viewer-drawer');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => drawer.classList.add('hidden'), 300);
+            if (tg.BackButton) tg.BackButton.onClick(closeHub);
+        }
+
+        async function savePrompts() {
+            const promptImgEl = document.getElementById('prompt-img');
+            const promptVideoEl = document.getElementById('prompt-video');
+            const promptVal = promptImgEl ? promptImgEl.value : '';
+            const veoVal = promptVideoEl ? promptVideoEl.value : '';
+
+            // Controlla se c'è stata una reale modifica rispetto ai valori iniziali/precedenti
+            const promptChanged = currentSocialData && promptVal !== currentSocialData.prompt;
+            const veoChanged = currentSocialData && veoVal !== currentSocialData.veo_master_prompt_8s;
+
+            if (!promptChanged && !veoChanged) {
+                return; // Nessuna modifica, evita la chiamata di salvataggio
+            }
+
+            if (currentSocialData) {
+                currentSocialData.prompt = promptVal;
+                currentSocialData.veo_master_prompt_8s = veoVal;
+            }
+
+            try {
+                const idVal = `${currentVatNumber}-${currentSopId}`;
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'update_social_prompts',
+                        id: idVal,
+                        social_post: currentSocialData,
+                        sop_id: currentSopId,
+                        ash: ash,
+                        msg: msg,
+                        msg_id: msg,
+                        _auth: tg.initData
+                    })
+                });
+            } catch (e) {
+                console.error("Save Prompts Error:", e);
+            }
+        }
+
+        window.generateImage = async () => {
+            tg.showConfirm("Generare un'immagine per questo post? (50 crediti)", async ok => {
+                if (ok) {
+                    await savePrompts();
+                    fetch("https://prod.workflow.trinai.it/webhook/8fc050ca-41cd-4469-989c-269a113a00f9", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'generate_image',
+                            sop_id: currentSopId,
+                            ash: ash,
+                            msg: msg,
+                            msg_id: msg,
+                            _auth: tg.initData
+                        }),
+                        keepalive: true
+                    });
+                    tg.close();
+                }
+            });
+        };
+
+        window.generateVideo = async () => {
+            tg.showConfirm("Generare un video per questo post? (320 crediti)", async ok => {
+                if (ok) {
+                    await savePrompts();
+                    fetch("https://prod.workflow.trinai.it/webhook/7d09d946-95e6-4efa-baee-00c458c82e9e", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'generate_video',
+                            sop_id: currentSopId,
+                            ash: ash,
+                            msg: msg,
+                            msg_id: msg,
+                            _auth: tg.initData
+                        }),
+                        keepalive: true
+                    });
+                    tg.close();
+                }
+            });
+        };
+
+        function copyToClipboard(elementId) {
+            const el = document.getElementById(elementId);
+            const text = el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' ? el.value : el.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                tg.showAlert("Copiato negli appunti!");
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            });
+        }
+
+        function closeHub() {
+            const hub = document.getElementById('hub-drawer');
+            hub.classList.add('translate-y-full');
+            setTimeout(() => hub.classList.add('hidden'), 300);
+            if (tg.BackButton) tg.BackButton.hide();
+        }
+
+        function launchSubEditor(page) {
+            console.log(`[Hub] Launching SubEditor: ${page} for SOP: ${currentSopId}`);
+            const drawer = document.getElementById('quick-editor-drawer');
+            const frame = document.getElementById('quickEditorFrame');
+            const separator = page.includes('?') ? '&' : '?';
+            const url = `${page}${separator}ash=${ash}&msg=${msg || ''}&sop_id=${currentSopId}&from_hub=true`;
+
+            console.log(`[Hub] Target URL: ${url}`);
+
+            frame.src = url;
+            drawer.classList.remove('hidden');
+            setTimeout(() => drawer.classList.remove('translate-y-full'), 10);
+
+            if (tg.BackButton) {
+                tg.BackButton.onClick(closeSubEditor);
+            }
+        }
+
+        function closeSubEditor() {
+            const drawer = document.getElementById('quick-editor-drawer');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                drawer.classList.add('hidden');
+                document.getElementById('quickEditorFrame').src = 'about:blank';
+            }, 300);
+
+            // Al ritorno, ripristiniamo il BackButton per chiudere l'Hub
+            if (tg.BackButton) {
+                tg.BackButton.onClick(closeHub);
+            }
+        }
+        window.openEditModal = (n, s, id) => { currentEditingCatId = id; document.getElementById('edit-cat-long').value = n; document.getElementById('edit-cat-short').value = s; document.getElementById('edit-cat-modal').classList.remove('hidden'); };
+        window.closeEditModal = () => { document.getElementById('edit-cat-modal').classList.add('hidden'); };
+        window.saveEditCategory = async () => {
+            const id = currentEditingCatId;
+            const name = document.getElementById('edit-cat-long').value;
+            const short_name = document.getElementById('edit-cat-short').value;
+
+            if (!name) { alert("Nome richiesto"); return; }
+
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "update_category", _auth: tg.initData, ash: ash, msg: msg, category_id: id, name, short_name })
+                });
+                if (res.ok) {
+                    closeEditModal();
+                    loadCatalog(true);
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
+                } else {
+                    throw new Error("Failed to save");
+                }
+            } catch (e) {
+                console.error("Save Error:", e);
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred("error");
+            }
+        };
+
+        let currentEditingProduct = null;
+
+        function splitShortName(shortName) {
+            if (!shortName) return { icon: '', text: '' };
+            const match = shortName.match(/^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)\s*(.*)$/u);
+            const icon = match ? match[1] : '';
+            const text = match ? match[2] : shortName;
+            return { icon, text: text.trim() };
+        }
+
+        window.openEditProductModal = (prod) => {
+            currentEditingProduct = prod;
+            const { icon, text } = splitShortName(prod.short_name || prod.name || '');
+            document.getElementById('edit-prod-icon').value = icon;
+            document.getElementById('edit-prod-text').value = text;
+            document.getElementById('edit-prod-modal').classList.remove('hidden');
+        };
+
+        window.closeEditProdModal = () => {
+            document.getElementById('edit-prod-modal').classList.add('hidden');
+            currentEditingProduct = null;
+        };
+
+        window.setPresetEmoji = (emoji) => {
+            document.getElementById('edit-prod-icon').value = emoji;
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        };
+
+        let isEmojiPickerScriptLoaded = false;
+
+        window.openEmojiPickerDrawer = () => {
+            const drawer = document.getElementById('emoji-picker-drawer');
+            drawer.classList.remove('hidden');
+            setTimeout(() => drawer.classList.remove('translate-y-full'), 10);
+
+            if (isEmojiPickerScriptLoaded) {
+                renderEmojiPicker();
+            } else {
+                document.getElementById('emoji-picker-loader').classList.remove('hidden');
+                
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = 'https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js';
+                script.onload = () => {
+                    isEmojiPickerScriptLoaded = true;
+                    renderEmojiPicker();
+                };
+                script.onerror = () => {
+                    document.getElementById('emoji-picker-loader').classList.add('hidden');
+                    alert("Errore nel caricamento del selettore emoji.");
+                };
+                document.head.appendChild(script);
+            }
+        };
+
+        window.closeEmojiPickerDrawer = () => {
+            const drawer = document.getElementById('emoji-picker-drawer');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => drawer.classList.add('hidden'), 300);
+        };
+
+        function renderEmojiPicker() {
+            const container = document.getElementById('emoji-picker-container');
+            container.innerHTML = '';
+            
+            const picker = document.createElement('emoji-picker');
+            picker.style.width = '100%';
+            picker.style.height = '320px';
+            picker.style.setProperty('--num-columns', '8');
+            picker.style.setProperty('--category-emoji-size', '1.1rem');
+            
+            picker.addEventListener('emoji-click', event => {
+                const emoji = event.detail.unicode;
+                document.getElementById('edit-prod-icon').value = emoji;
+                if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                closeEmojiPickerDrawer();
+            });
+            
+            container.appendChild(picker);
+        }
+
+        window.saveEditProduct = async () => {
+            if (!currentEditingProduct) return;
+            const icon = document.getElementById('edit-prod-icon').value.trim();
+            const text = document.getElementById('edit-prod-text').value.trim();
+            if (!text) {
+                alert("Il testo dell'etichetta è richiesto.");
+                return;
+            }
+            const combinedShortName = icon ? `${icon} ${text}` : text;
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "update_product",
+                        _auth: tg.initData,
+                        ash: ash,
+                        msg: msg,
+                        product_id: currentEditingProduct.callback_data,
+                        name: currentEditingProduct.name,
+                        short_name: combinedShortName
+                    })
+                });
+                if (res.ok) {
+                    closeEditProdModal();
+                    loadCatalog(true);
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
+                } else {
+                    throw new Error("Failed to save product");
+                }
+            } catch (e) {
+                console.error("Save Product Error:", e);
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred("error");
+            }
+        };
+
+        function setupProductGestures(el, prod) {
+            // Desktop double click
+            el.addEventListener('dblclick', (e) => {
+                if (e.target.closest('button') || e.target.closest('a')) return;
+                openEditProductModal(prod);
+            });
+
+            // Mobile long press (approx 600ms)
+            let touchTimer = null;
+            let touchStartPos = { x: 0, y: 0 };
+            let hasMoved = false;
+
+            el.addEventListener('touchstart', (e) => {
+                if (e.target.closest('button') || e.target.closest('a')) return;
+                hasMoved = false;
+                const touch = e.touches[0];
+                touchStartPos = { x: touch.clientX, y: touch.clientY };
+
+                touchTimer = setTimeout(() => {
+                    if (!hasMoved) {
+                        if (tg.HapticFeedback) {
+                            tg.HapticFeedback.impactOccurred('medium');
+                        }
+                        openEditProductModal(prod);
+                    }
+                }, 600);
+            }, { passive: true });
+
+            el.addEventListener('touchmove', (e) => {
+                if (!touchTimer) return;
+                const touch = e.touches[0];
+                const diffX = Math.abs(touch.clientX - touchStartPos.x);
+                const diffY = Math.abs(touch.clientY - touchStartPos.y);
+                if (diffX > 10 || diffY > 10) {
+                    hasMoved = true;
+                    clearTimeout(touchTimer);
+                    touchTimer = null;
+                }
+            }, { passive: true });
+
+            el.addEventListener('touchend', () => {
+                if (touchTimer) {
+                    clearTimeout(touchTimer);
+                    touchTimer = null;
+                }
+            });
+
+            el.addEventListener('touchcancel', () => {
+                if (touchTimer) {
+                    clearTimeout(touchTimer);
+                    touchTimer = null;
+                }
+            });
+        }
+
+        window.deleteCategory = (id, name) => {
+            tg.showConfirm(`Eliminare categoria ${name}?`, async ok => {
+                if (ok) {
+                    try {
+                        await fetch(WEBHOOK_URL, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ action: "delete_category", _auth: tg.initData, ash: ash, msg: msg, category_id: id })
+                        });
+                        loadCatalog(true);
+                    } catch (e) { console.error("Delete Error", e); }
+                }
+            });
+        };
+        window.deleteProduct = (id, name) => {
+            tg.showConfirm(`Eliminare prodotto ${name}?`, async ok => {
+                if (ok) {
+                    try {
+                        await fetch(WEBHOOK_URL, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ action: "delete_product", _auth: tg.initData, ash: ash, msg: msg, product_id: id })
+                        });
+                        loadCatalog(true);
+                    } catch (e) { console.error("Delete Error", e); }
+                }
+            });
+        };
+        window.goBack = () => { tg.close(); };
+
+        if (!ash) {
+            document.getElementById('loader').innerHTML = `<div class="font-black text-red-500">ASH MISSING</div>`;
+        } else {
+            document.addEventListener("DOMContentLoaded", () => loadCatalog());
+        }
+    </script>
+</body>
+
+</html>

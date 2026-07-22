@@ -1,0 +1,3230 @@
+{
+  "name": "dashboard_teamManager",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1088,
+        -16
+      ],
+      "id": "840c2ef5-679c-48ab-a342-0f5dd26428a1",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "m_team",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "2145da7c-cdc7-4ef2-ac5c-4be9e116c35a"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Root"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5d811b87-d812-4116-90af-998c6bed7166",
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "m_team_add",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "AddMember"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cb431f09-6022-490a-bd00-c0b041df13d3",
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "m_team_add_commit",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CommitAdd"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3337bd68-2929-4cbb-b460-22f376f1f4c0",
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "m_team_invite_",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "team_invite"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "514c33e9-aff1-43c3-a511-5a2d9c7606ac",
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "m_team_del_",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "team_cancel"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -880,
+        -64
+      ],
+      "id": "3fa018d3-4a6f-465e-90b0-6d26b6a3adb0",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst owner = item.owner_data || {};\nconst operators = owner.operators || [];\nconst body = item.body.callback_query;\n\nconst globalCredits = owner.credits_balance || 0;\nconst BOT_NAME = \"TrinAi_Team_bot\";\n\nlet teamList = \"\";\nlet buttons = [];\n\nif (operators.length > 0) {\n    operators.forEach((op, idx) => {\n        const isOwner = op.Role === 'Owner' || op.isOwner === true;\n        \n        // Attivo: ha un Chat ID registrato\n        const isActive = op.OperatorChatID && op.OperatorChatID !== null;\n        \n        // Pendente: non è attivo, ma l'invito è stato generato (la chiave ha un valore non vuoto)\n        const isPending = !isActive && op.invitation_code && op.invitation_code.trim() !== \"\";\n        \n        // Bozza: creato in WebApp ma non ha ancora ricevuto la generazione dell'invito\n        const isDraft = !isActive && !isPending;\n\n        const opFirstName = op.OperatorName.split(' ')[0];\n\n        if (isOwner) {\n            const roleIcon = '👑';\n            teamList += `${roleIcon} <b>${op.OperatorName}</b>\\n`;\n            teamList += `└ ${op.Role || \"Owner\"} | 💰 <b>${globalCredits} cred.</b> | ID: <code>${op.OperatorChatID}</code>\\n\\n`;\n        } else if (isActive) {\n            const roleIcon = '👤';\n            const roleLabel = op.Job || op.Role || \"Operatore\";\n            teamList += `${roleIcon} <b>${op.OperatorName}</b>\\n`;\n            teamList += `└ ${roleLabel} | ID: <code>${op.OperatorChatID}</code>\\n\\n`;\n            \n            // PULSANTI RIGA ATTIVO: Gestione e Rimozione\n            buttons.push([\n                { text: `⚙️ Gestisci ${opFirstName}`, callback_data: `m_team_info_${op.OperatorChatID}` },\n                { text: `🗑️ Rimuovi`, callback_data: `m_team_del_${op.OperatorChatID}` }\n            ]);\n        } else if (isPending) {\n            const roleIcon = '⏳';\n            const roleLabel = op.Job || op.Role || \"Operatore\";\n            const inviteLink = `https://t.me/${BOT_NAME}?start=${op.invitation_code}`;\n            teamList += `${roleIcon} <b>${op.OperatorName}</b>\\n`;\n            teamList += `└ ${roleLabel} | ✉️ Link: <code>${inviteLink}</code>\\n\\n`;\n            \n            // PULSANTI RIGA PENDENTE: Condivisione nativa e Annullamento dell'invito\n            const shareText = encodeURIComponent(`Unisciti al team di ${owner.ragione_sociale} su SiteBoS!`);\n            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${shareText}`;\n            \n            buttons.push([\n                { text: `✉️ Condividi ${opFirstName}`, url: shareUrl },\n                { text: `🗑️ Annulla`, callback_data: `m_team_cancel_${idx}` }\n            ]);\n        } else if (isDraft) {\n            const roleIcon = '📝';\n            const roleLabel = op.Job || op.Role || \"Operatore\";\n            teamList += `${roleIcon} <b>${op.OperatorName}</b>\\n`;\n            teamList += `└ ${roleLabel} | ⚠️ <i>In attesa di invito</i>\\n\\n`;\n            \n            // PULSANTI RIGA BOZZA: Solo Generazione invito (acquisto dello slot)\n            buttons.push([\n                { text: `📩 Invita ${opFirstName} (20 Cr.)`, callback_data: `m_team_invite_${idx}` }\n            ]);\n        }\n    });\n}\n\n// AZIONI GLOBALI (Sempre in fondo alla pulsantiera)\nbuttons.push([{ text: \"📩 Genera Nuovo Invito Generico (20 Crediti)\", callback_data: \"m_team_add\" }]);\nbuttons.push([{ text: \"⬅️ Menu Principale\", callback_data: \"open_agent_control_center\" }]);\n\n// Rimosso ogni margine e allineate le righe a sinistra per una formattazione perfetta\nconst msgText = `👥 <b>GESTIONE TEAM: ${owner.ragione_sociale}</b>\n━━━━━━━━━━━━━━━━━━━━\nIn questa sezione autorizzi i collaboratori ad operare con il tuo saldo aziendale.\n\n${teamList}━━━━━━━━━━━━━━━━━━━━\n💡 <i>Usa i tasti corrispondenti per invitare i membri in bozza, condividere i link attivi o gestire lo staff.</i>`;\n\nreturn [{\n    json: {\n        ...item,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: body.message.chat.id,\n            message_id: body.message.message_id,\n            text: msgText,\n            parse_mode: \"HTML\",\n            reply_markup: { inline_keyboard: buttons }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        -272
+      ],
+      "id": "747321f9-bcc9-41dd-8a8e-6bdb077ca87f",
+      "name": "Root"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -608,
+        -272
+      ],
+      "id": "d1e06fb2-d44a-4323-8583-3d89de52f4b2",
+      "name": "📤 Telegram Call"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst owner = item.owner_data || {};\nconst body = item.body.callback_query;\n\nconst chatId = body.message.chat.id;\nconst messageId = body.message.message_id;\n\nconst COSTO = 20;\nconst saldo = owner.credits_balance || 0;\n\nlet msgText = \"\";\nlet buttons = [];\n\nif (saldo >= COSTO) {\n    // --- CASO A: CREDITI SUFFICIENTI -> CHIEDI CONFERMA ---\n    msgText = `\n💳 <b>CONFERMA ACQUISTO SLOT</b>\n━━━━━━━━━━━━━━━━━━━━\nL'aggiunta di un nuovo collaboratore richiede l'attivazione di uno slot operatore.\n\n💰 <b>Costo operazione:</b> ${COSTO} Crediti\n📊 <b>Tuo saldo attuale:</b> ${saldo} Crediti\n📉 <b>Saldo post-acquisto:</b> ${saldo - COSTO} Crediti\n\n<i>I crediti scalati non sono rimborsabili dopo la generazione del link.</i>\n━━━━━━━━━━━━━━━━━━━━\n⚠️ <b>Vuoi procedere con l'acquisto?</b>`;\n\n    buttons = [\n        [{ text: `✅ Sì, conferma e scala ${COSTO} Crediti`, callback_data: \"m_team_add_commit\" }],\n        [{ text: \"❌ Annulla\", callback_data: \"m_team\" }]\n    ];\n\n} else {\n    // --- CASO B: CREDITI INSUFFICIENTI -> REINDIRIZZA A DASHBOARD ---\n    msgText = `\n⚠️ <b>CREDITI INSUFFICIENTI</b>\n━━━━━━━━━━━━━━━━━━━━\nIl tuo saldo attuale (<b>${saldo} Cr.</b>) non è sufficiente per generare un nuovo invito.\n\n💰 <b>Costo richiesto:</b> ${COSTO} Crediti\n\nPer autorizzare nuovi collaboratori nel tuo team, è necessario ricaricare il tuo \"serbatoio di energia\" sulla piattaforma ufficiale.`;\n\n    buttons = [\n        [{ text: \"🔋 Ricarica Crediti Ora\", url: \"https://dashboard.trinai.it/\" }],\n        [{ text: \"⬅️ Torna alla Lista Team\", callback_data: \"m_team\" }]\n    ];\n}\n\nreturn [{\n    json: {\n        ...item,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: chatId,\n            message_id: messageId,\n            text: msgText,\n            parse_mode: \"HTML\",\n            reply_markup: { inline_keyboard: buttons }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        -48
+      ],
+      "id": "dbc63851-153f-42ae-a450-31d99fc1ec16",
+      "name": "Add"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst owner = item.owner_data;\nconst body = item.body.callback_query;\nconst COSTO = 20;\nconst timestamp = new Date().toISOString();\n\nconst previousBalance = owner.credits_balance || 0;\nconst finalBalance = previousBalance - COSTO;\n\n// 1. Aggiornamento owner_data (Persistence)\nowner.credits_balance = finalBalance;\nowner.last_update = timestamp;\n\n// 2. Generazione Codice e Link (TrinAi_Team_bot)\nconst randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();\nconst invCode = `INV-${owner.vat_number}-${randomPart}`;\nconst inviteLink = `https://t.me/TrinAi_Team_bot?start=${invCode}`;\n\n// 3. Iniezione nuovo operatore nell'array (SENZA operator_credit)\nconst newOp = {\n    OperatorName: `Collaboratore_${randomPart}`,\n    invitation_code: invCode,\n    OperatorChatID: null, \n    Role: \"Operator\",\n    FreeHandOperator: true,\n    status: \"PENDING\",\n    created_at: timestamp\n};\n\nif (!owner.operators) owner.operators = [];\nowner.operators.push(newOp);\n\n// 4. TRANSACTION SUMMARY\nconst transaction_summary = {\n    model: \"operator_invite_logic_v1\",\n    is_long_context: false,\n    usage: { in: 0, out: 0 },\n    usd_cost: 0,\n    credits_deducted: COSTO,\n    previous_balance: previousBalance,\n    final_balance: finalBalance,\n    timestamp: timestamp,\n    billing_source: {\n        use: \"operator_invitation\",\n        wh: \"https://prod.workflow.trinai.it/webhook/ef4aece4-9ec0-4026-a7a7-328562bcbdf6\"\n    }\n};\n\n// 5. Output\nreturn [{\n    json: {\n        ...item,\n        owner_data: owner,\n        transaction_summary: transaction_summary,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: body.message.chat.id,\n            message_id: body.message.message_id,\n            text: `\n✅ <b>ACQUISTO COMPLETATO!</b>\n━━━━━━━━━━━━━━━━━━━━\nAbbiamo scalato <b>${COSTO} crediti</b>.\n\nInvia questo link al tuo collaboratore:\n<code>${inviteLink}</code>\n\n📍 <i>L'invito è ora visibile nella tua lista Team come 'Pendente'.</i>`,\n            parse_mode: \"HTML\",\n            reply_markup: {\n                inline_keyboard: [[{ text: \"⬅️ Torna alla Lista\", callback_data: \"m_team\" }]]\n            }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        -416
+      ],
+      "id": "4abc44d0-0c38-4304-b729-c4f401af7fe0",
+      "name": "CommitAdd"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.owner_data_ref.chat_id\": {\n        \"$eq\": {{ $json.owner_data.chat_id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1088,
+        -1408
+      ],
+      "id": "6e588189-f693-4466-9a77-8b7070375f6d",
+      "name": "Stakeholder1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d12c796a-4e17-4456-9a7d-022242576163",
+              "leftValue": "={{ $json.stakeholder }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1088,
+        -1184
+      ],
+      "id": "60d86c45-175c-409d-a4b9-3b0701757095",
+      "name": "Stakeholder Exist1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1088,
+        -1568
+      ],
+      "id": "d63652ae-67c4-4777-ac38-daca826e910e",
+      "name": "Merge11"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.user_ref.email }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        -1200
+      ],
+      "id": "0338a3ae-1d1b-455e-aaaf-48bd3a130d07",
+      "name": "MongoDB Chat Memory7",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.stakeholder }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -800,
+        -1344
+      ],
+      "id": "94caf1d0-c21c-416a-a4de-9727eb0e11aa",
+      "name": "stakeholeder1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        -624
+      ],
+      "id": "5592213a-e478-471c-bf60-162944fc1428",
+      "name": "MongoDB Chat Memory8",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "billing_buffers",
+        "databaseName": "MemoryManager",
+        "contextWindowLength": 150
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        -912
+      ],
+      "id": "604a4081-6522-468e-a2d7-a6e94ca7e4dc",
+      "name": "MongoDB Chat Memory1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.transaction_summary }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -800,
+        -1056
+      ],
+      "id": "35686164-b9b7-4ccb-9f1c-f85244235870",
+      "name": "billing_buffers1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -800,
+        -768
+      ],
+      "id": "e1cf1d54-1194-48a3-9295-8a17abc2aad0",
+      "name": "owner1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -336,
+        -1552
+      ],
+      "id": "ab787238-86be-48ed-bcfc-0fba9e141ce2",
+      "name": "Merge13"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -336,
+        -1232
+      ],
+      "id": "35e49166-bd43-4d93-883e-7c1af0095330",
+      "name": "Merge14"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -336,
+        -928
+      ],
+      "id": "18980b6f-3759-48fd-8d6d-eb484e4d3fe0",
+      "name": "Merge15"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "df6e9256-58fb-481a-80a6-f19d54010c37",
+              "name": "stakeholder.commercial_profile.credit_balance.available_credits",
+              "value": "={{ $json.owner_data.credits_balance }}",
+              "type": "number"
+            },
+            {
+              "id": "2c22eb6b-0e37-47ee-a626-f6105f075cbe",
+              "name": "stakeholder.commercial_profile.credit_balance.last_transaction_id",
+              "value": "={{ $json.transaction_summary.timestamp }}",
+              "type": "string"
+            },
+            {
+              "id": "908516d6-3bd5-40fe-97f3-df6aef1c8298",
+              "name": "stakeholder.commercial_profile.credit_balance.last_update",
+              "value": "={{ $json.transaction_summary.timestamp }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -800,
+        -1568
+      ],
+      "id": "3740ac3f-fdd8-4a2e-ba77-ca5c35ef16e8",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst owner = item.owner_data || {};\nconst body = item.body.callback_query;\n\nconst COSTO = 20;\nconst timestamp = new Date().toISOString();\n\n// 1. Estrazione dell'indice dell'operatore dal callback (es: m_team_invite_1 -> 1)\nconst opIndex = parseInt(body.data.split('_').pop());\nif (isNaN(opIndex) || !owner.operators || !owner.operators[opIndex]) {\n    throw new Error(\"Errore: Impossibile trovare l'operatore all'indice specificato.\");\n}\n\nconst targetOp = owner.operators[opIndex];\nconst opFirstName = targetOp.OperatorName.split(' ')[0];\n\n// 2. Controllo Saldo\nconst previousBalance = owner.credits_balance || 0;\nif (previousBalance < COSTO) {\n    throw new Error(\"Errore: Crediti insufficienti per avviare l'invito.\");\n}\n\n// 3. Addebito Crediti (Persistence)\nconst finalBalance = previousBalance - COSTO;\nowner.credits_balance = finalBalance;\nowner.last_update = timestamp;\n\n// 4. Generazione Codice e Link\nconst randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();\nconst invCode = `INV-${owner.vat_number}-${randomPart}`;\nconst inviteLink = `https://t.me/TrinAi_Team_bot?start=${invCode}`;\n\n// Aggiornamento anagrafica specifica dello studio\ntargetOp.invitation_code = invCode;\ntargetOp.status = \"PENDING\";\ntargetOp.created_at = timestamp;\n\n// 5. Tracciato di Audit strutturato (billing_source)\nconst transaction_summary = {\n    model: \"operator_invite_logic_v1\",\n    is_long_context: false,\n    usage: { in: 0, out: 0 },\n    usd_cost: 0,\n    credits_deducted: COSTO,\n    previous_balance: previousBalance,\n    final_balance: finalBalance,\n    timestamp: timestamp,\n    billing_source: {\n        use: \"operator_invitation\",\n        wh: \"https://prod.workflow.trinai.it/webhook/ef4aece4-9ec0-4026-a7a7-328562bcbdf6\"\n    }\n};\n\n// 6. Ritorno\nreturn [{\n    json: {\n        ...item,\n        owner_data: owner,\n        transaction_summary: transaction_summary,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: body.message.chat.id,\n            message_id: body.message.message_id,\n            text: `\n✅ <b>INVITO GENERATO PER ${targetOp.OperatorName.toUpperCase()}!</b>\n━━━━━━━━━━━━━━━━━━━━\nAbbiamo scalato <b>${COSTO} crediti</b> per lo slot di ${opFirstName}.\n\nInvia questo link al tuo collaboratore per completare l'onboarding:\n<code>${inviteLink}</code>\n\n📍 <i>Lo stato dell'operatore è ora aggiornato in 'Pendente' anche su WebApp.</i>`,\n            parse_mode: \"HTML\",\n            reply_markup: {\n                inline_keyboard: [[{ text: \"⬅️ Torna alla Lista\", callback_data: \"m_team\" }]]\n            }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        240
+      ],
+      "id": "1b377137-f29d-4b10-aedf-fd806b23da0e",
+      "name": "CommitTelegramInvite"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst owner = item.owner_data || {};\nconst body = item.body.callback_query;\n\nconst timestamp = new Date().toISOString();\n\n// 1. Estrazione dell'indice dell'operatore dal callback (es: m_team_cancel_1 -> 1)\nconst opIndex = parseInt(body.data.split('_').pop());\nif (isNaN(opIndex) || !owner.operators || !owner.operators[opIndex]) {\n    throw new Error(\"Errore: Impossibile trovare l'operatore all'indice specificato.\");\n}\n\nconst targetOp = owner.operators[opIndex];\nconst opFirstName = targetOp.OperatorName.split(' ')[0];\n\n// 2. Revoca dell'invito (Reset allo stato bozza / Non rimborsabile)\ntargetOp.invitation_code = \"\";\ntargetOp.status = \"\";\ntargetOp.created_at = null; // Pulizia timestamp creazione invito\n\nowner.last_update = timestamp;\n\n// 3. Ritorno (Senza transaction_summary poiché non c'è variazione di saldo)\nreturn [{\n    json: {\n        ...item,\n        owner_data: owner,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: body.message.chat.id,\n            message_id: body.message.message_id,\n            text: `\n❌ <b>INVITO ANNULLATO PER ${targetOp.OperatorName.toUpperCase()}</b>\n━━━━━━━━━━━━━━━━━━━━\nIl link di invito precedentemente generato per lo slot di ${opFirstName} è stato revocato con successo. Il vecchio link non è più attivo.\n\nL'operatore è stato riportato in stato di 'Bozza' all'interno del tuo pannello di controllo.`,\n            parse_mode: \"HTML\",\n            reply_markup: {\n                inline_keyboard: [[{ text: \"⬅️ Torna alla Lista\", callback_data: \"m_team\" }]]\n            }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        480
+      ],
+      "id": "a06b852f-6ce1-48fd-a8c4-2ff55278c6e5",
+      "name": "CommitTelegramCancel"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        880
+      ],
+      "id": "33bf38e0-bfa1-4ba0-9a37-63b9511a9eed",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -800,
+        736
+      ],
+      "id": "cf821fea-e01f-4aec-9068-fdbc378b4d46",
+      "name": "owner",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -624,
+        496
+      ],
+      "id": "abdd8e14-2408-4b18-90a3-019f4710d475",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "param-action",
+              "name": "action",
+              "value": "=dashboard_teamManager",
+              "type": "string"
+            },
+            {
+              "id": "param-target-col",
+              "name": "target_collection",
+              "value": "service_catalog",
+              "type": "string"
+            },
+            {
+              "id": "param-target-doc",
+              "name": "target_document",
+              "value": "={{ $json.target_document || $json.body?.callback_query?.data || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "param-caller",
+              "name": "caller_chat_id",
+              "value": "={{ $json.caller_chat_id || $json.ids?.caller_chat_id }}",
+              "type": "string"
+            },
+            {
+              "id": "param-owner",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -888,
+        -16
+      ],
+      "id": "db1bed47-1f41-4571-8499-4a5d6e672320",
+      "name": "Prep Lock Params"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "DFYgrC5FBKxua5td",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/DFYgrC5FBKxua5td",
+          "cachedResultName": "Lock-Manager"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        -688,
+        -16
+      ],
+      "id": "2f3bc9ac-cab2-45da-8e30-8aa1f5a370a6",
+      "name": "Execute Lock-Manager"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "lock-acquired-check",
+              "leftValue": "={{ $json.lockAcquired }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -488,
+        -16
+      ],
+      "id": "55ad20fc-0dd3-42f3-8aea-388710a1b9f8",
+      "name": "Lock Free?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data?.bot_key || '8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ' }}/editMessageText",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": \"{{ $json.body.callback_query.message.chat.id }}\",\n  \"message_id\": \"{{ $json.body.callback_query.message.message_id }}\",\n  \"text\": \"⚠️ <b>COLLISIONE DI PROCESSO</b>\\n\\nUn altro collaboratore della tua organizzazione sta eseguendo un'operazione simile o la tua sessione è già attiva.\\n\\nPer favore, attendi il completamento del processo prima di riprovare.\",\n  \"parse_mode\": \"HTML\",\n  \"reply_markup\": {\n    \"inline_keyboard\": [\n      [\n        {\n          \"text\": \"🏠 Torna alla Dashboard\",\n          \"callback_data\": \"agent_selection\"\n        }\n      ]\n    ]\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -488,
+        164
+      ],
+      "id": "7a1f8ef4-de18-4743-b999-6aca0627590e",
+      "name": "Telegram Lock Collision Msg"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "collection": "active_actions",
+        "query": "={\"sessionId\": \"{{ $json.caller_chat_id || $json.ids?.caller_chat_id }}\"}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -86,
+        -16
+      ],
+      "id": "ddf4e696-d118-48b5-a92e-10b65b203c7b",
+      "name": "Release Lock",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "HoneyPot": {
+            "company_context_string": "Garofalo Consulting, guidata dall'AI System Architect Giuseppe Garofalo, è specializzata nella Trasformazione Strutturale basata sull'Intelligenza Artificiale per le Tiny Enterprises italiane. Il suo approccio unico consiste nell'architettare ecosistemi software completi, utilizzando n8n per l'orchestrazione dei workflow, Google Gemini per l'intelligenza decisionale e MongoDB per la gestione robusta dei dati. L'obiettivo primario è elevare le Partite IVA a strutture aziendali efficienti, eliminando la disorganizzazione cronica attraverso l'automazione intelligente di compiti complessi come l'assessment HR e la gestione dei cataloghi dinamici.",
+            "offer_text": "⚙️<br><br>La tua Partita IVA è pronta per l'upgrade Enterprise? Smetti di fare il giocoliere tra documenti e processi manuali.<br><br>Noi di <b>Garofalo Consulting</b> trasformiamo la tua operatività in un <b>Ecosistema Digitale Autonomo</b>, orchestrando la potenza di <b>n8n</b>, <b>Gemini</b> e <b>MongoDB</b>.<br><br>🔸 Costruiamo automazioni che durano, non soluzioni tampone.<br>🔸 Ti garantiamo la <b>struttura</b> di una grande azienda.<br><br>Stiamo offrendo <b>SOLO 5 POSTI</b> questa settimana per la nostra sessione privata: <i>\"Blueprint dell'Infrastruttura AI\"</i>. Vedrai esattamente come digitalizzare le tue aree critiche (HR Assessment, Cataloghi Dinamici, Documentazione).<br><br>✨ <b>Sei pronto a forgiare la tua resilienza aziendale?</b>",
+            "knowledge_fragments": [
+              {
+                "fragment_id": "COMPANY_OVERVIEW_V1",
+                "user_utterances": [
+                  "Cos'è Garofalo Consulting?",
+                  "Parlami di Garofalo AI",
+                  "Cosa fa esattamente questa ditta?"
+                ],
+                "answer_fragment": "Garofalo Consulting, guidata da Giuseppe Garofalo, si configura come un architetto di sistemi focalizzato sulla trasformazione digitale delle Tiny Enterprises italiane. L'azienda non vende software pre-confezionato, ma costruisce ecosistemi software completi su misura. Sfrutta tecnologie all'avanguardia come l'orchestrazione tramite n8n, l'intelligenza artificiale di Google Gemini e la flessibilità di MongoDB. L'obiettivo è trasformare un semplice professionista con Partita IVA in un'entità strutturata, automatizzando processi critici come la gestione documentale e gli assessment interni, garantendo robustezza e scalabilità.",
+                "summary": "È l'ingegnere che fonde strumenti enterprise in un unico motore custom, trasformando il caos operativo di un libero professionista in una macchina aziendale automatizzata.",
+                "sections": [
+                  {
+                    "question": "Qual è la storia di Garofalo Consulting?",
+                    "answer": "Nata dall'esigenza di democratizzare l'architettura software, Garofalo Consulting ha iniziato mappando i processi manuali, evolvendo rapidamente nell'integrazione di LLM per risolvere la disorganizzazione strutturale tipica delle micro-imprese."
+                  },
+                  {
+                    "question": "Come si è evoluta l'attività nel tempo?",
+                    "answer": "L'evoluzione è stata rapida: da consulente IT tradizionale a specialista in \"AI-driven Structural Transformation\", ponendo l'accento sulla sostenibilità dei costi grazie all'uso strategico di n8n al posto di soluzioni proprietarie."
+                  },
+                  {
+                    "question": "Qual è lo status operativo attuale?",
+                    "answer": "Attualmente opera come entità snella e altamente specializzata (solo founder), concentrandosi sull'implementazione di agenti AI che gestiscono compiti complessi come l'analisi HR e la logica di fatturazione algoritmica per i clienti."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "MISSION_PURPOSE_V1",
+                "user_utterances": [
+                  "Qual è la missione di Garofalo Consulting?",
+                  "Perché esiste Garofalo AI?",
+                  "Qual è lo scopo aziendale?"
+                ],
+                "answer_fragment": "La missione fondamentale di Garofalo Consulting è colmare il significativo gap tecnologico esistente tra le grandi corporation e le \"Tiny Enterprises\" italiane. Mira a eliminare la disorganizzazione cronica che affligge i professionisti, fornendo loro un'infrastruttura digitale robusta e intelligente. Questo si realizza attraverso la creazione di un \"Ecosistema Software Completo\" che permette al cliente di scalare le proprie operazioni senza dover aumentare in modo proporzionale i costi del personale o l'esposizione a licenze software proibitive.",
+                "summary": "Funge da ponte tecnologico, portando la potenza di un'infrastruttura complessa direttamente nelle mani del piccolo imprenditore per dargli la libertà di crescere.",
+                "sections": [
+                  {
+                    "question": "Qual è la visione a lungo termine?",
+                    "answer": "La visione è quella di rendere ogni Partita IVA tecnologicamente pari a una PMI strutturata, rendendo l'AI un'infrastruttura operativa e non solo uno strumento di marketing superficiale."
+                  },
+                  {
+                    "question": "Quali sono i valori fondamentali?",
+                    "answer": "I valori cardine sono l'**efficienza operativa**, la **trasparenza architetturale** (massimo controllo sul dato tramite n8n/MongoDB) e la **scalabilità sostenibile** per il cliente finale."
+                  },
+                  {
+                    "question": "Quali obiettivi strategici persegue l'azienda?",
+                    "answer": "L'obiettivo a lungo termine è diventare il punto di riferimento per l'automazione dei processi decisionali (IPA) nel segmento delle micro-imprese italiane, specialmente dove i dati sono complessi."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "PRODUCTS_SERVICES_V1",
+                "user_utterances": [
+                  "Cosa offrite come servizi?",
+                  "Quali sono i prodotti principali di Garofalo AI?",
+                  "Come viene implementata l'automazione?"
+                ],
+                "answer_fragment": "Garofalo Consulting offre un portafoglio di servizi focalizzato sull'implementazione di automazioni intelligenti. L'offerta principale include l'Analisi Aziendale per mappare i colli di bottiglia, la successiva Consulenza Strategica per la trasformazione digitale, e l'Implementazione diretta di Agenti AI personalizzati. Questi agenti integrano dati da CRM e gestionali, utilizzando Gemini per interpretare e agire. Vengono inoltre erogati Workshop Formativi mirati per trasferire la conoscenza operativa al cliente, rendendolo autonomo nella gestione dell'ecosistema costruito.",
+                "summary": "Non vendiamo software, ma costruiamo il \"cervello digitale\" su misura che prende decisioni operative, aggiorna cataloghi e gestisce le risorse umane in automatico.",
+                "sections": [
+                  {
+                    "question": "Quali categorie di prodotti sviluppate?",
+                    "answer": "Le categorie spaziano dall'**Assessment HR** (valutazione soft skills tramite AI) ai **Cataloghi Dinamici** (aggiornamento automatico prezzi/inventario) fino alla gestione della **Fatturazione Algoritmica** basata su logiche complesse."
+                  },
+                  {
+                    "question": "Che tipo di servizi specifici offrite?",
+                    "answer": "Offriamo servizi di consulenza di alto livello, ingegnerizzazione del prompt avanzata e sviluppo di workflow multi-nodo complessi specificamente su n8n per garantire massima customizzazione."
+                  },
+                  {
+                    "question": "Come avviene l'erogazione dei servizi?",
+                    "answer": "L'implementazione è sempre **customizzata**; si parte da un audit approfondito per definire l'architettura ottimale, seguito da rilasci progressivi dei moduli automatizzati testati in ambiente sandbox."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "USP_DIFFERENTIATORS_V1",
+                "user_utterances": [
+                  "Perché dovrei scegliere Garofalo Consulting?",
+                  "Qual è il vostro vero vantaggio competitivo?",
+                  "Cosa vi distingue dagli altri consulenti AI?"
+                ],
+                "answer_fragment": "La Unique Selling Proposition di Garofalo Consulting risiede nell'integrazione strategica di tre componenti: 1. L'orchestrazione a basso costo di n8n, evitando le dipendenze SaaS eccessive. 2. L'uso mirato e performante di Google Gemini (Flash/Pro) per l'analisi dei dati. 3. La persistenza sicura dei dati in MongoDB, creando una \"memoria aziendale\" intelligente. Questo approccio tripartito consente di costruire soluzioni enterprise-grade accessibili e gestibili economicamente da una Partita IVA, cosa rara nel mercato.",
+                "summary": "Siamo i fabbri che forgiano infrastrutture resilienti e flessibili, utilizzando attrezzi moderni per creare automazioni che durano nel tempo, non semplici soluzioni temporanee.",
+                "sections": [
+                  {
+                    "question": "Quali sono i vantaggi competitivi tecnici?",
+                    "answer": "Il vantaggio principale è la **maestria nell'integrazione di stack moderni** (n8n/Gemini/Mongo), che permette un controllo granulare sui dati e sui costi API rispetto a soluzioni closed-source offerte dalla concorrenza."
+                  },
+                  {
+                    "question": "Quali marker di qualità garantite?",
+                    "answer": "L'approccio è guidato da solide competenze in Architettura SaaS e IA, garantendo che ogni sistema implementato sia **robusto, sicuro (rispettando il GDPR e il \"Metodo Godfellas\" di anonimizzazione)** e pronto per la crescita."
+                  },
+                  {
+                    "question": "Qual è il focus principale rispetto ai competitor?",
+                    "answer": "A differenza di chi si limita a implementare chatbot, noi forniamo sistemi dove il cliente mantiene il **controllo totale sull'infrastruttura di orchestrazione**, minimizzando i vincoli di vendor lock-in."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "TARGET_CUSTOMERS_V1",
+                "user_utterances": [
+                  "Chi è il cliente ideale per Garofalo Consulting?",
+                  "Lavorate con le grandi aziende?",
+                  "Quali professionisti beneficiano di più dei vostri servizi?"
+                ],
+                "answer_fragment": "Il target primario è la **\"Tiny Enterprise\"**, ovvero il professionista o la micro-azienda (fino a 10 dipendenti) che ha raggiunto un plateau di crescita dovuto a inefficienze operative interne. Questi clienti soffrono tipicamente di sovraccarico di lavoro manuale, data entry ripetitivo e mancanza di dati strutturati per decisioni strategiche. Essi necessitano di scalare il volume d'affari ma sono bloccati dalla disorganizzazione, cercando una soluzione che agisca come un vero e proprio \"dipendente digitale\" ad alta capacità analitica.",
+                "summary": "Sono i solopreneur e le micro-imprese che hanno successo ma sono annegati nella burocrazia interna, cercando un'architettura che li liberi per concentrarsi sulla crescita del business.",
+                "sections": [
+                  {
+                    "question": "Quali segmenti di clientela servite principalmente?",
+                    "answer": "Serviamo principalmente Ditte Individuali e PMI con una forte componente di gestione documentale o di catalogo prodotti che richiedono alta velocità decisionale e automazione del back-office."
+                  },
+                  {
+                    "question": "Quali settori tipicamente beneficiano di più?",
+                    "answer": "Qualsiasi settore che gestisce **documenti complessi o grandi volumi di dati**, come studi professionali, piccole realtà e-commerce o società di servizi B2B che necessitano di strutturare dati non relazionali."
+                  },
+                  {
+                    "question": "Quali problemi risolvete per loro?",
+                    "answer": "L'azienda risolve specificamente i problemi di **disorganizzazione cronica**, **difficoltà a scalare** senza assumere nuovo personale e **controllo insufficiente dei costi** operativi legati al lavoro manuale."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "CONTACT_HOURS_V1",
+                "user_utterances": [
+                  "Come posso contattare Giuseppe Garofalo?",
+                  "Quali sono i vostri orari di ufficio aggiornati?",
+                  "Quando siete disponibili per una chiamata il Martedì?",
+                  "Ci sono orari fissi per le consulenze?",
+                  "Siete operativi il Giovedì?",
+                  "È possibile fissare un appuntamento la sera?"
+                ],
+                "answer_fragment": "Giuseppe Garofalo riceve consulenze esclusivamente su appuntamento, essenziali per l'architettura software personalizzata. La disponibilità diretta (telefono o videochiamata) è concentrata nei seguenti slot: Lunedì dalle 08:00 alle 15:00. Martedì e Mercoledì sono disponibili dalle 08:00 alle 13:00 e successivamente dalle 14:00 alle 20:00. Si noti che Giovedì e Venerdì sono interamente dedicati ad attività di implementazione tecnica e non prevedono contatti diretti programmati. Per la pianificazione, utilizzare l'email `garofalo.giuseppe77@gmail.com` o il telefono `3273569647`.",
+                "summary": "La reperibilità diretta è ora attiva Lunedì (fino alle 15:00) e Martedì/Mercoledì con chiusura estesa alle 20:00. Giovedì e Venerdì sono riservati esclusivamente all'implementazione tecnica senza slot di contatto diretto.",
+                "sections": [
+                  {
+                    "question": "Quali sono i metodi di contatto prioritari?",
+                    "answer": "Email (`garofalo.giuseppe77@gmail.com`) o telefono (`3273569647`) sono i canali primari. Ogni interazione umana deve essere programmata in base alla disponibilità settimanale dettagliata, poiché il servizio è erogato esclusivamente su appuntamento."
+                  },
+                  {
+                    "question": "Dove si trova fisicamente la base operativa?",
+                    "answer": "La base operativa e la sede legale sono localizzate in provincia di Palermo (Monreale), ma il servizio di architettura software è fornito a livello nazionale grazie alla natura digitale e remota delle implementazioni."
+                  },
+                  {
+                    "question": "Quando è possibile fissare una consulenza diretta e quali sono le ore di maggiore flessibilità?",
+                    "answer": "Le consulenze sono programmate Lunedì dalle 08:00 alle 15:00, e Martedì e Mercoledì dalle 08:00 alle 13:00 e dalle 14:00 alle 20:00. Le ore serali fino alle 20:00 sono garantite solo il Martedì e il Mercoledì. Non vi è disponibilità per contatti diretti il Giovedì o il Venerdì."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "PROCESS_HOW_IT_WORKS_V1",
+                "user_utterances": [
+                  "Qual è il vostro metodo di lavoro?",
+                  "Spiegami il processo di implementazione di un sistema AI.",
+                  "Come si passa dall'idea al sistema funzionante?"
+                ],
+                "answer_fragment": "Il processo di trasformazione di Garofalo Consulting è metodico e orientato alla produzione di valore immediato. Inizia con una fase di **Analisi Aziendale** per mappare i processi più inefficienti. Successivamente, si passa alla fase di Architettura, dove si progetta l'integrazione ottimale tra n8n, Gemini e MongoDB. La terza fase è l'Implementazione, che prevede lo sviluppo e il test degli Agenti AI. Infine, si eroga la formazione per assicurare che il cliente possa mantenere e monitorare l'ecosistema costruito, garantendo che l'automazione sia pienamente operativa e integrata.",
+                "summary": "È un percorso chirurgico: si individua il punto dolente, si progetta la \"macchina\" interna perfetta e la si installa, assicurandosi che il cliente sappia guidarla subito dopo.",
+                "sections": [
+                  {
+                    "question": "Quali sono le tappe fondamentali del processo?",
+                    "answer": "1. **Audit e Mappatura** (Identificazione dei compiti ripetitivi). 2. **Progettazione Architetturale** (Scelta dello stack n8n/Mongo/Gemini). 3. **Sviluppo Agenti** (Costruzione dei workflow e prompt engineering avanzato). 4. **Deployment e Training** (Go-live e trasferimento di conoscenza al team cliente)."
+                  },
+                  {
+                    "question": "Quali sono le tempistiche medie di implementazione?",
+                    "answer": "La durata varia significativamente, ma le prime implementazioni di automazione documentale mirata possono essere operative in **poche settimane**, mentre ecosistemi completi richiedono mesi di affinamento iterativo e ottimizzazione dei prompt."
+                  },
+                  {
+                    "question": "Quali requisiti sono essenziali per il cliente?",
+                    "answer": "Il successo del processo richiede una **piena collaborazione del cliente** nell'esporre i flussi di lavoro esistenti e la disponibilità di accesso ai sistemi legacy o ai dati sorgente da integrare."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "PRICING_VALUE_V1",
+                "user_utterances": [
+                  "Quanto costa avviare un progetto?",
+                  "Come funziona la strategia di prezzo?",
+                  "Qual è il ritorno sull'investimento (ROI)?"
+                ],
+                "answer_fragment": "Garofalo Consulting adotta un modello di pricing basato sul valore generato e sulla complessità architetturale, piuttosto che su tariffe standardizzate. Poiché la costruzione è custom, il costo iniziale riflette l'ingegnerizzazione necessaria per l'ecosistema. Il principale argomento di vendita è però il **ROI** generato dalla drastica riduzione dei costi operativi e del tempo speso in attività manuali. Sfruttando n8n, si evitano costosi abbonamenti mensili, assicurando che il costo dell'automazione sia inferiore al costo del personale che sostituisce.",
+                "summary": "Il prezzo iniziale è un investimento nell'infrastruttura, ma il vero valore è il costo operativo continuo drasticamente ridotto, rendendo l'AI profittevole fin dal primo mese.",
+                "sections": [
+                  {
+                    "question": "Qual è la proposta di valore economica principale?",
+                    "answer": "Il valore non è nel software fornito, ma nella **liberazione di tempo prezioso** per il titolare e nella capacità di prendere decisioni basate su dati strutturati forniti dagli agenti AI."
+                  },
+                  {
+                    "question": "Come gestite i costi fissi di licenza?",
+                    "answer": "L'architettura è volutamente disegnata per **minimizzare i costi di licenza esterni**, facendo leva su soluzioni open-source mature (n8n) e modelli AI a consumo efficiente come Gemini Flash, ottimizzando la spesa per il cliente."
+                  },
+                  {
+                    "question": "Come si quantifica il Ritorno sull'Investimento?",
+                    "answer": "Il ROI è calcolabile comparando le ore uomo risparmiate mensilmente nell'esecuzione di task ripetitivi (es. data entry, reporting) con il costo annualizzato dell'architettura implementata."
+                  }
+                ]
+              }
+            ],
+            "availability_schedule": {
+              "type": "By Appointment",
+              "notes": "Contatto via email o telefono; consulenze programmate L-V 9:00-18:00.",
+              "hours": {
+                "monday": {
+                  "morning": {
+                    "from": "08:00",
+                    "to": "15:00"
+                  },
+                  "afternoon": {
+                    "from": null,
+                    "to": null
+                  }
+                },
+                "tuesday": {
+                  "morning": {
+                    "from": "08:00",
+                    "to": "13:00"
+                  },
+                  "afternoon": {
+                    "from": "14:00",
+                    "to": "20:00"
+                  }
+                },
+                "wednesday": {
+                  "morning": {
+                    "from": "08:00",
+                    "to": "13:00"
+                  },
+                  "afternoon": {
+                    "from": "14:00",
+                    "to": "20:00"
+                  }
+                },
+                "thursday": {
+                  "morning": {
+                    "from": null,
+                    "to": null
+                  },
+                  "afternoon": {
+                    "from": null,
+                    "to": null
+                  }
+                },
+                "friday": {
+                  "morning": {
+                    "from": null,
+                    "to": null
+                  },
+                  "afternoon": {
+                    "from": null,
+                    "to": null
+                  }
+                }
+              }
+            },
+            "config": {
+              "onboarding_completed": true,
+              "completed_at": "2026-03-23T18:02:17.696Z"
+            },
+            "additional_kwargs": [],
+            "response_metadata": [],
+            "assets": {
+              "logo": {
+                "url": "https://dashboard.trinai.it/images/honeypot/IT06988830821/logo.jpg",
+                "mime": "image/jpeg",
+                "description": "🤖 ANALISI: L'emblema è altamente efficace per il settore AI/Consulenza. L'uso di una struttura esagonale (solidità, struttura dati) che racchiude un monogramma stilizzato \"GA\" costruito con linee di circuito (innovazione, connettività) comunica immediatamente competenza tecnologica avanzata e affidabilità strutturale. La tipografia sans-serif è pulita e autorevole. La palette cromatica, che bilancia il blu scuro (fiducia, professionalità) con un viola accentuato (futuro, visione), è ben calibrata per un brand tecnologico premium. \n\n🎨 PALETTE: [#212D67, #895FE0, #FFFFFF] \n\n💡 TIP: Verificare meticolosamente la scalabilità del simbolo. Le linee sottili e i nodi del circuito, sebbene esteticamente validi, rischiano di collassare o diventare illeggibili quando il logo viene ridotto a dimensioni minime (es. favicon o riquadri social). Si raccomanda di effettuare test di riduzione e, se necessario, aumentare leggermente lo spessore delle linee interne per garantire leggibilità a qualsiasi dimensione.",
+                "meta": {
+                  "visual_analysis": "L'emblema è altamente efficace per il settore AI/Consulenza. L'uso di una struttura esagonale (solidità, struttura dati) che racchiude un monogramma stilizzato \"GA\" costruito con linee di circuito (innovazione, connettività) comunica immediatamente competenza tecnologica avanzata e affidabilità strutturale. La tipografia sans-serif è pulita e autorevole. La palette cromatica, che bilancia il blu scuro (fiducia, professionalità) con un viola accentuato (futuro, visione), è ben calibrata per un brand tecnologico premium.",
+                  "pro_tip": "Verificare meticolosamente la scalabilità del simbolo. Le linee sottili e i nodi del circuito, sebbene esteticamente validi, rischiano di collassare o diventare illeggibili quando il logo viene ridotto a dimensioni minime (es. favicon o riquadri social). Si raccomanda di effettuare test di riduzione e, se necessario, aumentare leggermente lo spessore delle linee interne per garantire leggibilità a qualsiasi dimensione.",
+                  "colors": [
+                    "#212D67",
+                    "#895FE0",
+                    "#FFFFFF"
+                  ]
+                },
+                "updated_at": "2026-03-20T15:40:31.647Z"
+              },
+              "photo": {
+                "url": "https://dashboard.trinai.it/images/honeypot/IT06988830821/photo.jpg",
+                "mime": "image/jpeg",
+                "description": "🌃 ANALISI: L'immagine comunica autorità, innovazione e competenza strategica avanzata. L'ambientazione notturna in un ufficio di alto livello simboleggia dedizione e portata globale. La luce fredda dell'interfaccia olografica evidenzia la padronanza di Garofalo sulle tecnologie futuristiche e l'analisi dei dati complessi. L'aspetto è sofisticato, serio e orientato al futuro, perfettamente allineato con il settore della consulenza di alto livello. \n\n🎨 PALETTE: [#1A1E24, #00BFFF, #FF8C00, #4A4A4A] \n\n💡 TIP: Per ottimizzare la scalabilità e l'uso su piattaforme digitali (specialmente sfondi per siti web), si consiglia di lavorare sulla mappatura dei toni medi per alzare leggermente la luminosità complessiva dell'ambiente. Questo migliorerà il contrasto visivo senza sacrificare l'atmosfera premium e notturna, garantendo che i dettagli dell'abito e della scrivania rimangano definiti.",
+                "meta": {
+                  "visual_analysis": "L'immagine comunica autorità, innovazione e competenza strategica avanzata. L'ambientazione notturna in un ufficio di alto livello simboleggia dedizione e portata globale. La luce fredda dell'interfaccia olografica (blu/arancio) evidenzia la padronanza di Garofalo sulle tecnologie futuristiche e l'analisi dei dati complessi. L'aspetto è sofisticato, serio e orientato al futuro, perfettamente allineato con il settore della consulenza di alto livello. L'autenticità deriva dalla concentrazione intensa del soggetto.",
+                  "pro_tip": "Per ottimizzare la scalabilità e l'uso su piattaforme digitali (specialmente sfondi per siti web), si consiglia di lavorare sulla mappatura dei toni medi per alzare leggermente la luminosità complessiva dell'ambiente. Questo migliorerà il contrasto visivo senza sacrificare l'atmosfera premium e notturna, garantendo che i dettagli dell'abito e della scrivania rimangano definiti.",
+                  "colors": [
+                    "#1A1E24",
+                    "#00BFFF",
+                    "#FF8C00",
+                    "#4A4A4A"
+                  ]
+                },
+                "updated_at": "2026-03-20T15:43:40.682Z"
+              },
+              "gallery1": {
+                "url": "https://dashboard.trinai.it/api/n8n/minisite/old/IT06988830821/images/gallery1.jpg",
+                "description": "A medium shot of a focused AI consultant collaborating with a business owner in a contemporary, glass-walled office. They are reviewing a complex, illuminated workflow diagram on a sleek tablet. The office setting incorporates professional navy #212D67 furniture and soft purple #895FE0 ambient lighting accents. Captured with an 85mm lens for natural skin tones, sharp focus, and shallow depth of field. 1:1 square composition.",
+                "rationale": "This hero shot humanizes the brand, demonstrating the 'consulting' aspect while highlighting the professional nature of the service, bridging the gap between human expertise and AI implementation.",
+                "updated_at": "2026-05-20T10:10:38.657Z"
+              },
+              "gallery2": {
+                "url": "https://dashboard.trinai.it/api/n8n/minisite/old/IT06988830821/images/gallery2.jpg",
+                "description": "An abstract, photorealistic macro shot representing AI architecture, data orchestration, and structural integrity. Intricate digital nodes and glowing circuit lines interconnect against a deep #212D67 background with vivid #895FE0 light trails. The aesthetic is clean, premium, and futuristic, emphasizing the technology behind the consultancy. Sharp focus, high depth of field, professional studio lighting. 1:1 square composition.",
+                "rationale": "This abstract piece reinforces the technical 'System Architect' and 'n8n/MongoDB' competency without needing literal product photography, maintaining a high-end corporate tech aesthetic.",
+                "updated_at": "2026-05-20T10:10:38.657Z"
+              },
+              "gallery3": {
+                "url": "https://dashboard.trinai.it/api/n8n/minisite/old/IT06988830821/images/gallery3.jpg",
+                "description": "A perfectly centered, high-angle interior shot of a minimalist, immaculately organized executive workstation. The desk features a premium laptop displaying clean code, a crisp white notebook with structural diagrams, and a single pen. Natural, cool-toned light highlights the pristine #FFFFFF surfaces and #212D67 accents. The space exudes efficiency, calm, and professional clarity. 1:1 square composition.",
+                "rationale": "This environmental shot represents the result of the 'Structural Transformation' service—moving from chaos to order—providing a relatable and aspirational workspace atmosphere that appeals to potential clients.",
+                "updated_at": "2026-05-20T10:10:38.657Z"
+              }
+            }
+          },
+          "owner_data": {
+            "user_id": "IT06988830821",
+            "chat_id": 2041408875,
+            "access_token": "3884d06f-f913-49c6-8544-200a96b79805",
+            "group_id": null,
+            "user_name": "",
+            "vat_number": "IT06988830821",
+            "gemini_key": "AIzaSyAbDReRpDWAg93RXoOxuOmNtCGzIfZmF4Q",
+            "bot_key": "8680185361:AAFb_6KjAXXw_YUPe4bI_SkVKBaateiEK9A",
+            "path": "",
+            "name": "Giuseppe",
+            "surname": "Garofalo",
+            "email": "garofalo.giuseppe77@gmail.com",
+            "phone": "3273569647",
+            "ragione_sociale": "Garofalo AI Consulting",
+            "indirizzo": "Via esterna valle cuba , 90046 Monreale (PA)",
+            "fiscal_code": "GRFGPP77M30G273K",
+            "sdi_pec": "KRRH6B9",
+            "site": "https://garofaloai.com/",
+            "linkedin_page": "https://www.linkedin.com/in/giuseppe-garofalo-8bb95880/",
+            "facebook_page": "",
+            "instagram_page": "",
+            "twitter_page": "",
+            "sector": "services_consulting",
+            "business_description": "AI System Architect & Business Automation Engineer.\nCostruzione ecosistemi software completi per le Tiny Enterprise. Unendo in modo magistrale l'orchestrazione di n8n, l'intelligenza di Google Gemini (Flash/Pro) e la robustezza di MongoDB, trasformiamo una semplice Partita IVA in un'azienda strutturata, dotata di cataloghi dinamici, assessment HR (Soft Skills) e automazione documentale.",
+            "kyc_details": {
+              "professional_questionnaire": {
+                "role": "freelance_solo",
+                "team_size": "solo",
+                "years_experience": "3-5",
+                "hard_skills": [
+                  "n8n Advanced Automation",
+                  "Google Gemini API",
+                  "System Architecture (SaaS)",
+                  "Prompt Engineering Avanzato",
+                  "MongoDB (NoSQL)",
+                  "Intelligent Process Automation",
+                  "API & Webhooks Integration",
+                  "Algorithmic Billing Logic",
+                  "JSON Data Structuring"
+                ],
+                "certifications": "Sistemi di Automazione Avanzata (n8n): Esperto certificato/specializzato nella progettazione di workflow complessi e automazione dei processi aziendali (IPA).\nArchitettura Cloud & AI (Google Cloud / Gemini): Competenze avanzate nell'integrazione delle API di Google Gemini e nell'ingegnerizzazione di prompt architetturali per modelli linguistici di grandi dimensioni.\nProject & Business Management: Data la sua esperienza ultra-ventennale in ruoli tecnici e di coordinamento, il profilo riflette certificazioni o mastery nell'architettura di sistemi SaaS e gestione di infrastrutture IT complesse.\nSicurezza & Compliance: Esperienza specifica in normative come il GDPR (fondamentale per il suo \"Metodo Godfellas\" di anonimizzazione dati).",
+                "recent_training": "online_course",
+                "specialization_level": "versatile",
+                "digital_tools": [
+                  "email",
+                  "whatsapp",
+                  "excel",
+                  "word",
+                  "calendar",
+                  "social",
+                  "crm",
+                  "accounting",
+                  "project_mgmt",
+                  "design",
+                  "ecommerce",
+                  "analytics",
+                  "video",
+                  "code"
+                ],
+                "client_workflow": "digital_dominant",
+                "document_management": "gestionale",
+                "pain_points": [
+                  "find_clients",
+                  "disorganization",
+                  "costs_control",
+                  "scaling",
+                  "competition"
+                ],
+                "main_goal": "beat_competition"
+              }
+            },
+            "subscription_plan": "pioneer_free_trial",
+            "subscription_status": "Pending_Activation",
+            "credits_balance": 997780,
+            "model_choice": "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+            "lenguage": "Italiano",
+            "owner_unavailable_time": "21-7",
+            "operator_unavailable_time": "19-9",
+            "operators": [
+              {
+                "OperatorName": "Giuseppe Garofalo",
+                "OperatorChatID": 2041408875,
+                "OperatorLenguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Owner",
+                "GeminiKey": "AIzaSyAxXPYncXfpB34itpCiG228dl4DRIO3Oro"
+              },
+              {
+                "OperatorName": "garofalo giuseppe",
+                "OperatorChatID": 720379727,
+                "Role": "Operator",
+                "FreeHandOperator": true,
+                "status": "ACTIVE",
+                "created_at": "2026-04-03T16:42:28.161Z",
+                "OperatorEmail": "tbos@app.trinai.it",
+                "GeminiKey": ""
+              }
+            ],
+            "payment_preference": "wire",
+            "terms_accepted": true,
+            "operator_owner": "",
+            "operator_credit": "1",
+            "created_at": "2026-03-02T13:33:53.049Z",
+            "additional_kwargs": {},
+            "response_metadata": {},
+            "subscription_assistant": true,
+            "subscription_certificator": true,
+            "last_update": "2026-04-28T13:56:26.385Z",
+            "subscription_custombot": true,
+            "customer_bot_config": {
+              "status": "ACTIVE",
+              "activated_at": "2026-04-04T10:19:19.567Z",
+              "last_updated_at": "2026-04-16T17:02:30.058Z",
+              "identity": {
+                "agent_name": "Giovanni Neve",
+                "role_persona": "sales_agent"
+              },
+              "permissions": {
+                "allow_images": true,
+                "allow_files": true
+              },
+              "personality": {
+                "tone": "friendly",
+                "vibe": "helpful_assistant",
+                "language_style": "casual",
+                "emoji_usage": "frequent",
+                "custom_instructions": ""
+              },
+              "business_logic": {
+                "primary_goal": "lead_generation",
+                "fallback_message": "Al momento non dispongo di questa informazione specifica. Preferisce che inoltri la Sua richiesta a un operatore umano?"
+              },
+              "system_safety_limits": {
+                "max_daily_messages_per_user": 20,
+                "max_tokens_per_chat": 2000
+              }
+            },
+            "payment_provider_token": "1877036958:TEST:0a3114c28d4099b70a8ee7e8e1461bc59bd541e6"
+          },
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "content-length": "1930",
+            "accept-encoding": "gzip, deflate",
+            "content-type": "application/json",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "91.108.5.103",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {
+            "user_id": "8253543870"
+          },
+          "body": {
+            "update_id": 195234289,
+            "callback_query": {
+              "id": "8767784356708805397",
+              "from": {
+                "id": 2041408875,
+                "is_bot": false,
+                "first_name": "Giuseppe",
+                "last_name": "Garofalo",
+                "username": "TrinAi_OperativeChief",
+                "language_code": "it"
+              },
+              "message": {
+                "message_id": 643,
+                "from": {
+                  "id": 8378810625,
+                  "is_bot": true,
+                  "first_name": "SiteBoS Assistant",
+                  "username": "TrinAi_SiteBoS_bot"
+                },
+                "chat": {
+                  "id": 2041408875,
+                  "first_name": "Giuseppe",
+                  "last_name": "Garofalo",
+                  "username": "TrinAi_OperativeChief",
+                  "type": "private"
+                },
+                "date": 1777372549,
+                "edit_date": 1781872627,
+                "text": "👥 GESTIONE TEAM: Garofalo AI Consulting\n━━━━━━━━━━━━━━━━━━━━\nIn questa sezione autorizzi i collaboratori ad operare con il tuo saldo aziendale.\n\n👑 Giuseppe Garofalo\n└ Owner | 💰 997780 cred. | ID: 2041408875\n\n👤 garofalo giuseppe\n└ Operator | ID: 720379727\n\n━━━━━━━━━━━━━━━━━━━━\n💡 Usa i tasti corrispondenti per invitare i membri in bozza, condividere i link attivi o gestire lo staff.",
+                "entities": [
+                  {
+                    "offset": 3,
+                    "length": 37,
+                    "type": "bold"
+                  },
+                  {
+                    "offset": 149,
+                    "length": 17,
+                    "type": "bold"
+                  },
+                  {
+                    "offset": 180,
+                    "length": 12,
+                    "type": "bold"
+                  },
+                  {
+                    "offset": 199,
+                    "length": 10,
+                    "type": "code"
+                  },
+                  {
+                    "offset": 214,
+                    "length": 17,
+                    "type": "bold"
+                  },
+                  {
+                    "offset": 249,
+                    "length": 9,
+                    "type": "code"
+                  },
+                  {
+                    "offset": 284,
+                    "length": 104,
+                    "type": "italic"
+                  }
+                ],
+                "reply_markup": {
+                  "inline_keyboard": [
+                    [
+                      {
+                        "text": "⚙️ Gestisci garofalo",
+                        "callback_data": "m_team_info_720379727"
+                      },
+                      {
+                        "text": "🗑️ Rimuovi",
+                        "callback_data": "m_team_del_720379727"
+                      }
+                    ],
+                    [
+                      {
+                        "text": "📩 Genera Nuovo Invito Generico (20 Crediti)",
+                        "callback_data": "m_team_add"
+                      }
+                    ],
+                    [
+                      {
+                        "text": "⬅️ Menu Principale",
+                        "callback_data": "open_agent_control_center"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "chat_instance": "-5324125019831599965",
+              "data": "m_team_del_720379727"
+            }
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/ef4aece4-9ec0-4026-a7a7-328562bcbdf6",
+          "executionMode": "production",
+          "urlMiniApp": "https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/telegram_control/",
+          "service_catalog_setup": {
+            "categories": [
+              {
+                "name": "[SOP] Amministrazione e Cassa",
+                "short_name": "💰 Amministrazione",
+                "callback_data": "CAT_0TFKFZWP",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Come fare una fattura elettronica veloce",
+                    "short_name": "🏎️ Fattura Veloce",
+                    "callback_data": "SVC_JW2UP3VJ",
+                    "original_slug": "FATTURA_VELOCE"
+                  },
+                  {
+                    "name": "Cosa fare se un cliente paga in ritardo",
+                    "short_name": "⛔️ Pagamenti Ritardo",
+                    "callback_data": "SVC_OSKTY9V4",
+                    "original_slug": "PAGAMENTI_RITARDO"
+                  },
+                  {
+                    "name": "Chiusura e controllo conti a fine mese",
+                    "short_name": "📉 Chiusura Conti",
+                    "callback_data": "SVC_LKWZYWFK",
+                    "original_slug": "CHIUSURA_CONTI"
+                  },
+                  {
+                    "name": "Archiviazione sicura ricevute e costi",
+                    "short_name": "📁 Archiviazione Costi",
+                    "callback_data": "SVC_WZAAFX9X",
+                    "original_slug": "ARCHIVIAZIONE_COSTI"
+                  },
+                  {
+                    "name": "Pagamento abbonamenti software e tool",
+                    "short_name": "💳 Pagamento Tool",
+                    "callback_data": "SVC_PAV36O29",
+                    "original_slug": "PAGAMENTO_TOOL"
+                  },
+                  {
+                    "name": "Controllo incassi e bonifici in entrata",
+                    "short_name": "📥 Controllo Incassi",
+                    "callback_data": "SVC_T9HKTK6E",
+                    "original_slug": "CONTROLLO_INCASSI"
+                  },
+                  {
+                    "name": "Gestione della cassa per piccole spese",
+                    "short_name": "💵 Gestione Cassa",
+                    "callback_data": "SVC_S5R3RK8W",
+                    "original_slug": "GESTIONE_CASSA"
+                  },
+                  {
+                    "name": "Preparazione documenti per il commercialista",
+                    "short_name": "📑 Doc Commercialista",
+                    "callback_data": "SVC_SW43J3N5",
+                    "original_slug": "DOC_COMMERCIALISTA"
+                  },
+                  {
+                    "name": "Verifica scadenze tasse e contributi",
+                    "short_name": "📅 Scadenze Tasse",
+                    "callback_data": "SVC_C02YUL9B",
+                    "original_slug": "SCADENZE_TASSE"
+                  },
+                  {
+                    "name": "Rinnovo annuale pec e firma digitale",
+                    "short_name": "✍️ Rinnovo Digitale",
+                    "callback_data": "SVC_PUXZ0VBZ",
+                    "original_slug": "RINNOVO_DIGITALE"
+                  },
+                  {
+                    "name": "Controllo budget mensile per pubblicità",
+                    "short_name": "📣 Budget Ads",
+                    "callback_data": "SVC_W5A9N3BV",
+                    "original_slug": "BUDGET_ADS"
+                  },
+                  {
+                    "name": "Gestione rimborsi e note di credito",
+                    "short_name": "🔄 Note Credito",
+                    "callback_data": "SVC_WADZU81H",
+                    "original_slug": "NOTE_CREDITO"
+                  }
+                ],
+                "original_slug": "AMM_E_CASSA"
+              },
+              {
+                "name": "[SOP] Gestione Clienti e Appuntamenti",
+                "short_name": "🤝 Clienti",
+                "callback_data": "CAT_PFF4U639",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Come accogliere un nuovo contatto",
+                    "short_name": "👋 Benvenuto Cliente",
+                    "callback_data": "SVC_UR6LIDPD",
+                    "original_slug": "BENVENUTO_CLIENTE"
+                  },
+                  {
+                    "name": "Fissare una chiamata conoscitiva",
+                    "short_name": "📞 Chiamata Conoscitiva",
+                    "callback_data": "SVC_ZEBB0NGK",
+                    "original_slug": "CHIAMATA_CONOSCITIVA"
+                  },
+                  {
+                    "name": "Cosa fare se un cliente salta l'appuntamento",
+                    "short_name": "🚫 No Show",
+                    "callback_data": "SVC_NOK4X16B",
+                    "original_slug": "NO_SHOW"
+                  },
+                  {
+                    "name": "Inviò riepilogo dopo ogni consulenza",
+                    "short_name": "📝 Riepilogo Consulenza",
+                    "callback_data": "SVC_WCN9C6GH",
+                    "original_slug": "RIEPILOGO_CONSULENZA"
+                  },
+                  {
+                    "name": "Gestione della lista d'attesa",
+                    "short_name": "⏳ Lista Attesa",
+                    "callback_data": "SVC_EJZKCZK4",
+                    "original_slug": "LISTA_ATTESA"
+                  },
+                  {
+                    "name": "Aggiornamento schede contatto nel database",
+                    "short_name": "📊 Aggiorna Database",
+                    "callback_data": "SVC_SV2ZIM4E",
+                    "original_slug": "AGGIORNA_DATABASE"
+                  },
+                  {
+                    "name": "Come chiedere una recensione positiva",
+                    "short_name": "⭐ Richiesta Recensione",
+                    "callback_data": "SVC_JBJN4K47",
+                    "original_slug": "RICHIESTA_RECENSIONE"
+                  },
+                  {
+                    "name": "Gestione messaggi WhatsApp e Telegram",
+                    "short_name": "💬 Messaggi Clienti",
+                    "callback_data": "SVC_782S2014",
+                    "original_slug": "MESSAGGI_CLIENTI"
+                  },
+                  {
+                    "name": "Richiesta dati per inizio lavori",
+                    "short_name": "📋 Dati Lavoro",
+                    "callback_data": "SVC_G710SAY9",
+                    "original_slug": "DATI_LAVORO"
+                  },
+                  {
+                    "name": "Promemoria automatici per le scadenze",
+                    "short_name": "⏰ Promemoria Scadenze",
+                    "callback_data": "SVC_XRU6YP0T",
+                    "original_slug": "PROMEMORIA_SCADENZE"
+                  },
+                  {
+                    "name": "Invio auguri e piccoli regali digitali",
+                    "short_name": "🎁 Auguri Clienti",
+                    "callback_data": "SVC_DST6Z86X",
+                    "original_slug": "AUGURI_CLIENTI"
+                  },
+                  {
+                    "name": "Procedura per chiudere un contratto",
+                    "short_name": "📂 Chiusura Contratto",
+                    "callback_data": "SVC_6AVRE0K0",
+                    "original_slug": "CHIUSURA_CONTRATTO"
+                  }
+                ],
+                "original_slug": "GESTIONE_CLIENTI"
+              },
+              {
+                "name": "[SOP] Cybersecurity e Difesa Digitale",
+                "short_name": "🛡️ Cybersecurity",
+                "callback_data": "CAT_EKD1PHA7",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Cosa fare se perdi il cellulare aziendale",
+                    "short_name": "📳 Cellulare Perso",
+                    "callback_data": "SVC_SIYMN29K",
+                    "original_slug": "CELLULARE_PERSO"
+                  },
+                  {
+                    "name": "Cambio password di tutti i servizi",
+                    "short_name": "🔑 Cambio Password",
+                    "callback_data": "SVC_D21C974A",
+                    "original_slug": "CAMBIO_PASSWORD"
+                  },
+                  {
+                    "name": "Backup settimanale dei database MongoDB",
+                    "short_name": "💾 Backup MongoDB",
+                    "callback_data": "SVC_TQ8W9J89",
+                    "original_slug": "BACKUP_MONGODB"
+                  },
+                  {
+                    "name": "Protezione delle chiavi API di Gemini",
+                    "short_name": "🔐 Protezione API",
+                    "callback_data": "SVC_NG1MZWL4",
+                    "original_slug": "PROTEZIONE_API"
+                  },
+                  {
+                    "name": "Accesso sicuro al server n8n",
+                    "short_name": "🖥️ Accesso Server",
+                    "callback_data": "SVC_D27TYNGF",
+                    "original_slug": "ACCESSO_SERVER"
+                  },
+                  {
+                    "name": "Controllo virus e malware sui pc",
+                    "short_name": "🦠 Antivirus",
+                    "callback_data": "SVC_W99H2Q6G",
+                    "original_slug": "ANTIVIRUS"
+                  },
+                  {
+                    "name": "Cosa fare se il sito non è raggiungibile",
+                    "short_name": "🌐 Sito Down",
+                    "callback_data": "SVC_K8RDW511",
+                    "original_slug": "SITO_DOWN"
+                  },
+                  {
+                    "name": "Regole per l'uso dei dispositivi personali",
+                    "short_name": "🚫 Dispositivi Personali",
+                    "callback_data": "SVC_BUKS6T98",
+                    "original_slug": "DISPOSITIVI_PERSONALI"
+                  },
+                  {
+                    "name": "Verifica accessi sospetti agli account",
+                    "short_name": "🕵️ Accessi Sospetti",
+                    "callback_data": "SVC_K7DVPET0",
+                    "original_slug": "ACCESSI_SOSPETTI"
+                  },
+                  {
+                    "name": "Ripristino dati da copie di emergenza",
+                    "short_name": "↩️ Ripristino Dati",
+                    "callback_data": "SVC_L1EHZ80I",
+                    "original_slug": "RIPRISTINO_DATI"
+                  },
+                  {
+                    "name": "Aggiornamento software di base",
+                    "short_name": "🆙 Aggiornamento SW",
+                    "callback_data": "SVC_PL0OF05W",
+                    "original_slug": "AGGIORNAMENTO_SW"
+                  },
+                  {
+                    "name": "Protezione della rete Wi-Fi dell'ufficio",
+                    "short_name": "📡 Sicurezza Wi-Fi",
+                    "callback_data": "SVC_580YUJJF",
+                    "original_slug": "SICUREZZA_WIFI"
+                  }
+                ],
+                "original_slug": "CYBERSECURITY"
+              },
+              {
+                "name": "[SOP] Privacy e Documenti Legali",
+                "short_name": "⚖️ Privacy Legale",
+                "callback_data": "CAT_UUQYO7FP",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Come far firmare la privacy ai clienti",
+                    "short_name": "✍️ Firma Privacy",
+                    "callback_data": "SVC_A5F1A7VE",
+                    "original_slug": "FIRMA_PRIVACY"
+                  },
+                  {
+                    "name": "Controllo contratti di collaborazione",
+                    "short_name": "📝 Contratti Coll.",
+                    "callback_data": "SVC_7SAEU22E",
+                    "original_slug": "CONTRATTI_COLL"
+                  },
+                  {
+                    "name": "Gestione dei consensi marketing",
+                    "short_name": "✅ Consensi Marketing",
+                    "callback_data": "SVC_ES6RBXL6",
+                    "original_slug": "CONSENSI_MARKETING"
+                  },
+                  {
+                    "name": "Cosa fare se un cliente chiede i suoi dati",
+                    "short_name": "👤 Diritto Accesso",
+                    "callback_data": "SVC_7WCIX3M0",
+                    "original_slug": "DIRITTO_ACCESSO"
+                  },
+                  {
+                    "name": "Archivio contratti firmati e timbrati",
+                    "short_name": "📂 Archivio Contratti",
+                    "callback_data": "SVC_E7C52RQR",
+                    "original_slug": "ARCHIVIO_CONTRATTI"
+                  },
+                  {
+                    "name": "Checklist conformità GDPR per agenti AI",
+                    "short_name": "📋 GDPR AI",
+                    "callback_data": "SVC_27NFOXN8",
+                    "original_slug": "GDPR_AI"
+                  },
+                  {
+                    "name": "Anonimizzazione dati sensibili nei test",
+                    "short_name": "🙈 Anonimizzazione",
+                    "callback_data": "SVC_4CHC0VJ2",
+                    "original_slug": "ANONIMIZZAZIONE"
+                  },
+                  {
+                    "name": "Informativa cookie per il sito web",
+                    "short_name": "🍪 Cookie Policy",
+                    "callback_data": "SVC_VRHSV6VQ",
+                    "original_slug": "COOKIE_POLICY"
+                  },
+                  {
+                    "name": "Registrazione marchio e loghi",
+                    "short_name": "🏷️ Registrazione Marchio",
+                    "callback_data": "SVC_Z2CR82GK",
+                    "original_slug": "REGISTRAZIONE_MARCHIO"
+                  },
+                  {
+                    "name": "Conservazione documenti legali importanti",
+                    "short_name": "🏛️ Doc Legali",
+                    "callback_data": "SVC_3GHEK78J",
+                    "original_slug": "DOC_LEGALI"
+                  },
+                  {
+                    "name": "Aggiornamento termini di servizio",
+                    "short_name": "📄 Termini Servizio",
+                    "callback_data": "SVC_GCOH7G9S",
+                    "original_slug": "TERMINI_SERVIZIO"
+                  },
+                  {
+                    "name": "Gestione accessi ai dati per i collaboratori",
+                    "short_name": "🔑 Accessi Dati",
+                    "callback_data": "SVC_7DOZFWHQ",
+                    "original_slug": "ACCESSI_DATI"
+                  }
+                ],
+                "original_slug": "PRIVACY_LEGALE"
+              },
+              {
+                "name": "[SOP] Qualità e Controllo Tecnico",
+                "short_name": "✅ Controllo Qualità",
+                "callback_data": "CAT_6PAP74UO",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Test settimanale dei workflow n8n",
+                    "short_name": "⚙️ Test n8n",
+                    "callback_data": "SVC_CNASDJKJ",
+                    "original_slug": "TEST_N8N"
+                  },
+                  {
+                    "name": "Controllo errori nei log di sistema",
+                    "short_name": "📜 Controllo Log",
+                    "callback_data": "SVC_WCXOBY97",
+                    "original_slug": "CONTROLLO_LOG"
+                  },
+                  {
+                    "name": "Verifica risposte degli agenti AI",
+                    "short_name": "🤖 Verifica AI",
+                    "callback_data": "SVC_SY3AJKVL",
+                    "original_slug": "VERIFICA_AI"
+                  },
+                  {
+                    "name": "Cosa fare se un'automazione si blocca",
+                    "short_name": "🛑 Blocchi Automazione",
+                    "callback_data": "SVC_YZZMXEON",
+                    "original_slug": "BLOCCHI_AUTOMAZIONE"
+                  },
+                  {
+                    "name": "Monitoraggio costi API di Google Gemini",
+                    "short_name": "💸 Costi API",
+                    "callback_data": "SVC_TZ7QW7CW",
+                    "original_slug": "COSTI_API"
+                  },
+                  {
+                    "name": "Revisione periodica dei prompt AI",
+                    "short_name": "📝 Revisione Prompt",
+                    "callback_data": "SVC_F8C7KO6G",
+                    "original_slug": "REVISIONE_PROMPT"
+                  },
+                  {
+                    "name": "Controllo pulizia del codice e nodi",
+                    "short_name": "🧹 Pulizia Codice",
+                    "callback_data": "SVC_BQXTEM7T",
+                    "original_slug": "PULIZIA_CODICE"
+                  },
+                  {
+                    "name": "Verifica velocità di risposta del database",
+                    "short_name": "⚡ Velocità DB",
+                    "callback_data": "SVC_WJS5E9HX",
+                    "original_slug": "VELOCITA_DB"
+                  },
+                  {
+                    "name": "Test di usabilità per il cliente finale",
+                    "short_name": "🖥️ Test Usabilità",
+                    "callback_data": "SVC_LRD8I8YD",
+                    "original_slug": "TEST_USABILITA"
+                  },
+                  {
+                    "name": "Gestione segnalazioni bug dai clienti",
+                    "short_name": "🐛 Bug Report",
+                    "callback_data": "SVC_OH6K7Q3G",
+                    "original_slug": "BUG_REPORT"
+                  },
+                  {
+                    "name": "Aggiornamento manuali tecnici interni",
+                    "short_name": "📖 Manuali Tecnici",
+                    "callback_data": "SVC_6DU8S824",
+                    "original_slug": "MANUALI_TECNICI"
+                  },
+                  {
+                    "name": "Checklist pre-consegna progetto",
+                    "short_name": "✔️ Checklist Consegna",
+                    "callback_data": "SVC_QKJ92NJN",
+                    "original_slug": "CHECKLIST_CONSEGNA"
+                  }
+                ],
+                "original_slug": "CONTROLLO_QUALITA"
+              },
+              {
+                "name": "[SOP] Gestione Collaboratori e Aiutanti",
+                "short_name": "👥 Gestione Team",
+                "callback_data": "CAT_DFM7ATST",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Cosa deve sapere un nuovo collaboratore",
+                    "short_name": "👋 Onboarding Team",
+                    "callback_data": "SVC_WTX190HR",
+                    "original_slug": "ONBOARDING_TEAM"
+                  },
+                  {
+                    "name": "Assegnazione compiti della settimana",
+                    "short_name": "📅 Task Settimanali",
+                    "callback_data": "SVC_IZR4I17B",
+                    "original_slug": "TASK_SETTIMANALI"
+                  },
+                  {
+                    "name": "Controllo lavori consegnati",
+                    "short_name": "✔️ Controllo Lavori",
+                    "callback_data": "SVC_2WG7KNT5",
+                    "original_slug": "CONTROLLO_LAVORI"
+                  },
+                  {
+                    "name": "Riunione veloce del lunedì mattina",
+                    "short_name": "📢 Brief Lunedì",
+                    "callback_data": "SVC_AUR3Y5GL",
+                    "original_slug": "BRIEF_LUNEDI"
+                  },
+                  {
+                    "name": "Regole per comunicare internamente",
+                    "short_name": "💬 Regole Comunicazione",
+                    "callback_data": "SVC_A16F62Q9",
+                    "original_slug": "REGOLE_COMUNICAZIONE"
+                  },
+                  {
+                    "name": "Gestione ferie e permessi",
+                    "short_name": "🏖️ Ferie e Permessi",
+                    "callback_data": "SVC_5LWTDILR",
+                    "original_slug": "FERIE_PERMESSI"
+                  },
+                  {
+                    "name": "Come pagare i collaboratori esterni",
+                    "short_name": "💸 Pagamento Team",
+                    "callback_data": "SVC_HEPNWLHH",
+                    "original_slug": "PAGAMENTO_TEAM"
+                  },
+                  {
+                    "name": "Valutazione delle competenze extra",
+                    "short_name": "🌟 Skills Team",
+                    "callback_data": "SVC_179UPXT7",
+                    "original_slug": "SKILLS_TEAM"
+                  },
+                  {
+                    "name": "Accesso agli strumenti di lavoro condivisi",
+                    "short_name": "🔑 Accessi Tool",
+                    "callback_data": "SVC_FG8GVZUB",
+                    "original_slug": "ACCESSI_TOOL"
+                  },
+                  {
+                    "name": "Procedura per fine collaborazione",
+                    "short_name": "🔚 Fine Collaborazione",
+                    "callback_data": "SVC_6QOW09AH",
+                    "original_slug": "FINE_COLLABORAZIONE"
+                  },
+                  {
+                    "name": "Formazione su nuovi tool aziendali",
+                    "short_name": "🎓 Formazione Tool",
+                    "callback_data": "SVC_IWPLRNS2",
+                    "original_slug": "FORMAZIONE_TOOL"
+                  },
+                  {
+                    "name": "Gestione emergenze del personale",
+                    "short_name": "🚑 Emergenze Staff",
+                    "callback_data": "SVC_RPUWHDPY",
+                    "original_slug": "EMERGENZE_STAFF"
+                  }
+                ],
+                "original_slug": "GESTIONE_TEAM"
+              },
+              {
+                "name": "[SOP] Marketing e Presenza Online",
+                "short_name": "📣 Marketing Online",
+                "callback_data": "CAT_S9D0M5J0",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Pubblicazione post settimanale LinkedIn",
+                    "short_name": "🔗 Post LinkedIn",
+                    "callback_data": "SVC_WQM1SGAV",
+                    "original_slug": "POST_LINKEDIN"
+                  },
+                  {
+                    "name": "Aggiornamento casi studio sul sito",
+                    "short_name": "📂 Casi Studio",
+                    "callback_data": "SVC_SI3G98QV",
+                    "original_slug": "CASI_STUDIO"
+                  },
+                  {
+                    "name": "Invio newsletter mensile agli iscritti",
+                    "short_name": "📧 Newsletter",
+                    "callback_data": "SVC_UHQ9DM4O",
+                    "original_slug": "NEWSLETTER"
+                  },
+                  {
+                    "name": "Risposta ai commenti sui social",
+                    "short_name": "💬 Social Engagement",
+                    "callback_data": "SVC_XTQ0K1ZC",
+                    "original_slug": "SOCIAL_ENGAGEMENT"
+                  },
+                  {
+                    "name": "Monitoraggio visite al sito web",
+                    "short_name": "📊 Analytics Sito",
+                    "callback_data": "SVC_PKS7UXFC",
+                    "original_slug": "ANALYTICS_SITO"
+                  },
+                  {
+                    "name": "Creazione di piccole guide gratuite",
+                    "short_name": "🎁 Lead Magnet",
+                    "callback_data": "SVC_ZCCEKJRH",
+                    "original_slug": "LEAD_MAGNET"
+                  },
+                  {
+                    "name": "Partecipazione a gruppi di settore",
+                    "short_name": "🤝 Networking",
+                    "callback_data": "SVC_AQN360B2",
+                    "original_slug": "NETWORKING"
+                  },
+                  {
+                    "name": "Controllo pubblicità su Google Ads",
+                    "short_name": "🔍 Google Ads",
+                    "callback_data": "SVC_1GKS01Z3",
+                    "original_slug": "GOOGLE_ADS"
+                  },
+                  {
+                    "name": "Revisione materiali di presentazione",
+                    "short_name": "📁 Slide Presentazione",
+                    "callback_data": "SVC_82WKBMI4",
+                    "original_slug": "SLIDE_PRESENTAZIONE"
+                  },
+                  {
+                    "name": "Raccolta testimonianze video",
+                    "short_name": "🎥 Videotestimonianze",
+                    "callback_data": "SVC_CDBN0QN8",
+                    "original_slug": "VIDEOTESTIMONIANZE"
+                  },
+                  {
+                    "name": "Organizzazione webinar o dirette",
+                    "short_name": "🎥 Webinar",
+                    "callback_data": "SVC_PVN5KRO4",
+                    "original_slug": "WEBINAR"
+                  },
+                  {
+                    "name": "Aggiornamento profilo Google Business",
+                    "short_name": "📍 Google Business",
+                    "callback_data": "SVC_7AZ6KMY1",
+                    "original_slug": "GOOGLE_BUSINESS"
+                  }
+                ],
+                "original_slug": "MARKETING_ONLINE"
+              },
+              {
+                "name": "[SOP] Gestione Reclami e Problemi",
+                "short_name": "⚠️ Gestione Reclami",
+                "callback_data": "CAT_NTLBZST4",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Cosa rispondere a un cliente arrabbiato",
+                    "short_name": "😡 Cliente Arrabiato",
+                    "callback_data": "SVC_N41JGWO8",
+                    "original_slug": "CLIENTE_ARRABIATO"
+                  },
+                  {
+                    "name": "Procedura per rimediare a un errore tecnico",
+                    "short_name": "🛠️ Riparazione Errore",
+                    "callback_data": "SVC_LVNB1LEF",
+                    "original_slug": "RIPARAZIONE_ERRORE"
+                  },
+                  {
+                    "name": "Come gestire una recensione negativa",
+                    "short_name": "👎 Recensione Negativa",
+                    "callback_data": "SVC_6R0F89GW",
+                    "original_slug": "RECENSIONE_NEGATIVA"
+                  },
+                  {
+                    "name": "Gestione richieste di rimborso",
+                    "short_name": "💸 Richiesta Rimborso",
+                    "callback_data": "SVC_FW3HNNOC",
+                    "original_slug": "RICHIESTA_RIMBORSO"
+                  },
+                  {
+                    "name": "Cosa fare se un progetto va fuori tempo",
+                    "short_name": "⏰ Ritardo Progetto",
+                    "callback_data": "SVC_4K6SF2GD",
+                    "original_slug": "RITARDO_PROGETTO"
+                  },
+                  {
+                    "name": "Risoluzione conflitti con i fornitori",
+                    "short_name": "🤝 Conflitti Fornitori",
+                    "callback_data": "SVC_EGB2LAZQ",
+                    "original_slug": "CONFLITTI_FORNITORI"
+                  },
+                  {
+                    "name": "Politica di scuse e omaggi riparatori",
+                    "short_name": "🎁 Omaggio Riparatore",
+                    "callback_data": "SVC_T5RYSO58",
+                    "original_slug": "OMAGGIO_RIPARATORE"
+                  },
+                  {
+                    "name": "Segnalazione problemi ricorrenti",
+                    "short_name": "⚠️ Problemi Ricorrenti",
+                    "callback_data": "SVC_GF775A4N",
+                    "original_slug": "PROBLEMI_RICORRENTI"
+                  },
+                  {
+                    "name": "Intervento d'urgenza fuori orario",
+                    "short_name": "🚨 Urgenza",
+                    "callback_data": "SVC_VVJ91XS9",
+                    "original_slug": "URGENZA"
+                  },
+                  {
+                    "name": "Comunicazione guasti generali ai clienti",
+                    "short_name": "📢 Guasti Generali",
+                    "callback_data": "SVC_2AKQ7HRS",
+                    "original_slug": "GUASTI_GENERALI"
+                  },
+                  {
+                    "name": "Recupero rapporto con clienti dormienti",
+                    "short_name": "💤 Clienti Dormienti",
+                    "callback_data": "SVC_HFFG8KMP",
+                    "original_slug": "CLIENTI_DORMIENTI"
+                  }
+                ],
+                "original_slug": "GESTIONE_RECLAMI"
+              },
+              {
+                "name": "[SER] Analisi e Strategia Iniziale",
+                "short_name": "🎯 Analisi Strategia",
+                "callback_data": "CAT_N5VI3P2T",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Audit completo dei tuoi processi attuali",
+                    "short_name": "🕵️ Audit Processi",
+                    "callback_data": "SVC_CKGNO6KK",
+                    "original_slug": "AUDIT_PROCESSI"
+                  },
+                  {
+                    "name": "Mappatura sprechi di tempo e denaro",
+                    "short_name": "🗺️ Mappatura Sprechi",
+                    "callback_data": "SVC_AFXBN7FT",
+                    "original_slug": "MAPPATURA_SPRECHI"
+                  },
+                  {
+                    "name": "Disegno architettura software ideale",
+                    "short_name": "🏗️ Architettura SW",
+                    "callback_data": "SVC_Q14TRNYW",
+                    "original_slug": "ARCHITETTURA_SW"
+                  },
+                  {
+                    "name": "Consulenza strategica per scalare con AI",
+                    "short_name": "📈 Scalare con AI",
+                    "callback_data": "SVC_8MJHACWO",
+                    "original_slug": "SCALARE_CON_AI"
+                  },
+                  {
+                    "name": "Analisi fattibilità automazioni complesse",
+                    "short_name": "🤔 Fattibilità",
+                    "callback_data": "SVC_I2WJ8XR7",
+                    "original_slug": "FATTIBILITA"
+                  },
+                  {
+                    "name": "Studio del tuo catalogo prodotti dinamico",
+                    "short_name": "📚 Catalogo Prodotti",
+                    "callback_data": "SVC_ZTXMZI05",
+                    "original_slug": "CATALOGO_PRODOTTI"
+                  },
+                  {
+                    "name": "Progettazione sistema di valutazione HR",
+                    "short_name": "👥 Valutazione HR",
+                    "callback_data": "SVC_QGJ7AOZL",
+                    "original_slug": "VALUTAZIONE_HR"
+                  },
+                  {
+                    "name": "Valutazione costi e benefici automazione",
+                    "short_name": "💰 Analisi ROI",
+                    "callback_data": "SVC_97GLIBF0",
+                    "original_slug": "ANALISI_ROI"
+                  },
+                  {
+                    "name": "Roadmap trasformazione digitale",
+                    "short_name": "🗺️ Roadmap Digitale",
+                    "callback_data": "SVC_H9ALGWT1",
+                    "original_slug": "ROADMAP_DIGITALE"
+                  },
+                  {
+                    "name": "Check-up salute tecnologica aziendale",
+                    "short_name": "🩺 Check-up Tech",
+                    "callback_data": "SVC_DYFYPE68",
+                    "original_slug": "CHECKUP_TECH"
+                  },
+                  {
+                    "name": "Intervista ai dipendenti per nodi operativi",
+                    "short_name": "🗣️ Interviste Staff",
+                    "callback_data": "SVC_CUD3XUH4",
+                    "original_slug": "INTERVISTE_STAFF"
+                  },
+                  {
+                    "name": "Report finale con soluzioni prioritarie",
+                    "short_name": "📄 Report Finale",
+                    "callback_data": "SVC_0471137N",
+                    "original_slug": "REPORT_FINALE"
+                  }
+                ],
+                "original_slug": "ANALISI_STRATEGIA"
+              },
+              {
+                "name": "[SER] Implementazione Ecosistemi AI",
+                "short_name": "🤖 Ecosistemi AI",
+                "callback_data": "CAT_J98CHCI1",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Installazione e configurazione n8n",
+                    "short_name": "⚙️ Setup n8n",
+                    "callback_data": "SVC_D0WDKI8V",
+                    "original_slug": "SETUP_N8N"
+                  },
+                  {
+                    "name": "Setup database MongoDB per la tua azienda",
+                    "short_name": "💾 Setup MongoDB",
+                    "callback_data": "SVC_LA720TPK",
+                    "original_slug": "SETUP_MONGODB"
+                  },
+                  {
+                    "name": "Integrazione agenti Google Gemini",
+                    "short_name": "🧠 Agenti Gemini",
+                    "callback_data": "SVC_E3UVABS5",
+                    "original_slug": "AGENTI_GEMINI"
+                  },
+                  {
+                    "name": "Automazione flusso ordini e pagamenti",
+                    "short_name": "🛒 Flusso Ordini",
+                    "callback_data": "SVC_CYCTF7R6",
+                    "original_slug": "FLUSSO_ORDINI"
+                  },
+                  {
+                    "name": "Creazione assistenti virtuali interni",
+                    "short_name": "👤 Assistenti AI",
+                    "callback_data": "SVC_40IPODYH",
+                    "original_slug": "ASSISTENTI_AI"
+                  },
+                  {
+                    "name": "Collegamento CRM con strumenti AI",
+                    "short_name": "🔗 Integrazione CRM",
+                    "callback_data": "SVC_DPX0EC50",
+                    "original_slug": "INTEGRAZIONE_CRM"
+                  },
+                  {
+                    "name": "Sincronizzazione dati tra software diversi",
+                    "short_name": "🔄 Sincronizzazione",
+                    "callback_data": "SVC_QO8X66YW",
+                    "original_slug": "SINCRONIZZAZIONE"
+                  },
+                  {
+                    "name": "Automazione gestione documenti e PDF",
+                    "short_name": "📄 Gestione Doc",
+                    "callback_data": "SVC_10Q1NG0R",
+                    "original_slug": "GESTIONE_DOC"
+                  },
+                  {
+                    "name": "Sviluppo logiche di fatturazione complessa",
+                    "short_name": "🧾 Fatturazione AI",
+                    "callback_data": "SVC_SGBFYNIE",
+                    "original_slug": "FATTURAZIONE_AI"
+                  },
+                  {
+                    "name": "Sistema di alert automatici su anomalie",
+                    "short_name": "⚠️ Alert Automatici",
+                    "callback_data": "SVC_JGJK9CZO",
+                    "original_slug": "ALERT_AUTOMATICI"
+                  },
+                  {
+                    "name": "Dashboard controllo dati in tempo reale",
+                    "short_name": "📊 Dashboard Dati",
+                    "callback_data": "SVC_S85W288L",
+                    "original_slug": "DASHBOARD_DATI"
+                  },
+                  {
+                    "name": "Configurazione server cloud sicuri",
+                    "short_name": "☁️ Server Cloud",
+                    "callback_data": "SVC_8LFNT5IF",
+                    "original_slug": "SERVER_CLOUD"
+                  }
+                ],
+                "original_slug": "ECOSISTEMI_AI"
+              },
+              {
+                "name": "[SER] Formazione e Affiancamento",
+                "short_name": "🎓 Formazione Team",
+                "callback_data": "CAT_4OF0QVKK",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Workshop uso pratico di n8n",
+                    "short_name": "🤖 Workshop n8n",
+                    "callback_data": "SVC_KH3MCNO3",
+                    "blueprint_ready": true
+                  },
+                  {
+                    "name": "Corso Prompt Engineering Per Il Tuo Team",
+                    "short_name": "🤖 Corso Prompt",
+                    "callback_data": "SVC_PV04H9VD",
+                    "blueprint_ready": true
+                  },
+                  {
+                    "name": "Affiancamento operativo primo mese",
+                    "short_name": "⚙️Affiancamento",
+                    "callback_data": "SVC_V8P1ZSBA",
+                    "blueprint_ready": true
+                  },
+                  {
+                    "name": "Training gestione database MongoDB",
+                    "short_name": "💾 Training MongoDB",
+                    "callback_data": "SVC_M9W14ZJD",
+                    "original_slug": "TRAINING_MONGODB"
+                  },
+                  {
+                    "name": "Lezione su come monitorare gli agenti AI",
+                    "short_name": "🧠 Monitoraggio AI",
+                    "callback_data": "SVC_0EIMO7QT",
+                    "original_slug": "MONITORAGGIO_AI"
+                  },
+                  {
+                    "name": "Guida alla manutenzione base del sistema",
+                    "short_name": "🔧 Manutenzione Base",
+                    "callback_data": "SVC_4RDUNZ26",
+                    "original_slug": "MANUTENZIONE_BASE"
+                  },
+                  {
+                    "name": "Formazione su sicurezza e privacy dati",
+                    "short_name": "🔒 Sicurezza Privacy",
+                    "callback_data": "SVC_VCRTRA80",
+                    "original_slug": "SICUREZZA_PRIVACY"
+                  },
+                  {
+                    "name": "Sessioni domande e risposte tecniche",
+                    "short_name": "💬 Q&A Tecnico",
+                    "callback_data": "SVC_C5PT5LN9",
+                    "original_slug": "QA_TECNICO"
+                  },
+                  {
+                    "name": "Creazione video tutorial personalizzati",
+                    "short_name": "🎥 Video Tutorial",
+                    "callback_data": "SVC_CY0JYCDH",
+                    "original_slug": "VIDEO_TUTORIAL"
+                  },
+                  {
+                    "name": "Supporto al passaggio dai vecchi sistemi",
+                    "short_name": "🔄 Migrazione Sistemi",
+                    "callback_data": "SVC_XHB8M8BL",
+                    "original_slug": "MIGRAZIONE_SISTEMI"
+                  },
+                  {
+                    "name": "Corso aggiornamento nuove funzioni Gemini",
+                    "short_name": "🆙 Novità Gemini",
+                    "callback_data": "SVC_Z2A7KOQD",
+                    "original_slug": "NOVITA_GEMINI"
+                  },
+                  {
+                    "name": "Manuale d'uso rapido per i dipendenti",
+                    "short_name": "📖 Manuale Rapido",
+                    "callback_data": "SVC_06D0IKPY",
+                    "original_slug": "MANUALE_RAPIDO"
+                  }
+                ],
+                "original_slug": "FORMAZIONE_TEAM"
+              },
+              {
+                "name": "[SER] Supporto e Manutenzione Continua",
+                "short_name": "🔧 Supporto Tecnico",
+                "callback_data": "CAT_07WH58W4",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Monitoraggio h24 dei tuoi workflow",
+                    "short_name": "⚙️ Monitoraggio 24h",
+                    "callback_data": "SVC_HJ041VW8",
+                    "original_slug": "MONITORAGGIO_24H"
+                  },
+                  {
+                    "name": "Aggiornamento costante dei prompt AI",
+                    "short_name": "📝 Prompt Upgrade",
+                    "callback_data": "SVC_LF1H8CH9",
+                    "original_slug": "PROMPT_UPGRADE"
+                  },
+                  {
+                    "name": "Risoluzione bug e problemi tecnici",
+                    "short_name": "🐛 Bug Fixing",
+                    "callback_data": "SVC_42Y4LCXI",
+                    "original_slug": "BUG_FIXING"
+                  },
+                  {
+                    "name": "Ottimizzazione mensile delle performance",
+                    "short_name": "🚀 Ottimizzazione",
+                    "callback_data": "SVC_9ZC7T50M",
+                    "original_slug": "OTTIMIZZAZIONE"
+                  },
+                  {
+                    "name": "Backup e ripristino dati garantito",
+                    "short_name": "💾 Backup Garantito",
+                    "callback_data": "SVC_PNMO2XF5",
+                    "original_slug": "BACKUP_GARANTITO"
+                  },
+                  {
+                    "name": "Supporto prioritario via WhatsApp",
+                    "short_name": "💬 Supporto VIP",
+                    "callback_data": "SVC_TNXB8RVS",
+                    "original_slug": "SUPPORTO_VIP"
+                  },
+                  {
+                    "name": "Revisione trimestrale della strategia",
+                    "short_name": "🎯 Revisione Strategia",
+                    "callback_data": "SVC_26M2ZTMV",
+                    "original_slug": "REVISIONE_STRATEGIA"
+                  },
+                  {
+                    "name": "Adeguamento sistemi a nuove leggi",
+                    "short_name": "⚖️ Adeguamento Legale",
+                    "callback_data": "SVC_3GM9PO9N",
+                    "original_slug": "ADEGUAMENTO_LEGALE"
+                  },
+                  {
+                    "name": "Integrazione di nuovi strumenti software",
+                    "short_name": "🔌 Nuove Integrazioni",
+                    "callback_data": "SVC_UXG5X4HH",
+                    "original_slug": "NUOVE_INTEGRAZIONI"
+                  },
+                  {
+                    "name": "Pulizia e manutenzione database",
+                    "short_name": "🧹 Manutenzione DB",
+                    "callback_data": "SVC_AFRKZ43V",
+                    "original_slug": "MANUTENZIONE_DB"
+                  },
+                  {
+                    "name": "Report mensile risparmio tempo ottenuto",
+                    "short_name": "⏱️ Report Risparmio",
+                    "callback_data": "SVC_PD2XI89X",
+                    "original_slug": "REPORT_RISPARMIO"
+                  },
+                  {
+                    "name": "Check-up sicurezza informatica periodico",
+                    "short_name": "🛡️ Check-up Sicurezza",
+                    "callback_data": "SVC_IQPHQI5R",
+                    "original_slug": "CHECKUP_SICUREZZA"
+                  }
+                ],
+                "original_slug": "SUPPORTO_TECNICO"
+              },
+              {
+                "name": "[SER] Consulenza Tecnica On-Demand",
+                "short_name": "💡 Consulenza On-Demand",
+                "callback_data": "CAT_G79AEZTQ",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Chiamata rapida per dubbi tecnici",
+                    "short_name": "📞 Chiamata Rapida",
+                    "callback_data": "SVC_OWN0HYK8",
+                    "original_slug": "CHIAMATA_RAPIDA"
+                  },
+                  {
+                    "name": "Analisi specifica su un nuovo tool",
+                    "short_name": "🔍 Analisi Tool",
+                    "callback_data": "SVC_8FG7CUHO",
+                    "original_slug": "ANALISI_TOOL"
+                  },
+                  {
+                    "name": "Supporto per integrazioni dell'ultimo minuto",
+                    "short_name": "🚀 Supporto Flash",
+                    "callback_data": "SVC_Y4216G5C",
+                    "original_slug": "SUPPORTO_FLASH"
+                  },
+                  {
+                    "name": "Revisione codice o workflow esterni",
+                    "short_name": "📝 Revisione Codice",
+                    "callback_data": "SVC_FLOJR9I0",
+                    "original_slug": "REVISIONE_CODICE"
+                  },
+                  {
+                    "name": "Consulenza per acquisto hardware o cloud",
+                    "short_name": "💻 Consulenza Hardware",
+                    "callback_data": "SVC_IEL1541H",
+                    "original_slug": "CONSULENZA_HARDWARE"
+                  },
+                  {
+                    "name": "Parere tecnico su progetti di terzi",
+                    "short_name": "📋 Parere Tecnico",
+                    "callback_data": "SVC_E79QUGAG",
+                    "original_slug": "PARERE_TECNICO"
+                  },
+                  {
+                    "name": "Aiuto per migrazione dati complessa",
+                    "short_name": "🔄 Migrazione Dati",
+                    "callback_data": "SVC_AEDERNT8",
+                    "original_slug": "MIGRAZIONE_DATI"
+                  },
+                  {
+                    "name": "Intervento d'emergenza blocco sistemi",
+                    "short_name": "🚨 Emergenza Blocco",
+                    "callback_data": "SVC_057JUL5P",
+                    "original_slug": "EMERGENZA_BLOCCO"
+                  },
+                  {
+                    "name": "Configurazione email professionali",
+                    "short_name": "📧 Setup Email",
+                    "callback_data": "SVC_LATV2K7E",
+                    "original_slug": "SETUP_EMAIL"
+                  },
+                  {
+                    "name": "Ottimizzazione costi abbonamenti tech",
+                    "short_name": "💰 Costi Software",
+                    "callback_data": "SVC_7IWJBDDS",
+                    "original_slug": "COSTI_SOFTWARE"
+                  },
+                  {
+                    "name": "Audit sicurezza specifico richiesto",
+                    "short_name": "🔒 Audit Sicurezza",
+                    "callback_data": "SVC_9LRFE1P5",
+                    "original_slug": "AUDIT_SICUREZZA"
+                  },
+                  {
+                    "name": "Briefing tecnico per nuovi collaboratori",
+                    "short_name": "🗣️ Briefing Tecnico",
+                    "callback_data": "SVC_16PXQO56",
+                    "original_slug": "BRIEFING_TECNICO"
+                  }
+                ],
+                "original_slug": "CONSULENZA_ON_DEMAND"
+              },
+              {
+                "name": "[PRO] Pacchetti Automazione Pronti",
+                "short_name": "📦 Pacchetti Auto",
+                "callback_data": "CAT_GSB1S1KL",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "Sistema Assessment HR Automatico",
+                    "short_name": "👥 HR Automatico",
+                    "callback_data": "SVC_FT0XKMY6",
+                    "original_slug": "HR_AUTOMATICO"
+                  },
+                  {
+                    "name": "Modulo Catalogo Dinamico Intelligente",
+                    "short_name": "📚 Catalogo Intelligente",
+                    "callback_data": "SVC_YMNAUJGH",
+                    "original_slug": "CATALOGO_INTELLIGENTE"
+                  },
+                  {
+                    "name": "Kit Gestione Lead da Social a CRM",
+                    "short_name": "🔗 Lead to CRM",
+                    "callback_data": "SVC_E52M3PG1",
+                    "original_slug": "LEAD_TO_CRM"
+                  },
+                  {
+                    "name": "Assistente Analisi Contratti Legali",
+                    "short_name": "⚖️ Analisi Contratti",
+                    "callback_data": "SVC_7PAVGV3P",
+                    "original_slug": "ANALISI_CONTRATTI"
+                  },
+                  {
+                    "name": "Workflow Fatturazione Algoritmica",
+                    "short_name": "🧾 Fattura Algoritmica",
+                    "callback_data": "SVC_SE8UD7R7",
+                    "original_slug": "FATTURA_ALGORITMICA"
+                  },
+                  {
+                    "name": "Bot Risponditore Email per E-commerce",
+                    "short_name": "📧 Bot Email",
+                    "callback_data": "SVC_9XIAXB71",
+                    "original_slug": "BOT_EMAIL"
+                  },
+                  {
+                    "name": "Sistema Reportistica Automatica MongoDB",
+                    "short_name": "📊 Report MongoDB",
+                    "callback_data": "SVC_SSLBVAYB",
+                    "original_slug": "REPORT_MONGODB"
+                  },
+                  {
+                    "name": "Archivio Intelligente per Studi Medici",
+                    "short_name": "🏥 Archivio Medico",
+                    "callback_data": "SVC_U5JKFWND",
+                    "original_slug": "ARCHIVIO_MEDICO"
+                  },
+                  {
+                    "name": "Modulo Prenotazioni con AI vocale",
+                    "short_name": "📞 Prenotazioni AI",
+                    "callback_data": "SVC_25UESZ6V",
+                    "original_slug": "PRENOTAZIONI_AI"
+                  },
+                  {
+                    "name": "Sistema Alert Prezzi Competitor",
+                    "short_name": "💰 Monitor Prezzi",
+                    "callback_data": "SVC_BDNL01YD",
+                    "original_slug": "MONITOR_PREZZI"
+                  },
+                  {
+                    "name": "Kit Benvenuto Clienti Automatizzato",
+                    "short_name": "🎁 Benvenuto AI",
+                    "callback_data": "SVC_M7Z03A5N",
+                    "original_slug": "BENVENUTO_AI"
+                  },
+                  {
+                    "name": "Pannello Gestione Ordini per Artigiani",
+                    "short_name": "🎨 Ordini Artigiani",
+                    "callback_data": "SVC_YIVULTSS",
+                    "original_slug": "ORDINI_ARTIGIANI"
+                  }
+                ],
+                "original_slug": "PACCHETTI_AUTO"
+              },
+              {
+                "name": "[PRO] Template e Asset n8n",
+                "short_name": "🏗️ Template n8n",
+                "callback_data": "CAT_UNRQ5FJT",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "Blueprint Per Connessione Google Sheets",
+                    "short_name": "📊 Blueprint Sheets",
+                    "callback_data": "SVC_1XS2TQOP",
+                    "blueprint_ready": true
+                  },
+                  {
+                    "name": "Template Workflow Invio PDF su Telegram",
+                    "short_name": "🤖 Workflow PDF TG",
+                    "callback_data": "SVC_B68K2XRV",
+                    "blueprint_ready": true
+                  },
+                  {
+                    "name": "Schema logica decisionale con Gemini",
+                    "short_name": "🧠 Logica Gemini",
+                    "callback_data": "SVC_XCVGHL4D",
+                    "original_slug": "LOGICA_GEMINI"
+                  },
+                  {
+                    "name": "Modulo integrazione Stripe e Fattureincloud",
+                    "short_name": "💳 Stripe Integrazione",
+                    "callback_data": "SVC_CFTSSQ9Q",
+                    "original_slug": "STRIPE_INTEGRAZIONE"
+                  },
+                  {
+                    "name": "Template gestione calendario e promemoria",
+                    "short_name": "📅 Calendar Template",
+                    "callback_data": "SVC_QXFHUO76",
+                    "original_slug": "CALENDAR_TEMPLATE"
+                  },
+                  {
+                    "name": "Schema backup automatico MongoDB",
+                    "short_name": "💾 Backup Blueprint",
+                    "callback_data": "SVC_RFFUZXIS",
+                    "original_slug": "BACKUP_BLUEPRINT"
+                  },
+                  {
+                    "name": "Workflow pulizia dati sporchi",
+                    "short_name": "🧹 Data Cleaning",
+                    "callback_data": "SVC_6ONJU4C7",
+                    "original_slug": "DATA_CLEANING"
+                  },
+                  {
+                    "name": "Template analisi sentiment recensioni",
+                    "short_name": "😊 Sentiment Analysis",
+                    "callback_data": "SVC_2PNGC8EL",
+                    "original_slug": "SENTIMENT_ANALYSIS"
+                  },
+                  {
+                    "name": "Script pronti per chiamate API complesse",
+                    "short_name": "💻 Script API",
+                    "callback_data": "SVC_NQCRCLAT",
+                    "original_slug": "SCRIPT_API"
+                  },
+                  {
+                    "name": "Schema automazione post sui social",
+                    "short_name": "📢 Social Automazione",
+                    "callback_data": "SVC_6E3S2HD5",
+                    "original_slug": "SOCIAL_AUTOMAZIONE"
+                  },
+                  {
+                    "name": "Template controllo costi API",
+                    "short_name": "💸 Costi API Template",
+                    "callback_data": "SVC_ZO63LMLD",
+                    "original_slug": "COSTI_API_TEMPLATE"
+                  },
+                  {
+                    "name": "Blueprint smistamento email automatico",
+                    "short_name": "📧 Email Smistamento",
+                    "callback_data": "SVC_XVGWRB9G",
+                    "original_slug": "EMAIL_SMISTAMENTO"
+                  }
+                ],
+                "original_slug": "TEMPLATE_N8N"
+              },
+              {
+                "name": "[PRO] Guide e Manuali Operativi",
+                "short_name": "📚 Guide Manuali",
+                "callback_data": "CAT_Q6XCN8CE",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "E-book: L'AI per la Piccola Impresa",
+                    "short_name": "📖 E-book AI Business",
+                    "callback_data": "SVC_XU7WG8X4",
+                    "original_slug": "EBOOK_AI_BUSINESS"
+                  },
+                  {
+                    "name": "Guida PDF: n8n per chi non sa programmare",
+                    "short_name": "📕 Guida n8n Base",
+                    "callback_data": "SVC_Y47E8VYI",
+                    "original_slug": "GUIDA_N8N_BASE"
+                  },
+                  {
+                    "name": "Video Corso: Gestire i dati con MongoDB",
+                    "short_name": "🎥 Corso MongoDB",
+                    "callback_data": "SVC_UZ9G6NAO",
+                    "original_slug": "CORSO_MONGODB"
+                  },
+                  {
+                    "name": "Manuale Prompt Engineering per Business",
+                    "short_name": "💡 Prompt Manual",
+                    "callback_data": "SVC_3KCJUR4X",
+                    "original_slug": "PROMPT_MANUAL"
+                  },
+                  {
+                    "name": "Checklist: Trasforma la tua P.IVA in Azienda",
+                    "short_name": "✔️ P.IVA Azienda",
+                    "callback_data": "SVC_6MJ0N9QK",
+                    "original_slug": "PIVA_AZIENDA"
+                  },
+                  {
+                    "name": "Guida alla Cybersecurity per Freelance",
+                    "short_name": "🔒 Cyber Freelance",
+                    "callback_data": "SVC_CEIRS21G",
+                    "original_slug": "CYBER_FREELANCE"
+                  },
+                  {
+                    "name": "Manuale: Automatizzare la fatturazione",
+                    "short_name": "🧾 Manuale Fatture",
+                    "callback_data": "SVC_0Z1GWQ4S",
+                    "original_slug": "MANUALE_FATTURE"
+                  },
+                  {
+                    "name": "Template Google Doc per Analisi Processi",
+                    "short_name": "📝 Template Processi",
+                    "callback_data": "SVC_PUVSVPN3",
+                    "original_slug": "TEMPLATE_PROCESSI"
+                  },
+                  {
+                    "name": "Guida all'uso etico dell'AI in ufficio",
+                    "short_name": "🤖 Etica AI",
+                    "callback_data": "SVC_4TMVBM6Y",
+                    "original_slug": "ETICA_AI"
+                  },
+                  {
+                    "name": "Video Tutorial: Primi passi con Gemini",
+                    "short_name": "🎥 Gemini Tutorial",
+                    "callback_data": "SVC_6AWW1456",
+                    "original_slug": "GEMINI_TUTORIAL"
+                  },
+                  {
+                    "name": "Vademecum: Privacy e AI senza stress",
+                    "short_name": "⚖️ Vademecum Privacy",
+                    "callback_data": "SVC_S33EPB0S",
+                    "original_slug": "VADEMECUM_PRIVACY"
+                  },
+                  {
+                    "name": "Guida: Come scegliere il software giusto",
+                    "short_name": "💻 Guida Software",
+                    "callback_data": "SVC_S3VOJ11H",
+                    "original_slug": "GUIDA_SOFTWARE"
+                  }
+                ],
+                "original_slug": "GUIDE_MANUALI"
+              },
+              {
+                "name": "[PRO] Abbonamenti e Manutenzione",
+                "short_name": "🔄 Abbonamenti",
+                "callback_data": "CAT_I88YRC6O",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "Piano 'Zero Pensieri' Base",
+                    "short_name": "🛡️ Piano Zero",
+                    "callback_data": "SVC_W6DTDATD",
+                    "original_slug": "PIANO_ZERO"
+                  },
+                  {
+                    "name": "Abbonamento Supporto Evolutivo Gold",
+                    "short_name": "🏅 Supporto Gold",
+                    "callback_data": "SVC_JHXYMYT0",
+                    "original_slug": "SUPPORTO_GOLD"
+                  },
+                  {
+                    "name": "Pacchetto Ore Assistenza Prepagate",
+                    "short_name": "⏱️ Ore Prepagate",
+                    "callback_data": "SVC_3PO1VKSO",
+                    "original_slug": "ORE_PREPAGATE"
+                  },
+                  {
+                    "name": "Monitoraggio Proattivo Premium",
+                    "short_name": "🚀 Monitoraggio Prem",
+                    "callback_data": "SVC_4KX9M140",
+                    "original_slug": "MONITORAGGIO_PREM"
+                  },
+                  {
+                    "name": "Aggiornamenti Sistemi AI Garantiti",
+                    "short_name": "🆙 Update Garantiti",
+                    "callback_data": "SVC_DRKDURBP",
+                    "original_slug": "UPDATE_GARANTITI"
+                  },
+                  {
+                    "name": "Backup Cloud Illimitato Gestito",
+                    "short_name": "☁️ Backup Cloud",
+                    "callback_data": "SVC_YKJN4MXR",
+                    "original_slug": "BACKUP_CLOUD"
+                  },
+                  {
+                    "name": "Accesso a Community Esclusiva Clienti",
+                    "short_name": "👥 Community Clienti",
+                    "callback_data": "SVC_NXJCS66W",
+                    "original_slug": "COMMUNITY_CLIENTI"
+                  },
+                  {
+                    "name": "Webinar Mensili di Aggiornamento Tech",
+                    "short_name": "🎥 Webinar Mensili",
+                    "callback_data": "SVC_WX66C9YQ",
+                    "original_slug": "WEBINAR_MENSILI"
+                  },
+                  {
+                    "name": "Canale News Tecniche Riservato",
+                    "short_name": "📢 News Riservate",
+                    "callback_data": "SVC_27PTSCFJ",
+                    "original_slug": "NEWS_RISERVATE"
+                  },
+                  {
+                    "name": "Reportistica Avanzata ROI Automazione",
+                    "short_name": "📊 Report ROI",
+                    "callback_data": "SVC_L53FEKZ9",
+                    "original_slug": "REPORT_ROI"
+                  },
+                  {
+                    "name": "Assicurazione Blocco Sistemi",
+                    "short_name": "🛡️ Assicurazione",
+                    "callback_data": "SVC_0I609XD4",
+                    "original_slug": "ASSICURAZIONE"
+                  },
+                  {
+                    "name": "Abbonamento Training Continuo Team",
+                    "short_name": "🎓 Training Team",
+                    "callback_data": "SVC_T1II4MWT",
+                    "original_slug": "TRAINING_TEAM"
+                  }
+                ],
+                "original_slug": "ABBONAMENTI"
+              },
+              {
+                "name": "[PRO] Kit Strumentali e Gift Card",
+                "short_name": "🎁 Kit e Gift",
+                "callback_data": "CAT_GQL4KAJI",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "Gift Card Consulenza Trasformazione",
+                    "short_name": "💳 Gift Consulenza",
+                    "callback_data": "SVC_RG4EV20Y",
+                    "original_slug": "GIFT_CONSULENZA"
+                  },
+                  {
+                    "name": "Kit Hardware 'Ufficio Intelligente'",
+                    "short_name": "💻 Kit Hardware",
+                    "callback_data": "SVC_IOGNE8YG",
+                    "original_slug": "KIT_HARDWARE"
+                  },
+                  {
+                    "name": "Coupon Sconto per Workshop Team",
+                    "short_name": "🎟️ Coupon Workshop",
+                    "callback_data": "SVC_NDRTF3K8",
+                    "original_slug": "COUPON_WORKSHOP"
+                  },
+                  {
+                    "name": "Pacchetto Licenze Software Consigliate",
+                    "short_name": "🔑 Licenze Bundle",
+                    "callback_data": "SVC_DQZXLSO7",
+                    "original_slug": "LICENZE_BUNDLE"
+                  },
+                  {
+                    "name": "Kit Benvenuto Fisico (Libro + Gadget)",
+                    "short_name": "🎁 Welcome Kit",
+                    "callback_data": "SVC_1ZDZ3VIR",
+                    "original_slug": "WELCOME_KIT"
+                  },
+                  {
+                    "name": "Abbonamento Regalo per Solopreneur",
+                    "short_name": "🎁 Gift Solopreneur",
+                    "callback_data": "SVC_MLOFJEU0",
+                    "original_slug": "GIFT_SOLOPRENEUR"
+                  },
+                  {
+                    "name": "Pacchetto Start-up Digitalizzazione",
+                    "short_name": "🚀 Startup Kit",
+                    "callback_data": "SVC_Z29AQWRS",
+                    "original_slug": "STARTUP_KIT"
+                  },
+                  {
+                    "name": "Buono Regalo Audit Aziendale",
+                    "short_name": "🎟️ Buono Audit",
+                    "callback_data": "SVC_VRLB5XBU",
+                    "original_slug": "BUONO_AUDIT"
+                  },
+                  {
+                    "name": "Kit Documentazione Legale Pronta",
+                    "short_name": "⚖️ Kit Legale",
+                    "callback_data": "SVC_5A4DCQF3",
+                    "original_slug": "KIT_LEGALE"
+                  },
+                  {
+                    "name": "Voucher Formazione n8n Avanzata",
+                    "short_name": "🎓 Voucher n8n",
+                    "callback_data": "SVC_JBFPEDFN",
+                    "original_slug": "VOUCHER_N8N"
+                  },
+                  {
+                    "name": "Pacchetto Setup Server Dedicato",
+                    "short_name": "☁️ Server Dedicato",
+                    "callback_data": "SVC_IQA4UKIJ",
+                    "original_slug": "SERVER_DEDICATO"
+                  },
+                  {
+                    "name": "Kit Grafiche e Icone per Automazioni",
+                    "short_name": "🎨 Asset Grafici",
+                    "callback_data": "SVC_6ABT206K",
+                    "original_slug": "ASSET_GRAFICI"
+                  }
+                ],
+                "original_slug": "KIT_E_GIFT"
+              },
+              {
+                "name": "[PRO] Licenze e Software Proprietari",
+                "short_name": "🔑 Licenze Software",
+                "callback_data": "CAT_DYJZ5NP6",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "Licenza d'uso Agente AI Verticale",
+                    "short_name": "🤖 Licenza AI",
+                    "callback_data": "SVC_EHDKQRZ3",
+                    "original_slug": "LICENZA_AI"
+                  },
+                  {
+                    "name": "Accesso API Garofalo Consulting",
+                    "short_name": "🔌 API Access",
+                    "callback_data": "SVC_F7P0V3Q3",
+                    "original_slug": "API_ACCESS"
+                  },
+                  {
+                    "name": "Software Gestione Cataloghi Ver. 1.0",
+                    "short_name": "📚 Catalogo SW",
+                    "callback_data": "SVC_XZBVKLZY",
+                    "original_slug": "CATALOGO_SW"
+                  },
+                  {
+                    "name": "Tool Analisi Produttività Interna",
+                    "short_name": "📊 Produttività SW",
+                    "callback_data": "SVC_LEOIBWAG",
+                    "original_slug": "PRODUTTIVITA_SW"
+                  },
+                  {
+                    "name": "App Mobile per Monitoraggio Workflow",
+                    "short_name": "📱 App Monitoraggio",
+                    "callback_data": "SVC_XYOF54O9",
+                    "original_slug": "APP_MONITORAGGIO"
+                  },
+                  {
+                    "name": "Plugin specifico per n8n-MongoDB",
+                    "short_name": "🔌 Plugin n8n",
+                    "callback_data": "SVC_32Y1VBDK",
+                    "original_slug": "PLUGIN_N8N"
+                  },
+                  {
+                    "name": "Estensione Chrome per Prompt Veloci",
+                    "short_name": "🚀 Estensione Chrome",
+                    "callback_data": "SVC_284NWTQ8",
+                    "original_slug": "ESTENSIONE_CHROME"
+                  },
+                  {
+                    "name": "Software Assessment Soft-Skills",
+                    "short_name": "👤 Soft-Skills SW",
+                    "callback_data": "SVC_5GUR70U2",
+                    "original_slug": "SOFTSKILLS_SW"
+                  },
+                  {
+                    "name": "Piattaforma Training Online Riservata",
+                    "short_name": "🎓 Piattaforma Training",
+                    "callback_data": "SVC_8N3DN2O7",
+                    "original_slug": "PIATTAFORMA_TRAINING"
+                  },
+                  {
+                    "name": "Licenza White Label per Agenzie",
+                    "short_name": "🏷️ Licenza WhiteLabel",
+                    "callback_data": "SVC_DTNJLKFQ",
+                    "original_slug": "LICENZA_WHITELABEL"
+                  },
+                  {
+                    "name": "Modulo Analisi Dati AI Off-line",
+                    "short_name": "📊 Analisi Offline",
+                    "callback_data": "SVC_53S9QNUR",
+                    "original_slug": "ANALISI_OFFLINE"
+                  },
+                  {
+                    "name": "Tool Generazione Automatica Contratti",
+                    "short_name": "⚖️ Generatore Contratti",
+                    "callback_data": "SVC_AY7ATREE",
+                    "original_slug": "GENERATORE_CONTRATTI"
+                  }
+                ],
+                "original_slug": "LICENZE_SOFTWARE"
+              }
+            ],
+            "additional_kwargs": {},
+            "response_metadata": {},
+            "metadata": {
+              "last_updated_at": "2026-06-18T07:28:44.560Z",
+              "updated_by": "USER_INTERFACE_UPDATE"
+            }
+          }
+        },
+        "binary": {},
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Prep Lock Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Root",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CommitAdd",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CommitTelegramInvite",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CommitTelegramCancel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Root": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stakeholder1": {
+      "main": [
+        [
+          {
+            "node": "Stakeholder Exist1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stakeholder Exist1": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge11": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory7": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholeder1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholeder1": {
+      "main": [
+        [
+          {
+            "node": "Merge14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory8": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "billing_buffers1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "billing_buffers1": {
+      "main": [
+        [
+          {
+            "node": "Merge15",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner1": {
+      "main": [
+        [
+          {
+            "node": "Merge15",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge14": {
+      "main": [
+        [
+          {
+            "node": "Merge13",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge15": {
+      "main": [
+        [
+          {
+            "node": "Merge14",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "CommitAdd": {
+      "main": [
+        [
+          {
+            "node": "Stakeholder1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "stakeholeder1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "billing_buffers1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "owner1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge13": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CommitTelegramInvite": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Stakeholder1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CommitTelegramCancel": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "owner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Lock Params": {
+      "main": [
+        [
+          {
+            "node": "Execute Lock-Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Lock-Manager": {
+      "main": [
+        [
+          {
+            "node": "Lock Free?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lock Free?": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Lock Collision Msg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Call": {
+      "main": [
+        [
+          {
+            "node": "Release Lock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e2c139d9-d289-4456-8ac0-6572b9171b6b",
+  "meta": {
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "mxcpAv5DPKtCPcHPbzCNF",
+  "tags": []
+}

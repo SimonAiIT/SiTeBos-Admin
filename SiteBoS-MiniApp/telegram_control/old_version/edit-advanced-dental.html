@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SiteBoS advanced - Operations & Sourcing Controller</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem' }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* SiteBoS Architect Alignment */
+        body { background-color: #fafafa !important; color: #000000 !important; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .card, .section-card, .dark-card, .upload-box { 
+            background: white !important; 
+            border: 1px solid #eeeeee !important; 
+            box-shadow: none !important; 
+        }
+        input:focus, textarea:focus, select:focus { 
+            border-color: #000000 !important; 
+            box-shadow: none !important; 
+            outline: none !important;
+        }
+        .text-primary, .text-blue-500, .text-blue-600, .text-[#007bff] { color: #000000 !important; }
+        .bg-primary, .bg-blue-500, .bg-blue-600, .bg-[#007bff] { background-color: #000000 !important; color: #ffffff !important; }
+        .border-primary, .border-blue-500, .border-blue-600, .border-[#007bff] { border-color: #000000 !important; }
+        
+        .spinner { border: 3px solid rgba(0,0,0,0.1); border-top-color: #000 !important; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        input[type="checkbox"]:checked { background-color: #000 !important; border-color: #000 !important; }
+        .fas, .far, .fal { font-weight: 900 !important; font-family: "Font Awesome 6 Free" !important; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Custom Slider Style */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: #000000; cursor: pointer; margin-top: -7px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.1s; }
+        input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e5e7eb; border-radius: 2px; }
+        .hide-arrows::-webkit-outer-spin-button, .hide-arrows::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+    <script>
+        (function() {
+            if (!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)) {
+                document.documentElement.innerHTML = `
+                <body class="bg-black text-white flex items-center justify-center h-screen text-center p-10 font-sans">
+                    <div>
+                        <h1 class="text-6xl mb-4">🚫</h1>
+                        <h2 class="text-xl font-bold uppercase tracking-widest">Accesso Proibito</h2>
+                    </div>
+                </body>`;
+                window.stop();
+            }
+        })();
+    </script>
+</head>
+<body class="min-h-screen flex flex-col pb-10">
+
+    <!-- LOADER SCREEN -->
+    <div id="loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center space-y-4">
+        <div class="spinner"></div>
+        <div id="loaderText" class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Caricamento dettagli avanzati...</div>
+    </div>
+
+    <!-- MENU LATERALE -->
+    <div id="menu-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300" onclick="toggleMenu()"></div>
+    <div id="menu-drawer" class="fixed top-0 left-0 h-full w-[300px] bg-white border-r border-border z-50 shadow-2xl -translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-5 border-b border-border flex justify-between items-center bg-gray-50/50">
+            <div>
+                <span class="px-2 py-0.5 bg-black text-white text-[8px] font-black uppercase rounded">SiteBoS Menu</span>
+                <h3 class="text-xs font-black uppercase text-gray-500 mt-1">Seleziona Sezione</h3>
+            </div>
+            <button onclick="toggleMenu()" class="w-8 h-8 rounded-full border border-border bg-white text-gray-500 hover:text-black flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-1">
+            <button onclick="selectMenuSection('tab-cfo', '🏛️ CFO Advisory')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 bg-black text-white" id="menu-tab-cfo">
+                <i class="fas fa-balance-scale text-sm w-5 text-center"></i> 🏛️ CFO Advisory
+            </button>
+            <button onclick="selectMenuSection('tab-bom', '⚙️ Sottoprocessi Operativi')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-bom">
+                <i class="fas fa-cogs text-sm w-5 text-center"></i> ⚙️ Sottoprocessi Operativi
+            </button>
+            <button onclick="selectMenuSection('tab-competitors', '🎯 Analisi Concorrenza')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-competitors">
+                <i class="fas fa-bullseye text-sm w-5 text-center"></i> 🎯 Analisi Concorrenza
+            </button>
+            <button onclick="selectMenuSection('tab-suppliers', '📦 Sourcing Fornitori')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-suppliers">
+                <i class="fas fa-box text-sm w-5 text-center"></i> 📦 Sourcing Fornitori
+            </button>
+            <button onclick="selectMenuSection('tab-locations', '📍 Aree & Struttura')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-locations">
+                <i class="fas fa-map-marker-alt text-sm w-5 text-center"></i> 📍 Aree & Struttura
+            </button>
+            <button onclick="selectMenuSection('tab-assets', '🛠️ Asset & Macchinari')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-assets">
+                <i class="fas fa-tools text-sm w-5 text-center"></i> 🛠️ Asset & Macchinari
+            </button>
+            <button onclick="selectMenuSection('tab-meta', '👥 Personale & Supporto')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-meta">
+                <i class="fas fa-users text-sm w-5 text-center"></i> 👥 Personale & Supporto
+            </button>
+            <button onclick="selectMenuSection('tab-fiscal', '💼 Inquadramento Fiscale')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-fiscal">
+                <i class="fas fa-briefcase text-sm w-5 text-center"></i> 💼 Inquadramento Fiscale
+            </button>
+            <button onclick="selectMenuSection('tab-blueprint', '📋 Blueprint Requisiti')" class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-blueprint">
+                <i class="fas fa-paste text-sm w-5 text-center"></i> 📋 Blueprint Requisiti
+            </button>
+        </div>
+    </div>
+
+    <!-- HEADER PRINCIPALE -->
+    <header class="bg-white border-b border-border sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center gap-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-md">SiteBoS advanced</span>
+                    <span class="text-xs text-gray-400 font-bold">V5.0</span>
+                </div>
+                <h1 class="text-xl font-black uppercase tracking-tight mt-1" id="header-title">SiteBoS Advanced</h1>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest italic" id="header-subtitle">Caricamento...</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="hidden md:block text-right pr-4 border-r border-gray-200">
+                    <span class="block text-[9px] text-gray-400 font-black uppercase tracking-widest">Tempo Poltrona</span>
+                    <span class="text-lg font-black text-blue-600" id="header-time">0 min</span>
+                </div>
+                <div class="hidden md:block text-right pr-4 border-r border-gray-200">
+                    <span class="block text-[9px] text-gray-400 font-black uppercase tracking-widest">MDC Totale</span>
+                    <span class="text-lg font-black text-green-600" id="header-mdc">€ 0,00</span>
+                </div>
+                <button onclick="toggleMenu()" class="p-3 bg-black text-white rounded-2xl flex items-center justify-center transition-all duration-200">
+                    <i class="fas fa-bars text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTAINER PRINCIPALE -->
+    <main class="max-w-7xl w-full mx-auto px-6 mt-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- SIDEBAR: CONTROLLO DI GESTIONE & INPUT EDITABILI -->
+        <div class="lg:col-span-4 space-y-6">
+            <div class="card rounded-3xl p-6 space-y-5 shadow-sm border-gray-200 bg-white sticky top-28">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 block">📊 Controllo di Gestione</span>
+                        <button id="btn-rationale-simulazione" class="w-3.5 h-3.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-full flex items-center justify-center text-[9px] font-black border border-amber-200 hidden">?</button>
+                    </div>
+                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-[8px] font-black uppercase rounded">EDITABILI</span>
+                </div>
+                
+                <!-- INPUTS EDITABILI -->
+                <div class="space-y-3">
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Tariffa della Prestazione (€)</label>
+                        <input type="number" id="in-tariffa" oninput="recalculateAll(); checkDirty();" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2.5 text-sm font-black text-black focus:outline-none focus:border-black transition-colors">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- Ricalibrazione Ingaggio -->
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-amber-700 uppercase tracking-wider">Ricalibrazione (%)</label>
+                            <input type="number" id="in-ricalibrazione-pct" step="1" min="0" max="100" oninput="this.value=this.value.replace(/[^0-9]/g,''); recalculateAll(); checkDirty();" class="hide-arrows w-full bg-amber-50 border border-amber-200 rounded-xl p-2 text-xs font-black text-amber-800 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-amber-700 uppercase tracking-wider">Compenso Ricalcolato (€)</label>
+                            <input type="text" id="label-compenso-val" readonly disabled class="w-full bg-amber-50/30 border border-amber-100 rounded-xl p-2 text-xs font-black text-amber-900/70 select-none cursor-not-allowed">
+                        </div>
+
+                        <!-- Compenso Analitico Clinico (BOM / AI) - Read-only -->
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Compenso Clinico (%)</label>
+                            <input type="text" id="label-compenso-clinico-pct" readonly disabled class="w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-gray-400 select-none cursor-not-allowed">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Compenso Clinico (€)</label>
+                            <input type="text" id="label-compenso-clinico-val" readonly disabled class="w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-gray-400 select-none cursor-not-allowed">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Costo ASO / Staff (€)</label>
+                            <input type="number" id="in-costo-aso" oninput="recalculateAll(); checkDirty();" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Materiali Consumo (€)</label>
+                            <input type="number" id="in-materiali" oninput="recalculateAll(); checkDirty();" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Costo Lab. Esterno (€)</label>
+                            <input type="number" id="in-lab" oninput="recalculateAll(); checkDirty();" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Tempo Utilizzo (Min)</label>
+                            <input type="number" id="in-tempo" oninput="recalculateAll(); checkDirty();" class="hide-arrows w-full bg-blue-50 border border-blue-150 rounded-xl p-2 text-xs font-black text-blue-600 focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-blue-600 uppercase tracking-wider">Tempo Setup Sedia (Min)</label>
+                            <input type="number" id="in-setup-tempo" value="15" oninput="recalculateAll(); checkDirty();" class="hide-arrows w-full bg-blue-50 border border-blue-150 rounded-xl p-2 text-xs font-black text-blue-600 focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Costo Ora Sedia (€/h)</label>
+                            <input type="number" id="in-poltrona" oninput="recalculateAll(); checkDirty();" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-amber-600 uppercase tracking-wider">Saturazione Reale (%)</label>
+                            <input type="number" id="in-saturazione-pct" value="70" oninput="recalculateAll(); checkDirty();" class="hide-arrows w-full bg-amber-50 border border-amber-150 rounded-xl p-2 text-xs font-black text-amber-600 focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Fisco Societario (%)</label>
+                            <input type="number" id="in-tasse" oninput="recalculateAll(); checkDirty();" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-red-600 uppercase tracking-wider">Rischio Garanzia (%)</label>
+                            <input type="number" id="in-garanzia-pct" value="2" oninput="recalculateAll(); checkDirty();" class="hide-arrows w-full bg-red-50 border border-red-150 rounded-xl p-2 text-xs font-black text-red-600 focus:outline-none focus:border-black transition-colors">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SINTESI CARATTERISTICA -->
+                <div class="border-t border-border pt-5 space-y-2.5">
+                    <h3 class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Sintesi Caratteristica</h3>
+                    
+                    <div class="flex justify-between items-end text-xs">
+                        <span class="font-semibold text-gray-500">Ricavi Totali</span>
+                        <span class="font-black text-black" id="out-ricavi">€ 0.00</span>
+                    </div>
+                    <div class="flex justify-between items-end text-xs">
+                        <span class="font-semibold text-gray-500">Costi Variabili Diretti</span>
+                        <span class="font-black text-red-500" id="out-costi-var">€ 0.00</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-end pt-2">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-black">Margine Contribuzione</span>
+                        <span class="text-sm font-black text-green-600" id="out-mdc">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end text-xs border-b border-dashed border-border pb-2 pt-1">
+                        <span class="font-semibold text-gray-500">Costo Fisso Sedia Allocato</span>
+                        <span class="font-black text-gray-700" id="out-costo-fisso">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end pt-2">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-black">Reddito Operativo</span>
+                        <span class="text-sm font-black text-black" id="out-reddito">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end text-xs pb-2 border-b border-border">
+                        <span class="font-semibold text-gray-500">Fisco ed ENPAM stimati</span>
+                        <span class="font-black text-red-500" id="out-tasse">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end pt-2">
+                        <span class="text-[11px] font-black uppercase tracking-widest text-black">Utile Netto Stimato</span>
+                        <span class="text-xl font-black" id="out-utile">€ 0.00</span>
+                    </div>
+
+                    <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden mt-3">
+                        <div class="h-full transition-all duration-300" id="margin-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- PUNTO DI PAREGGIO -->
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl mt-4">
+                    <span class="text-[9px] font-black uppercase tracking-widest text-amber-700">🎯 Volumi per Break-Even</span>
+                    <div class="text-2xl font-black text-amber-900 mt-1" id="bep-units">Calcolo...</div>
+                    <p class="text-[9px] text-amber-700/80 font-medium leading-relaxed mt-1" id="bep-rationale"></p>
+                </div>
+
+                <!-- FLOATING ACTION SAVE BUTTON -->
+                <button id="save-btn" onclick="saveConfiguration()" disabled class="w-full py-4 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl opacity-50 cursor-not-allowed active:scale-95 transition-all mt-4">
+                    <i class="fas fa-save"></i> Salva Configurazione
+                </button>
+            </div>
+        </div>
+
+        <!-- AREA DESTRA: CONTENUTI A SCHEDE -->
+        <div class="lg:col-span-8 space-y-6">
+            
+            <div class="flex justify-between items-center border-b border-border pb-3">
+                <div class="space-y-0.5">
+                    <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Sezione Attiva</span>
+                    <h2 class="text-xs font-black uppercase tracking-wider text-black" id="active-section-title">🏛️ CFO Advisory</h2>
+                </div>
+                <button onclick="toggleMenu()" class="px-3 py-1.5 bg-gray-100 rounded-xl text-[9px] font-black uppercase tracking-wider text-gray-600 hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-list-ul mr-1"></i> Tutte le sezioni
+                </button>
+            </div>
+
+            <!-- TAB CFO (DEFAULT) -->
+            <div id="tab-cfo" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <!-- HEALTH RATING -->
+                    <div class="md:col-span-4 card rounded-3xl p-6 flex flex-col justify-between items-center text-center bg-black text-white border-black" id="cfo-health-card">
+                        <div class="space-y-2">
+                            <span class="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400">HEALTH RATING</span>
+                            <h3 class="text-sm font-black uppercase text-gray-200">Stato di Salute</h3>
+                        </div>
+                        <div class="py-6">
+                            <span class="px-4 py-2 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-md" id="label-health">VERIFICA...</span>
+                        </div>
+                        <p class="text-[9px] text-gray-400 leading-relaxed font-semibold" id="label-health-desc"></p>
+                    </div>
+
+                    <!-- ADVISORY TESTUALE -->
+                    <div class="md:col-span-8 card rounded-3xl p-6 space-y-3 border-gray-200 bg-white">
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">💡 STRATEGIA DI PREZZO & ADVISORY</span>
+                        <button id="ai-recalc-btn" onclick="triggerAiAdvisoryRecalculation()" disabled class="w-full py-2.5 mb-3 bg-zinc-100 text-zinc-400 border border-zinc-200 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all duration-200">
+                            <i class="fas fa-magic"></i> Ricalcola Advisory con IA
+                        </button>
+                        <p class="text-xs text-gray-700 leading-relaxed" id="pricing-advisory-text"></p>
+                    </div>
+                </div>
+
+                <!-- RICONCILIAZIONE FINANZIARIA & RACCORDO DI BILANCIO -->
+                <div class="card rounded-3xl p-6 space-y-6 border-gray-200 bg-white shadow-sm hidden" id="reconciliation-card">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">📊 ANALISI DI RICONCILIAZIONE CON IL BILANCIO REALE</span>
+                    
+                    <!-- Moltiplicatori -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block mb-1">Brand Tier</span>
+                            <div class="text-xs font-black text-black uppercase" id="rec-brand-tier">-</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block mb-1">Coeff. Posizionamento</span>
+                            <div class="text-xs font-black text-black" id="rec-pos-coeff">-</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block mb-1">Coeff. Geografico</span>
+                            <div class="text-xs font-black text-black" id="rec-geo-coeff">-</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block mb-1">Moltiplicatore Combinato</span>
+                            <div class="text-xs font-black text-green-600" id="rec-comb-mult">-</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Rationales -->
+                    <div class="space-y-3 pt-2">
+                        <h4 class="text-[10px] font-black uppercase text-gray-400 tracking-wider">💡 Rationale di Adattamento Costi</h4>
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-3 text-xs text-gray-600 leading-relaxed">
+                            <p id="rec-rationale-chair" class="border-b border-gray-200/50 pb-2"></p>
+                            <p id="rec-rationale-staff"></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Tabella Raccordo Bilancio -->
+                    <div class="space-y-3 pt-2" id="balance-sheet-table-section">
+                        <h4 class="text-[10px] font-black uppercase text-gray-400 tracking-wider">🏛️ Collegamento Voci di Bilancio</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b border-gray-100 text-gray-400 text-[8px] font-black uppercase tracking-wider">
+                                        <th class="py-2">Voce di Bilancio</th>
+                                        <th class="py-2 text-right">Valore Annuo</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50 text-gray-700 font-bold" id="balance-sheet-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SIMULATORE PREDITTIVO -->
+                <div class="card rounded-3xl p-6 space-y-6 border-gray-200 bg-white shadow-sm">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">🚀 SIMULATORE DI VOLUMI MENSILI</span>
+                            <p class="text-[10px] text-gray-500 font-medium mt-1">Sposta l'indicatore per simulare l'impatto sul bilancio (Volumi/Mese).</p>
+                        </div>
+                        <div class="bg-gray-100 border border-gray-200 px-4 py-2 rounded-xl text-center min-w-[80px]">
+                            <span id="slider-val" class="text-lg font-black text-black">50</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 px-2">
+                        <span class="text-xs font-bold text-gray-400">0</span>
+                        <input type="range" id="volume-slider" min="0" max="200" value="50" class="flex-1" oninput="updateSimulation()">
+                        <span class="text-xs font-bold text-gray-400">200</span>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-gray-100">
+                        <div class="bg-gray-50 border border-gray-100 p-3 rounded-2xl">
+                            <span class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Fatturato</span>
+                            <span id="sim-fatturato" class="text-sm font-black text-black">€0,00</span>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-100 p-3 rounded-2xl">
+                            <span class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Margine Totale</span>
+                            <span id="sim-margine" class="text-sm font-black text-green-600">€0,00</span>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-100 p-3 rounded-2xl">
+                            <span class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Costi Struttura</span>
+                            <span id="sim-costi" class="text-sm font-black text-gray-700">€0,00</span>
+                        </div>
+                        <div class="bg-green-50 border border-green-200 p-3 rounded-2xl" id="sim-utile-card">
+                            <span class="block text-[8px] font-black uppercase tracking-widest mb-1" id="sim-utile-label">Utile Netto</span>
+                            <span id="sim-utile" class="text-base font-black text-green-700">€0,00</span>
+                        </div>
+                    </div>
+                    <!-- NUOVO CONTENITORE: Sensibilità No-Show con costo opportunità sedia -->
+                    <div class="bg-red-50/50 border border-red-100 p-4 rounded-2xl mt-4 grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="block text-[8px] font-black text-red-500 uppercase tracking-widest">Impatto No-Show stimato al 5%</span>
+                            <span id="no-show-5-loss" class="text-sm font-black text-red-700">€ 0,00</span>
+                            <p class="text-[7px] text-red-500 font-bold uppercase mt-0.5">Include perdita margine + ore poltrona perse sature</p>
+                        </div>
+                        <div>
+                            <span class="block text-[8px] font-black text-red-500 uppercase tracking-widest">Impatto No-Show stimato al 10%</span>
+                            <span id="no-show-10-loss" class="text-sm font-black text-red-700">€ 0,00</span>
+                            <p class="text-[7px] text-red-500 font-bold uppercase mt-0.5">Include perdita margine + ore poltrona perse sature</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RACCOMANDAZIONI -->
+                <div class="card rounded-3xl p-6 space-y-4 border-gray-200 bg-white">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">🛠️ RACCOMANDAZIONI OPERATIVE</span>
+                    <div class="space-y-2" id="cost-optimization-list"></div>
+                </div>
+            </div>
+
+            <!-- GLI ALTRI TAB GENERATI DINAMICAMENTE -->
+            <div id="tab-bom" class="tab-content space-y-4 hidden"><div id="bom-list-container" class="space-y-4"></div></div>
+            <div id="tab-suppliers" class="tab-content space-y-4 hidden">
+                <div id="suppliers-list-container" class="space-y-4"></div>
+                
+                <!-- Scouting Report Prezzi Online (Read-Only) -->
+                <div id="online-pricing-report-container" class="card rounded-3xl p-6 space-y-4 border-gray-200 bg-white shadow-sm hidden">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-450 block">🌐 COMPARAZIONE PREZZI E-COMMERCE</span>
+                    <div id="online-pricing-report-content" class="text-xs text-gray-700 leading-relaxed space-y-2"></div>
+                </div>
+            </div>
+            <div id="tab-locations" class="tab-content space-y-4 hidden"><div id="locations-list-container" class="space-y-4"></div></div>
+            <div id="tab-assets" class="tab-content space-y-4 hidden"><div id="assets-list-container" class="space-y-4"></div></div>
+            
+            <!-- Tab Blueprint Requisiti (Read-Only) -->
+            <div id="tab-blueprint" class="tab-content space-y-4 hidden">
+                <div class="card rounded-3xl p-6 space-y-4 border-gray-200 bg-white shadow-sm">
+                    <div class="pb-3 border-b border-border">
+                        <span class="text-[8px] font-black text-gray-400 uppercase">Orchestration Blueprint</span>
+                        <h3 class="text-xs font-black uppercase text-black">📋 Blueprint dei Requisiti Infrastrutturali</h3>
+                        <p class="text-[9px] text-gray-400 font-bold uppercase mt-1">Sintesi iniziale prodotta dall'AI Lead Operations Architect</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Operatori e Ambienti -->
+                        <div class="space-y-4">
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                <h4 class="text-[10px] font-black uppercase text-gray-500 mb-2">👥 Operatori Richiesti</h4>
+                                <ul id="bp-operators" class="list-disc pl-4 text-xs font-bold text-gray-700 space-y-1"></ul>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                <h4 class="text-[10px] font-black uppercase text-gray-500 mb-2">📍 Spazi Fisici ed Ambienti</h4>
+                                <ul id="bp-environments" class="list-disc pl-4 text-xs font-bold text-gray-700 space-y-1"></ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Attrezzature e Sottoprocessi -->
+                        <div class="space-y-4">
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                <h4 class="text-[10px] font-black uppercase text-gray-500 mb-2">🛠️ Macchinari e Tecnologie</h4>
+                                <ul id="bp-machinery" class="list-disc pl-4 text-xs font-bold text-gray-700 space-y-1"></ul>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                <h4 class="text-[10px] font-black uppercase text-gray-500 mb-2">⚙️ Sottoprocessi & Compliance</h4>
+                                <ul id="bp-subprocesses" class="list-disc pl-4 text-xs font-bold text-gray-700 space-y-1"></ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                        <h4 class="text-[10px] font-black uppercase text-gray-500 mb-2">📦 Materiali di Consumo & DPI di sedia</h4>
+                        <ul id="bp-materials" class="list-disc pl-4 text-xs font-bold text-gray-700 space-y-1"></ul>
+                    </div>
+                </div>
+            </div>
+            <div id="tab-meta" class="tab-content space-y-4 hidden"><div id="meta-list-container" class="grid grid-cols-1 gap-4"></div></div>
+            
+            <div id="tab-competitors" class="tab-content space-y-6 hidden">
+                <div class="card rounded-3xl p-6 bg-zinc-50 border-zinc-200">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 block mb-2">🎯 POSIZIONAMENTO DI MERCATO</span>
+                    <p class="text-xs text-zinc-700 font-medium leading-relaxed" id="market-pos-summary"></p>
+                </div>
+                <div id="competitor-list-container" class="space-y-4"></div>
+            </div>
+            
+            <!-- TAB TASSI E FISCO CON ADEMPIMENTI E CONGRUENZA ISA -->
+            <div id="tab-fiscal" class="tab-content space-y-4 hidden">
+                <div class="card rounded-3xl p-6 space-y-4 border-gray-200 bg-white shadow-sm">
+                    <div class="flex justify-between items-center border-b border-border pb-3">
+                        <div class="space-y-1">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Inquadramento Fiscale Consigliato</span>
+                            <h3 class="text-sm font-black uppercase tracking-tight text-black" id="fiscal-regime-name">Semplificata STP</h3>
+                        </div>
+                    </div>
+
+                    <!-- BADGE DI CONGRUENZA ISA (DK21U) -->
+                    <div class="flex items-center justify-between bg-gray-50 border border-gray-150 p-4 rounded-2xl">
+                        <div>
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block">Affidabilità Fiscale (ISA Modello DK21U)</span>
+                            <h4 class="text-xs font-black uppercase text-black mt-0.5">Stato di Coerenza ed Efficienza</h4>
+                        </div>
+                        <span id="isa-badge" class="px-3 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-xl transition-colors duration-200">VERIFICA...</span>
+                    </div>
+
+                    <!-- STRUMENTO MODIFICA CONFIGURAZIONE DI BILANCIO SUL FISCO & ENPAM -->
+                    <div class="bg-gray-50 p-4 rounded-2xl border border-gray-150 space-y-3">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-gray-500 block">⚙️ STRUMENTI DI MODIFICA DEL BILANCIO</span>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-bold text-gray-400 uppercase">Aliquota ENPAM Societaria</label>
+                                <select id="select-enpam-rate" onchange="updateENPAMFromSelect(); checkDirty();" class="w-full bg-white border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                                    <option value="2.0">2.0% (S.r.l. Ordinaria - L. 205/2017)</option>
+                                    <option value="0.5">0.5% (Aliquota Ridotta STP / Particolari Convenzioni)</option>
+                                    <option value="0.0">0.0% (Esente ENPAM)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-bold text-gray-400 uppercase">Costi Fissi Strutturali Annui (€)</label>
+                                <input type="number" id="in-fissi-annui" oninput="recalculateAll(); checkDirty();" class="hide-arrows w-full bg-white border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-bold text-gray-400 uppercase">Quota Budget Allocata (BEP)</label>
+                                <select id="select-bep-allocation" onchange="recalculateAll(); checkDirty();" class="w-full bg-white border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                                    <option value="0.10">Linea Diagnostica / Prevenzione (10%)</option>
+                                    <option value="0.30">Linea Conservativa / Chirurgia Base (30%)</option>
+                                    <option value="0.60">Linea Protesi / Implantologia / Ortodonzia (60%)</option>
+                                    <option value="1.00">Intera Struttura / Nessuna (100%)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PARAMETRI STATISTICI ADATTATI (5 COLONNE PER INCLUDERE I RIUNITI) -->
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 py-1">
+                        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block">Codice ATECO</span>
+                            <div class="text-sm font-black text-black mt-1" id="fiscal-ateco">86.23.00</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block">Coeff. Redditività</span>
+                            <div class="text-sm font-black text-black mt-1" id="fiscal-coeff">78%</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block">Tasse Societarie</span>
+                            <div class="text-sm font-black text-black mt-1" id="fiscal-tax-rate">24%</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block">ENPAM Società</span>
+                            <div class="text-sm font-black text-black mt-1" id="fiscal-enpam-label">2.00%</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block">Riuniti Attivi</span>
+                            <div class="text-sm font-black text-black mt-1" id="fiscal-chairs">3</div>
+                        </div>
+                    </div>
+
+                    <!-- ACCORDION DEI BALZELLI LOCALI & CONFORMITÀ TERRITORIALE -->
+                    <div class="bg-gray-50 border border-gray-150 rounded-2xl p-4 space-y-3">
+                        <button onclick="toggleFiscalAccordion()" class="w-full flex justify-between items-center focus:outline-none">
+                            <div class="text-left">
+                                <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block">Conformità & Tassazione Locale</span>
+                                <span class="text-xs font-black text-black">Balzelli Territoriali Rilevati:</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-black text-red-500" id="local-burden-rate">+ € 0.00 / ora sedia</span>
+                                <i class="fas fa-chevron-down text-[10px] text-gray-400 transition-transform duration-200" id="fiscal-accordion-arrow"></i>
+                            </div>
+                        </button>
+                        
+                        <!-- LISTA DEI BALZELLI DA POPOLARE DINAMICAMENTE -->
+                        <div id="fiscal-accordion-content" class="hidden border-t border-gray-200 pt-3 space-y-2 text-[10px] text-gray-600 font-medium">
+                            <!-- Popolato da JS -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- CUSTOM CONFIRMATION MODAL -->
+    <div id="custom-confirm-modal" class="fixed inset-0 bg-black/40 z-[9999] flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 border border-border shadow-2xl scale-95 transition-transform duration-200" id="confirm-modal-box">
+            <div class="text-center space-y-2">
+                <span class="text-2xl">⚡</span>
+                <h3 id="confirm-modal-title" class="text-xs font-black uppercase tracking-tight leading-tight">Conferma</h3>
+                <p id="confirm-modal-desc" class="text-[10px] text-gray-500 font-bold uppercase tracking-wide leading-relaxed">Sei sicuro di voler procedere?</p>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" id="confirm-cancel-btn" class="flex-1 py-3 bg-gray-50 text-black border border-border rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition">
+                    Annulla
+                </button>
+                <button type="button" id="confirm-ok-btn" class="flex-1 py-3 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition">
+                    Conferma
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGICA E DATI DINAMICI -->
+    <script>
+        const ASYNC_AI_WEBHOOK = "https://prod.workflow.trinai.it/webhook/6333dff0-d886-499c-8000-f3e0266845ed";
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.ready(); tg.expand();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const sopId = urlParams.get('sop_id');
+        const messageId = urlParams.get('message_id');
+        const ash = urlParams.get('ash');
+
+        let currentData = null;
+        let originalDataStr = "";
+
+        const currFmt = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
+
+        let selectedSuppliers = {};
+
+        // Parametri master dell'applicazione
+        let unit_tariffa = 0;
+        let unit_mdc = 0;
+        let unit_costofisso = 0;
+        let unit_utile = 0;
+    </script>
+    <script src="edit-advanced.js"></script>
+    <script>
+
+        function cleanSuppliersArray(arr) {
+            if (!Array.isArray(arr)) return [];
+            return arr.filter(s => {
+                if (!s || typeof s !== 'object') return false;
+                
+                // 1. Check if the object contains raw intelligence keys
+                if (s.supply_scouting_report || s.supply_maps || s.text_content || s.online_pricing_report || s.supply_price || s.content || s.raw_text) {
+                    return false;
+                }
+                
+                // 2. Check if any key name matches intelligence fields (prevents filtering legitimate values/URLs containing 'price')
+                const keys = Object.keys(s);
+                const intelligenceKeys = ["supply_scouting_report", "supply_maps", "text_content", "online_pricing_report", "supply_price", "raw_text", "content"];
+                for (let k of keys) {
+                    if (intelligenceKeys.includes(k.toLowerCase())) {
+                        return false;
+                    }
+                }
+                
+                const hasKeys = s.required_material || s.supplier_name || s.name || s.providers;
+                return !!hasKeys;
+            });
+        }
+
+        async function loadData() {
+            if (!sopId) {
+                tg.showAlert("Errore: SOP ID mancante.");
+                return;
+            }
+            try {
+                document.getElementById('loaderText').innerText = "Recupero dettagli infrastruttura...";
+                const response = await fetch(ASYNC_AI_WEBHOOK, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        action: "GET", 
+                        sop_id: sopId, 
+                        ash: ash,
+                        message_id: messageId,
+                        _auth: tg.initData 
+                    })
+                });
+
+                if (!response.ok) throw new Error("Errore nel recupero della configurazione");
+                const data = await response.json();
+
+                if (!data) throw new Error("Risposta vuota dal server");
+                
+                const loadedItem = Array.isArray(data) ? data[0] : data;
+
+                // If data comes wrapped in an array, take first item
+                currentData = loadedItem;
+
+                // Pulizia preventiva dei fornitori da record di scouting spuri
+                if (currentData) {
+                    if (currentData.market_and_fiscal_intelligence && currentData.market_and_fiscal_intelligence.suppliers) {
+                        currentData.market_and_fiscal_intelligence.suppliers = cleanSuppliersArray(currentData.market_and_fiscal_intelligence.suppliers);
+                    }
+                    if (currentData.suppliers_output && currentData.suppliers_output.suppliers) {
+                        currentData.suppliers_output.suppliers = cleanSuppliersArray(currentData.suppliers_output.suppliers);
+                    }
+                    if (currentData.suppliers) {
+                        currentData.suppliers = cleanSuppliersArray(currentData.suppliers);
+                    }
+                }
+
+                // originalDataStr will be captured AFTER initUI() stabilizes all values
+
+                // Initialise back button navigation in Telegram WebApp
+                initBackButton();
+
+                // Initialize UI with dynamic values
+                initUI();
+            } catch (err) {
+                console.error(err);
+                tg.showAlert("Impossibile caricare i dati avanzati: " + err.message);
+            } finally {
+                document.getElementById('loader').classList.add('hidden');
+            }
+        }
+
+        function initBackButton() {
+            if (tg.BackButton) {
+                tg.BackButton.show();
+                tg.BackButton.onClick(() => {
+                    const productUrl = `edit-product.html?sop_id=${sopId}&ash=${ash || ''}&message_id=${messageId || ''}`;
+                    if (isDirty()) {
+                        showCustomConfirm(
+                            "Modifiche non salvate",
+                            "Attenzione: hai modifiche non salvate. Vuoi uscire comunque?",
+                            (conf) => { if(conf) window.location.href = productUrl; }
+                        );
+                    } else {
+                        window.location.href = productUrl;
+                    }
+                });
+            }
+        }
+
+
+        function initUI() {
+            // 1. Header titles
+            document.getElementById('header-title').innerText = currentData.service_identity?.name || currentData.product_identity?.name || 'SiteBoS Advanced';
+            document.getElementById('header-subtitle').innerText = 'Prestazione: ' + (currentData.service_identity?.name || currentData.product_identity?.name || 'Avanzata') + ' (' + (currentData.sop_id || '') + ')';
+
+            // 2. Sidebar Inputs
+            const pricingSummary = currentData.financial_simulations?.pricing_summary;
+            const costBreakdown = currentData.financial_simulations?.cost_breakdown_unit;
+            const fiscalAnalysis = currentData.market_and_fiscal_intelligence?.fiscal_analysis;
+            const bepMetrics = currentData.financial_simulations?.predictive_volume_simulation?.break_even_point_metrics;
+
+            document.getElementById('in-tariffa').value = pricingSummary?.catalog_price || 250;
+            
+            const steps = currentData.bill_of_materials?.bom_steps || [];
+            let totalMedico = 0;
+            let totalASO = 0;
+            steps.forEach(sub => {
+                const split = calculateSubprocessStaffCosts(sub);
+                totalMedico += split.medico;
+                totalASO += split.aso;
+            });
+
+            if (totalASO === 0) {
+                const metaList = currentData.market_and_fiscal_intelligence?.meta_operators_overhead || currentData.qualitative_parser_output?.meta_operators_overhead || [];
+                metaList.forEach(op => {
+                    const role = (op.role || "").toLowerCase();
+                    if (!role.includes("medico") && !role.includes("odontoiatra")) {
+                        totalASO += op.allocated_cost || 0;
+                    }
+                });
+            }
+
+            // Recupero percentuale dal DB con fallback obbligatorio al 20%
+            let savedRecalibration = currentData.operating_benchmarks?.recalibration_percentage;
+            if (savedRecalibration === undefined || savedRecalibration === null) {
+                savedRecalibration = 20;
+            } else {
+                savedRecalibration = Math.round(savedRecalibration);
+            }
+            document.getElementById('in-ricalibrazione-pct').value = savedRecalibration;
+
+            const dbAso = costBreakdown?.aso_fee;
+            const initialAso = (dbAso !== undefined && dbAso > 0) ? dbAso : (totalASO > 0 ? totalASO : 0);
+            document.getElementById('in-costo-aso').value = initialAso.toFixed(2);
+            
+            document.getElementById('in-materiali').value = (costBreakdown?.direct_materials_cost || 0).toFixed(2);
+            document.getElementById('in-lab').value = (costBreakdown?.dental_lab_cost || 0).toFixed(2);
+            
+            const totalChairTime = steps.reduce((sum, step) => sum + (step.calculation_breakdown?.chair_time_mins || 0), 0);
+            document.getElementById('in-tempo').value = totalChairTime > 0 ? totalChairTime : (steps.reduce((sum, step) => sum + (step.estimated_total_time_minutes || 0), 0) || 0);
+            
+            document.getElementById('in-poltrona').value = (currentData.operating_benchmarks?.chair_hourly_rate_consolidated || 27.18).toFixed(2);
+            
+            const taxRate = fiscalAnalysis?.income_tax_rate !== undefined ? fiscalAnalysis.income_tax_rate * 100 : 24.0;
+            document.getElementById('in-tasse').value = taxRate.toFixed(1);
+            
+            const enpamRate = fiscalAnalysis?.social_security_rate !== undefined ? fiscalAnalysis.social_security_rate * 100 : 2.0;
+            document.getElementById('select-enpam-rate').value = enpamRate.toFixed(1);
+
+            // Nuovi parametri di efficienza
+            const setupMins = currentData.operating_benchmarks?.chair_setup_turnover_minutes !== undefined ? 
+                              currentData.operating_benchmarks.chair_setup_turnover_minutes : 15;
+            document.getElementById('in-setup-tempo').value = setupMins;
+
+            const saturazionePct = currentData.operating_benchmarks?.agenda_saturation_target !== undefined ? 
+                                   (currentData.operating_benchmarks.agenda_saturation_target * 100) : 70;
+            document.getElementById('in-saturazione-pct').value = saturazionePct;
+
+            const garanziaPct = currentData.operating_benchmarks?.clinical_failure_provision_rate !== undefined ? 
+                                 (currentData.operating_benchmarks.clinical_failure_provision_rate * 100) : 2;
+            document.getElementById('in-garanzia-pct').value = garanziaPct;
+            
+            // Reconstruct total overhead and set budget allocation percentage
+            const bepOverheadVal = bepMetrics?.allocated_overhead_value || 50000;
+            const bepAllocPct = bepMetrics?.allocated_budget_percentage !== undefined ? bepMetrics.allocated_budget_percentage : 0.60;
+            const totalOverhead = bepAllocPct > 0 ? (bepOverheadVal / bepAllocPct) : bepOverheadVal;
+            document.getElementById('in-fissi-annui').value = totalOverhead.toFixed(2);
+
+            const selectBepAllocEl = document.getElementById('select-bep-allocation');
+            if (selectBepAllocEl) {
+                const targetValStr = bepAllocPct.toFixed(2);
+                let found = false;
+                for (let i = 0; i < selectBepAllocEl.options.length; i++) {
+                    if (parseFloat(selectBepAllocEl.options[i].value).toFixed(2) === targetValStr) {
+                        selectBepAllocEl.selectedIndex = i;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found && bepAllocPct !== 0) {
+                    const opt = document.createElement('option');
+                    opt.value = bepAllocPct;
+                    opt.innerText = `Allocazione Custom (${(bepAllocPct * 100).toFixed(0)}%)`;
+                    opt.selected = true;
+                    selectBepAllocEl.appendChild(opt);
+                }
+            }
+
+            // Rationale della Simulazione Finanziaria
+            const simulationRationale = currentData.financial_simulations?.clinical_cost_calculation_rationale;
+            const simBtn = document.getElementById('btn-rationale-simulazione');
+            if (simBtn) {
+                if (simulationRationale && simulationRationale.trim() !== "") {
+                    simBtn.classList.remove('hidden');
+                    simBtn.onclick = (e) => {
+                        e.preventDefault();
+                        showRationale('Simulazione Finanziaria', simulationRationale);
+                    };
+                } else {
+                    simBtn.classList.add('hidden');
+                }
+            }
+
+            // 3. Render tabs
+            renderBOM();
+            renderSuppliers();
+            renderLocations();
+            renderAssets();
+            renderMetaOperators();
+            renderCompetitors();
+            renderFiscal();
+            renderCFOAdvisory();
+            renderBlueprint();
+            
+            // 4. Initial calculations
+            recalculateAll();
+
+            // 5. Snapshot the stabilized state as the baseline for dirty-checking.
+            // This MUST happen after recalculateAll() so computed values (compenso from %,
+            // chair costs, etc.) are already written into currentData via getPayloadToSave().
+            try {
+                originalDataStr = JSON.stringify(getPayloadToSave());
+            } catch (e) {
+                console.error('Error capturing baseline snapshot:', e);
+                originalDataStr = JSON.stringify(currentData);
+            }
+            checkDirty();
+        }
+
+
+        // --- RENDERIZZAZIONE COMPONENTI DINAMICI ---
+        function renderBOM() {
+            const container = document.getElementById('bom-list-container');
+            container.innerHTML = '';
+            
+            const steps = currentData.bill_of_materials?.bom_steps || [];
+            if (steps.length === 0) {
+                container.innerHTML = `<div class="card rounded-3xl p-5 text-center text-gray-400 italic">Nessun semilavorato o sottoprocesso operativo configurato.</div>`;
+                return;
+            }
+
+            steps.forEach((sub, idx) => {
+                let stagesHtml = (sub.stages || []).map((stg, stageIdx) => `
+                    <div class="space-y-3 pt-2">
+                        <h4 class="text-[11px] font-black uppercase text-gray-500 tracking-wider flex items-center gap-2"><span class="w-1.5 h-1.5 bg-black rounded-full"></span>${stg.stage_name}</h4>
+                        ${(stg.steps || []).map((step, stepIdx) => `
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <h5 class="text-xs font-black uppercase text-black">${step.step_name}</h5>
+                                    <div class="flex items-center gap-1.5 bg-gray-200/50 px-2 py-1 rounded-lg border border-gray-200">
+                                        <input type="number" id="input-bom-step-time-${idx}-${stageIdx}-${stepIdx}" value="${step.estimated_time_minutes || 0}" oninput="updateBOMFromInputs()" class="w-10 bg-transparent text-xs font-black text-center text-gray-800 focus:outline-none">
+                                        <span class="text-[8px] font-bold text-gray-400">Min</span>
+                                    </div>
+                                </div>
+                                <p class="text-[10px] text-gray-600 font-medium">${step.instructions}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `).join('');
+
+                const c = sub.calculation_breakdown || {};
+                container.innerHTML += `
+                    <div class="card rounded-3xl p-5 space-y-4 bg-white">
+                        <div class="flex justify-between border-b border-border pb-3">
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-[8px] font-black text-gray-400 uppercase">${sub.subprocess_sku || ''}</span>
+                                    <!-- Bottone "?" per il rationale della fase -->
+                                    ${sub.cost_scaling_rationale ? `<button onclick="showRationale('${sub.subprocess_name.replace(/'/g, "\\'")}', '${sub.cost_scaling_rationale.replace(/'/g, "\\'")}')" class="w-3.5 h-3.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-full flex items-center justify-center text-[9px] font-black border border-amber-200">?</button>` : ''}
+                                </div>
+                                <h3 class="text-xs font-black uppercase tracking-tight text-black mt-0.5">${sub.subprocess_name}</h3>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-black text-black" id="label-bom-cost-${idx}">€ ${(sub.estimated_internal_cost || 0).toFixed(2)}</span>
+                            </div>
+                        </div>
+                        ${stagesHtml}
+                        
+                        <div class="bg-zinc-50/50 border border-zinc-150 p-4 rounded-2xl space-y-3 mt-3">
+                            <h4 class="text-[9px] font-black uppercase tracking-wider text-gray-700">⚙️ Componenti Economiche della Fase</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                <div class="space-y-1">
+                                    <label class="text-[7px] font-black text-gray-400 uppercase">Consumabili (€)</label>
+                                    <input type="number" id="input-bom-consumables-${idx}" value="${c.consumables || 0}" oninput="updateBOMFromInputs()" class="w-full bg-white border border-border rounded-lg p-1.5 text-xs font-black text-center focus:outline-none">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[7px] font-black text-gray-400 uppercase">Ammortamento (€)</label>
+                                    <input type="number" id="input-bom-depr-${idx}" value="${c.depreciation || 0}" oninput="updateBOMFromInputs()" class="w-full bg-white border border-border rounded-lg p-1.5 text-xs font-black text-center focus:outline-none">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[7px] font-black text-gray-400 uppercase">Costo Operatore (€)</label>
+                                    <input type="number" id="input-bom-staff-${idx}" value="${c.staff_cost || 0}" oninput="updateBOMFromInputs()" class="w-full bg-white border border-border rounded-lg p-1.5 text-xs font-black text-center focus:outline-none">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[7px] font-black text-gray-400 uppercase">Durata Fase (Min)</label>
+                                    <input type="number" id="input-bom-time-${idx}" value="${sub.estimated_total_time_minutes || 0}" oninput="updateBOMFromInputs()" class="w-full bg-white border border-border rounded-lg p-1.5 text-xs font-black text-center focus:outline-none text-slate-800">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[7px] font-black text-blue-600 uppercase">Tempo Poltrona (Min)</label>
+                                    <input type="number" id="input-bom-chair-time-${idx}" value="${c.chair_time_mins || 0}" oninput="updateBOMFromInputs()" class="w-full bg-blue-50/50 border border-blue-100 rounded-lg p-1.5 text-xs font-black text-center focus:outline-none text-blue-600">
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderSuppliers() {
+            const container = document.getElementById('suppliers-list-container');
+            container.innerHTML = '';
+            
+            const suppliersList = currentData.market_and_fiscal_intelligence?.suppliers || currentData.suppliers_output?.suppliers || currentData.suppliers || [];
+            
+            if (suppliersList.length === 0) {
+                container.innerHTML = `<div class="card rounded-3xl p-5 text-center text-gray-400 italic">Nessun fornitore o materiale configurato.</div>`;
+                return;
+            }
+
+            // Check if flat structure (like default product suppliers)
+            if (suppliersList.length > 0 && !suppliersList[0].required_material) {
+                let html = '<div class="card rounded-3xl p-5 space-y-4 bg-white">';
+                html += '<div class="pb-3 border-b border-border"><h3 class="text-xs font-black uppercase text-black">Lista Fornitori Collegati</h3></div>';
+                html += '<div class="space-y-3">';
+                suppliersList.forEach((s, idx) => {
+                    html += `
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex justify-between items-center">
+                            <div>
+                                <span class="text-xs font-black uppercase">${s.supplier_name || s.name || 'Fornitore'}</span>
+                                <p class="text-[10px] text-gray-500">${s.supplier_item_name || s.item_name || ''}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="space-y-0.5">
+                                    <label class="block text-[6px] font-bold uppercase tracking-wider text-gray-400">Modifica Costo (€)</label>
+                                    <input type="number" id="input-supplier-flat-cost-${idx}" value="${s.cost_of_goods || s.cost || 0}" oninput="updateFlatSuppliersFromInputs()" class="w-16 bg-white border border-gray-200 text-black rounded-md p-1 text-xs font-black text-center focus:outline-none">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+                container.innerHTML = html;
+                return;
+            }
+
+            suppliersList.forEach((mat, matIdx) => {
+                if (!selectedSuppliers[mat.required_material] && mat.providers && mat.providers.length > 0) {
+                    selectedSuppliers[mat.required_material] = mat.providers[0].supp_name;
+                }
+                
+                let provs = (mat.providers || []).map((p, provIdx) => {
+                    const isSelected = selectedSuppliers[mat.required_material] === p.supp_name;
+                    return `
+                        <div onclick="selectProvider('${mat.required_material.replace(/'/g, "\\'")}', '${p.supp_name.replace(/'/g, "\\'")}')" class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 rounded-2xl border cursor-pointer transition-all duration-200 ${isSelected ? 'bg-black text-white border-black shadow-md' : 'bg-gray-50 text-black border-gray-100 hover:border-black/10'}" id="prov-${matIdx}-${provIdx}">
+                            <div>
+                                <span class="text-xs font-black uppercase">${p.supp_name}</span>
+                                <p class="text-[10px] ${isSelected ? 'text-gray-300' : 'text-gray-500'}">${p.item_name}</p>
+                                <div class="text-[8px] uppercase font-bold mt-1 ${isSelected ? 'text-gray-400' : 'text-gray-450'}">${p.supp_phone ? `Tel: ${p.supp_phone} | ` : ''}<a href="${p.supp_web || '#'}" target="_blank" class="underline">Link Web</a></div>
+                            </div>
+                            <div class="text-right flex items-center gap-3">
+                                <div class="space-y-0.5" onclick="event.stopPropagation();">
+                                    <label class="block text-[6px] font-bold uppercase tracking-wider text-gray-400">Modifica Costo (€)</label>
+                                    <input type="number" id="input-supplier-cost-${matIdx}-${provIdx}" value="${p.cost}" oninput="updateSuppliersFromInputs()" class="w-16 bg-white border border-gray-200 text-black rounded-md p-1 text-xs font-black text-center focus:outline-none">
+                                </div>
+                                <div class="text-[8px] uppercase font-bold text-gray-400">${p.supp_sku || ''}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                container.innerHTML += `
+                    <div class="card rounded-3xl p-5 space-y-4 bg-white">
+                        <div class="pb-3 border-b border-border">
+                            <span class="text-[8px] font-black text-amber-500 uppercase">Fabbisogno Materiale</span>
+                            <h3 class="text-xs font-black uppercase text-black">${mat.required_material}</h3>
+                        </div>
+                        <div class="space-y-3">${provs}</div>
+                    </div>`;
+            });
+
+            // Render read-only text reports
+            renderScoutingReports();
+        }
+
+        function selectProvider(material, providerName) {
+            selectedSuppliers[material] = providerName;
+            renderSuppliers();
+            updateSuppliersFromInputs();
+        }
+
+        function renderLocations() {
+            const container = document.getElementById('locations-list-container');
+            container.innerHTML = '';
+            
+            const locations = currentData.environments || [];
+            if (locations.length === 0) {
+                container.innerHTML = `<div class="card rounded-3xl p-5 text-center text-gray-400 italic">Nessuna area logistica o struttura configurata.</div>`;
+                return;
+            }
+            
+            locations.forEach((loc, idx) => {
+                let checks = (loc.maintenance_checklist || []).map(c => `<li class="text-[10px] text-gray-600 font-medium"><strong>[${c.frequency || 'DAILY'}]</strong> ${c.task_name}: ${c.instructions}</li>`).join('');
+                const hourlyRate = loc.estimated_internal_cost_rate || (loc.estimated_internal_cost ? (loc.estimated_internal_cost / 1.33) : 20.00);
+                const totalTime = loc.estimated_total_time_minutes || 60;
+
+                container.innerHTML += `
+                    <div class="card rounded-3xl p-5 space-y-3 bg-white">
+                        <div class="flex justify-between border-b border-border pb-3">
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <h3 class="text-xs font-black uppercase text-black">${loc.loc_name}</h3>
+                                    <!-- Bottone "?" per il rationale della location -->
+                                    ${loc.cost_scaling_rationale ? `<button onclick="showRationale('${loc.loc_name.replace(/'/g, "\\'")}', '${loc.cost_scaling_rationale.replace(/'/g, "\\'")}')" class="w-3.5 h-3.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-full flex items-center justify-center text-[9px] font-black border border-amber-200">?</button>` : ''}
+                                </div>
+                                <p class="text-[9px] text-gray-400 font-bold uppercase mt-1">${loc.temperature || ''}</p>
+                            </div>
+                            <span class="text-xs font-black" id="label-loc-cost-${idx}">€ ${(loc.estimated_internal_cost || 0).toFixed(2)}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 bg-gray-50/50 p-3 rounded-2xl border border-gray-100">
+                            <div class="space-y-1">
+                                <label class="text-[7px] font-black text-gray-400 uppercase">Costo Orario (€/Ora)</label>
+                                <input type="number" id="input-loc-rate-${idx}" value="${hourlyRate.toFixed(2)}" oninput="updateLocationsFromInputs()" class="w-full bg-white border border-border rounded-lg p-1 text-xs font-black text-center focus:outline-none">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[7px] font-black text-gray-400 uppercase">Tempo Utilizzo (Minuti)</label>
+                                <input type="number" id="input-loc-time-${idx}" value="${totalTime}" oninput="updateLocationsFromInputs()" class="w-full bg-white border border-border rounded-lg p-1 text-xs font-black text-center focus:outline-none">
+                            </div>
+                        </div>
+                        ${checks ? `<div class="bg-gray-50 p-3 rounded-xl border border-gray-100"><h4 class="text-[9px] font-black uppercase text-gray-800 mb-2">Checklist Manutenzione:</h4><ul class="list-disc pl-4 space-y-1">${checks}</ul></div>` : ''}
+                    </div>`;
+            });
+        }
+
+        function renderAssets() {
+            const container = document.getElementById('assets-list-container');
+            container.innerHTML = '';
+            
+            const assets = currentData.assets || [];
+            if (assets.length === 0) {
+                container.innerHTML = `<div class="card rounded-3xl p-5 text-center text-gray-400 italic">Nessun macchinario o asset configurato.</div>`;
+                return;
+            }
+            
+            assets.forEach((ast, idx) => {
+                container.innerHTML += `
+                    <div class="card rounded-3xl p-5 space-y-3 bg-white">
+                        <div class="flex justify-between border-b border-border pb-3">
+                            <div>
+                                <div class="flex items-center gap-1.5 mb-0.5">
+                                    <span class="text-[8px] font-black text-gray-400 uppercase">${ast.asset_sku || ''}</span>
+                                    <!-- Bottone "?" per il rationale dell'asset -->
+                                    ${ast.cost_scaling_rationale ? `<button onclick="showRationale('${ast.asset_name.replace(/'/g, "\\'")}', '${ast.cost_scaling_rationale.replace(/'/g, "\\'")}')" class="w-3.5 h-3.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-full flex items-center justify-center text-[9px] font-black border border-amber-200">?</button>` : ''}
+                                </div>
+                                <h3 class="text-xs font-black uppercase text-black">${ast.asset_name}</h3>
+                            </div>
+                            <span class="text-xs font-black text-black" id="label-ast-cost-${idx}">€ ${(ast.estimated_internal_cost || 0).toFixed(2)} /h</span>
+                        </div>
+                        ${ast.notes ? `<p class="text-[10px] text-gray-600">${ast.notes}</p>` : ''}
+                        <div class="flex items-center gap-4 bg-gray-50/50 p-3 rounded-2xl border border-gray-100 justify-end">
+                            <label class="text-[8px] font-black text-gray-400 uppercase">Ammortamento Orario (€/h):</label>
+                            <input type="number" id="input-ast-cost-${idx}" value="${(ast.estimated_internal_cost || 0).toFixed(2)}" oninput="updateAssetsFromInputs()" class="w-16 bg-white border border-gray-200 rounded-lg p-1 text-xs font-black text-center focus:outline-none">
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderMetaOperators() {
+            const container = document.getElementById('meta-list-container');
+            container.innerHTML = '';
+            
+            const metaList = currentData.market_and_fiscal_intelligence?.meta_operators_overhead || currentData.qualitative_parser_output?.meta_operators_overhead || [];
+            if (metaList.length === 0) {
+                container.innerHTML = `<div class="card rounded-3xl p-5 text-center text-gray-400 italic">Nessun personale o supporto configurato.</div>`;
+                return;
+            }
+            
+            metaList.forEach((op, idx) => {
+                container.innerHTML += `
+                    <div class="card rounded-3xl p-5 space-y-4 bg-white">
+                        <div class="flex justify-between items-center border-b border-border pb-2">
+                            <div><h3 class="text-xs font-black uppercase">${op.role}</h3></div>
+                            <span class="text-xs font-black text-black" id="label-meta-cost-${idx}">€ ${(op.allocated_cost || 0).toFixed(2)}</span>
+                        </div>
+                        ${op.allocation_rationale ? `<p class="text-[10px] text-gray-500">${op.allocation_rationale}</p>` : ''}
+                        <div class="flex items-center gap-4 bg-gray-50/50 p-3 rounded-2xl border border-gray-100 justify-end">
+                            <label class="text-[8px] font-black text-gray-400 uppercase">Costo di Supporto Allocato (€):</label>
+                            <input type="number" id="input-meta-cost-${idx}" value="${op.allocated_cost || 0}" oninput="updateMetaFromInputs()" class="w-16 bg-white border border-gray-200 rounded-lg p-1 text-xs font-black text-center focus:outline-none">
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderCompetitors() {
+            const intelligence = currentData.market_and_fiscal_intelligence;
+            const positioningSummary = intelligence?.market_positioning_summary || 'Nessun posizionamento di mercato configurato.';
+            document.getElementById('market-pos-summary').innerText = positioningSummary;
+            
+            const container = document.getElementById('competitor-list-container');
+            container.innerHTML = '';
+            
+            const competitors = intelligence?.competitors || [];
+            if (competitors.length === 0) {
+                container.innerHTML = `<div class="card rounded-3xl p-5 text-center text-gray-400 italic">Nessun concorrente configurato.</div>`;
+                return;
+            }
+            
+            competitors.forEach(c => {
+                container.innerHTML += `
+                    <div class="card rounded-3xl p-5 space-y-4 bg-white">
+                        <div class="flex justify-between border-b border-border pb-3">
+                            <div>
+                                <div class="flex gap-2 items-center">
+                                    <h3 class="text-xs font-black uppercase">${c.name}</h3>
+                                    <span class="px-1.5 py-0.5 bg-gray-100 text-[7px] font-black rounded border border-gray-200">${c.distance_km || 0} KM</span>
+                                </div>
+                                ${c.url ? `<a href="${c.url}" target="_blank" class="text-[9px] text-gray-400 underline">Maps Link</a>` : ''}
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-black">€ ${(c.estimated_price || 0).toFixed(2)}</span>
+                                <div class="text-[8px] font-bold text-gray-400 uppercase">Tariffa stimata</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="text-[8px] font-black text-gray-400 uppercase mb-1">Punti di Forza</h4>
+                                ${(c.usp_gap_strengths || []).map(s=>`<div class="text-[10px] text-gray-600"><span class="text-green-500 mr-1">✔</span>${s}</div>`).join('') || '<div class="text-[10px] text-gray-400 italic">Nessuno</div>'}
+                            </div>
+                            <div>
+                                <h4 class="text-[8px] font-black text-gray-400 uppercase mb-1">Debolezze</h4>
+                                ${(c.usp_gap_weaknesses || []).map(w=>`<div class="text-[10px] text-gray-600"><span class="text-red-500 mr-1">✘</span>${w}</div>`).join('') || '<div class="text-[10px] text-gray-400 italic">Nessuna</div>'}
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderFiscal() {
+            const fiscalAnalysis = currentData.market_and_fiscal_intelligence?.fiscal_analysis;
+            if (fiscalAnalysis) {
+                document.getElementById('fiscal-ateco').innerText = fiscalAnalysis.activity_code || '86.23.00';
+                
+                // Popolamento del numero di riuniti attivi (default a 3 se non presente)
+                const numChairs = currentData.operating_benchmarks?.number_of_chairs || 3;
+                const chairsEl = document.getElementById('fiscal-chairs');
+                if (chairsEl) {
+                    chairsEl.innerText = numChairs;
+                }
+
+                // Popolamento dinamico dell'accordion dei balzelli locali
+                const accordionContent = document.getElementById('fiscal-accordion-content');
+                if (accordionContent) {
+                    const burdens = fiscalAnalysis.local_compliance_burdens || [];
+                    if (burdens.length === 0) {
+                        accordionContent.innerHTML = `<div class="text-center text-gray-400 italic">Nessun adempimento territoriale speciale registrato.</div>`;
+                    } else {
+                        accordionContent.innerHTML = burdens.map(b => `
+                            <div class="flex justify-between items-start py-1 border-b border-gray-100 last:border-0">
+                                <div>
+                                    <span class="font-bold text-gray-800">${b.name}</span>
+                                    <p class="text-[8px] text-gray-400 leading-normal">${b.description || ''}</p>
+                                </div>
+                                <span class="font-black text-black ml-4 whitespace-nowrap">${currFmt.format(b.value_annual || 0)}/anno</span>
+                            </div>
+                        `).join('');
+                    }
+                }
+            }
+        }
+
+        function renderCFOAdvisory() {
+            const clinicalAnalysis = currentData.strategic_clinical_analysis;
+            const advisoryText = clinicalAnalysis?.pricing_and_tariff_strategy_advisory || 'Nessuna raccomandazione disponibile.';
+            document.getElementById('pricing-advisory-text').innerText = advisoryText;
+            
+            const container = document.getElementById('cost-optimization-list');
+            container.innerHTML = '';
+            const recs = clinicalAnalysis?.clinical_cost_optimization_recommendations || [];
+            if (recs.length === 0) {
+                container.innerHTML = `<div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl text-[10px] text-gray-400 italic text-center">Nessuna raccomandazione clinica presente.</div>`;
+            } else {
+                recs.forEach(r => {
+                    container.innerHTML += `<div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex gap-3"><div class="w-2 h-2 rounded-full bg-black mt-1.5"></div><p class="text-[11px] text-gray-700">${r}</p></div>`;
+                });
+            }
+
+            // Render Analisi di Riconciliazione (Read-Only)
+            const ob = currentData.operating_benchmarks || {};
+            const reconCard = document.getElementById('reconciliation-card');
+            if (ob.brand_tier || ob.combined_multiplier || ob.reconciliation_rationale) {
+                reconCard.classList.remove('hidden');
+                
+                document.getElementById('rec-brand-tier').innerText = ob.brand_tier || 'GENERALISTA';
+                document.getElementById('rec-pos-coeff').innerText = (ob.positioning_coefficient || 1.0).toFixed(2) + 'x';
+                document.getElementById('rec-geo-coeff').innerText = (ob.geographic_coefficient || 1.0).toFixed(2) + 'x';
+                document.getElementById('rec-comb-mult').innerText = (ob.combined_multiplier || 1.0).toFixed(3) + 'x';
+                
+                const rat = ob.reconciliation_rationale || {};
+                const chairRat = rat.consolidated_sedia_cost_rationale || rat.sedia_cost_decomposed_rationale || "";
+                const staffRat = rat.staff_cost_rationale || "";
+                
+                const chairEl = document.getElementById('rec-rationale-chair');
+                const staffEl = document.getElementById('rec-rationale-staff');
+                
+                if (chairRat) {
+                    chairEl.innerHTML = `<strong>Sedia/Poltrona:</strong> ${chairRat}`;
+                    chairEl.classList.remove('hidden');
+                } else {
+                    chairEl.classList.add('hidden');
+                }
+                
+                if (staffRat) {
+                    staffEl.innerHTML = `<strong>Personale:</strong> ${staffRat}`;
+                    staffEl.classList.remove('hidden');
+                } else {
+                    staffEl.classList.add('hidden');
+                }
+                
+                // Render Tabella Raccordo Bilancio (Editabile)
+                const tableBody = document.getElementById('balance-sheet-table-body');
+                const tableSection = document.getElementById('balance-sheet-table-section');
+                tableBody.innerHTML = '';
+
+                const raccordo = ob.balance_sheet_raccordo || {};
+                const entries = Object.entries(raccordo);
+                if (entries.length > 0) {
+                    tableSection.classList.remove('hidden');
+                    entries.forEach(([key, value]) => {
+                        const label = key.replace(/_/g, ' ').toUpperCase();
+                        const tr = document.createElement('tr');
+                        tr.className = 'border-b border-gray-50';
+                        tr.innerHTML = `
+                            <td class="py-2 font-medium text-gray-500">${label}</td>
+                            <td class="py-2 text-right">
+                                <input type="number" id="input-raccordo-${key}" value="${(value || 0).toFixed(2)}" oninput="updateBalanceSheetFromInputs()" class="hide-arrows w-28 bg-gray-50 border border-gray-200 focus:border-black rounded-lg p-1 text-xs font-black text-right focus:outline-none transition-colors">
+                            </td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                } else {
+                    tableSection.classList.add('hidden');
+                }
+            } else {
+                reconCard.classList.add('hidden');
+            }
+        }
+
+        // Render Sourcing Scouting Reports in Supplier Tab
+        function renderScoutingReports() {
+            const intelligence = currentData.market_and_fiscal_intelligence || {};
+            const onlinePricingReport = intelligence.online_pricing_report || "";
+            
+            const onlinePricingEl = document.getElementById('online-pricing-report-container');
+            
+            if (onlinePricingReport) {
+                onlinePricingEl.classList.remove('hidden');
+                document.getElementById('online-pricing-report-content').innerHTML = formatMarkdownText(onlinePricingReport);
+            } else {
+                onlinePricingEl.classList.add('hidden');
+            }
+        }
+
+        // Render Orchestration Blueprint Tab
+        function renderBlueprint() {
+            const bp = currentData.orchestration_blueprint || {};
+            
+            const opList = document.getElementById('bp-operators');
+            const envList = document.getElementById('bp-environments');
+            const machList = document.getElementById('bp-machinery');
+            const subList = document.getElementById('bp-subprocesses');
+            const matList = document.getElementById('bp-materials');
+            
+            opList.innerHTML = '';
+            envList.innerHTML = '';
+            machList.innerHTML = '';
+            subList.innerHTML = '';
+            matList.innerHTML = '';
+            
+            const ops = bp.required_operators || [];
+            const envs = bp.required_environments || [];
+            const mach = bp.required_machinery_classes || [];
+            const subs = bp.required_subprocesses || [];
+            const mats = bp.required_materials || [];
+            
+            if (ops.length === 0 && envs.length === 0 && mach.length === 0 && subs.length === 0 && mats.length === 0) {
+                opList.innerHTML = '<li class="text-gray-450 italic">Nessun operatore definito</li>';
+                envList.innerHTML = '<li class="text-gray-450 italic">Nessun ambiente definito</li>';
+                machList.innerHTML = '<li class="text-gray-450 italic">Nessun macchinario definito</li>';
+                subList.innerHTML = '<li class="text-gray-450 italic">Nessun sottoprocesso definito</li>';
+                matList.innerHTML = '<li class="text-gray-450 italic">Nessun materiale definito</li>';
+                return;
+            }
+            
+            ops.forEach(o => {
+                const li = document.createElement('li');
+                li.innerText = o.replace(/_/g, ' ');
+                opList.appendChild(li);
+            });
+            
+            envs.forEach(e => {
+                const li = document.createElement('li');
+                li.innerText = e;
+                envList.appendChild(li);
+            });
+            
+            mach.forEach(m => {
+                const li = document.createElement('li');
+                li.innerText = m;
+                machList.appendChild(li);
+            });
+            
+            subs.forEach(s => {
+                const li = document.createElement('li');
+                li.innerText = s;
+                subList.appendChild(li);
+            });
+            
+            mats.forEach(m => {
+                const li = document.createElement('li');
+                li.innerText = m;
+                matList.appendChild(li);
+            });
+        }
+
+        // Helper function for rendering markdown texts
+        function formatMarkdownText(text) {
+            if (!text) return "";
+            
+            // If the text is a string but represents a JSON object, parse it first
+            if (typeof text === 'string') {
+                const trimmed = text.trim();
+                if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                    try {
+                        const parsed = JSON.parse(trimmed);
+                        if (parsed && typeof parsed === 'object') {
+                            text = parsed.text_content || parsed.content || parsed.raw_text || text;
+                        }
+                    } catch (e) {
+                        // Ignore parse error, use original text string
+                    }
+                }
+            }
+
+            // Guard clause to ensure text is always a string
+            if (typeof text !== 'string') {
+                if (text && typeof text === 'object') {
+                    // Try to resolve string property from object (scouting report format)
+                    text = text.text_content || text.content || text.raw_text || JSON.stringify(text);
+                } else {
+                    text = String(text);
+                }
+            }
+            
+            let clean = text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+            
+            // Convert maps link syntax first to prevent interference
+            clean = clean.replace(/\[Google Maps - (.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" class="px-2.5 py-1 bg-black text-white rounded-md text-[8px] font-black uppercase tracking-wider inline-flex items-center gap-1 hover:opacity-80 transition"><i class="fas fa-map-marker-alt"></i> Google Maps - $1</a>');
+            clean = clean.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" class="text-black underline font-semibold">$1</a>');
+            
+            // Headers
+            clean = clean.replace(/^### (.*$)/gim, '<h4 class="text-xs font-black uppercase text-black mt-4 mb-1.5 flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-black rounded-full"></span>$1</h4>');
+            clean = clean.replace(/^## (.*$)/gim, '<h3 class="text-xs font-black uppercase text-gray-800 mt-5 border-b pb-1">$1</h3>');
+            clean = clean.replace(/^# (.*$)/gim, '<h2 class="text-sm font-black uppercase text-black mt-6 border-b-2 pb-1.5">$1</h2>');
+            
+            // Bold
+            clean = clean.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Lists
+            clean = clean.replace(/^\s*[\-\*]\s+(.*$)/gim, '<div class="flex gap-2 items-start text-xs text-gray-700 pl-2 py-0.5"><span class="text-black">•</span><span>$1</span></div>');
+            
+            // Table mapping (basic visual style for tables)
+            clean = clean.replace(/\|/g, " ");
+
+            return clean;
+        }
+
+        // --- GESTIONE MENU ---
+        function toggleMenu() {
+            const backdrop = document.getElementById('menu-backdrop');
+            const drawer = document.getElementById('menu-drawer');
+            if (drawer.classList.contains('-translate-x-full')) {
+                backdrop.classList.remove('hidden');
+                setTimeout(() => backdrop.classList.add('opacity-100'), 10);
+                drawer.classList.remove('-translate-x-full');
+            } else {
+                backdrop.classList.remove('opacity-100');
+                setTimeout(() => backdrop.classList.add('hidden'), 300);
+                drawer.classList.add('-translate-x-full');
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+        }
+
+        function selectMenuSection(tabId, sectionTitle) {
+            toggleMenu();
+            switchTab(tabId);
+            document.getElementById('active-section-title').innerHTML = sectionTitle;
+            document.querySelectorAll('.menu-link').forEach(el => {
+                el.classList.remove('bg-black', 'text-white');
+                el.classList.add('text-gray-400', 'hover:bg-gray-50', 'hover:text-black');
+            });
+            const activeLink = document.getElementById('menu-' + tabId);
+            if(activeLink) {
+                activeLink.classList.remove('text-gray-400', 'hover:bg-gray-50', 'hover:text-black');
+                activeLink.classList.add('bg-black', 'text-white');
+            }
+        }
+
+        // --- STATE SYNCHRONISATION FOR SAVE ---
+
+
+        async function saveConfiguration() {
+            const saveBtn = document.getElementById('save-btn');
+            if (saveBtn) saveBtn.disabled = true;
+
+            const aiLoader = document.getElementById('ai-loader-modal');
+            const titleEl = document.getElementById('ai-loader-title');
+            const descEl = document.getElementById('ai-loader-desc');
+            if (titleEl) titleEl.innerText = "Salvataggio";
+            if (descEl) descEl.innerText = "Salvataggio della configurazione avanzata in corso...";
+
+            if (aiLoader) {
+                aiLoader.classList.remove('hidden');
+                setTimeout(() => aiLoader.classList.add('opacity-100'), 10);
+            }
+
+            try {
+                const payloadToSave = getPayloadToSave();
+                const response = await fetch(ASYNC_AI_WEBHOOK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        _auth: tg.initData,
+                        ash: ash,
+                        action: 'SAVE',
+                        sop_id: sopId,
+                        message_id: messageId,
+                        payload: payloadToSave
+                    })
+                });
+
+                if (!response.ok) throw new Error("Errore durante il salvataggio");
+                
+                originalDataStr = JSON.stringify(payloadToSave);
+                checkDirty();
+
+                tg.showAlert("✅ Configurazione salvata con successo!");
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+
+                // Redirect back to edit-product.html
+                setTimeout(() => {
+                    window.location.href = `edit-product.html?sop_id=${sopId}&ash=${ash || ''}&message_id=${messageId || ''}`;
+                }, 1000);
+
+            } catch (err) {
+                console.error(err);
+                tg.showAlert("❌ Errore durante il salvataggio: " + err.message);
+                if (saveBtn) saveBtn.disabled = false;
+                
+                if (aiLoader) {
+                    aiLoader.classList.remove('opacity-100');
+                    setTimeout(() => aiLoader.classList.add('hidden'), 200);
+                }
+            }
+        }
+
+        async function triggerAiAdvisoryRecalculation() {
+            const aiLoader = document.getElementById('ai-loader-modal');
+            const titleEl = document.getElementById('ai-loader-title');
+            const descEl = document.getElementById('ai-loader-desc');
+            if (titleEl) titleEl.innerText = "Generazione IA";
+            if (descEl) descEl.innerText = "Rielaborazione semantica della strategia di prezzo in corso...";
+
+            if (aiLoader) {
+                aiLoader.classList.remove('hidden');
+                setTimeout(() => aiLoader.classList.add('opacity-100'), 10);
+            }
+
+            try {
+                // Estrazione dei parametri correnti modificati dalla sidebar
+                const payloadFields = {
+                    catalog_price: parseFloat(document.getElementById('in-tariffa').value) || 0,
+                    medical_collaborator_fee: (() => {
+                        const ricalibrazioneEl = document.getElementById('in-ricalibrazione-pct');
+                        if (ricalibrazioneEl) {
+                            const tariffa = parseFloat(document.getElementById('in-tariffa').value) || 0;
+                            const ricalibrazionePct = parseFloat(ricalibrazioneEl.value) || 20.0;
+                            return (tariffa * ricalibrazionePct) / 100;
+                        }
+                        const compensoEl = document.getElementById('in-compenso');
+                        return compensoEl ? parseFloat(compensoEl.value) : 0;
+                    })(),
+                    aso_fee: parseFloat(document.getElementById('in-costo-aso').value) || 0,
+                    direct_materials_cost: parseFloat(document.getElementById('in-materiali').value) || 0,
+                    dental_lab_cost: parseFloat(document.getElementById('in-lab').value) || 0,
+                    chair_time_mins: parseFloat(document.getElementById('in-tempo').value) || 0,
+                    chair_hourly_rate_consolidated: parseFloat(document.getElementById('in-poltrona').value) || 0,
+                    income_tax_rate: parseFloat(document.getElementById('in-tasse').value) || 0,
+                    allocated_overhead_value: parseFloat(document.getElementById('in-fissi-annui').value) || 50000,
+                    allocated_budget_percentage: parseFloat(document.getElementById('select-bep-allocation').value) || 0.60
+                };
+
+                const response = await fetch(ASYNC_AI_WEBHOOK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        _auth: tg.initData,
+                        ash: ash,
+                        action: 'RECALCULATE_ADVISORY',
+                        sop_id: sopId,
+                        message_id: messageId,
+                        current_financial_inputs: payloadFields
+                    })
+                });
+
+                if (!response.ok) throw new Error("Errore durante l'elaborazione dell'advisory");
+                const result = await response.json();
+
+                // Estrazione parametri (supporta sia flat che wrapped recalculate_output)
+                const dataObj = result?.recalculate_output || result;
+                const newAdvisory = dataObj?.pricing_and_tariff_strategy_advisory;
+                const newRecs = dataObj?.clinical_cost_optimization_recommendations;
+
+                let updated = false;
+
+                if (newAdvisory) {
+                    document.getElementById('pricing-advisory-text').innerText = newAdvisory;
+                    if (!currentData.strategic_clinical_analysis) {
+                        currentData.strategic_clinical_analysis = {};
+                    }
+                    currentData.strategic_clinical_analysis.pricing_and_tariff_strategy_advisory = newAdvisory;
+                    updated = true;
+                }
+
+                if (newRecs && Array.isArray(newRecs)) {
+                    if (!currentData.strategic_clinical_analysis) {
+                        currentData.strategic_clinical_analysis = {};
+                    }
+                    currentData.strategic_clinical_analysis.clinical_cost_optimization_recommendations = newRecs;
+                    
+                    const container = document.getElementById('cost-optimization-list');
+                    if (container) {
+                        container.innerHTML = '';
+                        if (newRecs.length === 0) {
+                            container.innerHTML = `<div class="p-4 bg-gray-50 border border-gray-150 rounded-2xl text-[10px] text-gray-400 italic text-center">Nessuna raccomandazione clinica presente.</div>`;
+                        } else {
+                            newRecs.forEach(r => {
+                                container.innerHTML += `<div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex gap-3"><div class="w-2 h-2 rounded-full bg-black mt-1.5"></div><p class="text-[11px] text-gray-700">${r}</p></div>`;
+                            });
+                        }
+                    }
+                    updated = true;
+                }
+
+                if (updated) {
+                    tg.showAlert("✅ Analisi strategica rielaborata dall'IA con successo!");
+                }
+
+            } catch (err) {
+                console.error(err);
+                tg.showAlert("❌ Errore IA: " + err.message);
+            } finally {
+                if (aiLoader) {
+                    aiLoader.classList.remove('opacity-100');
+                    setTimeout(() => aiLoader.classList.add('hidden'), 200);
+                }
+            }
+        }
+
+        // --- DIALOGO DI CONFERMA PERSONALIZZATO ---
+        function showCustomConfirm(title, message, onConfirm) {
+            const modal = document.getElementById('custom-confirm-modal');
+            const box = document.getElementById('confirm-modal-box');
+            const titleEl = document.getElementById('confirm-modal-title');
+            const descEl = document.getElementById('confirm-modal-desc');
+            const okBtn = document.getElementById('confirm-ok-btn');
+            const cancelBtn = document.getElementById('confirm-cancel-btn');
+            
+            if (titleEl) titleEl.innerText = title;
+            if (descEl) descEl.innerText = message;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+            }, 10);
+            
+            const handleOk = () => {
+                closeModal();
+                onConfirm(true);
+            };
+            
+            const handleCancel = () => {
+                closeModal();
+                onConfirm(false);
+            };
+            
+            const closeModal = () => {
+                modal.classList.add('opacity-0');
+                box.classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 200);
+                okBtn.removeEventListener('click', handleOk);
+                cancelBtn.removeEventListener('click', handleCancel);
+            };
+            
+            okBtn.addEventListener('click', handleOk);
+            cancelBtn.addEventListener('click', handleCancel);
+        }
+
+        function toggleFiscalAccordion() {
+            const content = document.getElementById('fiscal-accordion-content');
+            const arrow = document.getElementById('fiscal-accordion-arrow');
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                if (arrow) arrow.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.add('hidden');
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        window.onload = loadData;
+    </script>
+    <div id="ai-loader-modal" class="fixed inset-0 bg-black/60 z-[9999] flex flex-col items-center justify-center space-y-4 hidden opacity-0 transition-opacity duration-200">
+        <div class="p-8 bg-white rounded-3xl flex flex-col items-center max-w-xs w-full text-center space-y-4 shadow-2xl border border-border">
+            <div class="spinner"></div>
+            <div class="space-y-1">
+                <span id="ai-loader-title" class="text-[9px] font-black text-black uppercase tracking-[0.2em] block">Generazione IA</span>
+                <p id="ai-loader-desc" class="text-[10px] text-gray-500 font-bold uppercase tracking-wider leading-relaxed">Rielaborazione semantica della strategia di prezzo in corso...</p>
+            </div>
+        </div>
+    </div>
+    <!-- OVERLAY DIALOG PER I RATIONALES ECONOMICI -->
+    <div id="rationale-modal" class="fixed inset-0 bg-black/40 z-[9999] flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-200" onclick="closeRationaleModal()">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 border border-border shadow-2xl scale-95 transition-transform duration-200" onclick="event.stopPropagation()">
+            <div class="space-y-2">
+                <span class="px-2 py-0.5 bg-amber-50 text-amber-700 text-[8px] font-black uppercase rounded-md tracking-wider inline-flex items-center gap-1">
+                    <i class="fas fa-calculator text-[9px]"></i> Rationale Economico
+                </span>
+                <h3 id="rationale-modal-title" class="text-xs font-black uppercase tracking-tight leading-tight text-black">Titolo</h3>
+                <p id="rationale-modal-text" class="text-[10px] text-gray-600 font-medium leading-relaxed italic">Dettaglio del calcolo...</p>
+            </div>
+            <button onclick="closeRationaleModal()" class="w-full py-3 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition">
+                Chiudi
+            </button>
+        </div>
+    </div>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_certificator.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

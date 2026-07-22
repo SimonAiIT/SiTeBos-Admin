@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>08. Sicurezza e Billing | SiTeBoS Guide</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { primary: '#000000', bg: '#ffffff', surface: '#ffffff', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #000000;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .content-area {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .prose h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            tracking: -0.04em;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        .prose h2 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            tracking: -0.02em;
+            margin-top: 3rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid #000;
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .prose p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: #374151;
+            margin-bottom: 1.5rem;
+        }
+
+        .prose b {
+            font-weight: 800;
+            color: #000;
+        }
+
+        .img-container {
+            margin: 2rem 0;
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-radius: 2rem;
+            overflow: hidden;
+        }
+
+        .info-card {
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .security-box {
+            background: #ffffff;
+            color: #000;
+            padding: 2rem;
+            border-radius: 2rem;
+            margin: 2rem 0;
+            border: 1px solid #eeeeee;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+    </style>
+</head>
+
+<body class="safe-area-inset min-h-screen pb-32">
+
+    <!-- TOP NAV -->
+    <nav
+        class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-5 py-4 flex items-center justify-between">
+        <button onclick="location.href='index.html'"
+            class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
+            <i class="fas fa-arrow-left"></i> Index
+        </button>
+        <div class="text-[9px] font-black uppercase tracking-[0.2em] text-blue-600 italic">Capitolo 08</div>
+    </nav>
+
+    <main class="content-area animate-in">
+        <article class="prose">
+            <h1>Billing e Sicurezza</h1>
+
+            <p>
+                SiTeBoS è progettato per essere trasparente nei costi e impenetrabile nella gestione dei dati, seguendo
+                i più alti standard di <b>Privacy by Design</b>.
+            </p>
+
+            
+            
+
+                <!-- Didascalia -->
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig  Documentazione Legale & Privacy
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════════════════
+                 PREVIEW REALE SANIFICATO: operators/legal.html
+                 Estratto automaticamente dall'HTML sorgente della MiniApp.
+                 ═══════════════════════════════════════════════════════════════ -->
+            <div class="my-10 rounded-3xl overflow-hidden border border-slate-200 shadow-xl" id="preview-08_security-0" style="background:#f8fafc;">
+
+                <!-- Header dell'anteprima -->
+                <div style="background:#0f172a; padding:0.6rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.4rem; min-width:0;">
+                        <span style="width:9px; height:9px; border-radius:50%; background:#ef4444; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#f59e0b; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#22c55e; flex-shrink:0; display:block;"></span>
+                        <span style="font-size:8px; font-family:ui-monospace,monospace; color:#64748b; margin-left:0.5rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Conformità Legale</span>
+                    </div>
+                    <span style="font-size:7px; font-family:ui-monospace,monospace; color:#3b82f6; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; flex-shrink:0; white-space:nowrap;">SiTeBoS Interface</span>
+                </div>
+
+                <!-- Viewport scalato con touch/scroll pass-through -->
+                <div style="position:relative; overflow:hidden; height:460px; background:#f8fafc;">
+
+                    <style>
+                        #preview-08_security-0 .preview-body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
+                        #preview-08_security-0 .no-scrollbar::-webkit-scrollbar { display:none; }
+                        
+    #preview-08_security-0 .preview-body { background: #fafafa; color: #334155; padding: 20px; line-height: 1.6; }
+    .legal-container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    h1 { font-size: 24px; font-weight: 800; color: #000; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+    h2 { font-size: 18px; font-weight: 700; color: #000; margin-top: 30px; margin-bottom: 15px; }
+    p { margin-bottom: 15px; font-size: 14px; }
+    ul { margin-bottom: 15px; padding-left: 20px; }
+    li { margin-bottom: 8px; font-size: 14px; }
+    .back-btn { display: inline-flex; align-items: center; gap: 8px; color: #64748b; text-decoration: none; font-weight: 600; font-size: 14px; margin-bottom: 20px; }
+    .back-btn:hover { color: #000; }
+    .highlight { background: #f8fafc; padding: 15px; border-left: 4px solid #000; border-radius: 8px; font-style: italic; margin: 20px 0; }
+  
+                    </style>
+
+                    <div class="preview-body" style="
+                        transform: scale(0.5);
+                        transform-origin: top left;
+                        width: 200%;
+                        position: absolute;
+                        top: 0; left: 0;
+                        pointer-events: none;
+                        user-select: none;
+                        min-height: 920px;
+                        overflow: hidden;
+                    ">
+                        <a href="#" class="back-btn">
+    <i class="fas fa-arrow-left"></i> Torna all'attivazione
+  </a>
+
+  <div class="legal-container">
+    <h1>Informativa Legale e Privacy</h1>
+    
+    <div class="highlight">
+      La presente informativa descrive il trattamento dei dati personali e i termini d'uso per gli Operatori che accedono al sistema SiTeBoS, fornito da TrinAi Srl.
+    </div>
+
+    <section id="privacy">
+      <h2>1. Informativa Trattamento Dati (GDPR)</h2>
+      <p>In conformità al Regolamento UE 2016/679 (GDPR), si informa l'utente che:</p>
+      <ul>
+        <li><strong>Titolare del Trattamento:</strong> L'Azienda/Owner che ha inviato l'invito all'attivazione.</li>
+        <li><strong>Responsabile del Trattamento:</strong> TrinAi Srl, fornitore del sistema SiTeBoS.</li>
+        <li><strong>Finalità:</strong> Gestione operativa delle attività lavorative, coordinamento del team e ottimizzazione dei processi tramite strumenti digitali.</li>
+        <li><strong>Base Giuridica:</strong> Esecuzione del contratto di lavoro o collaborazione professionale.</li>
+      </ul>
+    </section>
+
+    <section id="terms">
+      <h2>2. Termini di Servizio</h2>
+      <p>L'accesso al sistema SiTeBoS è strettamente personale e subordinato alle seguenti condizioni:</p>
+      <ul>
+        <li>L'Operatore si impegna a custodire le proprie credenziali di accesso (incluso il link di attivazione) e a non cederle a terzi.</li>
+        <li>L'uso del sistema è limitato esclusivamente alle finalità professionali concordate con l'Azienda Owner.</li>
+        <li>È vietata l'estrazione non autorizzata di dati o la manipolazione del software.</li>
+      </ul>
+    </section>
+
+    <section id="ai-act">
+      <h2>3. Analisi Competenze e AI Act (UE 2024/1689)</h2>
+      <p>Il sistema SiTeBoS utilizza modelli di Intelligenza Artificiale (Google Gemini) per l'analisi delle competenze e l'ottimizzazione del profilo professionale. In ottemperanza al Regolamento UE 2024/1689 (AI Act):</p>
+      <ul>
+        <li>L'AI viene utilizzata esclusivamente per assistere l'utente nella compilazione del profilo e per suggerire abbinamenti operativi.</li>
+        <li><strong>Human-in-the-loop:</strong> Nessuna decisione automatizzata con effetti giuridici viene presa senza la supervisione umana. L'utente ha sempre il diritto di modificare o contestare i risultati dell'analisi AI.</li>
+        <li>L'analisi avviene su base volontaria tramite il caricamento del CV o della descrizione lavorativa.</li>
+      </ul>
+    </section>
+
+    <p style="margin-top: 50px; font-size: 12px; color: #94a3b8; text-align: center;">
+      Ultimo aggiornamento: Aprile 2026<br>
+      © TrinAi Srl - Sistema SiTeBoS
+    </p>
+  </div>
+
+  
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+                    </div>
+
+                    <!-- Fade gradient inferiore -->
+                    <div style="position:absolute; bottom:0; left:0; right:0; height:100px; background:linear-gradient(to bottom, transparent 0%, #f8fafc 90%); pointer-events:none; z-index:10;"></div>
+                </div>
+
+                <!-- Didascalia -->
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig  Documentazione Legale & Privacy
+                </div>
+            </div>
+
+            <h2>Gestione dei Crediti</h2>
+            <p>
+                L'utilizzo dell'Intelligenza Artificiale comporta il consumo di crediti ricaricabili. Questo modello
+                pay-per-use elimina i canoni fissi e garantisce che paghi solo per il valore reale generato.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
+                <div class="info-card flex flex-col gap-2">
+                    <i class="fas fa-chart-line text-blue-600"></i>
+                    <p class="font-black text-[10px] uppercase">Spending Log</p>
+                    <p class="text-[11px] text-gray-500 m-0">Tracciamento di ogni singola transazione (chiamata LLM,
+                        generazione immagine, deploy sito).</p>
+                </div>
+                <div class="info-card flex flex-col gap-2">
+                    <i class="fas fa-wallet text-blue-600"></i>
+                    <p class="font-black text-[10px] uppercase">Saldo Real-time</p>
+                    <p class="text-[11px] text-gray-500 m-0">Sempre visibile nella Dashboard Owner per un controllo
+                        totale del budget.</p>
+                </div>
+            </div>
+
+            <!-- DEPENDENCY: Screen_Billing_Dashboard -->
+            <div class="img-container shadow-sm">
+                <img src="../../images/userguide/Screen_Billing_Dashboard.svg" alt="Dashboard Billing"
+                    class="w-full h-auto">
+                <div
+                    class="p-4 bg-white border-t border-gray-100 text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center">
+                    Monitoraggio consumi e ricarica crediti
+                </div>
+            </div>
+
+            <h2>Metodo "Godfellas" (Privacy by Design)</h2>
+            <p>
+                I tuoi dati industriali e quelli personali dei tuoi clienti non vengono mai inviati "in chiaro" ai
+                modelli di linguaggio esterni (LLM) senza necessità.
+            </p>
+
+            <div class="security-box space-y-6">
+                <div class="flex gap-6 items-start">
+                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shrink-0"><i
+                            class="fas fa-user-shield text-white text-sm"></i></div>
+                    <div class="space-y-1">
+                        <p class="font-black text-sm uppercase text-black">TheWALL Protocol</p>
+                        <p class="text-xs text-gray-600 leading-relaxed">Un modulo proprietario che intercetta dati
+                            sensibili (nomi, email, telefoni) e li sostituisce con dei placeholder prima dell'invio
+                            all'AI.</p>
+                    </div>
+                </div>
+                <div class="flex gap-6 items-start">
+                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shrink-0"><i
+                            class="fas fa-key text-white text-sm"></i></div>
+                    <div class="space-y-1">
+                        <p class="font-black text-sm uppercase text-black">De-offuscazione Locale</p>
+                        <p class="text-xs text-gray-600 leading-relaxed">Solo il passaggio finale, eseguito sui nostri
+                            server sicuri in territorio EU, ripristina i dati reali per l'invio all'utente finale.</p>
+                    </div>
+                </div>
+            </div>
+
+            <h2>Sicurezza delle Sessioni (ASH)</h2>
+            <p>
+                Il protocollo <b>Authorized Session Hash (ASH)</b> è la firma digitale che protegge ogni interazione tra
+                le WebApp di SiTeBoS e i server n8n.
+            </p>
+
+            <!-- DEPENDENCY: Screen_ASH_Security -->
+            <div class="img-container shadow-sm">
+                <img src="../../images/userguide/Screen_ASH_Security.svg" alt="Protocollo ASH" class="w-full h-auto">
+                <div
+                    class="p-4 bg-gray-50 border-t border-gray-100 text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center">
+                    Dettaglio tecnico della firma digitale delle sessioni
+                </div>
+            </div>
+
+            <div class="my-8 text-center">
+                <a href="../operators/legal.html"
+                    class="inline-flex items-center gap-3 bg-black text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-800 transition-all active:scale-95 shadow-xl">
+                    <i class="fas fa-gavel text-blue-400"></i>
+                    Documentazione Legale SiTeBoS
+                </a>
+            </div>
+
+            <p>
+                <b>Perché è fondamentale:</b> Impedisce a terzi malintenzionati di manipolare i parametri delle
+                transazioni (come cambiare il prezzo di un prodotto nel carrello) o di accedere a sessioni di lavoro non
+                autorizzate.
+            </p>
+
+        </article>
+
+        <!-- PAGINATION -->
+        <div class="flex items-center justify-between mt-20 pt-10 border-t border-gray-100">
+            <a href="07_magazzino_logistica.html" class="flex flex-col gap-1 items-start group text-left">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Precedente</span>
+                <span class="font-black text-xs uppercase group-hover:underline">07. Magazzino & Logistica</span>
+            </a>
+            <a href="09_controllo_gestione.html" class="flex flex-col gap-1 items-end group text-right">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Successivo</span>
+                <span class="font-black text-xs uppercase group-hover:underline text-blue-600">09. Controllo di Gestione
+                    <i class="fas fa-arrow-right ml-1"></i></span>
+            </a>
+        </div>
+    </main>
+
+    <script>
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            tg.BackButton.show();
+            tg.BackButton.onClick(() => location.href = 'index.html');
+        }
+    </script>
+</body>
+
+</html>

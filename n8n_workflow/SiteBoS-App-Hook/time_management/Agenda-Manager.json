@@ -1,0 +1,767 @@
+{
+  "name": "Agenda-Manager",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "8f148592-cbb9-4c72-96e8-73c08fccee43",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-800, 0],
+      "id": "wh-agenda",
+      "name": "Webhook",
+      "webhookId": "8f148592-cbb9-4c72-96e8-73c08fccee43"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- 1. CONFIGURAZIONE ---\nconst BOT_TOKEN = \"8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ\";\nconst initData = $input.item.json.body._auth;\n\nif (!initData) return { isValid: false, error: \"Dato _auth mancante\" };\n\n// --- 2. LIBRERIA CRIPTOGRAFICA PURE JS (SHA-256 & HMAC) ---\nconst CryptoJS = (function() {\n    function sha256(m) {\n        var h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];\n        var k = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];\n        var b = Array.from(typeof m === 'string' ? new TextEncoder().encode(m) : m);\n        var l = b.length * 8; b.push(0x80);\n        while ((b.length * 8) % 512 !== 448) b.push(0);\n        for (var i = 7; i >= 0; i--) b.push((l / Math.pow(2, i * 8)) & 0xff);\n        for (var i = 0; i < b.length; i += 64) {\n            var w = new Int32Array(64);\n            for (var j = 0; j < 16; j++) w[j] = (b[i + j * 4] << 24) | (b[i + j * 4 + 1] << 16) | (b[i + j * 4 + 2] << 8) | (b[i + j * 4 + 3]);\n            for (var j = 16; j < 64; j++) {\n                var s0 = ((w[j - 15] >>> 7) | (w[j - 15] << 25)) ^ ((w[j - 15] >>> 18) | (w[j - 15] << 14)) ^ (w[j - 15] >>> 3);\n                var s1 = ((w[j - 2] >>> 17) | (w[j - 2] << 15)) ^ ((w[j - 2] >>> 19) | (w[j - 2] << 13)) ^ (w[j - 2] >>> 10);\n                w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;\n            }\n            var v = [...h];\n            for (var j = 0; j < 64; j++) {\n                var S1 = ((v[4] >>> 6) | (v[4] << 26)) ^ ((v[4] >>> 11) | (v[4] << 21)) ^ ((v[4] >>> 25) | (v[4] << 7));\n                var ch = (v[4] & v[5]) ^ (~v[4] & v[6]);\n                var t1 = (v[7] + S1 + ch + k[j] + w[j]) | 0;\n                var S0 = ((v[0] >>> 2) | (v[0] << 30)) ^ ((v[0] >>> 13) | (v[0] << 19)) ^ ((v[0] >>> 22) | (v[0] << 10));\n                var maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);\n                var t2 = (S0 + maj) | 0;\n                v.unshift((t1 + t2) | 0); v.splice(8); v[4] = (v[4] + t1) | 0;\n            }\n            for (var j = 0; j < 8; j++) h[j] = (h[j] + v[j]) | 0;\n        }\n        return h.reduce((acc, val) => acc.concat([(val >>> 24) & 0xff, (val >>> 16) & 0xff, (val >>> 8) & 0xff, val & 0xff]), []);\n    }\n    if (typeof TextEncoder === \"undefined\") {\n        window.TextEncoder = function() {};\n        TextEncoder.prototype.encode = function(s) {\n            return new Uint8Array(unescape(encodeURIComponent(s)).split(\"\").map(c => c.charCodeAt(0)));\n        };\n    }\n    return {\n        hmac: function(key, message) {\n            var k = typeof key === 'string' ? Array.from(new TextEncoder().encode(key)) : key;\n            var m = Array.from(new TextEncoder().encode(message));\n            var b = 64;\n            if (k.length > b) k = sha256(k);\n            while (k.length < b) k.push(0);\n            var ipad = k.map(x => x ^ 0x36);\n            var opad = k.map(x => x ^ 0x5c);\n            var inner = sha256(ipad.concat(m));\n            return sha256(opad.concat(inner));\n        }\n    };\n})();\n\n// --- 3. LOGICA PARSING ---\nconst data = {};\ninitData.split('&').forEach(pair => {\n    const [k, v] = pair.split('=');\n    data[k] = decodeURIComponent(v);\n});\nconst hashReceived = data.hash;\nconst checkString = Object.keys(data)\n    .filter(k => k !== 'hash')\n    .sort()\n    .map(k => k + '=' + data[k])\n    .join('\\n');\n\n// --- 4. CALCOLO HASH TELEGRAM ---\nconst secretKey = CryptoJS.hmac(\"WebAppData\", BOT_TOKEN);\nconst computedHashBytes = CryptoJS.hmac(secretKey, checkString);\nconst computedHash = computedHashBytes.map(b => b.toString(16).padStart(2, '0')).join('');\n\n// --- 5. CONTROLLO SCADENZA (MAX 1 ORA) ---\nconst now = Math.floor(Date.now() / 1000);\nconst authDate = parseInt(data.auth_date);\nconst isExpired = (now - authDate) > 3600;\nconst isHashValid = (computedHash === hashReceived);\n\nreturn {\n    isValid: isHashValid && !isExpired,\n    user: data.user ? JSON.parse(data.user) : null\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-600, 0],
+      "id": "tv-agenda",
+      "name": "telegram_validator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": "",
+              "operator": { "type": "boolean", "operation": "true", "singleValue": true },
+              "id": "is-valid-agenda"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-400, 0],
+      "id": "if-valid-agenda",
+      "name": "isValid"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"code\": 403,\n  \"message\": \"⛔️ ACCESS DENIED: Unauthorized User or Invalid Endpoint.\",\n  \"details\": \"L'autenticazione Telegram non ha superato i controlli di sicurezza.\"\n}",
+        "options": { "responseCode": 403 }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [-400, 200],
+      "id": "403-agenda",
+      "name": "⛔️ 403 Forbidden"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\n\nconst rawAsh = item.ash || item.query?.ash || item.body?.ash;\n\nif (!rawAsh || typeof rawAsh !== \"string\") {\n  throw new Error(\"ASH non trovato nell'input.\");\n}\n\nconst [encodedPayload, signatureReceived] = rawAsh.split(\".\");\nif (!encodedPayload || !signatureReceived) {\n  throw new Error(\"Formato ASH non valido.\");\n}\n\nlet decodedPayload;\ntry {\n    decodedPayload = Buffer.from(encodedPayload, \"base64\").toString(\"utf8\");\n} catch (e) {\n    throw new Error(\"Errore decodifica Base64.\");\n}\n\nfunction verifySignature(payload, secret, receivedSig) {\n    let hash = 0;\n    const combined = payload + secret;\n    for (let i = 0; i < combined.length; i++) {\n        hash = ((hash << 5) - hash) + combined.charCodeAt(i);\n        hash = hash & hash; \n    }\n    const expectedSig = Math.abs(hash).toString(16);\n    return expectedSig === receivedSig;\n}\n\nif (!verifySignature(decodedPayload, SECRET_KEY, signatureReceived)) {\n    throw new Error(\"SECURITY: Firma ASH non valida o manomessa. Accesso negato.\");\n}\n\nconst parts = decodedPayload.split(\"|\");\nreturn [{\n    json: {\n        ...item,\n        ids: {\n            owner_id: parts[0],\n            customer_id: parts[1],\n            timestamp: parts[2],\n            webhook: parts[3]\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-200, 0],
+      "id": "ash-agenda",
+      "name": "Ash Decoder"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.chat_id\": {\n        \"$eq\": {{ parseInt($('Ash Decoder').first().json.ids?.owner_id || $('telegram_validator').first().json.user?.id || 0) }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [0, -120],
+      "id": "get-owner-agenda",
+      "name": "Get Owner Data",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [200, 0],
+      "id": "merge-owner-agenda",
+      "name": "MergeWebhookOwner"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
+                "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "agenda_get", "operator": { "type": "string", "operation": "equals" }, "id": "r-get" }],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GET"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
+                "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "agenda_get_calendars", "operator": { "type": "string", "operation": "equals" }, "id": "r-getcal" }],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GET_CALENDARS"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
+                "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "agenda_create_calendar", "operator": { "type": "string", "operation": "equals" }, "id": "r-createcal" }],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CREATE_CALENDAR"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
+                "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "agenda_analyze_image", "operator": { "type": "string", "operation": "equals" }, "id": "r-img" }],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ANALYZE_IMG"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
+                "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "agenda_analyze_text", "operator": { "type": "string", "operation": "equals" }, "id": "r-txt" }],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ANALYZE_TXT"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
+                "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "agenda_save", "operator": { "type": "string", "operation": "equals" }, "id": "r-save" }],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SAVE"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3 },
+                "conditions": [{ "leftValue": "={{ $json.body.action }}", "rightValue": "agenda_config_save", "operator": { "type": "string", "operation": "equals" }, "id": "r-config" }],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CONFIG"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [400, 0],
+      "id": "switch-agenda",
+      "name": "Action Switch"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "agenda_events",
+        "query": "=[\n  {\n    \"$match\": {\n      \"chatId\": \"{{ $('Ash Decoder').first().json.ids.owner_id }}\"\n    }\n  },\n  {\n    \"$project\": {\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [700, -600],
+      "id": "fetch-events-agenda",
+      "name": "Fetch Events",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"events\": {{ JSON.stringify($input.all().map(i => i.json).filter(e => e.chatId)) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [900, -600],
+      "id": "resp-get-agenda",
+      "name": "Resp Get"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "agenda_calendars",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": \"{{ $json.owner_data.vat_number }}_calendars\"\n    }\n  },\n  {\n    \"$project\": {\n      \"calendars\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"calendars\": \"$calendars.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [700, -400],
+      "id": "get-calendars-agenda",
+      "name": "Get Calendars",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nlet calendars = [];\ntry {\n    const raw = items[0]?.json?.calendars;\n    if (raw && typeof raw === 'string') {\n        calendars = JSON.parse(raw);\n    } else if (Array.isArray(raw)) {\n        calendars = raw;\n    }\n} catch(e) { /* fallback */ }\n\nif (!calendars || calendars.length === 0) {\n    calendars = [{ id: 'default', name: 'Personale', color: '#000000' }];\n}\n\nreturn [{ json: { calendars } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, -400],
+      "id": "format-calendars-agenda",
+      "name": "Format Calendars"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [1100, -400],
+      "id": "resp-get-calendars-agenda",
+      "name": "Resp Get Calendars"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst body = item.body || {};\nconst name = body.name || 'Nuovo';\nconst newCal = {\n    id: 'cal_' + Date.now(),\n    name: name,\n    color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')\n};\n\n// Retrieve existing calendars from prior merge if available\nlet existingCalendars = [];\ntry {\n    const raw = $('Get Calendars For Edit').first()?.json?.calendars;\n    if (raw && typeof raw === 'string') {\n        existingCalendars = JSON.parse(raw);\n    } else if (Array.isArray(raw)) {\n        existingCalendars = raw;\n    }\n} catch(e) {}\n\nif (!existingCalendars || existingCalendars.length === 0) {\n    existingCalendars = [{ id: 'default', name: 'Personale', color: '#000000' }];\n}\n\nexistingCalendars.push(newCal);\n\nreturn [{\n    json: {\n        ...item,\n        calendars_json: JSON.stringify(existingCalendars),\n        new_calendar: newCal\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, -200],
+      "id": "prep-create-cal-agenda",
+      "name": "Prepare New Calendar"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "agenda_calendars",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": \"{{ $json.owner_data.vat_number }}_calendars\"\n    }\n  },\n  {\n    \"$project\": {\n      \"calendars\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"calendars\": \"$calendars.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [700, -200],
+      "id": "get-calendars-for-edit-agenda",
+      "name": "Get Calendars For Edit",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [900, -200],
+      "id": "merge-cal-edit-agenda",
+      "name": "MergeCalEdit"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.calendars_json }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [1300, -120],
+      "id": "save-cal-memory-agenda",
+      "name": "Save Calendars"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}_calendars",
+        "collectionName": "agenda_calendars",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [1300, 20],
+      "id": "mongo-cal-memory-agenda",
+      "name": "MongoDB Chat Memory Calendars",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"calendar\": {{ JSON.stringify($json.new_calendar || {}) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [1500, -200],
+      "id": "resp-create-cal-agenda",
+      "name": "Resp Create Calendar"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "a-sys-img", "name": "SystemInstruction", "value": "Sei un assistente AI esperto nell'estrarre impegni e appuntamenti da immagini di agende, calendari, foto di schermi o diari scritti a mano.\n\nDevi estrarre ogni impegno rilevato e restituire ESCLUSIVAMENTE un JSON valido con questa struttura:\n{\n  \"events_draft\": [\n    {\n      \"title\": \"Titolo impegno\",\n      \"date\": \"YYYY-MM-DD\",\n      \"time_start\": \"HH:MM\",\n      \"duration_min\": 30,\n      \"type\": \"MEETING|CALL|DELIVERY|REMINDER\",\n      \"location\": \"\",\n      \"notes\": \"\"\n    }\n  ]\n}\n\nSe non ci sono impegni rilevabili restituisci {\"events_draft\": []}.", "type": "string" },
+            { "id": "a-prompt-img", "name": "Prompt", "value": "Analizza questa immagine di agenda/calendario ed estrai tutti gli impegni, appuntamenti e promemoria visibili. Per la data, se vedi solo il giorno della settimana, calcola la data esatta partendo da oggi.", "type": "string" },
+            { "id": "a-model-img", "name": "=ModelChoice", "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent", "type": "string" },
+            { "id": "a-key-img", "name": "GeminiKey", "value": "={{ $json.owner_data.gemini_key }}", "type": "string" },
+            { "id": "a-err-img", "name": "errorPath", "value": "={{ $json.owner_data.vat_number }}", "type": "string" },
+            { "id": "a-ground-img", "name": "grounding", "value": false, "type": "boolean" },
+            { "id": "a-think-img", "name": "thinking", "value": true, "type": "boolean" },
+            { "id": "a-rename-img", "name": "outputRename", "value": "events_draft", "type": "string" },
+            { "id": "a-data-img", "name": "data", "value": "={{ $json.body.image_base64 }}", "type": "string" },
+            { "id": "a-mime-img", "name": "mimeType", "value": "={{ $json.body.mime_type || 'image/jpeg' }}", "type": "string" },
+            { "id": "a-free-img", "name": "FreeCall", "value": false, "type": "boolean" },
+            { "id": "a-buse-img", "name": "billing_source.use", "value": "=Agenda Scanner {{ $json.owner_data.vat_number }}", "type": "string" },
+            { "id": "a-bwh-img", "name": "billing_source.wh", "value": "https://prod.workflow.trinai.it/webhook/8f148592-cbb9-4c72-96e8-73c08fccee43", "type": "string" }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [700, 0],
+      "id": "prep-gemini-img-agenda",
+      "name": "Prep Gemini Vision"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [900, 0],
+      "id": "call-gemini-img-agenda",
+      "name": "Call Gemini Vision"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"events_draft\": {{ JSON.stringify($json.events_draft || []) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [1100, 100],
+      "id": "resp-ai-agenda",
+      "name": "Resp AI"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "a-sys-txt", "name": "SystemInstruction", "value": "Sei un assistente AI esperto nell'estrarre impegni e appuntamenti da testo libero o messaggi vocali.\n\nDevi interpretare il linguaggio naturale (scritto o trascritto da audio) e restituire ESCLUSIVAMENTE un JSON valido con questa struttura:\n{\n  \"events_draft\": [\n    {\n      \"title\": \"Titolo impegno\",\n      \"date\": \"YYYY-MM-DD\",\n      \"time_start\": \"HH:MM\",\n      \"duration_min\": 30,\n      \"type\": \"MEETING|CALL|DELIVERY|REMINDER\",\n      \"location\": \"\",\n      \"notes\": \"\"\n    }\n  ]\n}\n\nSe il testo dice 'domani' o 'lunedì prossimo', calcola la data esatta partendo da oggi.\nSe non ci sono impegni rilevabili restituisci {\"events_draft\": []}.", "type": "string" },
+            { "id": "a-prompt-txt", "name": "Prompt", "value": "={{ $json.body.voice_base64 ? 'Ascolta questo messaggio vocale ed estrai tutti gli impegni, appuntamenti e promemoria menzionati. Per ogni impegno identifica data, ora, durata, tipo e luogo.' : 'Analizza il seguente testo ed estrai tutti gli impegni, appuntamenti e promemoria:\\n\\n' + ($json.body.text || '') }}", "type": "string" },
+            { "id": "a-model-txt", "name": "=ModelChoice", "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent", "type": "string" },
+            { "id": "a-key-txt", "name": "GeminiKey", "value": "={{ $json.owner_data.gemini_key }}", "type": "string" },
+            { "id": "a-err-txt", "name": "errorPath", "value": "={{ $json.owner_data.vat_number }}", "type": "string" },
+            { "id": "a-ground-txt", "name": "grounding", "value": false, "type": "boolean" },
+            { "id": "a-think-txt", "name": "thinking", "value": true, "type": "boolean" },
+            { "id": "a-rename-txt", "name": "outputRename", "value": "events_draft", "type": "string" },
+            { "id": "a-data-txt", "name": "data", "value": "={{ $json.body.voice_base64 || $json.body.text || '' }}", "type": "string" },
+            { "id": "a-mime-txt", "name": "mimeType", "value": "={{ $json.body.voice_base64 ? ($json.body.mime_type || 'audio/webm') : 'text/plain' }}", "type": "string" },
+            { "id": "a-free-txt", "name": "FreeCall", "value": false, "type": "boolean" },
+            { "id": "a-buse-txt", "name": "billing_source.use", "value": "=Agenda NLP {{ $json.owner_data.vat_number }}", "type": "string" },
+            { "id": "a-bwh-txt", "name": "billing_source.wh", "value": "https://prod.workflow.trinai.it/webhook/8f148592-cbb9-4c72-96e8-73c08fccee43", "type": "string" }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [700, 200],
+      "id": "prep-gemini-txt-agenda",
+      "name": "Prep Gemini NLP/Voice"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [900, 200],
+      "id": "call-gemini-txt-agenda",
+      "name": "Call Gemini NLP/Voice"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $node.Webhook.json.body.events || [];\nconst chatId = $('Ash Decoder').first().json.ids.owner_id;\nconst calId = $node.Webhook.json.body.calendar_id || 'default';\nreturn items.map(ev => ({\n    json: {\n        ...ev,\n        chatId,\n        calendar_id: ev.calendar_id || calId,\n        status: 'CONFIRMED',\n        created_at: new Date().toISOString()\n    }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 400],
+      "id": "prep-save-agenda",
+      "name": "Prepare Save"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "agenda_events",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [900, 400],
+      "id": "save-events-agenda",
+      "name": "Save Events",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"success\": true}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [1100, 400],
+      "id": "resp-save-agenda",
+      "name": "Resp Save"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst icalUrl = item.body?.ical_url || '';\nconst chatId = $('Ash Decoder').first().json.ids.owner_id;\n\nreturn [{\n    json: {\n        sessionId: chatId,\n        ical_url: icalUrl\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 600],
+      "id": "prep-config-agenda",
+      "name": "Prepare Config"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ JSON.stringify({ ical_url: $json.ical_url }) }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [900, 600],
+      "id": "save-config-memory-agenda",
+      "name": "Save Config"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}_agenda_config",
+        "collectionName": "agenda_config",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [900, 740],
+      "id": "mongo-config-memory-agenda",
+      "name": "MongoDB Chat Memory Config",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"success\": true}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [1100, 600],
+      "id": "resp-config-agenda",
+      "name": "Resp Config"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          { "node": "telegram_validator", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "telegram_validator": {
+      "main": [
+        [
+          { "node": "isValid", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "isValid": {
+      "main": [
+        [
+          { "node": "Ash Decoder", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "⛔️ 403 Forbidden", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Ash Decoder": {
+      "main": [
+        [
+          { "node": "Get Owner Data", "type": "main", "index": 0 },
+          { "node": "MergeWebhookOwner", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Get Owner Data": {
+      "main": [
+        [
+          { "node": "MergeWebhookOwner", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "MergeWebhookOwner": {
+      "main": [
+        [
+          { "node": "Action Switch", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Action Switch": {
+      "main": [
+        [
+          { "node": "Fetch Events", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Get Calendars", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Get Calendars For Edit", "type": "main", "index": 0 },
+          { "node": "MergeCalEdit", "type": "main", "index": 1 }
+        ],
+        [
+          { "node": "Prep Gemini Vision", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Prep Gemini NLP/Voice", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Prepare Save", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Prepare Config", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch Events": {
+      "main": [
+        [
+          { "node": "Resp Get", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Get Calendars": {
+      "main": [
+        [
+          { "node": "Format Calendars", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Format Calendars": {
+      "main": [
+        [
+          { "node": "Resp Get Calendars", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Get Calendars For Edit": {
+      "main": [
+        [
+          { "node": "MergeCalEdit", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "MergeCalEdit": {
+      "main": [
+        [
+          { "node": "Prepare New Calendar", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Prepare New Calendar": {
+      "main": [
+        [
+          { "node": "Save Calendars", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Save Calendars": {
+      "main": [
+        [
+          { "node": "Resp Create Calendar", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory Calendars": {
+      "ai_memory": [
+        [
+          { "node": "Save Calendars", "type": "ai_memory", "index": 0 }
+        ]
+      ]
+    },
+    "Prep Gemini Vision": {
+      "main": [
+        [
+          { "node": "Call Gemini Vision", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Call Gemini Vision": {
+      "main": [
+        [
+          { "node": "Resp AI", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Prep Gemini NLP/Voice": {
+      "main": [
+        [
+          { "node": "Call Gemini NLP/Voice", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Call Gemini NLP/Voice": {
+      "main": [
+        [
+          { "node": "Resp AI", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Prepare Save": {
+      "main": [
+        [
+          { "node": "Save Events", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Save Events": {
+      "main": [
+        [
+          { "node": "Resp Save", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Prepare Config": {
+      "main": [
+        [
+          { "node": "Save Config", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Save Config": {
+      "main": [
+        [
+          { "node": "Resp Config", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory Config": {
+      "ai_memory": [
+        [
+          { "node": "Save Config", "type": "ai_memory", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "68feb358-92eb-4738-8afd-fb9d920a0111",
+  "meta": {
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "xDAtBt8bCLGCfCpE",
+  "tags": []
+}

@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>10. Agenda Radar | SiTeBoS Guide</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { primary: '#000000', bg: '#ffffff', surface: '#ffffff', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #000000;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .content-area {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .prose h1 {
+            font-size: 2.25rem;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        .prose h2 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-top: 3rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid #000;
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .prose h3 {
+            font-size: 1.1rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-top: 2rem;
+            color: #111827;
+        }
+
+        .prose p {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #374151;
+            margin-bottom: 1.5rem;
+        }
+
+        .prose b {
+            font-weight: 800;
+            color: #000;
+        }
+
+        .info-card {
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .badge-step {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: #000000;
+            color: #ffffff;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+    </style>
+</head>
+
+<body class="safe-area-inset min-h-screen pb-32">
+
+    <!-- TOP NAV -->
+    <nav
+        class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-5 py-4 flex items-center justify-between">
+        <button onclick="location.href='index.html'"
+            class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
+            <i class="fas fa-arrow-left"></i> Index
+        </button>
+        <div class="text-[9px] font-black uppercase tracking-[0.2em] text-purple-600 italic">Capitolo 10</div>
+    </nav>
+
+    <main class="content-area animate-in">
+        <article class="prose">
+            <h1>Agenda Radar</h1>
+
+            <p>
+                Nel lavoro di ogni piccola impresa o studio professionale, il tempo è la risorsa più preziosa. Un'ora vuota in agenda è un'opportunità persa che non tornerà più. Spesso, però, rincorrere i clienti per riempire i buchi o ricordare al personale le procedure quotidiane richiede ore di lavoro al telefono o al computer.
+            </p>
+
+            <p>
+                <b>Agenda Radar</b> è nata per questo: un assistente discreto, integrato direttamente su Telegram, che ti aiuta a tenere l'agenda sempre piena e lo staff sempre allineato, senza complicazioni tecnologiche.
+            </p>
+
+            
+        <div class="flex gap-2">
+            <button onclick="return false;" class="w-10 h-10 bg-white border border-border rounded-xl flex items-center justify-center text-black shadow-sm active:scale-90 transition">
+                <i class="fas fa-cog text-xs"></i>
+            </button>
+            <button onclick="return false;" class="w-10 h-10 bg-white border border-border rounded-xl flex items-center justify-center text-black shadow-sm active:scale-90 transition">
+                <i class="fas fa-sync-alt text-xs"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- WIDGET RADAR SATURAZIONE & SOP -->
+    <div class="grid grid-cols-2 gap-3 mb-4">
+        <!-- Card Saturazione -->
+        <div class="card-noir p-4 flex flex-col justify-between">
+            <span class="text-[8px] font-black uppercase tracking-widest text-gray-400">Saturazione Agenda</span>
+            <div class="flex items-baseline gap-1 mt-2">
+                <span id="radar-saturation-val" class="text-2xl font-black">--%</span>
+                <span class="text-[8px] text-gray-400 uppercase font-black" id="radar-saturation-label">Caricamento...</span>
+            </div>
+            <button onclick="return false;" class="text-[8px] font-black uppercase text-black underline tracking-widest mt-2 text-left">Apri Radar AI</button>
+        </div>
+        <!-- Card SOP Rapide -->
+        <div class="card-noir p-4 flex flex-col justify-between">
+            <span class="text-[8px] font-black uppercase tracking-widest text-gray-400">SOP Giornaliere</span>
+            <div class="flex items-center gap-2 mt-2">
+                <i class="fas fa-tasks text-xs text-gray-400"></i>
+                <span id="radar-sop-count" class="text-xs font-bold">0 / 0 Completate</span>
+            </div>
+            <button onclick="return false;" class="text-[8px] font-black uppercase text-black underline tracking-widest mt-2 text-left">Esegui SOP</button>
+        </div>
+    </div>
+
+    <!-- CONSULTAZIONE IMPEGNI -->
+    <section class="space-y-4 flex-1">
+        <div class="flex justify-between items-end">
+            <div>
+                <p id="today-date-label" class="text-[10px] font-black uppercase tracking-widest text-gray-400">Oggi · ---</p>
+                <!-- ═══════════════════════════════════════════════════════════════
+                 PREVIEW REALE SANIFICATO: agents/agenda.html
+                 Estratto automaticamente dall'HTML sorgente della MiniApp.
+                 ═══════════════════════════════════════════════════════════════ -->
+            <div class="my-10 rounded-3xl overflow-hidden border border-slate-200 shadow-xl" id="preview-10_agenda_radar-0" style="background:#f8fafc;">
+
+                <!-- Header dell'anteprima -->
+                <div style="background:#0f172a; padding:0.6rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.4rem; min-width:0;">
+                        <span style="width:9px; height:9px; border-radius:50%; background:#ef4444; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#f59e0b; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#22c55e; flex-shrink:0; display:block;"></span>
+                        <span style="font-size:8px; font-family:ui-monospace,monospace; color:#64748b; margin-left:0.5rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Agenda Radar</span>
+                    </div>
+                    <span style="font-size:7px; font-family:ui-monospace,monospace; color:#3b82f6; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; flex-shrink:0; white-space:nowrap;">SiTeBoS Interface</span>
+                </div>
+
+                <!-- Viewport scalato con touch/scroll pass-through -->
+                <div style="position:relative; overflow:hidden; height:460px; background:#f8fafc;">
+
+                    <style>
+                        #preview-10_agenda_radar-0 .preview-body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
+                        #preview-10_agenda_radar-0 .no-scrollbar::-webkit-scrollbar { display:none; }
+                        
+    #preview-10_agenda_radar-0 .preview-body { background-color: #fafafa !important; color: #000000 !important; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; /* overflow:hidden removed */ height: auto; }
+    .card-noir { background: white !important; border: 1px solid #eeeeee !important; border-radius: 1.5rem; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    
+    .view-overlay { position: fixed; inset: 0; background: #fafafa; z-index: 50; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(100%); }
+    .view-overlay.active { transform: translateX(0); }
+    
+    .spinner { border: 2px solid rgba(0,0,0,0.1); border-top-color: #000; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .event-pill { border-left: 4px solid #eeeeee; transition: all 0.2s; }
+    .event-pill.active { border-left-color: #000; background: #fcfcfc; }
+
+    /* Help Overlay */
+    .help-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); z-index: 100; display: none; align-items: flex-end; justify-content: center; }
+    .help-overlay.open { display: flex; }
+    .help-sheet { background: #fafafa; border-radius: 2rem 2rem 0 0; width: 100%; max-height: 85vh; overflow-y: auto; padding: 2rem 1.5rem 3rem; animation: slideUp 0.3s ease-out; }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .help-step { display: flex; gap: 12px; align-items: flex-start; }
+    .help-step-num { min-width: 28px; height: 28px; background: #000; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; flex-shrink: 0; }
+  
+                    </style>
+
+                    <div class="preview-body" style="
+                        transform: scale(0.5);
+                        transform-origin: top left;
+                        width: 200%;
+                        position: absolute;
+                        top: 0; left: 0;
+                        pointer-events: none;
+                        user-select: none;
+                        min-height: 920px;
+                        overflow: hidden;
+                    ">
+                        <!-- MAIN APP (SCREEN A: HOME) -->
+  <div id="screen-home" class="h-full flex flex-col p-5 space-y-6 overflow-y-auto no-scrollbar">
+    
+    <!-- HEADER FISSO -->
+    <header class="flex justify-between items-center pt-2">
+        <div>
+            <h1 class="text-2xl font-black tracking-tighter uppercase leading-none">⏳ Agenda</h1>
+            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1 flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-black inline-block"></span>
+                <span>Agenda di Sede</span>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button  class="w-10 h-10 bg-white border border-border rounded-xl flex items-center justify-center text-black shadow-sm active:scale-90 transition">
+                <i class="fas fa-cog text-xs"></i>
+            </button>
+            <button  class="w-10 h-10 bg-white border border-border rounded-xl flex items-center justify-center text-black shadow-sm active:scale-90 transition">
+                <i class="fas fa-sync-alt text-xs"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- WIDGET RADAR SATURAZIONE & SOP -->
+    <div class="grid grid-cols-2 gap-3 mb-4">
+        <!-- Card Saturazione -->
+        <div class="card-noir p-4 flex flex-col justify-between">
+            <span class="text-[8px] font-black uppercase tracking-widest text-gray-400">Saturazione Agenda</span>
+            <div class="flex items-baseline gap-1 mt-2">
+                <span id="radar-saturation-val" class="text-2xl font-black">--%</span>
+                <span class="text-[8px] text-gray-400 uppercase font-black" id="radar-saturation-label">Caricamento...</span>
+            </div>
+            <button  class="text-[8px] font-black uppercase text-black underline tracking-widest mt-2 text-left">Apri Radar AI</button>
+        </div>
+        <!-- Card SOP Rapide -->
+        <div class="card-noir p-4 flex flex-col justify-between">
+            <span class="text-[8px] font-black uppercase tracking-widest text-gray-400">SOP Giornaliere</span>
+            <div class="flex items-center gap-2 mt-2">
+                <i class="fas fa-tasks text-xs text-gray-400"></i>
+                <span id="radar-sop-count" class="text-xs font-bold">0 / 0 Completate</span>
+            </div>
+            <button  class="text-[8px] font-black uppercase text-black underline tracking-widest mt-2 text-left">Esegui SOP</button>
+        </div>
+    </div>
+
+    <!-- CONSULTAZIONE IMPEGNI -->
+    <section class="space-y-4 flex-1">
+        <div class="flex justify-between items-end">
+            <div>
+                <p id="today-date-label" class="text-[10px] font-black uppercase tracking-widest text-gray-400">Oggi · ---</p>
+                <h2 class="text-xl font-black tracking-tight">I tuoi impegni</h2>
+            </div>
+            <button  class="text-[9px] font-black uppercase tracking-widest text-black border-b-2 border-black pb-0.5">Ved. Settimana</button>
+        </div>
+
+        <div id="today-events-list" class="space-y-3">
+            <!-- Eventi caricati via JS dal gestionale -->
+            <div class="py-10 text-center opacity-20"><i class="fas fa-calendar-day text-4xl"></i></div>
+        </div>
+    </section>
+  </div>
+
+  <!-- SCREEN E: WEEK VIEW -->
+  <div id="screen-week" class="view-overlay flex flex-col">
+    <header class="p-6 pb-2 flex justify-between items-center">
+        <button  class="w-10 h-10 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+        <div class="flex items-center gap-4">
+            <button ><i class="fas fa-chevron-left text-xs"></i></button>
+            <span id="week-range-label" class="text-xs font-black uppercase tracking-tighter">---</span>
+            <button ><i class="fas fa-chevron-right text-xs"></i></button>
+        </div>
+        <div class="w-10"></div>
+    </header>
+
+    <!-- STRIP GIORNI -->
+    <div id="week-days-strip" class="grid grid-cols-5 px-4 py-4 border-b border-gray-50">
+        <!-- Generato via JS -->
+    </div>
+
+    <div id="week-events-list" class="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
+        <!-- Eventi raggruppati per giorno -->
+    </div>
+  </div>
+
+  <!-- SCREEN F: SETTINGS -->
+  <div id="screen-settings" class="view-overlay flex flex-col p-6">
+    <header class="flex justify-between items-center mb-8">
+        <button  class="w-10 h-10 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+        <h2 class="text-sm font-black uppercase tracking-widest">Configurazione</h2>
+        <div class="w-10"></div>
+    </header>
+
+    <div class="flex-1 space-y-8">
+        <!-- STRUTTURA 3 VIE INGESTIONE IN CONFIGURAZIONE -->
+        <div class="space-y-6">
+            <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Sorgente Dati Agenda</p>
+            
+            <!-- Switch di Selezione -->
+            <div class="grid grid-cols-3 gap-2 bg-gray-100 p-1 rounded-xl">
+                <button  id="btn-tab-ical" class="py-2 text-[9px] font-black uppercase tracking-widest rounded-lg bg-white text-black shadow-sm">iCal</button>
+                <button  id="btn-tab-api" class="py-2 text-[9px] font-black uppercase tracking-widest rounded-lg text-gray-400">API CRM</button>
+                <button  id="btn-tab-vision" class="py-2 text-[9px] font-black uppercase tracking-widest rounded-lg text-gray-400">Vision AI</button>
+            </div>
+
+            <!-- SEZIONE 1: ICAL (Mostrata di default) -->
+            <div id="config-section-ical" class="space-y-3">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-[9px] font-black uppercase tracking-widest text-black">Link Agenda Esterna (iCal)</h3>
+                    <button  class="w-4 h-4 bg-gray-200 rounded-full flex items-center justify-center text-[8px] font-black text-gray-500">?</button>
+                </div>
+                <input type="url" id="config-ical-url" class="w-full bg-white border border-border rounded-xl p-4 text-xs font-medium outline-none focus:border-black transition-colors" placeholder="https://calendar.google.com/.../basic.ics">
+            </div>
+
+            <!-- SEZIONE 2: API GESTIONALE (Dental Manager) -->
+            <div id="config-section-api" class="space-y-3 hidden">
+                <h3 class="text-[9px] font-black uppercase tracking-widest text-black">Integrazione API Gestionale</h3>
+                <input type="text" id="config-api-url" class="w-full bg-white border border-border rounded-xl p-4 text-xs font-medium outline-none focus:border-black transition-colors" placeholder="https://app.dental-manager.it/api/v1">
+                <input type="password" id="config-api-token" class="w-full bg-white border border-border rounded-xl p-4 text-xs font-medium outline-none focus:border-black transition-colors" placeholder="Inserisci API Token dello Studio">
+            </div>
+
+            <!-- SEZIONE 3: VISION AI (Weekly Ingestion Queue) -->
+            <div id="config-section-vision" class="space-y-4 hidden">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-[9px] font-black uppercase tracking-widest text-black">Coda Vision AI (Max 6 pag.)</h3>
+                    <span id="vision-queue-counter" class="text-[9px] font-black text-gray-400">0 / 6 Pagine</span>
+                </div>
+                
+                <!-- Queue Cards Container -->
+                <div id="vision-queue-container" class="space-y-3 max-h-72 overflow-y-auto no-scrollbar">
+                    <!-- Cards will be dynamically rendered here -->
+                </div>
+
+                <!-- Add Button -->
+                <button id="btn-add-vision"  class="w-full py-4 bg-gray-100 border-2 border-dashed border-gray-200 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-500 flex items-center justify-center gap-2 active:scale-95 transition">
+                    <i class="fas fa-camera"></i> <span id="btn-add-vision-text">Aggiungi Giorno (Scatta Foto)</span>
+                </button>
+                <input type="file" id="vision-file-input" class="hidden" accept="image/*" >
+
+                <!-- Batch Send Button -->
+                <button id="btn-submit-vision-batch"  class="w-full bg-black text-white py-4 rounded-xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 shadow-md hidden">
+                    <i class="fas fa-cloud-upload-alt"></i> Elabora Settimana Completa
+                </button>
+            </div>
+        </div>
+
+        <!-- BOOTSTRAP AGENDA -->
+        <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-3">
+            <div class="flex items-start gap-3">
+                <i class="fas fa-magic text-gray-400 mt-0.5 text-xs"></i>
+                <div class="space-y-1">
+                    <h4 class="text-[10px] font-black uppercase tracking-widest text-black">Inizializzazione Agenda</h4>
+                    <p class="text-[9px] text-gray-400 leading-relaxed">Non hai ancora un'agenda attiva? Genera e scarica la struttura di calendario ideale basata sul tuo Setup Avanzato.</p>
+                </div>
+            </div>
+            <button  class="w-full py-4 bg-white border border-border rounded-xl text-[9px] font-black uppercase tracking-widest text-black flex items-center justify-center gap-2 active:scale-95 transition shadow-sm">
+                <i class="fas fa-calendar-plus"></i> Scarica Struttura Agenda (iCal)
+            </button>
+        </div>
+    </div>
+
+    <!-- HELP OVERLAY: Come ottenere il link iCal -->
+    <div id="ical-help-overlay" class="help-overlay" >
+        <div class="help-sheet">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-sm font-black uppercase tracking-widest">Come ottenere il link</h3>
+                <button  class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-xs"><i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- GOOGLE CALENDAR -->
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" class="w-4 h-4">
+                    <p class="text-[10px] font-black uppercase tracking-widest">Google Calendar</p>
+                </div>
+                <div class="space-y-3">
+                    <div class="help-step">
+                        <div class="help-step-num">1</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Apri <b>Google Calendar</b> da PC e clicca sull'icona <b>⚙️ Impostazioni</b> in alto a destra.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">2</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Nella colonna sinistra, seleziona il calendario desiderato sotto <b>"Impostazioni per i miei calendari"</b>.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">3</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Scorri fino a <b>"Indirizzo segreto in formato iCal"</b> e copia l'URL che termina in <b>.ics</b>.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 my-4"></div>
+
+            <!-- APPLE iCLOUD -->
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fab fa-apple text-gray-700"></i>
+                    <p class="text-[10px] font-black uppercase tracking-widest">Apple Calendar (iCloud)</p>
+                </div>
+                <div class="space-y-3">
+                    <div class="help-step">
+                        <div class="help-step-num">1</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Vai su <b>icloud.com/calendar</b> e accedi con il tuo Apple ID.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">2</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Clicca sull'icona di <b>condivisione</b> accanto al nome del calendario nella barra laterale.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">3</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Seleziona <b>"Calendario pubblico"</b> e copia le URL generate (inizia con <b>webcal://</b>).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 my-4"></div>
+
+            <!-- OUTLOOK -->
+            <div class="mb-2">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fab fa-microsoft text-blue-600"></i>
+                    <p class="text-[10px] font-black uppercase tracking-widest">Outlook / Microsoft 365</p>
+                </div>
+                <div class="space-y-3">
+                    <div class="help-step">
+                        <div class="help-step-num">1</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Apri <b>Outlook sul web</b> e vai su <b>Impostazioni → Calendario → Calendari condivisi</b>.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">2</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Sotto <b>"Pubblica un calendario"</b>, seleziona il calendario e il livello di dettaglio, poi clicca <b>"Pubblica"</b>.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">3</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Copia il link <b>ICS</b> generato (non quello HTML).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 p-4 bg-gray-100 rounded-2xl">
+                <p class="text-[9px] text-gray-500 leading-relaxed"><i class="fas fa-info-circle mr-1"></i> <b>Nota:</b> Il link è in sola lettura. I tuoi eventi esterni verranno importati automaticamente ma non potranno essere modificati da qui.</p>
+            </div>
+        </div>
+    </div>
+
+    <button  class="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 mb-6 shadow-xl">
+        <i class="fas fa-save"></i> Salva Configurazione
+    </button>
+
+    <!-- Central Spinner for settings total UI lock -->
+    <div id="settings-lock-loader" class="hidden absolute inset-0 bg-white/80 z-50 flex flex-col items-center justify-center gap-3">
+        <div class="spinner"></div>
+        <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Elaborazione Batch in corso... Non chiudere la schermata</p>
+    </div>
+  </div>
+
+  <!-- SCREEN I: AGENDA RADAR -->
+  <div id="screen-radar" class="view-overlay flex flex-col p-6">
+      <header class="flex justify-between items-center mb-6">
+          <button  class="w-10 h-10 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+          <h2 class="text-sm font-black uppercase tracking-widest">Radar AI / Ottimizzazione</h2>
+          <div class="w-10"></div>
+      </header>
+
+      <div class="flex-1 space-y-6 overflow-y-auto no-scrollbar">
+          <!-- Tasto Analisi Predittiva -->
+          <button id="btn-run-radar"  class="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 shadow-xl">
+              <i class="fas fa-magic"></i> Ottimizza Agenda con AI
+          </button>
+
+          <!-- Indicatore di caricamento (UI Lock Spinner) -->
+          <div id="radar-ai-loader" class="hidden flex flex-col items-center justify-center py-12 gap-3">
+              <div class="spinner"></div>
+              <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Generazione in corso... Non chiudere la schermata</p>
+          </div>
+
+          <!-- Sezione Risultati -->
+          <div id="radar-results" class="space-y-4 hidden">
+              <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Consigli di Saturazione Rilevati</p>
+              <div id="radar-suggestions-container" class="space-y-3">
+                  <!-- Generato via JS -->
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- SCREEN J: SOP LIST -->
+  <div id="screen-sop-list" class="view-overlay flex flex-col p-6">
+      <header class="flex justify-between items-center mb-6">
+          <button  class="w-10 h-10 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+          <h2 class="text-sm font-black uppercase tracking-widest">SOP di Oggi</h2>
+          <div class="w-10"></div>
+      </header>
+      <div class="flex-1 space-y-4 overflow-y-auto no-scrollbar" id="sop-container">
+          <!-- Lista SOP con checkbox generata via JS -->
+      </div>
+  </div>
+
+  
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+                    </div>
+
+                    <!-- Fade gradient inferiore -->
+                    <div style="position:absolute; bottom:0; left:0; right:0; height:100px; background:linear-gradient(to bottom, transparent 0%, #f8fafc 90%); pointer-events:none; z-index:10;"></div>
+                </div>
+
+                <!-- Didascalia -->
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig  Agenda Radar — Analisi & Vision OCR
+                </div>
+            </div>
+
+            <h2 class="text-xl font-black tracking-tight">I tuoi impegni</h2>
+            </div>
+            <button onclick="return false;" class="text-[9px] font-black uppercase tracking-widest text-black border-b-2 border-black pb-0.5">Ved. Settimana</button>
+        </div>
+
+        <div id="today-events-list" class="space-y-3">
+            <!-- Eventi caricati via JS dal gestionale -->
+            <div class="py-10 text-center opacity-20"><i class="fas fa-calendar-day text-4xl"></i></div>
+        </div>
+    </section>
+  </div>
+
+  <!-- SCREEN E: WEEK VIEW -->
+  <div id="screen-week" class="view-overlay flex flex-col">
+    <header class="p-6 pb-2 flex justify-between items-center">
+        <button onclick="return false;" class="w-10 h-10 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+        <div class="flex items-center gap-4">
+            <button onclick="return false;"><i class="fas fa-chevron-left text-xs"></i></button>
+            <span id="week-range-label" class="text-xs font-black uppercase tracking-tighter">---</span>
+            <button onclick="return false;"><i class="fas fa-chevron-right text-xs"></i></button>
+        </div>
+        <div class="w-10"></div>
+    </header>
+
+    <!-- STRIP GIORNI -->
+    <div id="week-days-strip" class="grid grid-cols-5 px-4 py-4 border-b border-gray-50">
+        <!-- Generato via JS -->
+    </div>
+
+    <div id="week-events-list" class="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
+        <!-- Eventi raggruppati per giorno -->
+    </div>
+  </div>
+
+  <!-- SCREEN F: SETTINGS -->
+  <div id="screen-settings" class="view-overlay flex flex-col p-6">
+    <header class="flex justify-between items-center mb-8">
+        <button onclick="return false;" class="w-10 h-10 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+        <h2 class="text-sm font-black uppercase tracking-widest">Configurazione</h2>
+        <div class="w-10"></div>
+    </header>
+
+    <div class="flex-1 space-y-8">
+        <!-- STRUTTURA 3 VIE INGESTIONE IN CONFIGURAZIONE -->
+        <div class="space-y-6">
+            <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Sorgente Dati Agenda</p>
+            
+            <!-- Switch di Selezione -->
+            <div class="grid grid-cols-3 gap-2 bg-gray-100 p-1 rounded-xl">
+                <button onclick="return false;" id="btn-tab-ical" class="py-2 text-[9px] font-black uppercase tracking-widest rounded-lg bg-white text-black shadow-sm">iCal</button>
+                <button onclick="return false;" id="btn-tab-api" class="py-2 text-[9px] font-black uppercase tracking-widest rounded-lg text-gray-400">API CRM</button>
+                <button onclick="return false;" id="btn-tab-vision" class="py-2 text-[9px] font-black uppercase tracking-widest rounded-lg text-gray-400">Vision AI</button>
+            </div>
+
+            <!-- SEZIONE 1: ICAL (Mostrata di default) -->
+            <div id="config-section-ical" class="space-y-3">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-[9px] font-black uppercase tracking-widest text-black">Link Agenda Esterna (iCal)</h3>
+                    <button onclick="return false;" class="w-4 h-4 bg-gray-200 rounded-full flex items-center justify-center text-[8px] font-black text-gray-500">?</button>
+                </div>
+                <input type="url" id="config-ical-url" class="w-full bg-white border border-border rounded-xl p-4 text-xs font-medium outline-none focus:border-black transition-colors" placeholder="https://calendar.google.com/.../basic.ics">
+            </div>
+
+            <!-- SEZIONE 2: API GESTIONALE (Dental Manager) -->
+            <div id="config-section-api" class="space-y-3 hidden">
+                <h3 class="text-[9px] font-black uppercase tracking-widest text-black">Integrazione API Gestionale</h3>
+                <input type="text" id="config-api-url" class="w-full bg-white border border-border rounded-xl p-4 text-xs font-medium outline-none focus:border-black transition-colors" placeholder="https://app.dental-manager.it/api/v1">
+                <input type="password" id="config-api-token" class="w-full bg-white border border-border rounded-xl p-4 text-xs font-medium outline-none focus:border-black transition-colors" placeholder="Inserisci API Token dello Studio">
+            </div>
+
+            <!-- SEZIONE 3: VISION AI (Weekly Ingestion Queue) -->
+            <div id="config-section-vision" class="space-y-4 hidden">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-[9px] font-black uppercase tracking-widest text-black">Coda Vision AI (Max 6 pag.)</h3>
+                    <span id="vision-queue-counter" class="text-[9px] font-black text-gray-400">0 / 6 Pagine</span>
+                </div>
+                
+                <!-- Queue Cards Container -->
+                <div id="vision-queue-container" class="space-y-3 max-h-72 overflow-y-auto no-scrollbar">
+                    <!-- Cards will be dynamically rendered here -->
+                </div>
+
+                <!-- Add Button -->
+                <button id="btn-add-vision" onclick="return false;" class="w-full py-4 bg-gray-100 border-2 border-dashed border-gray-200 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-500 flex items-center justify-center gap-2 active:scale-95 transition">
+                    <i class="fas fa-camera"></i> <span id="btn-add-vision-text">Aggiungi Giorno (Scatta Foto)</span>
+                </button>
+                <input type="file" id="vision-file-input" class="hidden" accept="image/*" >
+
+                <!-- Batch Send Button -->
+                <button id="btn-submit-vision-batch" onclick="return false;" class="w-full bg-black text-white py-4 rounded-xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 shadow-md hidden">
+                    <i class="fas fa-cloud-upload-alt"></i> Elabora Settimana Completa
+                </button>
+            </div>
+        </div>
+
+        <!-- BOOTSTRAP AGENDA -->
+        <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-3">
+            <div class="flex items-start gap-3">
+                <i class="fas fa-magic text-gray-400 mt-0.5 text-xs"></i>
+                <div class="space-y-1">
+                    <h4 class="text-[10px] font-black uppercase tracking-widest text-black">Inizializzazione Agenda</h4>
+                    <p class="text-[9px] text-gray-400 leading-relaxed">Non hai ancora un'agenda attiva? Genera e scarica la struttura di calendario ideale basata sul tuo Setup Avanzato.</p>
+                </div>
+            </div>
+            <button onclick="return false;" class="w-full py-4 bg-white border border-border rounded-xl text-[9px] font-black uppercase tracking-widest text-black flex items-center justify-center gap-2 active:scale-95 transition shadow-sm">
+                <i class="fas fa-calendar-plus"></i> Scarica Struttura Agenda (iCal)
+            </button>
+        </div>
+    </div>
+
+    <!-- HELP OVERLAY: Come ottenere il link iCal -->
+    <div id="ical-help-overlay" class="help-overlay" onclick="return false;">
+        <div class="help-sheet">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-sm font-black uppercase tracking-widest">Come ottenere il link</h3>
+                <button onclick="return false;" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-xs"><i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- GOOGLE CALENDAR -->
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" class="w-4 h-4">
+                    <p class="text-[10px] font-black uppercase tracking-widest">Google Calendar</p>
+                </div>
+                <div class="space-y-3">
+                    <div class="help-step">
+                        <div class="help-step-num">1</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Apri <b>Google Calendar</b> da PC e clicca sull'icona <b>⚙️ Impostazioni</b> in alto a destra.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">2</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Nella colonna sinistra, seleziona il calendario desiderato sotto <b>"Impostazioni per i miei calendari"</b>.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">3</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Scorri fino a <b>"Indirizzo segreto in formato iCal"</b> e copia l'URL che termina in <b>.ics</b>.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 my-4"></div>
+
+            <!-- APPLE iCLOUD -->
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fab fa-apple text-gray-700"></i>
+                    <p class="text-[10px] font-black uppercase tracking-widest">Apple Calendar (iCloud)</p>
+                </div>
+                <div class="space-y-3">
+                    <div class="help-step">
+                        <div class="help-step-num">1</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Vai su <b>icloud.com/calendar</b> e accedi con il tuo Apple ID.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">2</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Clicca sull'icona di <b>condivisione</b> accanto al nome del calendario nella barra laterale.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">3</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Seleziona <b>"Calendario pubblico"</b> e copia le URL generate (inizia con <b>webcal://</b>).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 my-4"></div>
+
+            <!-- OUTLOOK -->
+            <div class="mb-2">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fab fa-microsoft text-blue-600"></i>
+                    <p class="text-[10px] font-black uppercase tracking-widest">Outlook / Microsoft 365</p>
+                </div>
+                <div class="space-y-3">
+                    <div class="help-step">
+                        <div class="help-step-num">1</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Apri <b>Outlook sul web</b> e vai su <b>Impostazioni → Calendario → Calendari condivisi</b>.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">2</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Sotto <b>"Pubblica un calendario"</b>, seleziona il calendario e il livello di dettaglio, poi clicca <b>"Pubblica"</b>.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">3</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Copia il link <b>ICS</b> generato (non quello HTML).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 p-4 bg-gray-100 rounded-2xl">
+                <p class="text-[9px] text-gray-500 leading-relaxed"><i class="fas fa-info-circle mr-1"></i> <b>Nota:</b> Il link è in sola lettura. I tuoi eventi esterni verranno importati automaticamente ma non potranno essere modificati da qui.</p>
+            </div>
+        </div>
+    </div>
+
+    <button onclick="return false;" class="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 mb-6 shadow-xl">
+        <i class="fas fa-save"></i> Salva Configurazione
+    </button>
+
+    <!-- Central Spinner for settings total UI lock -->
+    <div id="settings-lock-loader" class="hidden absolute inset-0 bg-white/80 z-50 flex flex-col items-center justify-center gap-3">
+        <div class="spinner"></div>
+        <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Elaborazione Batch in corso... Non chiudere la schermata</p>
+    </div>
+  </div>
+
+  <!-- SCREEN I: AGENDA RADAR -->
+  <div id="screen-radar" class="view-overlay flex flex-col p-6">
+      <header class="flex justify-between items-center mb-6">
+          <button onclick="return false;" class="w-10 h-10 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+          <h2 class="text-sm font-black uppercase tracking-widest">Radar AI / Ottimizzazione</h2>
+          <div class="w-10"></div>
+      </header>
+
+      <div class="flex-1 space-y-6 overflow-y-auto no-scrollbar">
+          <!-- Tasto Analisi Predittiva -->
+          <button id="btn-run-radar" onclick="return false;" class="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 shadow-xl">
+              <i class="fas fa-magic"></i> Ottimizza Agenda con AI
+          </button>
+
+          <!-- Indicatore di caricamento (UI Lock Spinner) -->
+          <div id="radar-ai-loader" class="hidden flex flex-col items-center justify-center py-12 gap-3">
+              <div class="spinner"></div>
+              <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Generazione in corso... Non chiudere la schermata</p>
+          </div>
+
+          <!-- Sezione Risultati -->
+          <div id="radar-results" class="space-y-4 hidden">
+              <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Consigli di Saturazione Rilevati</p>
+              <div id="radar-suggestions-container" class="space-y-3">
+                  <!-- Generato via JS -->
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- SCREEN J: SOP LIST -->
+  <div id="screen-sop-list" class="view-overlay flex flex-col p-6">
+      <header class="flex justify-between items-center mb-6">
+          <button onclick="return false;" class="w-10 h-10 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+          <h2 class="text-sm font-black uppercase tracking-widest">SOP di Oggi</h2>
+          <div class="w-10"></div>
+      </header>
+      <div class="flex-1 space-y-4 overflow-y-auto no-scrollbar" id="sop-container">
+          <!-- Lista SOP con checkbox generata via JS -->
+      </div>
+  </div>
+
+  
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+                    </div>
+
+                    <!-- Fade gradient in fondo per nascondere il cutoff -->
+                    <div style="position:absolute; bottom:0; left:0; right:0; height:100px; background:linear-gradient(to bottom, transparent 0%, #f8fafc 90%); pointer-events:none; z-index:10;"></div>
+                </div>
+
+                <!-- Didascalia -->
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig  Agenda Radar — Analisi & Vision OCR
+                </div>
+            </div>
+
+            <h2>A cosa serve Agenda Radar?</h2>
+            <p>
+                Agenda Radar agisce come un consulente strategico personale che monitora costantemente il calendario della tua attività per due scopi principali:
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+                <div class="info-card flex flex-col gap-2">
+                    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 shrink-0 mb-2">
+                        <i class="fas fa-calendar-check text-lg"></i>
+                    </div>
+                    <p class="font-black text-xs uppercase text-black">Saturare l'agenda</p>
+                    <p class="text-[11px] text-gray-500 m-0 leading-relaxed">Trova i "tempi morti" e ti suggerisce esattamente quale servizio proporre e a quale cliente, preparando persino il messaggio da inviargli.</p>
+                </div>
+                <div class="info-card flex flex-col gap-2">
+                    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 shrink-0 mb-2">
+                        <i class="fas fa-users-cog text-lg"></i>
+                    </div>
+                    <p class="font-black text-xs uppercase text-black">Coordinare lo staff (SOP)</p>
+                    <p class="text-[11px] text-gray-500 m-0 leading-relaxed">Ricorda al tuo staff le procedure fondamentali (pulizia, sicurezza, preparazione delle stanze) in base agli appuntamenti previsti nella giornata.</p>
+                </div>
+            </div>
+
+            <h2>Come funziona in pratica?</h2>
+            <p>
+                Il funzionamento è stato progettato per essere il più semplice e immediato possibile, diviso in tre passaggi chiave:
+            </p>
+
+            <div class="space-y-6 my-8">
+                <div class="flex gap-4 items-start">
+                    <span class="badge-step">1</span>
+                    <div class="space-y-1">
+                        <p class="font-black text-sm uppercase text-black">Caricare l'agenda (Zero Attrito)</p>
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            Non importa quale sistema usi oggi per segnare gli appuntamenti. Il sistema offre tre vie per leggere la tua disponibilità:
+                        </p>
+                        <ul class="list-disc pl-5 text-xs text-gray-600 space-y-1 mt-2">
+                            <li><b>Via iCal:</b> Sincronizzazione automatica ogni 15-30 minuti con Google Calendar, Outlook o Apple Calendar.</li>
+                            <li><b>Via API CRM:</b> Integrazione in background con gestionali dedicati per lo scambio immediato dei dati.</li>
+                            <li><b>Via Foto:</b> Ti basta scattare una foto alla pagina dell'agenda cartacea o del vecchio software per far leggere gli impegni all'assistente visivo.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 items-start">
+                    <span class="badge-step">2</span>
+                    <div class="space-y-1">
+                        <p class="font-black text-sm uppercase text-black">Trovare i buchi e ottimizzare</p>
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            Sulla schermata principale vedi la tua percentuale di <b>Saturazione dell'Agenda</b>. Premendo <b>"Ottimizza Agenda con AI"</b>, l'intelligenza artificiale analizza l'agenda aggiornata, la confronta con i servizi in catalogo e ti propone le soluzioni migliori.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 items-start">
+                    <span class="badge-step">3</span>
+                    <div class="space-y-1">
+                        <p class="font-black text-sm uppercase text-black">Il Messaggio Pronto</p>
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            L'assistente prepara un testo pre-compilato, cortese e professionale, da inviare al cliente. Puoi copiarlo con un clic o inviarlo direttamente aprendo la chat di Telegram o WhatsApp al volo.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <h2>La Checklist delle attività quotidiane (SOP)</h2>
+            <p>
+                Un'attività efficiente richiede coordinazione. Nella Home troverai la sezione <b>SOP Giornaliere</b> (Standard Operating Procedures): lo staff visualizza sul telefono una lista di spunta con i compiti legati all'orario o agli appuntamenti (es. sanificazioni o allestimenti). Ogni spunta emette una vibrazione di conferma (feedback aptico) sul telefono e notifica l'avvenuto completamento.
+            </p>
+
+            <h2>Nessuna automazione forzata</h2>
+            <p>
+                Per garantire il massimo controllo ed evitare errori, abbiamo escluso la possibilità che l'intelligenza artificiale modifichi direttamente il tuo calendario. L'AI analizza e prepara i testi dei messaggi, ma l'ultima parola e l'invio finale spettano sempre a te o al tuo operatore.
+            </p>
+
+            <h2>Onboarding "Zero Attrito"</h2>
+            <p>
+                Se usi ancora la carta, puoi generare una griglia oraria ideale basata sugli orari e sulla configurazione iniziale dello studio tramite la funzione <b>"Scarica Struttura Agenda Ideale"</b>. Il sistema pianifica gli slot (calcolando già i tempi di decontaminazione tra clienti) e fornisce un file pronto da importare su Google Calendar in 10 secondi.
+            </p>
+
+            <h2>I Componenti Chiave dell'Agenda</h2>
+            <p>
+                L'infrastruttura dell'agenda si articola in due elementi concettuali pronti all'uso:
+            </p>
+            <ul class="space-y-4 my-6 list-none p-0 text-sm text-gray-700">
+                <li class="flex gap-4">
+                    <div class="w-6 h-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center shrink-0"><i class="fas fa-calendar-alt text-xs"></i></div>
+                    <div>
+                        <b>La Schermata di Gestione Agenda:</b> L'interfaccia interattiva della Mini App per consultare il calendario, monitorare la saturazione, ottimizzare i tempi morti e gestire le checklist SOP.
+                    </div>
+                </li>
+                <li class="flex gap-4">
+                    <div class="w-6 h-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center shrink-0"><i class="fas fa-eye text-xs"></i></div>
+                    <div>
+                        <b>Il Lettore Intelligente dell'Immagine (Vision OCR):</b> L'assistente visivo che riconosce automaticamente coordinate temporali (mese, anno) e appuntamenti dalle foto inviate dall'utente per una sincronizzazione senza attriti.
+                    </div>
+                </li>
+            </ul>
+
+        </article>
+
+        <!-- PAGINATION -->
+        <div class="flex items-center justify-between mt-20 pt-10 border-t border-gray-100">
+            <a href="09_controllo_gestione.html" class="flex flex-col gap-1 items-start group text-left">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Precedente</span>
+                <span class="font-black text-xs uppercase group-hover:underline">09. Controllo di Gestione</span>
+            </a>
+            <a href="11_agente_sicurezza.html" class="flex flex-col gap-1 items-end group text-right">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Successivo</span>
+                <span class="font-black text-xs uppercase group-hover:underline text-purple-600">11. Agente Sicurezza <i
+                        class="fas fa-arrow-right ml-1"></i></span>
+            </a>
+        </div>
+    </main>
+
+    <script>
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            tg.BackButton.show();
+            tg.BackButton.onClick(() => location.href = 'index.html');
+        }
+    </script>
+</body>
+
+</html>

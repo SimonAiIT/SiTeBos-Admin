@@ -1,0 +1,2312 @@
+{
+  "name": "Advanced_processor",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Access Denied or Data Not Found\",\n  \"code\": 500\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -48,
+        80
+      ],
+      "id": "7a322c31-074d-41d1-a8e6-9f27d2079805",
+      "name": "500"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "service_catalog",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}-{{ $json.body.sop_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"catalog_item\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1072,
+        1120
+      ],
+      "id": "3ff146d8-aa3a-4dc7-82d1-c49aa1dc7a5e",
+      "name": "product",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1072,
+        976
+      ],
+      "id": "0a294e2c-c60b-499f-9337-81817db443b6",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -320,
+        80
+      ],
+      "id": "2b6b4d97-b080-463c-bc5a-27f5f490aced",
+      "name": "📤 Telegram Call2",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ════════════════════════════════════════════════════════━━━━━━━━\n// NODO: Prepare_System_Failure_Notification (EDIT_MODE)\n// ════════════════════════════════════════━━━━━━━━━━━━━━━━━━━━━━━━\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst chatId = owner.chat_id;\nconst messageId = item.body.message_id; // Recupero message_id originale\nconst itemName = item.new_product_block?.identity?.item_name || \"Asset\";\n\nconst lang = (owner.lenguage || 'it').toLowerCase().includes('en') ? 'en' : 'it';\n\nconst t = {\n    it: {\n        title: \"❌ <b>EXECUTION ERROR</b>\",\n        body: `Errore durante la generazione dei parametri per: <b>${itemName}</b>.`,\n        status: \"STATO: <code>AI_GENERATION_FAILED</code>\",\n        action: \"L'indice dei dati non è stato aggiornato. Ripetere l'operazione.\",\n        btn_dash: \"🏠 HUB PRINCIPALE\"\n    },\n    en: {\n        title: \"❌ <b>EXECUTION ERROR</b>\",\n        body: `Error during parameter generation for: <b>${itemName}</b>.`,\n        status: \"STATUS: <code>AI_GENERATION_FAILED</code>\",\n        action: \"Data index not updated. Please retry the operation.\",\n        btn_dash: \"🏠 MAIN HUB\"\n    }\n}[lang];\n\nreturn [{\n    json: {\n        ...item,\n        telegramApiPayload: {\n            method: \"editMessageText\", // Trasformato in edit\n            chat_id: chatId,\n            message_id: messageId,\n            text: `${t.title}\\n━━━━━━━━━━━━━━━━━━━━\\n${t.body}\\n\\n${t.status}\\n\\n${t.action}`,\n            parse_mode: \"HTML\",\n            reply_markup: {\n                inline_keyboard: [\n                    [{ text: t.btn_dash, callback_data: \"open_agent_control_center\" }]\n                ]\n            }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        80
+      ],
+      "id": "b42fee9b-9558-47ae-93a3-536f90032bfb",
+      "name": "Prepare_System_Failure"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1056,
+        112
+      ],
+      "id": "4451f33b-67fa-4a9b-8851-2eed9eb9f5ff",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.blueprint }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1056,
+        272
+      ],
+      "id": "80ebbdb9-bbed-40da-91ce-2a3b7e313e5a",
+      "name": "OwnerExist2"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "process_blueprints",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}-{{ $json.body.sop_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"blueprint\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        272
+      ],
+      "id": "b1354a9e-6fb8-40d9-987f-75a66a1e3731",
+      "name": "blueprint",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "6333dff0-d886-499c-8000-f3e0266845ed",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        176,
+        1168
+      ],
+      "id": "144cb373-0b38-4cb8-89ac-1ec817015b1e",
+      "name": "Webhook",
+      "webhookId": "6333dff0-d886-499c-8000-f3e0266845ed"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "compliance_docs",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}-{{ $json.body.sop_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"compliance_docs\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        800
+      ],
+      "id": "197729d9-0f99-4449-8cff-eb8b74ffbd43",
+      "name": "compliance",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1264,
+        960
+      ],
+      "id": "61c30a2e-3d9d-4bc6-bd00-d7a793636b75",
+      "name": "Merge8"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.compliance_docs }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1264,
+        800
+      ],
+      "id": "c2cb3f1e-44ef-4715-85db-ddc8fbbfa0c1",
+      "name": "ComplianceExist"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1856,
+        128
+      ],
+      "id": "4c823d6d-6ae2-48db-9892-0076bedba6f0",
+      "name": "Merge9"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "honeypots",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"honeypots\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1408,
+        160
+      ],
+      "id": "7734cc9f-b0d8-4464-b85c-9ef37d5f7c27",
+      "name": "honeypots",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.honeypots }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1584,
+        160
+      ],
+      "id": "d7655f52-d520-4c84-81d6-5a595c2a1766",
+      "name": "HoneypoExist"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "GENERATE_ADVANCED_DRAFT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "dd6d0677-e967-4176-b9a7-820f98e63c81"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Generate"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9de07b85-2a8f-4645-97f9-4f1f36024b2e",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "GET",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9c34ea11-346d-4781-bb39-07ffe71830f1",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "SAVE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Save"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "307d8330-4c8e-4e4e-bfa8-7bd69001edc4",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "RECALCULATE_ADVISORY",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Recalculate"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2064,
+        96
+      ],
+      "id": "af6e6e75-45ef-498a-9a04-c939ca5da1c4",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.catalog_item }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1248,
+        1120
+      ],
+      "id": "5e4e2e3e-b260-4ff5-9dba-dcc0c1cb36ea",
+      "name": "ProductExist"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.payload._id }}",
+        "collectionName": "advanced",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        256,
+        -192
+      ],
+      "id": "cb8df35b-f919-45b4-ba29-165b417314f5",
+      "name": "MongoDB Chat Memory6",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.body.payload }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        256,
+        -336
+      ],
+      "id": "293d07a8-fa79-490d-a97c-b1eb955193c1",
+      "name": "advanced",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "advanced",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}-{{ $json.body.sop_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"advanced_catalog_item\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2064,
+        -112
+      ],
+      "id": "9deb4ab5-90da-4456-bd60-40bf7a51365c",
+      "name": "advanced1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.advanced_catalog_item }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2240,
+        -112
+      ],
+      "id": "8d7df940-cf20-4517-986b-5912cf9224dc",
+      "name": "success"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "advanced",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}-{{ $json.body.sop_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"advanced_catalog_item\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1792,
+        496
+      ],
+      "id": "ef2c755c-65e8-44b2-86cf-aff51a1a5805",
+      "name": "advanced2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2016,
+        480
+      ],
+      "id": "988c2a30-ac2c-40e5-aa7e-35025cd7d8d3",
+      "name": "Merge10"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n  <Role>Senior_CFO_and_Strategic_Pricing_Consultant</Role>\n  <Context>\n    Sei il Direttore Finanziario (CFO) e il Consulente Strategico aziendale del tenant. Il tuo compito è analizzare i NUOVI parametri economico-finanziari inviati dal frontend, confrontarli con i dati di conformità legale (ComplianceDocs) e con i competitor, ed elaborare una ri-valutazione semantica della strategia di prezzo e delle relative raccomandazioni operative, adattando la terminologia alla verticale di business del tenant.\n  </Context>\n  <Terminology_and_Language_Selector>\n    Analizza la variabile passata nel tag &lt;VerticalSector&gt; nel Prompt ed adatta rigorosamente lo stile di scrittura e il vocabolario dei testi generati (pricing_and_tariff_strategy_advisory e clinical_cost_optimization_recommendations):\n\n    - SE &lt;VerticalSector&gt; è \"Dental\":\n      * Usa il vocabolario clinico odontoiatrico nei testi: \"prestazione\", \"paziente\", \"poltrona/sedia\", \"no-show medico-paziente\", \"consensi informati biologici/chirurgici\", \"collaboratore medico\".\n      \n    - SE &lt;VerticalSector&gt; è \"generic\" (o qualsiasi altro settore):\n      * Usa il vocabolario aziendale dei servizi professionali nei testi: \"servizio\", \"cliente\", \"postazione operativa\", \"mancata presentazione / cancellazione d'agenda\", \"contratto d'opera\", \"consulente/professionista\".\n\n    ⚠️ RIGIDA REGOLA SULLE CHIAVI JSON:\n    Indipendentemente dalla verticale selezionata e dalla terminologia usata nei testi, le chiavi del JSON di output DEVONO rimanere identiche al contratto strutturale (\"pricing_and_tariff_strategy_advisory\" e \"clinical_cost_optimization_recommendations\"). Non tentare mai di tradurre o rinominare queste chiavi, altrimenti manderai in blocco il sistema.\n  </Terminology_and_Language_Selector>\n  <Advisory_Rework_Rules>\n    Analizza i dati ricalcolati ed elabora un'analisi in lingua italiana basata su queste regole di controllo di gestione:\n\n    1. VALUTAZIONE DEI NUOVI MARGINI (OVERRIDE):\n       - Utilizza esclusivamente i dati numerici presenti in &lt;NewFinancialInputs&gt; per ricalcolare i margini, ignorando qualsiasi vecchio valore contrastante presente nei blocchi storici.\n       - Calcola il nuovo Margine di Contribuzione percentuale (Mdc% = Mdc_Unitario / catalog_price).\n       - Valuta il nuovo ROS reale (Reddito Operativo / catalog_price). Determina se il servizio ha raggiunto una sostenibilità virtuosa rispetto alla simulazione originale.\n\n    2. GESTIONE DEI COSTI FISSI STRUTTURALI (BEP):\n       - Normalizza il valore di \"allocated_budget_percentage\" (Quota Budget Allocata): se il valore passato è maggiore di 1 (es. 12), dividilo per 100 per ottenere il corretto valore decimale (es. 0.12) prima di calcolare la quota di costi fissi allocata (Costo_Fisso_Allocato = allocated_overhead_value * allocated_budget_percentage).\n       - Ricalcola la soglia di pareggio specifica annua (break_even_units_annually = Costo_Fisso_Allocato / Mdc_Unitario).\n\n    3. STRATEGIA DI POSIZIONAMENTO SUL MERCATO:\n       - Confronta la nuova tariffa con la media dei competitor rilevati sul territorio dal report (sezione &lt;OriginalAdvancedBlueprint&gt;).\n       - Giustifica l'eventuale variazione di prezzo facendo leva sulla specializzazione del servizio e sul valore unico fornito al cliente.\n\n    4. INTEGRAZIONE DELLA CONFORMITÀ NORMATIVA (FONDAMENTALE):\n       - Esamina i documenti di compliance (&lt;ComplianceDocs&gt;) relativi all'erogazione del servizio (es. accesso alle istanze dei clienti, trattamento dati conto terzi, diritto di recesso, autorizzazioni).\n       - Fornisci indicazioni contrattuali precise a tutela dell'attività in base alla sua verticale (es. DPA ex GDPR, esclusioni responsabilità API terze, tutele d'opera professionale o consensi clinici).\n\n    5. GENERAZIONE DELLE NUOVE RACCOMANDAZIONI OPERATIVE:\n       - Analizza i pesi dei costi inseriti. Se l'incidenza dei consumabili, delle commissioni o dei costi fissi allocati è sproporzionata, scrivi da 1 a 3 raccomandazioni operative pratiche per ottimizzare i flussi e tagliare gli sprechi d'agenda.\n  </Advisory_Rework_Rules>\n  <OutputSchema>\n    Devi restituire esclusivamente un oggetto JSON valido strutturato come segue, senza blocchi markdown (no ```json) o spiegazioni testuali esterne:\n    {\n      \"pricing_and_tariff_strategy_advisory\": \"Testo completo della nuova consulenza strategica qualitativa e di tutela contrattuale...\",\n      \"clinical_cost_optimization_recommendations\": [\n        \"Raccomandazione operativa pratica 1 per ottimizzare i flussi d'ufficio o tagliare i costi variabili\",\n        \"Raccomandazione operativa pratica 2 (es. automazione onboarding o modelli asincroni)\",\n        \"Raccomandazione operativa pratica 3 basata sui nuovi dati finanziari inseriti\"\n      ]\n    }\n  </OutputSchema>\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<Prompt>\n  <VerticalSector>\n    {{ $json.advanced_catalog_item?.vertical || \"generic\" }}\n  </VerticalSector>\n\n  <OriginalCatalogItem>\n    {{ JSON.stringify($json.catalog_item) }}\n  </OriginalCatalogItem>\n\n  <OriginalAdvancedBlueprint>\n    {{ JSON.stringify($json.advanced_catalog_item) }}\n  </OriginalAdvancedBlueprint>\n\n  <NewFinancialInputs>\n    Tariffa Inserita: € {{ $json.body?.current_financial_inputs?.catalog_price }}\n    Compenso Professionista: € {{ $json.body?.current_financial_inputs?.medical_collaborator_fee }}\n    Costo Staff di Supporto: € {{ $json.body?.current_financial_inputs?.aso_fee }}\n    Costo Materiali di Consumo: € {{ $json.body?.current_financial_inputs?.direct_materials_cost }}\n    Costo Terzisti/Esterni: € {{ $json.body?.current_financial_inputs?.dental_lab_cost }}\n    Tempo di Esecuzione (minuti): {{ $json.body?.current_financial_inputs?.chair_time_mins }}\n    Costo Orario Postazione Attrezzata: € {{ $json.body?.current_financial_inputs?.chair_hourly_rate_consolidated }}\n    Aliquota Imposte: {{ $json.body?.current_financial_inputs?.income_tax_rate }} %\n    Overhead Fiss strutturale annuo: € {{ $json.body?.current_financial_inputs?.allocated_overhead_value }}\n    Quota Budget Allocata (BEP): {{ $json.body?.current_financial_inputs?.allocated_budget_percentage }}\n  </NewFinancialInputs>\n\n  <Instructions>\n    Analizza i nuovi dati economico-finanziari inseriti dal tenant in NewFinancialInputs e confrontali con il contesto originale di OriginalAdvancedBlueprint e i requisiti legali descritti in ComplianceDocs.\n    - Riconosci la verticale di business del tenant indicata in VerticalSector e adatta rigorosamente il registro linguistico dei testi (odontoiatrico se \"Dental\", aziendale ordinario se \"generic\").\n    - Elabora la nuova ri-valutazione strategica del posizionamento dei prezzi basandoti prioritariamente sui dati numerici modificati.\n    - Sviluppa un array di massimo 3 raccomandazioni operative pratiche focalizzate sull'efficientamento dei processi d'ufficio e d'agenda basate sui nuovi flussi di costo.\n    - Restituisci l'output rigorosamente strutturato in formato JSON valido secondo lo schema richiesto, conservando immutate le chiavi strutturali del JSON.\n  </Instructions>\n</Prompt>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "recalculate_output",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.body.grounded_files.suppliers.data }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.body.grounded_files.suppliers.type }}",
+              "type": "string"
+            },
+            {
+              "id": "2c668bee-f5df-49a0-b8e2-4ada02558fda",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "96a48d96-a341-4a86-8c11-c1ea66983a73",
+              "name": "billing_source.use",
+              "value": "=Advanced Product {{ $json.owner_data.vat_number }}-{{ $json.body.sop_id }}",
+              "type": "string"
+            },
+            {
+              "id": "b534f990-488a-4aa6-a246-924630d544ad",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/6333dff0-d886-499c-8000-f3e0266845ed",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2208,
+        480
+      ],
+      "id": "feda0d54-17e8-4432-8582-0675c7e62b18",
+      "name": "Recalculate"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2400,
+        480
+      ],
+      "id": "2196ef06-e571-413f-afc4-d052a80b8444",
+      "name": "Call Gemini Rec",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.recalculate_output }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2640,
+        480
+      ],
+      "id": "07a6da09-7e67-4160-9c6c-0a85db3f478f",
+      "name": "success1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5cfa6d04-e2a3-459f-8225-8655a7bb1636",
+              "leftValue": "={{ $json.catalog_item.pricing.base_price }}",
+              "rightValue": "={{ $json.body.payload.financial_simulations.pricing_summary.catalog_price }}",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        256,
+        -464
+      ],
+      "id": "157311d8-c141-44a6-9885-5734699b6934",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.delta_update }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        992,
+        -800
+      ],
+      "id": "dc42b8e0-ce8a-420f-be6a-0151f915c5b0",
+      "name": "ErrorApi3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n  <Role>TrinAi_SemanticDelta_SyncEngine</Role>\n  <Objective>\n    Generare un JSON di aggiornamento (MongoDB-style update syntax) deterministico per sincronizzare modifiche da un CATALOG_ITEM verso un KB_FRAGMENT e un PROCESS_BLUEPRINT, sfruttando la CFO Advisory come razionale strategico.\n  </Objective>\n  <InputContext>\n    Riceverai un oggetto contenente:\n    1. 'modified_catalog': Il nuovo stato dell'item con le tariffe/prezzi modificati dal frontend.\n    2. 'blueprint': Il documento di processo originale da allineare.\n    3. 'KbFragment': Il frammento di conoscenza originale da allineare.\n    4. 'CfoAdvisoryRationale': La consulenza strategica qualitativa ricalcolata, che esprime le motivazioni del prezzo e le tutele di compliance applicate.\n  </InputContext>\n  <StandardizedAliases>\n    DEVI usare ESCLUSIVAMENTE questi alias per gli array filters per garantire la parsabilità del motore di fusione:\n    - Per KB Sections: \"$[kb_sec]\"\n    - Per Blueprint Stages: \"$[bp_stage]\"\n    - Per Blueprint Steps: \"$[bp_step]\"\n    - Per Blueprint BOM Items: \"$[bp_mat]\"\n  </StandardizedAliases>\n  <MatchingStrategy>\n    Per identificare l'elemento corretto in un array, usa SEMPRE questa priorità di ancoraggio nel blocco 'array_filters':\n    1. Blueprint Stages: Usa {\"bp_stage.stage_id\": \"ID_ORIGINALE\"}\n    2. Blueprint Steps: Usa {\"bp_step.step_id\": \"ID_ORIGINALE\"}\n    3. KB Sections: Usa {\"kb_sec.question\": \"TESTO_DOMANDA_ORIGINALE\"} (Cerca la corrispondenza esatta della stringa presente nel documento prima della modifica)\n  </MatchingStrategy>\n  <UpdateLogic>\n    1. **Rilevamento Delta**: Confronta il catalog modificato con i valori presenti nei testi di KB e Blueprint.\n    2. **Scope Analysis**:\n       - Se cambia il prezzo (pricing.base_price o catalog_price): Aggiorna tutti i riferimenti testuali o numerici al prezzo all'interno delle descrizioni e ricalcola i costi totali nel blueprint (es. summary.estimated_total_cost o bill_of_materials.estimated_total_cost).\n       - Se cambia il nome (identity.item_name o service_identity.name): Aggiorna titoli e riferimenti nel testo.\n       - Se cambia la descrizione: Aggiorna summary e answer_fragment.\n    3. **Sostituzione Chirurgica**:\n       - NON riscrivere l'intero paragrafo se non strettamente necessario.\n       - Sostituisci il vecchio valore numerico o testuale con il nuovo mantenendo inalterato il contesto sintattico.\n       - Esempio: \"Il costo del workshop è 297 EUR\" -> \"Il costo del workshop è 450 EUR\" (Mantiene il resto della frase intatto).\n    4. **Regola del Ricalcolo (Prezzi)**:\n       - Se il prezzo cambia, ricalcola i campi totali stimati nel Blueprint moltiplicando la nuova tariffa per i parametri o le durate previste, preservando la coerenza aritmetica.\n    5. **Integrazione della CFO Advisory (CfoAdvisoryRationale)**:\n       - Analizza attentamente le linee guida strategiche e legali espresse in CfoAdvisoryRationale (es. esclusione responsabilità API terze, obbligo firma DPA, rinuncia al recesso).\n       - Se aggiorni risposte nel KB riguardanti il costo, il valore o la contrattualizzazione del servizio, integra queste argomentazioni per motivare il prezzo in modo persuasivo e allineato.\n       - Se aggiorni step del Blueprint, assicurati che le istruzioni operative riflettano queste procedure di tutela legale o di erogazione a coorte raccomandate dal CFO.\n  </UpdateLogic>\n  <Laws>\n    <L1>L'output DEVE essere un JSON valido. Nessun testo prima o dopo.</L1>\n    <L2>Se non ci sono modifiche rilevate per un documento, restituisci 'null' per quella specifica chiave (non un oggetto vuoto).</L2>\n    <L3>Non inventare ID, alias o campi non esistenti nella struttura originale dei documenti.</L3>\n    <L4>I path di aggiornamento devono essere assoluti partendo dalla radice del documento (es. \"stages.$[bp_stage].steps.$[bp_step].instructions\").</L4>\n  </Laws>\n  <OutputSchema>\n    Devi restituire esclusivamente un oggetto JSON valido strutturato come segue, senza blocchi markdown (no ```json) o spiegazioni testuali esterne:\n    {\n      \"kb_fragment_updates\": {\n        \"updates\": {\n          \"campo_radice\": \"Nuovo Valore\",\n          \"sections.$[kb_sec].answer\": \"Testo aggiornato con il nuovo valore...\"\n        },\n        \"array_filters\": [\n          { \"kb_sec.question\": \"La domanda originale esatta che identifica la sezione\" }\n        ]\n      } | null,\n      \"blueprint_updates\": {\n        \"updates\": {\n          \"summary.estimated_total_cost\": 123,\n          \"stages.$[bp_stage].steps.$[bp_step].instructions\": \"Istruzione aggiornata...\"\n        },\n        \"array_filters\": [\n          { \"bp_stage.stage_id\": \"STAGE_XX\" },\n          { \"bp_step.step_id\": \"STEP_XX_YY\" }\n        ]\n      } | null,\n      \"sync_summary\": {\n        \"reasoning\": \"Spiegazione concisa in italiano della logica di ricalcolo applicata\",\n        \"impact_level\": \"HIGH\" | \"MEDIUM\" | \"LOW\"\n      }\n    }\n  </OutputSchema>\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<DeltaSyncRequest>\n  <Context>\n    È stato rilevato un salvataggio avanzato con variazione della tariffa nel CATALOG_ITEM.\n    Il tuo compito è sincronizzare semanticamente il KB_FRAGMENT e il PROCESS_BLUEPRINT associati a questa variazione di prezzo, allineando i testi e le istruzioni alle nuove linee guida strategiche e di conformità espresse dal CFO.\n  </Context>\n\n  <SourceData>\n    <ModifiedCatalog>\n      {{ JSON.stringify($json.modified_catalog, null, 2) }}\n    </ModifiedCatalog>\n    <CfoAdvisoryRationale>\n      <![CDATA[\n      {{ $json.pricing_and_tariff_strategy_advisory || $json.financial_simulations?.strategic_clinical_analysis?.pricing_and_tariff_strategy_advisory }}\n      ]]>\n    </CfoAdvisoryRationale>\n    <ChangeLog>\n      MODIFICHE RILEVATE:\n      - Variazione della tariffa/prezzo di catalogo rilevata dal frontend.\n    </ChangeLog>\n  </SourceData>\n\n  <TargetDocuments>\n    <CurrentKbFragment>\n      {{ JSON.stringify($json.KbFragment, null, 2) }}\n    </CurrentKbFragment>\n    <CurrentBlueprint>\n      {{ JSON.stringify($json.blueprint, null, 2) }}\n    </CurrentBlueprint>\n  </TargetDocuments>\n\n  <ExecutionChecklist>\n    1. MAPPING: Collega la variazione di prezzo e le tutele espresse in CfoAdvisoryRationale ai punti corrispondenti nei testi delle risposte dei frammenti e nelle istruzioni/sommari del blueprint.\n    2. ALIAS ENFORCEMENT:\n       - Usa \"$[kb_sec]\" per le sezioni del KB.\n       - Usa \"$[bp_stage]\" e \"$[bp_step]\" per le componenti del Blueprint.\n    3. ANCHORING:\n       - Nel KB, ancora tramite la domanda originale esatta (\"kb_sec.question\").\n       - Nel Blueprint, ancora tramite gli ID stabili (\"bp_stage.stage_id\", \"bp_step.step_id\").\n    4. ALINEAMENTO SEMANTICO:\n       - Modifica le risposte del frammento di conoscenza (KB) relative al prezzo o alle modalità contrattuali motivandole con i razionali strategici di CfoAdvisoryRationale (es. valore della formazione n8n personalizzata, tutele legali, DPA, ecc.).\n       - Aggiorna i passaggi operativi nel Blueprint affinché prevedano le procedure di tutela contrattuale o di conformità raccomandate.\n    5. SAFETY:\n       - Non inventare testo estraneo: sostituisci chirurgicamente solo i valori obsoleti o le frasi necessarie per mantenere la coerenza strategica.\n  </ExecutionChecklist>\n\n  <OutputRequirement>\n    Genera ESCLUSIVAMENTE il JSON finale (senza blocchi markdown o commenti).\n  </OutputRequirement>\n</DeltaSyncRequest>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "={{ $json.owner_data.model_choice }}",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "delta_update",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "=",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "=",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        -800
+      ],
+      "id": "22cea404-7105-4959-8102-3311a8d30474",
+      "name": "product_edit"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.Final_KB_Fragment }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        2336,
+        -656
+      ],
+      "id": "7cc61b47-8d0d-4ca9-8aab-ae446c8e1883",
+      "name": "KB_Fragment"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.Final_KB_Fragment.fragment_id }}",
+        "collectionName": "knowledge_fragments",
+        "databaseName": "TbosAssetLake"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        2336,
+        -528
+      ],
+      "id": "876c6dcc-d886-467a-9ae7-9bdeab849129",
+      "name": "MongoDB Chat Memory3",
+      "credentials": {
+        "mongoDb": {
+          "id": "5pERtRttklNe4fOb",
+          "name": "AssetLake"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.Final_Blueprint }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1856,
+        -672
+      ],
+      "id": "b1e4f3e8-b7fb-4ed3-b81d-d67a4b3e8845",
+      "name": "process_bluprint"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2160,
+        -752
+      ],
+      "id": "bbbe1db9-341d-4633-a235-3ae7f2d932ba",
+      "name": "Merge7"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.Final_Blueprint._id }}",
+        "collectionName": "process_blueprints",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1856,
+        -544
+      ],
+      "id": "d42dd64e-9f31-4bcb-a095-a6a5954d672d",
+      "name": "MongoDB Chat Memory2",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.Final_Product }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1408,
+        -688
+      ],
+      "id": "2cb47e58-8307-4e8b-8e33-db6a0227e936",
+      "name": "service_catalog_product"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1680,
+        -768
+      ],
+      "id": "ac48d3eb-7eb0-433e-a94e-7f14c08afff3",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.Final_Product._id }}",
+        "collectionName": "service_catalog",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        -560
+      ],
+      "id": "e8fdd289-7d61-48ed-bfe9-38ede22e9ad4",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"message\": \"Product updated successfully\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "59d77aeb-864a-4ad5-ab0d-2bede0191780",
+      "name": "Respond to Save"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        816,
+        -800
+      ],
+      "id": "5e4881bc-733d-48e9-9c9e-e221824a8546",
+      "name": "Call 'geminiCall'",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Delta Merger Engine\n// OBIETTIVO: Applicare patch chirurgiche ai documenti JSON usando la sintassi stile MongoDB (dot notation + array filters)\n\nconst item = $input.first().json;\n\n// --- 1. SAFETY FIRST: CLONAZIONE PROFONDA ---\n// Lavoriamo su copie per non corrompere i dati di input originali nel flusso n8n\nlet finalBlueprint = item.blueprint ? JSON.parse(JSON.stringify(item.blueprint)) : null;\nlet finalKb = item.KbFragment ? JSON.parse(JSON.stringify(item.KbFragment)) : null;\nconst finalProduct = item.modified_catalog; \nconst delta = item.delta_update;\n\n// --- 2. HELPER FUNCTIONS ---\n\n/**\n * Recupera il valore di una proprietà annidata (es. \"metadata.status\")\n */\nfunction getNestedValue(obj, path) {\n    if (!path || !obj) return undefined;\n    return path.split('.').reduce((acc, part) => (acc && acc[part] !== undefined) ? acc[part] : undefined, obj);\n}\n\n/**\n * Trova l'indice di un elemento in un array basandosi sui filtri (alias)\n * Es: cerca in 'currentArray' l'elemento che soddisfa il filtro associato all'alias \"$[kb_sec]\"\n */\nfunction findIndexByFilter(currentArray, alias, filters) {\n    if (!Array.isArray(currentArray) || !filters) return -1;\n\n    // 1. Trova il filtro corrispondente all'alias (es. cerca chiave che inizia con \"kb_sec.\")\n    const filterObj = filters.find(f => {\n        const key = Object.keys(f)[0];\n        return key.startsWith(alias + '.');\n    });\n\n    if (!filterObj) {\n        // Se non c'è filtro esplicito ma l'array è semplice, potremmo loggare un warning\n        return -1;\n    }\n\n    const filterKeyFull = Object.keys(filterObj)[0]; // es. \"kb_sec.question\"\n    const expectedValue = filterObj[filterKeyFull];  // es. \"Testo della domanda...\"\n    \n    // 2. Determina il nome della proprietà reale nell'oggetto (rimuovi \"kb_sec.\")\n    // \"kb_sec.question\" -> \"question\"\n    // \"bp_stage.stage_id\" -> \"stage_id\"\n    const propertyName = filterKeyFull.substring(alias.length + 1);\n\n    // 3. Cerca l'elemento\n    return currentArray.findIndex(el => {\n        const val = getNestedValue(el, propertyName);\n        return val === expectedValue;\n    });\n}\n\n/**\n * Motore principale di aggiornamento\n * @param {Object} doc - Il documento da modificare (blueprint o kb)\n * @param {String} path - Il percorso (es. \"stages.$[bp_stage].steps.$[bp_step].instructions\")\n * @param {Any} value - Il nuovo valore\n * @param {Array} filters - L'array dei filtri per risolvere gli alias\n */\nfunction applyUpdate(doc, path, value, filters) {\n    if (!doc) return;\n\n    const parts = path.split('.');\n    let current = doc;\n\n    for (let i = 0; i < parts.length; i++) {\n        const part = parts[i];\n        const isLast = i === parts.length - 1;\n\n        // CASO A: Array Placeholder (es. \"$[kb_sec]\")\n        if (part.startsWith('$[')) {\n            // Estrai alias senza dollari e parentesi: \"$[kb_sec]\" -> \"kb_sec\"\n            const alias = part.match(/\\$\\[(.*?)\\]/)[1];\n            \n            // L'oggetto corrente DEVE essere un array qui\n            if (Array.isArray(current)) {\n                const idx = findIndexByFilter(current, alias, filters);\n                \n                if (idx !== -1) {\n                    if (isLast) {\n                        current[idx] = value; // Sostituzione intero oggetto (raro)\n                    } else {\n                        current = current[idx]; // Entriamo nell'oggetto trovato\n                    }\n                } else {\n                    // Elemento non trovato: Interrompiamo in sicurezza\n                    // console.log(`Merge Skip: Elemento non trovato per alias ${alias}`);\n                    return; \n                }\n            } else {\n                return; // Errore strutturale (ci aspettavamo array)\n            }\n        } \n        // CASO B: Proprietà Standard\n        else {\n            if (isLast) {\n                // ASSEGNAZIONE FINALE\n                current[part] = value;\n            } else {\n                // Navigazione\n                // Se il prossimo step non esiste, potremmo doverlo creare (qui assumiamo struttura esistente)\n                if (current[part] === undefined) {\n                    // Se stiamo scrivendo, forse dovremmo creare l'oggetto? \n                    // Per ora usiamo logica strict: se non esiste il path, non scriviamo.\n                    return; \n                }\n                current = current[part];\n            }\n        }\n    }\n}\n\n// --- 3. ESECUZIONE LOGICA ---\n\n// Applicazione Update KB\nif (delta && delta.kb_fragment_updates && delta.kb_fragment_updates.updates) {\n    const updates = delta.kb_fragment_updates.updates;\n    const filters = delta.kb_fragment_updates.array_filters || [];\n    \n    Object.keys(updates).forEach(path => {\n        applyUpdate(finalKb, path, updates[path], filters);\n    });\n}\n\n// Applicazione Update Blueprint\nif (delta && delta.blueprint_updates && delta.blueprint_updates.updates) {\n    const updates = delta.blueprint_updates.updates;\n    const filters = delta.blueprint_updates.array_filters || [];\n\n    Object.keys(updates).forEach(path => {\n        applyUpdate(finalBlueprint, path, updates[path], filters);\n    });\n}\n\n// --- 4. COSTRUZIONE OUTPUT PER TELEGRAPH/DB ---\n\nreturn {\n    json: {\n        // I dati \"fusi\" e aggiornati\n        Final_KB_Fragment: finalKb,\n        Final_Blueprint: finalBlueprint,\n        Final_Product: finalProduct,\n        \n        // Metadati utili per il nodo Telegraph successivo\n        page_title: `KB: ${finalProduct.identity.item_name}`,\n        \n        // Debug Info\n        sync_info: {\n            was_updated: true,\n            reason: delta?.sync_summary?.reasoning || \"Manual Sync\",\n            timestamp: new Date().toISOString()\n        },\n        \n        // Mantengo il contesto originale se servisse\n        ...item\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        -784
+      ],
+      "id": "2357666e-1437-4be3-a80c-a45b05b343b0",
+      "name": "Delta Merger Engine"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2640,
+        -736
+      ],
+      "id": "d9d08458-0f76-4888-805f-33a3919dc5d4",
+      "name": "Merge11"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        432,
+        0
+      ],
+      "id": "fa660b56-90d2-474d-aacd-41ad01785123",
+      "name": "Merge12"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        256,
+        -16
+      ],
+      "id": "a7c24e90-cb98-457e-8be3-6d7fc5b6bf56",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.KbFragment }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        -640
+      ],
+      "id": "e2923de0-cafa-4c42-8a21-5aabd7299b5d",
+      "name": "HoneypoExist1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        256,
+        -800
+      ],
+      "id": "88d539da-3982-4927-b9ca-3a731396a130",
+      "name": "Merge13"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "knowledge_fragments",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.catalog_item._id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"KbFragment\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        256,
+        -640
+      ],
+      "id": "24ec0fa9-1539-4c50-8720-a1980b6a3de2",
+      "name": "KbFragment",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "5pERtRttklNe4fOb",
+          "name": "AssetLake"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6c2a9f9e-aa5f-47a4-914a-5d18ecee7e4a",
+              "name": "modified_catalog",
+              "value": "={{ $json.catalog_item }}",
+              "type": "object"
+            },
+            {
+              "id": "19235b28-6fd4-4185-ae0c-d05d66543753",
+              "name": "=modified_catalog.pricing.base_price",
+              "value": "={{ $json.body.payload.financial_simulations.pricing_summary.catalog_price }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        -800
+      ],
+      "id": "64c3ed62-e115-46ea-bae7-128682c3110b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        352,
+        896
+      ],
+      "id": "1fea5165-be1f-4d19-a240-4c05c6607bcb",
+      "name": "📤 Telegram Call",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Prepare Telegram Setup Required Message\n// DESC: Messaggio di blocco con pulsante dinamico per il Setup Avanzato\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\n\nconst chatId = owner.chat_id || item.ids?.owner_id;\nconst messageId = item.body?.message_id || item.message_id;\nconst productName = item.body?.product_state?.name || \"Prodotto\";\nconst sopId = item.body?.sop_id || \"SVC_5ZD1XG6Y\";\n\n// Recupero dinamico dell'URL della MiniApp, con fallback standard di sicurezza\nconst baseUrl = item.urlMiniApp || item.body?.urlMiniApp || \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/telegram_control/\";\n\n// --- 1. GENERAZIONE FIRMA ASH UNIFICATA ---\nfunction generateSignature(str, key) {\n    let hash = 0; const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        const char = combined.charCodeAt(i);\n        hash = ((hash << 5) - hash) + char; hash = hash & hash; \n    }\n    return Math.abs(hash).toString(16);\n}\n\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst WEBHOOK_ID = 'ef4aece4-9ec0-4026-a7a7-328562bcbdf6';\nconst ts = Date.now().toString();\nconst payloadASH = `${chatId}|${ts}|${WEBHOOK_ID}`;\nconst signature = generateSignature(payloadASH, SECRET_KEY);\nconst ash = `${Buffer.from(payloadASH).toString('base64')}.${signature}`;\n\n// --- 2. DETERMINAZIONE FILE DI DESTINAZIONE IN BASE AL VERTICAL ---\nconst vertical = (owner.vertical || \"\").toLowerCase();\nconst setupFile = vertical === \"dental\" ? \"advanced-setup-dental.html\" : \"advanced-setup.html\";\nconst urlSetup = `${baseUrl}${setupFile}?ash=${ash}&msg=${messageId}`;\n\n// --- 3. LOCALIZZAZIONE LINGUA ---\nconst lang = (owner.lenguage || 'it').toLowerCase().includes('en') ? 'en' : 'it';\n\nconst t = {\n    it: {\n        title: \"⚠️ <b>SETUP RICHIESTO</b>\",\n        desc: [\n            \"La modellazione avanzata e le simulazioni economiche per il servizio:\",\n            `<b>${productName}</b>`,\n            \"richiedono la configurazione iniziale della tua struttura.\",\n            \"\",\n            \"Inserisci i dettagli reali sullo staff, le attrezzature e il bilancio d'esercizio per allineare l'infrastruttura di calcolo.\"\n        ].join(\"\\n\"),\n        btn_setup: \"⚙️ AVVIA CONFIGURAZIONE\",\n        btn_hub: \"🏠 TORNA ALL'HUB PRINCIPALE\"\n    },\n    en: {\n        title: \"⚠️ <b>SETUP REQUIRED</b>\",\n        desc: [\n            \"Advanced modeling and financial simulations for the service:\",\n            `<b>${productName}</b>`,\n            \"require the initial configuration of your facility.\",\n            \"\",\n            \"Please input real-world details about staff, equipment, and your balance sheet to align the calculation engine.\"\n        ].join(\"\\n\"),\n        btn_setup: \"⚙️ START CONFIGURATION\",\n        btn_hub: \"🏠 BACK TO MAIN HUB\"\n    }\n}[lang];\n\n// Unione finale del titolo, della linea divisoria e della descrizione con ritorni a capo puliti\nconst messageText = [\n    t.title,\n    \"━━━━━━━━━━━━━━━━━━━━\",\n    t.desc\n].join(\"\\n\");\n\n// --- 4. STRUTTURA DEL PAYLOAD TELEGRAM ---\nreturn [{\n    json: {\n        ...item,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: chatId,\n            message_id: messageId,\n            text: messageText,\n            parse_mode: \"HTML\",\n            reply_markup: {\n                inline_keyboard: [\n                    // Riga 1: WebApp che punta al file del vertical specifico\n                    [{ text: t.btn_setup, web_app: { url: urlSetup } }],\n                    // Riga 2: Ritorno all'Hub tramite callback diretto\n                    [{ text: t.btn_hub, callback_data: \"open_agent_control_center\" }]\n                ]\n            }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        896
+      ],
+      "id": "e2ed8229-5967-4c38-9a9e-46825ae742a7",
+      "name": "Prepare_No_Advanced"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        544,
+        896
+      ],
+      "id": "8e904cdb-3997-4f2f-8808-02ab6d0a3216",
+      "name": "success2"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "I3Wi7RmhugztaU0q",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/I3Wi7RmhugztaU0q",
+          "cachedResultName": "Unified-Authentication"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        1168
+      ],
+      "id": "dc543123-188c-46a4-acb2-221943e419d1",
+      "name": "Call 'Unified-Authentication'"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "dccfcecc-dc18-42e0-b219-7be33845cfcc",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        544,
+        1168
+      ],
+      "id": "89a576d5-eb6d-44fc-9d29-5539331c3e84",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2320,
+        80
+      ],
+      "id": "85c37d50-6917-4e39-9d59-fcf234582f67",
+      "name": "success3"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "VoJnQ1KTBSESiXRC",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/VoJnQ1KTBSESiXRC",
+          "cachedResultName": "Advanced_processor2.0"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2544,
+        240
+      ],
+      "id": "65e6ad52-0613-442a-be4d-2f7c12260f10",
+      "name": "Call 'Advanced_processor2.0'"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c18d79ae-939c-4aea-abac-58467a50724c",
+              "leftValue": "={{ $json.owner_data.financials }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        544,
+        1040
+      ],
+      "id": "e34b742c-dfff-4415-9b66-4559ae88985c",
+      "name": "financials"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c18d79ae-939c-4aea-abac-58467a50724c",
+              "leftValue": "={{ $json.owner_data.availability_schedule.hours }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        784,
+        1024
+      ],
+      "id": "07d25ad2-db0d-4c35-a626-1a0375fcb774",
+      "name": "availability_schedule"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst owner = item.owner_data || {};\nconst chatId = owner.chat_id || item.ids?.owner_id;\nconst messageId = item.body.message_id;\n\nconst messageText = \n    `⚠️ <b>CONFIGURAZIONE INCOMPLETA</b>\\n` +\n    `━━━━━━━━━━━━━━━━━━━━\\n` +\n    `Per generare un'infrastruttura finanziaria precisa, il sistema deve conoscere la capacità produttiva della tua struttura.\\n\\n` +\n    `🛑 <b>Problema:</b> Non hai ancora configurato la tua \"Settimana Tipo\" (Orari di apertura).\\n\\n` +\n    `👉 Clicca sul bottone qui sotto per impostare gli orari e ripeti la richiesta.`;\n\nreturn [{\n  json: {\n    ...item,\n    telegramApiPayload: {\n      method: \"editMessageText\",\n      chat_id: chatId,\n      message_id: messageId,\n      text: messageText,\n      parse_mode: \"HTML\",\n      reply_markup: {\n        inline_keyboard: [\n          // Bottone aggiornato con URL diretto alla dashboard\n          [{ text: \"🕒 IMPOSTA SETTIMANA TIPO\", url: \"https://dashboard.trinai.it/sitebos/minisite\" }],\n          // Bottone di fallback standard per tornare all'hub\n          [{ text: \"🏠 TORNA ALLA DASHBOARD\", callback_data: \"open_agent_control_center\" }]\n        ]\n      }\n    },\n    // Flag protettivi per far morire il flusso nel nodo successivo\n    error_type: \"MISSING_CAPACITY_DATA\",\n    is_fatal: true\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        896
+      ],
+      "id": "710623ff-a619-406a-8b92-316ce0f52969",
+      "name": "Prepare_No_Advanced_schedule"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "76f0b34e-ba7a-402b-ab46-a74e6dc84db3",
+              "leftValue": "={{ $json.catalog_item.identity.item_type }}",
+              "rightValue": "PRODUCT",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2528,
+        80
+      ],
+      "id": "151a9516-b57f-4687-bfc7-d3ff01c5cbfc",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "9D5ww2fhjPsWldoo",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/9D5ww2fhjPsWldoo",
+          "cachedResultName": "Advanced_product_processor"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2736,
+        64
+      ],
+      "id": "80240a40-6fa8-4a40-a7c6-0c715d5bb97b",
+      "name": "Call 'Advanced_product_processor'"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0",
+            "content-length": "708",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "it,it-IT;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "content-type": "application/json",
+            "origin": "https://trinaibusinessoperatingsystem.github.io",
+            "priority": "u=1, i",
+            "referer": "https://trinaibusinessoperatingsystem.github.io/",
+            "sec-ch-ua": "\"Chromium\";v=\"150\", \"Not;A=Brand\";v=\"8\", \"Microsoft Edge\";v=\"150\", \"Microsoft Edge WebView2\";v=\"150\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "151.47.177.2",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "GET",
+            "sop_id": "SVC_7KNE44IQ",
+            "ash": "ODMwNTEyNjI2N3wxNzg0MDM1ODUzOTE5fGVmNGFlY2U0LTllYzAtNDAyNi1hN2E3LTMyODU2MmJjYmRmNg==.53fa8858",
+            "message_id": "",
+            "_auth": "query_id=AAF7KwZvAwAAAHsrBm9SX48O&user=%7B%22id%22%3A8305126267%2C%22first_name%22%3A%22Giuseppe%22%2C%22last_name%22%3A%22B%22%2C%22language_code%22%3A%22it%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2Fp6piCXvtNSGj4KPd60vozxgOJss0ji-aGRNNX4I7CVNme0ergMr6kC1wUoV60zBY.svg%22%7D&auth_date=1784036712&signature=DzQJw_GgFWXcYc7h4VxWIN-v_7eRdnBdKhACmS-nv7Y0h2KG6rSqWLL6eddzwQ3fOQotUIAav59ecdzyfxZJCQ&hash=50ca7d744117e95544d58277a43c6ec89ff9ed91bb04a3fba5ff23cec4705ff1"
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/6333dff0-d886-499c-8000-f3e0266845ed",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "500": {
+      "main": [
+        [
+          {
+            "node": "Prepare_System_Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "product": {
+      "main": [
+        [
+          {
+            "node": "ProductExist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "compliance",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Prepare_System_Failure": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "honeypots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerExist2": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "blueprint": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Call 'Unified-Authentication'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "compliance": {
+      "main": [
+        [
+          {
+            "node": "ComplianceExist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge8": {
+      "main": [
+        [
+          {
+            "node": "blueprint",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ComplianceExist": {
+      "main": [
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge9": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "honeypots": {
+      "main": [
+        [
+          {
+            "node": "HoneypoExist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HoneypoExist": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "success3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "advanced1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "advanced",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "advanced2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ProductExist": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory6": {
+      "ai_memory": [
+        [
+          {
+            "node": "advanced",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "advanced1": {
+      "main": [
+        [
+          {
+            "node": "success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "advanced2": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge10": {
+      "main": [
+        [
+          {
+            "node": "Recalculate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recalculate": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini Rec",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Gemini Rec": {
+      "main": [
+        [
+          {
+            "node": "success1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ErrorApi3": {
+      "main": [
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delta Merger Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "product_edit": {
+      "main": [
+        [
+          {
+            "node": "Call 'geminiCall'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KB_Fragment": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "KB_Fragment",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "process_bluprint": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge7": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "KB_Fragment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "process_bluprint",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "service_catalog_product": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "process_bluprint",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "service_catalog_product",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'geminiCall'": {
+      "main": [
+        [
+          {
+            "node": "ErrorApi3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delta Merger Engine": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "service_catalog_product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge11": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge12": {
+      "main": [
+        [
+          {
+            "node": "Respond to Save",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "KbFragment",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "advanced": {
+      "main": [
+        [
+          {
+            "node": "Merge12",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Merge12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HoneypoExist1": {
+      "main": [
+        [
+          {
+            "node": "Merge13",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KbFragment": {
+      "main": [
+        [
+          {
+            "node": "HoneypoExist1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge13": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "product_edit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare_No_Advanced": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Call": {
+      "main": [
+        [
+          {
+            "node": "success2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Unified-Authentication'": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "financials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "success3": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "financials": {
+      "main": [
+        [
+          {
+            "node": "availability_schedule",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare_No_Advanced",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "availability_schedule": {
+      "main": [
+        [
+          {
+            "node": "Prepare_No_Advanced_schedule",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare_No_Advanced_schedule": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Call 'Advanced_product_processor'",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'Advanced_processor2.0'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "98c38244-5cbb-4deb-9495-55f3d042694c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "MFftsv83zKI1t3HV",
+  "tags": []
+}

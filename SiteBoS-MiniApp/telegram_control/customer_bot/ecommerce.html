@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SiteBoS | Store</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        (function () {
+            if (!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)) {
+                document.documentElement.innerHTML = `
+                    <body class="bg-black text-white flex items-center justify-center h-screen text-center p-10 font-sans">
+                        <div><h1 class="text-6xl mb-4">🚫</h1><h2 class="text-xl font-black uppercase tracking-widest">Accesso Proibito</h2></div>
+                    </body>`;
+                window.stop();
+            }
+        })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', surface: '#ffffff', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+
+/* SiteBoS Architect Alignment */
+body { background-color: #fafafa !important; color: #000000 !important; }
+.card, .section-card, .dark-card, .upload-box { 
+    background: white !important; 
+    border: 1px solid #eeeeee !important; 
+    box-shadow: none !important; 
+}
+input:focus, textarea:focus, select:focus { 
+    border-color: #000000 !important; 
+    box-shadow: none !important; 
+    outline: none !important;
+}
+.text-primary, .text-black, .text-blue-600, .text-black { color: #000000 !important; }
+.bg-primary, .bg-black, .bg-black, .bg-black { background-color: #000000 !important; color: #ffffff !important; }
+.border-primary, .border-black, .border-blue-600, .border-black { border-color: #000000 !important; }
+.spinner { border-top-color: #000 !important; }
+input[type="checkbox"]:checked { background-color: #000 !important; border-color: #000 !important; }
+/* Forza icone pesanti */
+.fas, .far, .fal { font-weight: 900 !important; font-family: "Font Awesome 6 Free" !important; }
+
+
+        body { font-family: 'Inter', sans-serif; background-color: #fafafa; color: #000000; -webkit-tap-highlight-color: transparent; user-select: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .bento-card { transition: all 0.2s ease; border: 1px solid #eeeeee; }
+        .bento-card:active { transform: scale(0.97); background-color: #fcfcfc; }
+        .safe-bottom { padding-bottom: calc(140px + env(safe-area-inset-bottom)); }
+        
+        .overlay { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 400; background-color: #ffffff; position: fixed; inset: 0; }
+        .overlay-hidden { transform: translateX(100%); }
+        .modal-hidden { opacity: 0; pointer-events: none; }
+        .modal-hidden .modal-content { transform: translateY(100%); }
+        
+        select { -webkit-appearance: none; background: transparent; border: none; outline: none; width: 100%; }
+    </style>
+</head>
+<body class="safe-area-inset h-screen flex flex-col overflow-hidden text-sm">
+
+    <!-- HEADER (COMPACT) -->
+    <header class="bg-white border-b border-gray-100 sticky top-0 z-50 flex flex-col">
+        <div class="px-5 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div id="brand-logo" class="w-10 h-10 bg-black rounded-xl flex items-center justify-center text-black shadow-md overflow-hidden">
+                    <i class="fas fa-shopping-bag text-sm"></i>
+                </div>
+                <div>
+                    <p id="customer-name" class="text-[9px] font-black tracking-widest text-gray-500 leading-none mb-1 uppercase truncate max-w-[100px]">Marketplace</p>
+                    <h1 class="font-black text-[11px] tracking-tight uppercase">SiteBoS Store</h1>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleHistory()" class="w-8 h-8 flex items-center justify-center text-gray-300"><i class="fas fa-history text-sm"></i></button>
+                <button onclick="tg.close()" class="w-8 h-8 flex items-center justify-center text-gray-300"><i class="fas fa-times text-lg"></i></button>
+            </div>
+        </div>
+        <div class="px-5 pb-3">
+            <div class="relative bg-gray-50 rounded-xl px-3 py-2 border border-gray-100 flex items-center">
+                <i class="fas fa-filter text-[9px] mr-2 opacity-20"></i>
+                <select id="category-select" onchange="filterCategory(this.value)" class="font-bold text-[10px] uppercase tracking-wider text-black">
+                    <option value="ALL">Tutti i prodotti</option>
+                </select>
+                <i class="fas fa-chevron-down text-[7px] absolute right-3 opacity-30"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENT -->
+    <main id="main-content" class="flex-1 overflow-y-scroll p-5 space-y-8 safe-bottom">
+        <section id="section-suggested" class="hidden">
+            <h2 class="text-[9px] font-black uppercase tracking-widest text-black mb-4 pl-3 border-l-2 border-black">Top Picks</h2>
+            <div id="suggested-list" class="flex gap-3 overflow-x-auto no-scrollbar pb-1"></div>
+        </section>
+        <div id="catalog-container" class="space-y-8"></div>
+    </main>
+
+    <!-- PRODUCT DETAIL MODAL (BOTTOM SHEET) -->
+    <div id="product-modal" class="fixed inset-0 z-[500] modal-hidden flex flex-col">
+        <div class="modal-overlay absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closeModal()"></div>
+        <div class="modal-content mt-auto bg-white rounded-t-3xl p-6 space-y-5 relative flex flex-col max-h-[85vh] shadow-2xl border-t border-gray-100 transition-transform duration-300">
+            <div class="w-10 h-1 bg-gray-100 rounded-full mx-auto"></div>
+            <div class="overflow-y-auto no-scrollbar space-y-5 pb-8">
+                <div id="modal-img-container" class="w-full aspect-square rounded-2xl bg-gray-50 overflow-hidden border border-gray-100">
+                    <img id="modal-img" src="" onerror="handleProductImageError(this, activeSku)" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <h2 id="modal-title" class="text-xl font-black tracking-tight leading-tight uppercase"></h2>
+                    <p id="modal-category" class="text-[9px] font-black uppercase tracking-widest text-gray-300 mt-1"></p>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-[10px] font-black uppercase tracking-widest text-gray-500">Descrizione</h3>
+                    <p id="modal-desc" class="text-gray-600 text-sm leading-relaxed"></p>
+                </div>
+
+                <!-- ADD-ONS SECTION -->
+                <div id="modal-extras-container" class="hidden space-y-3 pt-2">
+                    <h3 class="text-[10px] font-black uppercase tracking-widest text-gray-500">Aggiunte</h3>
+                    <div id="modal-extras-list" class="grid grid-cols-1 gap-2">
+                        <!-- Extras checkboxes will be injected here -->
+                    </div>
+                </div>
+
+                <!-- CUSTOMER NOTE SECTION -->
+                <div id="modal-notes-container" class="hidden space-y-2 pt-2">
+                    <h3 class="text-[10px] font-black uppercase tracking-widest text-gray-500">Note / Modifiche</h3>
+                    <textarea id="modal-customer-note" rows="2" class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-xs font-bold focus:border-black transition" placeholder="Es: senza zucchero, ben cotto..." oninput="updateModalPrice()"></textarea>
+                </div>
+
+                <div class="flex flex-col gap-4 pt-5 border-t border-gray-50">
+                    <div class="flex items-center justify-between">
+                        <div id="modal-stepper" class="flex items-center gap-3 bg-gray-50 p-1.5 rounded-xl border border-gray-100">
+                            <button onclick="changeModalLocalQty(-1)" class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm active:scale-90"><i class="fas fa-minus text-xs"></i></button>
+                            <span id="modal-qty" class="font-black text-lg min-w-[20px] text-center">1</span>
+                            <button onclick="changeModalLocalQty(1)" class="w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shadow-md active:scale-90"><i class="fas fa-plus text-xs"></i></button>
+                        </div>
+                        <span id="modal-price" class="text-2xl font-black tracking-tighter"></span>
+                    </div>
+                    <button id="modal-confirm-btn" onclick="confirmModalItem()" class="w-full bg-black text-white py-4 rounded-xl font-black text-[12px] uppercase tracking-widest active:scale-95 transition-all shadow-md">
+                        Aggiungi all'ordine
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUMMARY OVERLAY (FULL) -->
+    <div id="summary-overlay" class="overlay overlay-hidden flex flex-col">
+        <header class="px-5 py-4 flex justify-between items-center border-b border-gray-50">
+            <h2 class="text-lg font-black uppercase tracking-tight">Riepilogo</h2>
+            <button onclick="toggleSummary()" class="text-gray-300 text-xl"><i class="fas fa-times-circle"></i></button>
+        </header>
+        <div class="flex-1 overflow-y-scroll p-5 space-y-6 pb-32">
+            <div id="summary-list" class="space-y-3"></div>
+            
+            <div id="location-box" class="p-5 bg-gray-50 rounded-3xl space-y-4 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-[9px] font-black uppercase tracking-widest text-gray-500">Consegna</h3>
+                    <button onclick="requestLocation()" id="btn-location" class="text-[8px] font-black uppercase text-black px-3 py-1 bg-white rounded-full border border-black">GPS</button>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm text-gray-200" id="location-icon"><i class="fas fa-map-marker-alt text-xs"></i></div>
+                    <span id="location-status" class="font-bold text-gray-500 text-[10px]">Posizione necessaria</span>
+                </div>
+                <textarea id="manual-address" rows="2" oninput="updateConfirmButton()" class="w-full bg-white border border-gray-100 rounded-xl p-3 text-xs font-bold focus:border-black transition" placeholder="Indirizzo (Via, Città)"></textarea>
+            </div>
+
+            <div class="p-5 bg-gray-50 rounded-3xl space-y-4 border border-gray-100">
+                <h3 class="text-[9px] font-black uppercase tracking-widest text-gray-500">Pagamento</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="setPayment('DELIVERY')" id="pay-delivery" class="flex flex-col items-center gap-1 p-3 rounded-xl border-2 border-gray-100 bg-white active:scale-95 transition [&.active]:border-black [&.active]:bg-black [&.active]:text-black">
+                        <i class="fas fa-truck text-sm"></i>
+                        <span class="text-[8px] font-black uppercase">Consegna</span>
+                    </button>
+                    <button onclick="setPayment('CARD')" id="pay-card" class="hidden flex flex-col items-center gap-1 p-3 rounded-xl border-2 border-gray-100 bg-white active:scale-95 transition [&.active]:border-black [&.active]:bg-black [&.active]:text-black">
+                        <i class="fas fa-credit-card text-sm"></i>
+                        <span class="text-[8px] font-black uppercase">Carta</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <footer class="p-4 bg-white/90 backdrop-blur-lg border-t border-gray-50 fixed bottom-0 left-0 right-0 z-50">
+            <div class="flex justify-between items-center mb-4 px-2">
+                <span class="text-[10px] font-black uppercase text-gray-300">Totale</span>
+                <span id="summary-total" class="text-xl font-black tracking-tighter"></span>
+            </div>
+            <button id="final-confirm-btn" onclick="sendOrder()" class="w-full h-12 bg-gray-100 text-gray-500 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all cursor-not-allowed">
+                Completa i dati
+            </button>
+        </footer>
+    </div>
+
+    <!-- HISTORY OVERLAY -->
+    <div id="history-overlay" class="overlay overlay-hidden flex flex-col">
+        <header class="px-5 py-4 flex justify-between items-center border-b border-gray-100">
+            <h2 class="text-lg font-black uppercase tracking-tight">I tuoi ordini</h2>
+            <button onclick="toggleHistory()" class="text-gray-300 text-xl"><i class="fas fa-times-circle"></i></button>
+        </header>
+        <div id="history-list" class="flex-1 overflow-y-auto p-5 space-y-3 no-scrollbar"></div>
+    </div>
+
+    <!-- CHECKOUT BAR (MOBILE ONLY SLIM) -->
+    <div id="checkout-bar" class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t border-gray-100 z-[100] translate-y-full transition-transform duration-300 shadow-sm">
+        <div class="flex items-center justify-between gap-4 max-w-md mx-auto">
+            <div class="flex flex-col">
+                <span class="text-[8px] font-black uppercase tracking-widest text-gray-500">Totale</span>
+                <span id="total-price-bar" class="text-lg font-black tracking-tighter">€ 0,00</span>
+            </div>
+            <button onclick="toggleSummary()" class="flex-1 h-12 bg-black text-white rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2">
+                <span>Rivedi Ordine</span><i class="fas fa-arrow-right text-[8px]"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- LOADER -->
+    <div id="global-loader" class="fixed inset-0 bg-white z-[600] flex flex-col items-center justify-center p-10 text-center transition-opacity duration-300">
+        <div class="w-10 h-10 border-2 border-gray-100 border-t-black rounded-full animate-spin mb-4"></div>
+        <p class="text-[8px] font-black uppercase tracking-[0.3em] text-gray-300">SiteBoS Engine...</p>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.expand();
+        tg.ready();
+
+        const WH_URL = "https://prod.workflow.trinai.it/webhook/8eb69e84-d20d-486e-a70e-9acf31c3da9e";
+        const params = new URLSearchParams(window.location.search);
+        const ashToken = params.get('ash');
+
+        let catalog = [], categories = [], history = [], cart = {}, cartConfig = {}; 
+        let imgRoot = "", vat = params.get('vat') || 'default', currentFilter = 'ALL', userCoords = null, paymentMode = 'DELIVERY';
+        let activeSku = null, currentBasePrice = 0, modalLocalQty = 1, modalEditingKey = null;
+
+        function getProductImageUrl(p) {
+            return `https://minisite.trinai.it/${vat}/images/${p.callback_data}.jpg`;
+        }
+
+        function handleProductImageError(img, callbackData) {
+            if (!callbackData) return;
+            if (!img.dataset.triedDashboard) {
+                img.dataset.triedDashboard = 'true';
+                img.src = `https://dashboard.trinai.it/images/minisite/${vat}/${callbackData}.jpg`;
+            } else if (!img.dataset.triedLegacy) {
+                img.dataset.triedLegacy = 'true';
+                img.src = `${imgRoot}images/${vat}/${callbackData}.jpg`;
+            } else if (!img.dataset.triedPlaceholder) {
+                img.dataset.triedPlaceholder = 'true';
+                img.src = 'https://via.placeholder.com/200?text=IMG';
+            }
+        }
+
+        window.onload = async () => { 
+            console.log("Window Loaded. Script pronto.");
+            if (!ashToken) { 
+                console.error("Errore: ashToken mancante nell'URL");
+                tg.showAlert("ASH Token mancante."); 
+                hideLoader();
+                return; 
+            } 
+            await initApp(); 
+        };
+
+        async function initApp() {
+            try {
+                console.log("Inizializzazione App con ASH:", ashToken);
+                const res = await fetch(WH_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ _auth: tg.initData, ash: ashToken, action: 'u_calc_ecom_get' })
+                });
+                
+                if (!res.ok) throw new Error("Risposta server non valida: " + res.status);
+                
+                const r = await res.json();
+                console.log("Risposta Webhook u_calc_ecom_get:", r);
+                const d = Array.isArray(r) ? r[0] : r; 
+                
+                if (d && d.success) {
+                    console.log("Dati caricati con successo");
+                    catalog = (d.catalog || []).filter(p => {
+                        const hide = p.inventory_enabled === true || p.inventory_enabled === "true";
+                        return !hide;
+                    });
+                    history = d.history || []; vat = d.vat || vat;
+                    imgRoot = (d.urlMiniApp || "").replace('telegram_control/', '');
+                    categories = [...new Set(catalog.map(p => p.category))];
+                    if (d.payment_active) document.getElementById('pay-card').classList.remove('hidden');
+                    renderUI(d.brand || {}); 
+                } else {
+                    console.error("Success false o dati mancanti:", d);
+                    tg.showAlert("Errore durante il caricamento del catalogo.");
+                }
+            } catch (e) { 
+                console.error("Eccezione durante initApp:", e);
+                tg.showAlert("Connessione fallita."); 
+            } finally {
+                hideLoader();
+            }
+        }
+
+        function hideLoader() { const l = document.getElementById('global-loader'); l.classList.add('opacity-0'); setTimeout(() => l.classList.add('hidden'), 300); }
+
+        function renderUI(brand) {
+            document.getElementById('customer-name').innerText = (tg.initDataUnsafe.user?.first_name || "Cliente");
+            if (brand.logo) document.getElementById('brand-logo').innerHTML = `<img src="${brand.logo}" class="w-full h-full object-cover">`;
+            const select = document.getElementById('category-select');
+            select.innerHTML = '<option value="ALL">TUTTI I PRODOTTI</option>';
+            categories.forEach(cat => {
+                const opt = document.createElement('option'); opt.value = cat;
+                opt.innerText = cat.replace('[PRO] ', '').replace('[SER] ', '').toUpperCase();
+                select.appendChild(opt);
+            });
+            renderSuggested(); renderCatalog(); renderHistory();
+        }
+
+        function filterCategory(cat) {
+            currentFilter = cat; renderCatalog();
+            if (cat !== 'ALL') {
+                const target = document.getElementById(`section-${cat.replace(/\s/g, '_')}`);
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function renderSuggested() {
+            const list = document.getElementById('suggested-list');
+            const counts = {};
+            history.forEach(o => o.items?.forEach(i => counts[i.sku] = (counts[i.sku] || 0) + 1));
+            const sorted = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 4);
+            const items = catalog.filter(p => sorted.includes(p.callback_data));
+            if (items.length > 0) {
+                document.getElementById('section-suggested').classList.remove('hidden');
+                list.innerHTML = items.map(p => `
+                    <div class="flex-shrink-0 w-24 bg-white p-1 rounded-2xl bento-card" onclick="openProduct('${p.callback_data}')">
+                        <div class="w-full aspect-square rounded-xl bg-gray-50 overflow-hidden relative border border-gray-100">
+                            <img src="${getProductImageUrl(p)}" onerror="handleProductImageError(this, '${p.callback_data}')" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center p-2 text-center">
+                                <h3 class="font-black text-[7px] text-white uppercase tracking-tighter leading-none mb-1" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8)">${p.short_name || p.name}</h3>
+                                <p class="font-black text-[9px] text-white" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.8)">€ ${parseFloat(p.price).toFixed(2)}</p>
+                            </div>
+                            ${getProductQty(p.callback_data) > 0 ? `<div class="absolute top-1 right-1 bg-black text-white w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-black border border-white z-10">${getProductQty(p.callback_data)}</div>` : ''}
+                        </div>
+                    </div>`).join('');
+            }
+        }
+
+        function renderCatalog() {
+            const container = document.getElementById('catalog-container'); container.innerHTML = '';
+            const filteredCategories = currentFilter === 'ALL' ? categories : [currentFilter];
+            filteredCategories.forEach(cat => {
+                const products = catalog.filter(p => p.category === cat);
+                if (products.length === 0) return;
+                const section = document.createElement('section');
+                section.id = `section-${cat.replace(/\s/g, '_')}`; section.className = "space-y-4";
+                section.innerHTML = `
+                    <h2 class="text-[9px] font-black uppercase tracking-widest text-black px-1 border-l-2 border-black ml-1 pl-3">${cat.replace('[PRO] ', '').replace('[SER] ', '')}</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        ${products.map(p => `
+                            <div class="bg-white p-3 rounded-3xl bento-card space-y-3 relative overflow-hidden group border border-gray-50" onclick="openProduct('${p.callback_data}')">
+                                <div class="w-full aspect-square rounded-2xl bg-gray-50 overflow-hidden">
+                                    <img src="${getProductImageUrl(p)}" onerror="handleProductImageError(this, '${p.callback_data}')" class="w-full h-full object-cover">
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-[10px] leading-tight mb-2 h-7 overflow-hidden text-gray-800 uppercase tracking-tighter">${p.name}</h3>
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-black text-xs">${p.pricing?.pricing_rules_engine?.is_dynamic_price ? '<span class="text-[7px] uppercase opacity-30 mr-0.5">da</span>' : ''}€ ${parseFloat(p.price).toFixed(2)}</span>
+                                        <div class="flex items-center gap-1">
+                                            ${getProductQty(p.callback_data) > 0 ? `
+                                                <button onclick="event.stopPropagation(); updateQty('${p.callback_data}', -1)" class="w-7 h-7 bg-gray-50 rounded-full flex items-center justify-center active:scale-75 transition"><i class="fas fa-minus text-[7px]"></i></button>
+                                                <span class="font-black text-[10px] min-w-[12px] text-center">${getProductQty(p.callback_data)}</span>
+                                            ` : ''}
+                                            <button onclick="event.stopPropagation(); ${(p.commercial_setup?.extra_options?.length > 0 || p.commercial_setup?.allow_customer_notes) ? `openProduct('${p.callback_data}')` : `updateQty('${p.callback_data}', 1)`}" class="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center active:scale-75 transition"><i class="fas fa-plus text-[7px]"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`).join('')}
+                    </div>`;
+                container.appendChild(section);
+            });
+        }
+
+        function getProductQty(sku) {
+            return Object.keys(cart).filter(k => k === sku || k.startsWith(sku + '|')).reduce((sum, k) => sum + cart[k], 0);
+        }
+
+        function getCurrentConfigString() {
+            const extras = [];
+            document.querySelectorAll('.extra-checkbox:checked').forEach(cb => {
+                extras.push({ name: cb.getAttribute('data-name'), price: parseFloat(cb.getAttribute('data-price')) });
+            });
+            const note = document.getElementById('modal-customer-note') ? document.getElementById('modal-customer-note').value : "";
+            if (extras.length === 0 && !note) return "";
+            return btoa(encodeURIComponent(JSON.stringify(extras) + note));
+        }
+
+        function getCartKey(sku, configString = "") {
+            return configString ? `${sku}|${configString}` : sku;
+        }
+
+        function openProduct(sku) {
+            const p = catalog.find(x => x.callback_data === sku); if (!p) return;
+            activeSku = sku;
+            currentBasePrice = parseFloat(p.price);
+            modalEditingKey = null;
+            modalLocalQty = 1;
+            
+            document.getElementById('modal-title').innerText = p.name;
+            document.getElementById('modal-category').innerText = p.category;
+            document.getElementById('modal-desc').innerText = p.long_description || p.description || "Nessuna descrizione.";
+            const modalImg = document.getElementById('modal-img');
+            delete modalImg.dataset.triedDashboard;
+            delete modalImg.dataset.triedLegacy;
+            delete modalImg.dataset.triedPlaceholder;
+            modalImg.src = getProductImageUrl(p);
+            
+            let config = { extras: [], note: "" };
+
+            // Handle Extras
+            const extrasContainer = document.getElementById('modal-extras-container');
+            const extrasList = document.getElementById('modal-extras-list');
+            const extraOptions = p.commercial_setup?.extra_options || [];
+            
+            if (extraOptions.length > 0) {
+                extrasContainer.classList.remove('hidden');
+                extrasList.innerHTML = extraOptions.map((opt, idx) => `
+                    <label class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 active:scale-[0.98] transition shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" class="extra-checkbox w-5 h-5 rounded-lg border-2 border-gray-200 text-black focus:ring-0 transition-all checked:bg-black checked:border-black" data-index="${idx}" data-price="${opt.price}" data-name="${opt.name}" 
+                                ${config.extras.some(e => e.name === opt.name) ? 'checked' : ''}
+                                onchange="updateModalPrice()">
+                            <span class="text-[12px] font-black uppercase tracking-tight">${opt.name}</span>
+                        </div>
+                        <span class="text-[10px] font-black text-gray-500">+ € ${parseFloat(opt.price).toFixed(2)}</span>
+                    </label>
+                `).join('');
+            } else {
+                extrasContainer.classList.add('hidden');
+            }
+
+            // Handle Notes
+            const notesContainer = document.getElementById('modal-notes-container');
+            const noteInput = document.getElementById('modal-customer-note');
+            if (p.commercial_setup?.allow_customer_notes) {
+                notesContainer.classList.remove('hidden');
+                noteInput.value = config.note || "";
+            } else {
+                notesContainer.classList.add('hidden');
+            }
+
+            document.getElementById('modal-confirm-btn').innerText = "Aggiungi all'ordine";
+            updateModalPrice();
+            
+            document.getElementById('product-modal').classList.remove('modal-hidden');
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        }
+
+        function editCartItem(key) {
+            const sku = key.split('|')[0];
+            const p = catalog.find(x => x.callback_data === sku); if (!p) return;
+            
+            activeSku = sku;
+            currentBasePrice = parseFloat(p.price);
+            modalEditingKey = key;
+            modalLocalQty = cart[key];
+            
+            document.getElementById('modal-title').innerText = p.name;
+            document.getElementById('modal-category').innerText = p.category;
+            document.getElementById('modal-desc').innerText = p.long_description || p.description || "Nessuna descrizione.";
+            const modalImg = document.getElementById('modal-img');
+            delete modalImg.dataset.triedDashboard;
+            delete modalImg.dataset.triedLegacy;
+            delete modalImg.dataset.triedPlaceholder;
+            modalImg.src = getProductImageUrl(p);
+            
+            let config = cartConfig[key] || { extras: [], note: "" };
+
+            const extrasContainer = document.getElementById('modal-extras-container');
+            const extrasList = document.getElementById('modal-extras-list');
+            const extraOptions = p.commercial_setup?.extra_options || [];
+            
+            if (extraOptions.length > 0) {
+                extrasContainer.classList.remove('hidden');
+                extrasList.innerHTML = extraOptions.map((opt, idx) => `
+                    <label class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 active:scale-[0.98] transition shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" class="extra-checkbox w-5 h-5 rounded-lg border-2 border-gray-200 text-black focus:ring-0 transition-all checked:bg-black checked:border-black" data-index="${idx}" data-price="${opt.price}" data-name="${opt.name}" 
+                                ${config.extras.some(e => e.name === opt.name) ? 'checked' : ''}
+                                onchange="updateModalPrice()">
+                            <span class="text-[12px] font-black uppercase tracking-tight">${opt.name}</span>
+                        </div>
+                        <span class="text-[10px] font-black text-gray-500">+ € ${parseFloat(opt.price).toFixed(2)}</span>
+                    </label>
+                `).join('');
+            } else {
+                extrasContainer.classList.add('hidden');
+            }
+
+            const notesContainer = document.getElementById('modal-notes-container');
+            const noteInput = document.getElementById('modal-customer-note');
+            if (p.commercial_setup?.allow_customer_notes) {
+                notesContainer.classList.remove('hidden');
+                noteInput.value = config.note || "";
+            } else {
+                notesContainer.classList.add('hidden');
+            }
+
+            document.getElementById('modal-confirm-btn').innerText = "Aggiorna ordine";
+            updateModalPrice();
+            
+            document.getElementById('summary-overlay').classList.add('overlay-hidden');
+            document.getElementById('product-modal').classList.remove('modal-hidden');
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        }
+
+        function changeModalLocalQty(delta) {
+            if (modalLocalQty + delta < 1) return;
+            modalLocalQty += delta;
+            updateModalPrice();
+        }
+
+        function updateModalPrice() {
+            let singlePrice = currentBasePrice;
+            document.querySelectorAll('.extra-checkbox:checked').forEach(cb => {
+                singlePrice += parseFloat(cb.getAttribute('data-price'));
+            });
+            const total = singlePrice * modalLocalQty;
+            document.getElementById('modal-price').innerText = `€ ${total.toFixed(2)}`;
+            document.getElementById('modal-qty').innerText = modalLocalQty;
+        }
+
+        function confirmModalItem() {
+            const sku = activeSku;
+            if (!sku) {
+                console.error("confirmModalItem: activeSku è null. Tentativo di recupero da modalEditingKey.");
+            }
+            const currentSku = sku || (modalEditingKey ? modalEditingKey.split('|')[0] : null);
+            
+            if (!currentSku) {
+                console.error("Errore critico: impossibile determinare lo SKU per l'ordine.");
+                return;
+            }
+
+            const newKey = getCartKey(currentSku, getCurrentConfigString());
+            console.log("ConfirmModalItem - Sku:", currentSku, "NewKey:", newKey, "EditingKey:", modalEditingKey);
+            
+            if (modalEditingKey) {
+                if (modalEditingKey !== newKey) {
+                    console.log("Chiave cambiata durante edit. Vecchia:", modalEditingKey, "Nuova:", newKey);
+                    // Se la nuova chiave esiste già, sommiamo le quantità
+                    if (cart[newKey]) {
+                        cart[newKey] += modalLocalQty;
+                        console.log("Nuova chiave esistente, sommo quantità. Totale:", cart[newKey]);
+                    } else {
+                        cart[newKey] = modalLocalQty;
+                    }
+                    delete cart[modalEditingKey];
+                    delete cartConfig[modalEditingKey];
+                } else {
+                    // Stessa chiave, aggiorniamo solo la quantità (caso in cui si cambia solo la qty nella modale)
+                    cart[newKey] = modalLocalQty;
+                }
+            } else {
+                // Nuovo inserimento
+                cart[newKey] = (cart[newKey] || 0) + modalLocalQty;
+            }
+            
+            const extras = [];
+            document.querySelectorAll('.extra-checkbox:checked').forEach(cb => {
+                extras.push({ name: cb.getAttribute('data-name'), price: parseFloat(cb.getAttribute('data-price')) });
+            });
+            const note = document.getElementById('modal-customer-note') ? document.getElementById('modal-customer-note').value : "";
+            cartConfig[newKey] = { extras, note };
+            
+            const wasEditing = !!modalEditingKey;
+            closeModal();
+            updateCheckoutBar(); renderCatalog(); renderSuggested();
+            
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            
+            if (wasEditing) {
+                renderSummary();
+                document.getElementById('summary-overlay').classList.remove('overlay-hidden');
+            }
+        }
+
+        function closeModal() { 
+            const wasEditing = !!modalEditingKey;
+            activeSku = null;
+            modalEditingKey = null;
+            document.getElementById('product-modal').classList.add('modal-hidden'); 
+            if (wasEditing) {
+                document.getElementById('summary-overlay').classList.remove('overlay-hidden');
+            }
+        }
+
+        function updateQty(sku, delta) {
+            let key = sku;
+            if (delta < 0) {
+                const existingKeys = Object.keys(cart).filter(k => k === sku || k.startsWith(sku + '|'));
+                if (existingKeys.length > 0) {
+                    key = existingKeys[existingKeys.length - 1];
+                } else return;
+            }
+
+            const c = cart[key] || 0, n = c + delta;
+            if (n <= 0) {
+                delete cart[key];
+                delete cartConfig[key];
+            } else {
+                cart[key] = n;
+            }
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            updateCheckoutBar(); renderCatalog(); renderSuggested();
+        }
+
+        function updateCheckoutBar() {
+            let total = 0, count = 0;
+            Object.keys(cart).forEach(key => {
+                const sku = key.split('|')[0];
+                const p = catalog.find(x => x.callback_data === sku);
+                if (p) { 
+                    let itemPrice = parseFloat(p.price) || 0;
+                    const config = cartConfig[key];
+                    if (config && config.extras) {
+                        config.extras.forEach(e => itemPrice += parseFloat(e.price) || 0);
+                    }
+                    total += itemPrice * cart[key]; 
+                    count += cart[key]; 
+                }
+            });
+            document.getElementById('total-price-bar').innerText = `€ ${total.toFixed(2).replace('.', ',')}`;
+            document.getElementById('checkout-bar').classList.toggle('translate-y-full', count === 0);
+        }
+
+        function updateQtyByKey(key, delta) {
+            const c = cart[key] || 0, n = c + delta;
+            if (n <= 0) {
+                delete cart[key];
+                delete cartConfig[key];
+            } else {
+                cart[key] = n;
+            }
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            
+            updateCheckoutBar(); 
+            renderCatalog(); 
+            renderSuggested();
+            renderSummary(); 
+        }
+
+        function setPayment(mode) {
+            paymentMode = mode;
+            document.getElementById('pay-delivery').classList.toggle('active', mode === 'DELIVERY');
+            document.getElementById('pay-card').classList.toggle('active', mode === 'CARD');
+            updateConfirmButton();
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function toggleSummary() {
+            const o = document.getElementById('summary-overlay');
+            const h = o.classList.contains('overlay-hidden');
+            if (h) { renderSummary(); o.classList.remove('overlay-hidden'); }
+            else { o.classList.add('overlay-hidden'); }
+        }
+
+        function renderSummary() {
+            console.log("Rendering Summary. Cart:", cart);
+            const list = document.getElementById('summary-list'); let total = 0;
+            const items = Object.keys(cart).map(key => {
+                const sku = key.split('|')[0];
+                const p = catalog.find(x => x.callback_data === sku);
+                
+                if (!p) {
+                    console.error("Prodotto non trovato nel catalogo per SKU:", sku, "Key:", key);
+                    return "";
+                }
+
+                const config = cartConfig[key] || { extras: [], note: "" };
+                let itemPrice = parseFloat(p.price) || 0;
+                config.extras.forEach(e => itemPrice += parseFloat(e.price) || 0);
+                
+                const sub = itemPrice * cart[key]; 
+                total += sub;
+
+                const extrasHtml = config.extras.length > 0 
+                    ? `<div class="flex flex-wrap gap-1 mt-1.5">${config.extras.map(e => `<span class="bg-black/5 text-black text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter">+ ${e.name}</span>`).join('')}</div>` 
+                    : '';
+                const noteHtml = config.note 
+                    ? `<div class="bg-amber-50/50 p-2 rounded-lg border border-amber-100/50 mt-2 text-[8px] text-amber-800 italic font-medium">Nota: ${config.note}</div>` 
+                    : '';
+
+                // Usiamo un attributo data per la chiave per evitare problemi di escape nell'onclick
+                return `
+                    <div class="flex justify-between items-start bg-white p-5 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden cursor-pointer summary-item" data-key="${key.replace(/"/g, '&quot;')}">
+                        <div class="flex-1 pr-4">
+                            <div class="font-black text-[11px] uppercase leading-tight tracking-tight">${p.name} <i class="fas fa-edit ml-1 text-gray-300"></i></div>
+                            ${extrasHtml}
+                            ${noteHtml}
+                            <div class="flex items-center gap-3 mt-3" onclick="event.stopPropagation()">
+                                <button onclick="updateQtyByKey('${key.replace(/'/g, "\\'")}', -1)" class="w-7 h-7 bg-white rounded-full flex items-center justify-center active:scale-75 transition border border-gray-200 shadow-sm"><i class="fas fa-minus text-[8px] text-black"></i></button>
+                                <span class="font-black text-sm min-w-[16px] text-center">${cart[key]}</span>
+                                <button onclick="updateQtyByKey('${key.replace(/'/g, "\\'")}', 1)" class="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center active:scale-75 transition shadow-sm"><i class="fas fa-plus text-[8px]"></i></button>
+                            </div>
+                        </div>
+                        <div class="font-black text-xs text-right flex flex-col items-end gap-1 mt-1">
+                            <span>€ ${sub.toFixed(2)}</span>
+                            <span class="text-[8px] text-gray-400 uppercase font-bold tracking-widest">€ ${itemPrice.toFixed(2)} cad.</span>
+                        </div>
+                    </div>`;
+            }).filter(html => html !== "");
+
+            list.innerHTML = items.join(''); 
+            
+            // Aggiungiamo i listener per l'edit tramite data-key
+            document.querySelectorAll('.summary-item').forEach(el => {
+                el.onclick = () => editCartItem(el.getAttribute('data-key'));
+            });
+
+            document.getElementById('summary-total').innerText = `€ ${total.toFixed(2).replace('.', ',')}`;
+            updateConfirmButton();
+        }
+
+        function requestLocation() {
+            if (navigator.geolocation) {
+                document.getElementById('location-status').innerText = "Rilevamento...";
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    userCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+                    document.getElementById('location-status').innerText = "Acquisita ✅";
+                    document.getElementById('location-status').className = "font-bold text-green-600 text-[10px]";
+                    document.getElementById('location-icon').classList.add('text-green-600');
+                    document.getElementById('btn-location').classList.add('hidden');
+                    updateConfirmButton();
+                }, (err) => { tg.showAlert("GPS fallito. Inserisci a mano."); }, { enableHighAccuracy: true, timeout: 10000 });
+            }
+        }
+
+        function updateConfirmButton() {
+            const btn = document.getElementById('final-confirm-btn');
+            const address = document.getElementById('manual-address').value.trim();
+            if (address.length > 5 && userCoords) {
+                btn.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                btn.classList.add('bg-black', 'text-black');
+                btn.innerText = paymentMode === 'CARD' ? "Paga e Ordina" : "Invia Ordine";
+            } else {
+                btn.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                btn.innerText = !userCoords ? "Condividi posizione" : "Inserisci indirizzo";
+            }
+        }
+
+        async function sendOrder() {
+            if (!userCoords || document.getElementById('manual-address').value.length <= 5) return;
+            const btn = document.getElementById('final-confirm-btn');
+            btn.disabled = true; btn.innerText = "Invio...";
+            
+            const timestamp = Date.now();
+            const customerId = tg.initDataUnsafe.user?.id || "anon";
+            const orderSessionId = `${customerId}_order_${timestamp}`;
+
+            const items = Object.keys(cart).map(key => {
+                const sku = key.split('|')[0];
+                const p = catalog.find(x => x.callback_data === sku);
+                const config = cartConfig[key] || { extras: [], note: "" };
+                let finalItemPrice = parseFloat(p.price) || 0;
+                config.extras.forEach(e => finalItemPrice += parseFloat(e.price) || 0);
+
+                return { 
+                    sku, 
+                    name: p.name, 
+                    base_price: parseFloat(p.price),
+                    final_price: finalItemPrice,
+                    quantity: cart[key],
+                    selected_extras: config.extras,
+                    customer_note: config.note
+                };
+            });
+
+            const total = items.reduce((acc, i) => acc + (i.final_price * i.quantity), 0);
+            
+            const orderPayload = {
+                sessionId: orderSessionId,
+                items,
+                total_amount: total,
+                timestamp: new Date(timestamp).toISOString(),
+                location: userCoords,
+                address: document.getElementById('manual-address').value,
+                payment_mode: paymentMode,
+                ids: {
+                    customer_id: customerId,
+                    timestamp: timestamp,
+                    webhook: WH_URL.split('/').pop()
+                }
+            };
+
+            try {
+                const res = await fetch(WH_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        _auth: tg.initData, 
+                        ash: ashToken, 
+                        action: 'u_calc_ecom_save', 
+                        order_data: orderPayload 
+                    })
+                });
+                const r = await res.json();
+                if (r.invoice_link) {
+                    tg.openInvoice(r.invoice_link, (status) => {
+                        if (status === 'paid') { tg.showAlert("✅ Ordine inviato!", () => tg.close()); }
+                        else { tg.showAlert("❌ Pagamento fallito."); btn.disabled = false; btn.innerText = "Riprova"; }
+                    });
+                } else if (r.success) {
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                    tg.showAlert("✅ Ordine ricevuto!", () => tg.close());
+                }
+            } catch (e) { tg.showAlert("Errore invio."); btn.disabled = false; btn.innerText = "Riprova"; }
+        }
+
+        function toggleHistory() { const o = document.getElementById('history-overlay'); o.classList.toggle('overlay-hidden'); }
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            if (history.length === 0) { list.innerHTML = `<div class="text-center py-10 opacity-20 font-black text-[9px]">VUOTO</div>`; return; }
+            
+            list.innerHTML = history.map(item => {
+                const h = item.order || item; 
+                const info = h.order_info || h;
+                const evasion = h.evasion_data || {};
+                const status = (evasion.status || info.status || h.status || 'RICHIESTO').toUpperCase();
+                const date = new Date(h.timestamp).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                
+                let statusClass = "bg-gray-100 text-gray-500";
+                if (status === 'CONFIRMED' || status === 'CONFERMATO' || status === 'COMPLETATO') statusClass = "bg-green-500 text-black";
+                else if (status === 'PENDING' || status === 'RICHIESTO') statusClass = "bg-amber-400 text-black";
+
+                const deliveryTime = evasion.delivery_time || '';
+                const deliveryInfo = deliveryTime ? `<div class="text-[9px] font-black mt-1.5 text-green-700 uppercase tracking-tight">Consegna: ${deliveryTime}${typeof deliveryTime === 'number' ? ' MIN' : ''}</div>` : '';
+
+                const itemsHtml = (h.items || []).map(i => `
+                    <div class="flex justify-between text-[10px] text-gray-500">
+                        <span>${i.quantity}x ${i.name}</span>
+                        <span>€ ${(parseFloat(i.final_price || i.price) * i.quantity).toFixed(2)}</span>
+                    </div>`).join('');
+
+                return `
+                <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="text-[8px] font-black uppercase text-gray-300 mb-1">Stato Ordine</div>
+                            <div class="px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest ${statusClass} inline-block">${status}</div>
+                            ${deliveryInfo}
+                        </div>
+                        <div class="text-right">
+                            <div class="text-[8px] font-black uppercase text-gray-300 mb-1">Data</div>
+                            <div class="text-[10px] font-bold text-black">${date}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-1.5 border-t border-gray-50 pt-4">
+                        ${itemsHtml}
+                    </div>
+                    
+                    <div class="flex justify-between items-center border-t border-gray-50 pt-4">
+                        <div class="flex flex-col">
+                            <span class="text-[8px] font-black uppercase text-gray-300">Totale</span>
+                            <span class="font-black text-lg tracking-tighter text-black">€ ${parseFloat(h.total_amount || 0).toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // Funzione rimossa su richiesta dell'utente (non deve aprire il viewer owner)
+        // function openOrderViewer(sessionId) { ... }
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

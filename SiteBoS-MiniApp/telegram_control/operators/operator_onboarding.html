@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Attivazione Operatore</title>
+  
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="twa_guard.js"></script>
+  
+  <!-- CSS CONDIVISO ROOT -->
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="operators.css">
+  
+  <style>
+    .skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; background: #fff; padding: 10px; border-radius: 12px; }
+    @media (max-width: 600px) { .skills-grid { grid-template-columns: 1fr; } }
+    
+    .skill-item { display: flex; align-items: center; gap: 8px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+    .skill-item:hover { background: rgba(255,255,255,0.08); }
+    .skill-item input[type="checkbox"] { margin: 0; }
+    .skill-item.selected { background: rgba(91, 111, 237, 0.2); border: 1px solid var(--primary); }
+    
+    .level-selector { display: flex; gap: 6px; margin-top: 8px; pointer-events: auto !important; }
+    .level-btn { 
+      flex: 1; 
+      padding: 6px; 
+      font-size: 11px; 
+      border-radius: 6px; 
+      border: 1px solid var(--glass-border); 
+      background: rgba(0,0,0,0.3); 
+      color: var(--text-muted); 
+      cursor: pointer !important; 
+      transition: all 0.2s;
+      pointer-events: auto !important;
+      position: relative;
+      z-index: 10;
+    }
+    .level-btn:hover { background: rgba(91, 111, 237, 0.3); }
+    .level-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+    
+    .cert-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
+    .cert-input-group input { flex: 1; }
+    .cert-input-group button { padding: 8px 12px; background: var(--danger); border: none; color: white; border-radius: 6px; cursor: pointer; }
+    
+    .cv-upload-card { background: linear-gradient(135deg, rgba(255, 193, 7, 0.2) 0%, rgba(255, 193, 7, 0.05) 100%); border-left: 3px solid #ffc107; margin-bottom: 20px; }
+    
+    /* Miglioramenti estetici Noir */
+    :root { --radius-xl: 1.25rem; --bg-soft: #f8fafc; }
+    body { background: #fafafa; }
+    .card { background: #fff; border-radius: var(--radius-xl); padding: 20px; border: 1px solid #eee; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+    
+    .progress-bar { display: flex; justify-content: space-between; margin: 20px 0 30px; position: relative; padding: 0 10px; }
+    .progress-line { position: absolute; top: 15px; left: 10px; right: 10px; height: 2px; background: #eee; z-index: 1; }
+    .progress-fill { position: absolute; top: 15px; left: 10px; width: 0%; height: 2px; background: #000; z-index: 2; transition: width 0.3s; }
+    .step-item { position: relative; z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 8px; opacity: 0.4; }
+    .step-item.active { opacity: 1; }
+    .step-circle { width: 30px; height: 30px; background: #fff; border: 2px solid #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; }
+    .step-item.active .step-circle { border-color: #000; background: #000; color: #fff; }
+    .step-label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; }
+    
+    .checkbox-group { display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--bg-soft); border-radius: 12px; margin-bottom: 8px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+    .checkbox-group:hover { border-color: #ddd; }
+    .checkbox-group input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: #000; }
+    .checkbox-group label { font-size: 13px; font-weight: 500; cursor: pointer; color: #334155; margin: 0; line-height: 1.4; }
+    
+    .input-group label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin-bottom: 8px; display: block; }
+    input, select, textarea { border-radius: 12px !important; border: 1px solid #eee !important; background: #f9fafb !important; padding: 12px 16px !important; }
+    input:focus { border-color: #000 !important; background: #fff !important; }
+    
+    #loader { background: #fff !important; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #eee; border-top-color: #000; border-radius: 50%; animation: opSpin 0.8s linear infinite; }
+    @keyframes opSpin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <!-- LOADER -->
+  <div id="loader">
+    <div class="spinner"></div>
+    <div style="margin-top:10px; font-size:12px;">SECURE HANDSHAKE</div>
+  </div>
+
+  <!-- ACCESS DENIED -->
+  <div id="access-denied" class="hidden container text-center" style="padding-top:50px;">
+    <div style="font-size:50px; margin-bottom:20px;">🔒</div>
+    <h2 data-i18n="access_denied_title">Accesso Riservato</h2>
+    <p class="subtitle" data-i18n="access_denied_desc">Attivazione disponibile solo tramite invito.</p>
+    <a href="https://t.me/TrinAi_Site_bot" class="btn btn-primary btn-block" data-i18n="open_bot">Contatta Owner</a>
+  </div>
+
+  <!-- APP CONTENT -->
+  <div id="app-content" class="container hidden">
+
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+      <div class="progress-line"></div>
+      <div class="progress-fill" id="progress-fill"></div>
+      
+      <div class="step-item active" id="si-1">
+        <div class="step-circle">1</div>
+        <div class="step-label" data-i18n="step_identity">Identità</div>
+      </div>
+      <div class="step-item" id="si-2">
+        <div class="step-circle">2</div>
+        <div class="step-label" data-i18n="step_profile">Profilo</div>
+      </div>
+    </div>
+
+    <form id="wizardForm" onsubmit="return false;">
+      
+      <!-- STEP 1: IDENTITÀ & SICUREZZA -->
+      <div class="step-content fade-in" id="step-1">
+        <h2 data-i18n="h_identity">Informativa & Sicurezza</h2>
+        <p class="subtitle" data-i18n="sub_identity">Consensi, Sicurezza e Informativa Sistemi AI.</p>
+
+        <!-- Welcome Message -->
+        <div class="card" style="background: #f8fafc; border-left: 4px solid #000; margin-bottom: 24px; border-radius: 16px;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: #000; color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+              <i class="fas fa-user-plus"></i>
+            </div>
+            <div>
+              <div style="font-weight: 800; font-size: 16px; margin-bottom: 2px;">Benvenuto nel Team!</div>
+              <div style="font-size: 12px; color: #64748b;">
+                Sei stato invitato da <strong id="company-name-display" style="color: #000;">...</strong>
+              </div>
+              <div id="company-details-extra" style="font-size: 10px; color: #94a3b8; margin-top: 4px; display: none;">
+                <i class="fas fa-id-card"></i> <span id="company-vat-display"></span><br>
+                <i class="fas fa-map-marker-alt"></i> <span id="company-address-display"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GDPR -->
+        <div class="legal-box form-section">
+            <div class="checkbox-group"><input type="checkbox" id="chk_privacy"><label for="chk_privacy" data-i18n="legal_privacy">Informativa Trattamento Dati e Sistemi AI</label></div>
+            <div class="checkbox-group"><input type="checkbox" id="chk_terms"><label for="chk_terms" data-i18n="legal_terms">Accetto Termini di Servizio</label></div>
+            <div class="checkbox-group"><input type="checkbox" id="chk_ai"><label for="chk_ai" data-i18n="legal_ai">Accetto l'analisi delle competenze tramite AI (AI Act Reg. UE 2024/1689)</label></div>
+        </div>
+
+        <!-- WRAPPER BLOCCATO FINO A CONSENSO -->
+        <div id="step1-inputs-container" style="opacity: 0.5; pointer-events: none; transition: all 0.3s ease;">
+            <!-- BYOK GEMINI -->
+            <div class="api-key-card form-section">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <div style="color:var(--primary); font-weight:bold;"><i class="fas fa-brain"></i> Gemini API Key</div>
+                    <div id="gemini-status" style="font-size: 10px; font-weight: 800; text-transform: uppercase;"></div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="gemini_key" placeholder="Incolla qui: AIzaSy..." style="flex: 1; margin-bottom: 0 !important;">
+                    <button type="button" id="btn-verify-key" class="btn btn-sm btn-secondary" onclick="verifyGeminiKey()" style="width: auto; padding: 0 16px; height: 46px;">Verifica</button>
+                </div>
+                <div class="hint" data-i18n="byok_note">La tua chiave personale, nessuno la vedrà.</div>
+            </div>
+
+            <!-- DATI ANAGRAFICI -->
+            <div class="row">
+              <div class="col"><label class="required" data-i18n="lbl_name">Nome</label><input type="text" id="name" placeholder="Nome"></div>
+              <div class="col"><label class="required" data-i18n="lbl_surname">Cognome</label><input type="text" id="surname" placeholder="Cognome"></div>
+            </div>
+            <div class="input-group"><label data-i18n="lbl_fiscal">Codice Fiscale</label><input type="text" id="fiscal_code" placeholder="Opzionale"></div>
+            <div class="input-group"><label class="required" data-i18n="lbl_email">Email</label><input type="email" id="email"></div>
+            <div class="input-group"><label class="required" data-i18n="lbl_phone">Telefono</label><input type="tel" id="phone"></div>
+
+            <div class="btn-container">
+              <button type="button" class="btn btn-primary btn-block" id="btn-step1" disabled>
+                <span data-i18n="btn_next">Avanti</span> <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: PROFILO PROFESSIONALE -->
+      <div class="step-content hidden fade-in" id="step-2">
+        <h2 data-i18n="h_profile">Profilo Professionale</h2>
+        <p class="subtitle" data-i18n="sub_profile">Competenze e esperienza lavorativa.</p>
+
+        <!-- 🚀 UPLOAD CV MAGIC -->
+        <div class="card cv-upload-card">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <i class="fas fa-file-upload" style="font-size: 28px; color: #ffc107;"></i>
+            <div>
+              <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;" data-i18n="cv_magic_title">⚡ Risparmia tempo!</div>
+              <div style="font-size: 12px; color: var(--text-secondary);" data-i18n="cv_magic_desc">
+                Carica il tuo CV e compileremo tutto automaticamente
+              </div>
+            </div>
+          </div>
+          
+          <input type="file" id="cv_upload" accept=".pdf,application/pdf" style="display:none;">
+          <button type="button" class="btn btn-secondary btn-block" onclick="document.getElementById('cv_upload').click()">
+            <i class="fas fa-upload"></i> <span data-i18n="btn_upload_cv">Carica CV (PDF)</span>
+          </button>
+          
+          <div id="cv-status" class="hidden" style="margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 6px; font-size: 12px;">
+            <div id="cv-status-text"></div>
+          </div>
+        </div>
+
+        <!-- INDIRIZZO -->
+        <div class="form-section">
+          <div class="section-title"><i class="fas fa-map-marker-alt"></i> <span data-i18n="section_address">Indirizzo</span></div>
+          <div class="row">
+            <div class="col-2"><input type="text" id="addr_route" placeholder="Via/Piazza" required></div>
+            <div class="col"><input type="text" id="addr_num" placeholder="N°" required></div>
+          </div>
+          <div class="row">
+            <div class="col"><input type="text" id="addr_zip" placeholder="CAP" required></div>
+            <div class="col-2"><input type="text" id="addr_city" placeholder="Città" required></div>
+            <div class="col"><input type="text" id="addr_prov" placeholder="PR" maxlength="2" required></div>
+          </div>
+        </div>
+
+        <!-- FORMAZIONE -->
+        <div class="form-section">
+          <div class="section-title"><i class="fas fa-graduation-cap"></i> <span data-i18n="section_education">Formazione</span></div>
+          
+          <div class="input-group">
+            <label class="required" data-i18n="lbl_education">Titolo di Studio</label>
+            <select id="education_level" required>
+              <option value="">-- Seleziona --</option>
+              <option value="middle_school">Licenza Media</option>
+              <option value="high_school">Diploma Superiore</option>
+              <option value="professional_diploma">Diploma Professionale</option>
+              <option value="bachelor">Laurea Triennale</option>
+              <option value="master">Laurea Magistrale</option>
+              <option value="phd">Dottorato</option>
+              <option value="other">Altro</option>
+            </select>
+          </div>
+          
+          <div class="input-group">
+            <label data-i18n="lbl_education_field">Specializzazione / Indirizzo</label>
+            <input type="text" id="education_field" placeholder="Es: Elettrotecnica, Meccanica, Informatica...">
+          </div>
+        </div>
+
+        <!-- PROFILO LAVORATIVO -->
+        <div class="form-section">
+          <div class="section-title"><i class="fas fa-briefcase"></i> <span data-i18n="section_work">Esperienza Lavorativa</span></div>
+          
+          <div class="input-group">
+            <label class="required" data-i18n="lbl_job_title">Ruolo / Mansione Principale</label>
+            <input type="text" id="job_title" placeholder="Es: Elettricista, Idraulico, Tecnico..." required>
+          </div>
+          
+          <!-- CHECKBOX PRIMA ESPERIENZA -->
+          <div class="checkbox-group" style="margin-bottom: 15px;">
+            <input type="checkbox" id="is_first_job">
+            <label for="is_first_job">
+              <strong data-i18n="lbl_first_job_ever">È la mia prima esperienza lavorativa</strong>
+            </label>
+          </div>
+          
+          <div id="experience-fields">
+            <div class="row">
+              <div class="col">
+                <label class="required" data-i18n="lbl_experience">Anni di Esperienza Totali</label>
+                <select id="experience_years" required>
+                  <option value="">-- Seleziona --</option>
+                  <option value="0-1">Meno di 1 anno</option>
+                  <option value="1-3">1-3 anni</option>
+                  <option value="3-5">3-5 anni</option>
+                  <option value="5-10">5-10 anni</option>
+                  <option value="10-15">10-15 anni</option>
+                  <option value="15+">Oltre 15 anni</option>
+                </select>
+              </div>
+              
+              <div class="col">
+                <label class="required" data-i18n="lbl_first_job">Prima Esperienza</label>
+                <input type="number" id="first_job_year" placeholder="Anno (es: 2015)" min="1970" max="2025" required>
+              </div>
+            </div>
+          </div>
+          
+          <!-- RAPPORTO CON OWNER -->
+          <div class="card" style="background: rgba(91, 111, 237, 0.1); border-left: 3px solid var(--primary); margin-top: 15px;">
+            <div class="checkbox-group">
+              <input type="checkbox" id="works_for_owner">
+              <label for="works_for_owner">
+                <strong data-i18n="lbl_works_owner">Lavoro già per questa azienda</strong>
+              </label>
+            </div>
+            
+            <div id="owner-work-details" class="hidden" style="margin-top: 12px;">
+              <div class="input-group">
+                <label data-i18n="lbl_years_with_owner">Da quanti anni lavori qui?</label>
+                <select id="years_with_owner">
+                  <option value="">-- Seleziona --</option>
+                  <option value="0-1">Meno di 1 anno</option>
+                  <option value="1-2">1-2 anni</option>
+                  <option value="2-3">2-3 anni</option>
+                  <option value="3-5">3-5 anni</option>
+                  <option value="5-10">5-10 anni</option>
+                  <option value="10+">Oltre 10 anni</option>
+                </select>
+              </div>
+              
+              <div class="input-group">
+                <label data-i18n="lbl_collaboration">Tipo di collaborazione</label>
+                <select id="collaboration_type">
+                  <option value="">-- Seleziona --</option>
+                  <option value="employee">Dipendente</option>
+                  <option value="freelance">Collaboratore esterno</option>
+                  <option value="contractor">Subappaltatore</option>
+                  <option value="partner">Partner / Socio</option>
+                  <option value="other">Altro</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <!-- CERTIFICAZIONI -->
+          <div class="input-group" style="margin-top: 15px;">
+            <label data-i18n="lbl_certifications">Certificazioni / Patentini</label>
+            <div id="certifications-list"></div>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="addCertification()">
+              <i class="fas fa-plus"></i> <span data-i18n="btn_add_cert">Aggiungi Certificazione</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- COMPETENZE AI -->
+        <div class="form-section">
+          <div class="section-title"><i class="fas fa-magic"></i> <span data-i18n="section_skills">Competenze Tecniche</span></div>
+          
+          <div class="input-group">
+            <label class="required" data-i18n="lbl_work_desc">Descrivi la tua esperienza lavorativa</label>
+            <textarea id="work_description" rows="4" placeholder="Es: Ho lavorato 5 anni come elettricista in cantieri civili e industriali. Ho installato oltre 20 impianti fotovoltaici, gestito quadri elettrici BT/MT..." required></textarea>
+          </div>
+          
+          <button type="button" class="btn btn-primary btn-block" id="analyze-skills-btn" onclick="analyzeSkills()">
+            <i class="fas fa-sparkles"></i> <span data-i18n="btn_analyze">Analizza Competenze con AI</span>
+          </button>
+          
+          <div id="skills-result" class="hidden" style="margin-top: 15px;">
+            <p class="hint" data-i18n="hint_skills_ai">✅ Competenze estratte! Seleziona il livello per ognuna o rimuovila.</p>
+            <div class="skills-grid" id="skills-grid"></div>
+          </div>
+          
+          <div class="input-group mt-2">
+            <label data-i18n="lbl_other_skills">Altre competenze (manuale)</label>
+            <textarea id="other_skills" rows="2" placeholder="Aggiungi competenze non rilevate..."></textarea>
+          </div>
+        </div>
+
+        <div class="btn-container">
+          <button type="button" class="btn btn-secondary" id="btn-back-s2"><i class="fas fa-arrow-left"></i> <span data-i18n="btn_back">Indietro</span></button>
+          <button type="button" class="btn btn-primary" id="submitBtn">
+            <i class="fas fa-check"></i> <span data-i18n="btn_complete">Completa Attivazione</span>
+          </button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+  
+  <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+    // operator_onboarding_logic.js - INTEGRATED
+    // Onboarding Operatore - 2 Step
+
+    // CONFIG
+    const ONBOARDING_API = "https://prod.workflow.trinai.it/webhook/771638a1-7a79-4cb0-a36e-29b03901cc4a";
+
+    // INIT TELEGRAM + ASH
+    const tg = window.TwaGuard?.requireTelegramWebApp?.() || window.Telegram.WebApp;
+    const ash = window.TwaGuard?.getAsh?.();
+    let chatId = tg.initDataUnsafe?.user?.id;
+
+    // URL PARAMS
+    const urlParams = new URLSearchParams(window.location.search);
+    const langParam = urlParams.get('lang') || 'it';
+    const msgId = urlParams.get('msg_id');
+
+    window.TwaGuard?.cleanupUrl?.(['ash', 'msg_id']);
+
+    // PATCH FETCH TO INCLUDE _auth AND ash AUTOMATICALLY
+    window.TwaGuard?.patchFetchJson?.();
+
+    // STATE
+    let currentStep = 1;
+    let ownerDataFromGet = null;
+    let ownerCompanyName = "";
+    let selectedSkills = []; // Array di skill names
+    let certifications = [];
+    let humanVerificationPerformed = false;
+
+    // I18N
+    const i18n = {
+        it: {
+            step_identity: "Identità", step_profile: "Profilo",
+            h_identity: "Informativa & Sicurezza", sub_identity: "Consensi, Sicurezza e Informativa Sistemi AI.",
+            h_profile: "Profilo Professionale", sub_profile: "Competenze e esperienza lavorativa.",
+            legal_privacy: "Informativa <a href='legal.html#privacy' class='legal-link'>Trattamento Dati e Sistemi AI</a>", 
+            legal_terms: "Accetto <a href='legal.html#terms' class='legal-link'>Termini di Servizio</a>", 
+            legal_ai: "Accetto l'analisi delle competenze tramite AI (<a href='legal.html#ai-act' class='legal-link'>AI Act Reg. UE 2024/1689</a>)",
+            byok_note: "La tua chiave personale, nessuno la vedrà.",
+            lbl_name: "Nome", lbl_surname: "Cognome", lbl_fiscal: "Codice Fiscale", lbl_email: "Email", lbl_phone: "Telefono",
+            section_address: "Indirizzo", section_education: "Formazione", section_work: "Esperienza Lavorativa", section_skills: "Competenze Tecniche",
+            lbl_education: "Titolo di Studio", lbl_education_field: "Specializzazione / Indirizzo",
+            lbl_job_title: "Ruolo / Mansione Principale", lbl_experience: "Anni di Esperienza Totali", lbl_first_job: "Prima Esperienza",
+            lbl_first_job_ever: "È la mia prima esperienza lavorativa",
+            lbl_works_owner: "Lavoro già per questa azienda", lbl_years_with_owner: "Da quanti anni lavori qui?", lbl_collaboration: "Tipo di collaborazione",
+            lbl_certifications: "Certificazioni / Patentini", btn_add_cert: "Aggiungi Certificazione",
+            lbl_work_desc: "Descrivi la tua esperienza lavorativa", btn_analyze: "Analizza Competenze con AI",
+            hint_skills_ai: "✅ Competenze estratte con AI. Verifica, modifica o rimuovi per confermare (Human-in-the-loop).",
+            lbl_other_skills: "Altre competenze (manuale)",
+            btn_next: "Avanti", btn_back: "Indietro", btn_complete: "Completa Attivazione",
+            access_denied_title: "Accesso Riservato", access_denied_desc: "Attivazione disponibile solo tramite invito.",
+            open_bot: "Contatta Owner",
+            cv_magic_title: "⚡ Risparmia tempo!", cv_magic_desc: "Carica il tuo CV e compileremo tutto automaticamente",
+            btn_upload_cv: "Carica CV (PDF)"
+        },
+        en: {
+            step_identity: "Identity", step_profile: "Profile",
+            h_identity: "Disclosure & Security", sub_identity: "Consents, Security and AI Systems Disclosure.",
+            h_profile: "Professional Profile", sub_profile: "Skills and work experience.",
+            legal_privacy: "<a href='legal.html#privacy' class='legal-link'>Personal Data & AI Systems Disclosure</a>", 
+            legal_terms: "I accept <a href='legal.html#terms' class='legal-link'>Terms of Service</a>", 
+            legal_ai: "I accept skills analysis via AI (<a href='legal.html#ai-act' class='legal-link'>AI Act Reg. UE 2024/1689</a>)",
+            byok_note: "Your personal key, nobody will see it.",
+            lbl_name: "Name", lbl_surname: "Surname", lbl_fiscal: "Fiscal Code", lbl_email: "Email", lbl_phone: "Phone",
+            section_address: "Address", section_education: "Education", section_work: "Work Experience", section_skills: "Technical Skills",
+            lbl_education: "Education Level", lbl_education_field: "Specialization / Field",
+            lbl_job_title: "Role / Position", lbl_experience: "Years of Experience", lbl_first_job: "First Job",
+            lbl_first_job_ever: "This is my first job",
+            lbl_works_owner: "I already work for this company", lbl_years_with_owner: "How many years?", lbl_collaboration: "Collaboration type",
+            lbl_certifications: "Certifications", btn_add_cert: "Add Certification",
+            lbl_work_desc: "Describe your work experience", btn_analyze: "Analyze Skills with AI",
+            hint_skills_ai: "✅ Skills extracted via AI. Verify, edit or remove to confirm (Human-in-the-loop).",
+            lbl_other_skills: "Other skills (manual)",
+            btn_next: "Next", btn_back: "Back", btn_complete: "Complete Activation",
+            access_denied_title: "Access Restricted", access_denied_desc: "Activation available only via invitation.",
+            open_bot: "Contact Owner",
+            cv_magic_title: "⚡ Save time!", cv_magic_desc: "Upload your CV and we'll fill everything automatically",
+            btn_upload_cv: "Upload CV (PDF)"
+        }
+    };
+
+    const lang = i18n[langParam] ? langParam : 'it';
+    const t = i18n[lang] || i18n['en'];
+
+    function applyTranslations() {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            el.innerHTML = t[el.getAttribute('data-i18n')];
+        });
+    }
+    applyTranslations();
+
+    // RENDER SKILLS GRID (SENZA LIVELLI)
+    function renderSkillsGrid() {
+        const grid = document.getElementById('skills-grid');
+        grid.innerHTML = '';
+        
+        selectedSkills.forEach(skill => {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.style.padding = '10px 12px';
+            div.style.background = 'rgba(91, 111, 237, 0.2)';
+            div.style.border = '1px solid var(--primary)';
+            div.style.display = 'flex';
+            div.style.justifyContent = 'space-between';
+            div.style.alignItems = 'center';
+            div.dataset.skillName = skill;
+            
+            div.innerHTML = `
+                <div style="font-size: 13px; font-weight: 500;">${escapeHtml(skill)}</div>
+                <button type="button" class="btn-remove-skill" style="background:none; border:none; color:var(--danger); cursor:pointer; padding:4px 8px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            grid.appendChild(div);
+        });
+        
+        // Event delegation per remove buttons
+        grid.querySelectorAll('.btn-remove-skill').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const skillCard = this.closest('[data-skill-name]');
+                const skillName = skillCard.dataset.skillName;
+                
+                selectedSkills = selectedSkills.filter(s => s !== skillName);
+                humanVerificationPerformed = true; // Intervento umano sulle skill
+                renderSkillsGrid();
+            });
+        });
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // CERTIFICAZIONI
+    window.addCertification = function() {
+        const list = document.getElementById('certifications-list');
+        const index = certifications.length;
+        
+        const div = document.createElement('div');
+        div.className = 'cert-input-group';
+        div.innerHTML = `
+            <input type="text" placeholder="Es: Patentino PES-PAV" data-cert-index="${index}">
+            <button type="button" onclick="removeCertification(${index})"><i class="fas fa-trash"></i></button>
+        `;
+        
+        list.appendChild(div);
+        certifications.push('');
+    }
+
+    window.removeCertification = function(index) {
+        certifications.splice(index, 1);
+        renderCertifications();
+    }
+
+    function renderCertifications() {
+        const list = document.getElementById('certifications-list');
+        list.innerHTML = '';
+        certifications.forEach((cert, idx) => {
+            const div = document.createElement('div');
+            div.className = 'cert-input-group';
+            div.innerHTML = `
+                <input type="text" value="${escapeHtml(cert)}" placeholder="Es: Patentino PES-PAV" data-cert-index="${idx}" oninput="updateCertification(${idx}, this.value)">
+                <button type="button" onclick="removeCertification(${idx})"><i class="fas fa-trash"></i></button>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    window.updateCertification = function(index, value) {
+        certifications[index] = value;
+    }
+
+    // VALIDATE INVITATION / GET INITIAL DATA
+    async function validateInvitation() {
+        // Se abbiamo ash, l'utente è già stato controllato, entriamo subito
+        if (ash) {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+            
+            // Carichiamo comunque i dati dell'azienda in background
+            try {
+                const res = await fetch(ONBOARDING_API, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        action: 'get',
+                        msg_id: msgId,
+                        chat_id: chatId
+                    })
+                });
+                const data = await res.json();
+                const owner = data.owner_data || data; // Handle both direct and wrapped structures
+                ownerDataFromGet = owner;
+                
+                if (res.ok && (owner.ragione_sociale || owner.company_name)) {
+                    ownerCompanyName = owner.ragione_sociale || owner.company_name;
+                    document.getElementById('company-name-display').innerText = ownerCompanyName;
+                    
+                    // Extra details
+                    if (owner.vat_number || owner.indirizzo) {
+                        const extra = document.getElementById('company-details-extra');
+                        if (extra) {
+                          extra.style.display = 'block';
+                          if (owner.vat_number) document.getElementById('company-vat-display').innerText = owner.vat_number;
+                          if (owner.indirizzo) document.getElementById('company-address-display').innerText = owner.indirizzo;
+                        }
+                    }
+                    
+                    if (data.chat_id) chatId = data.chat_id;
+                }
+            } catch (e) {
+                console.warn("Background data fetch failed", e);
+            }
+            return true;
+        }
+
+        // Se non abbiamo ash, controlliamo almeno se abbiamo chatId (fallback)
+        if (!chatId) {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('access-denied').classList.remove('hidden');
+            return false;
+        }
+        
+        // Fallback per casi senza ash ma con chatId
+        try {
+            const res = await fetch(ONBOARDING_API, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    action: 'get',
+                    msg_id: msgId,
+                    chat_id: chatId
+                })
+            });
+            
+            const data = await res.json();
+            const owner = data.owner_data || data;
+            ownerDataFromGet = owner;
+            
+            if (res.ok && (data.valid || owner.ragione_sociale)) {
+                ownerCompanyName = owner.ragione_sociale || owner.company_name || "l'azienda";
+                document.getElementById('company-name-display').innerText = ownerCompanyName;
+                
+                // Extra details
+                if (owner.vat_number || owner.indirizzo) {
+                    const extra = document.getElementById('company-details-extra');
+                    if (extra) {
+                        extra.style.display = 'block';
+                        if (owner.vat_number) document.getElementById('company-vat-display').innerText = owner.vat_number;
+                        if (owner.indirizzo) document.getElementById('company-address-display').innerText = owner.indirizzo;
+                    }
+                }
+                
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+                return true;
+            } else {
+                throw new Error('Invalid invitation');
+            }
+        } catch (e) {
+            console.error(e);
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('access-denied').classList.remove('hidden');
+            return false;
+        }
+    }
+
+    // STEP NAVIGATION
+    function goToStep(step) {
+        document.querySelectorAll('.step-content').forEach(s => s.classList.add('hidden'));
+        document.getElementById(`step-${step}`).classList.remove('hidden');
+        
+        document.querySelectorAll('.step-item').forEach(s => s.classList.remove('active'));
+        for (let i = 1; i <= step; i++) {
+            document.getElementById(`si-${i}`).classList.add('active');
+        }
+        
+        const progressFill = document.getElementById('progress-fill');
+        progressFill.style.width = `${((step - 1) / 1) * 100}%`;
+        
+        currentStep = step;
+    }
+
+    // VERIFY GEMINI KEY
+    window.verifyGeminiKey = async function() {
+        const key = document.getElementById('gemini_key').value.trim();
+        const btn = document.getElementById('btn-verify-key');
+        const status = document.getElementById('gemini-status');
+        
+        if (!key) {
+            status.innerText = 'Inserisci una chiave';
+            status.style.color = 'var(--danger)';
+            return;
+        }
+        
+        btn.disabled = true;
+        const originalText = btn.innerText;
+        btn.innerText = '...';
+        status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+        status.style.color = '#64748b';
+        
+        try {
+            const res = await fetch(ONBOARDING_API, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    action: 'verify_gemini_key',
+                    msg_id: msgId,
+                    chat_id: chatId,
+                    gemini_key: key
+                })
+            });
+            
+            const data = await res.json();
+            
+            if (res.ok && data.success) {
+                const tier = data['gemini key'] || data.tier || (data.success ? 'Valid' : 'Invalid');
+                
+                if (tier === 'Paid Tier') {
+                    status.innerText = tier;
+                    status.style.color = '#10b981'; // Success
+                    tg.HapticFeedback.notificationOccurred('success');
+                } else if (tier === 'Free Tier') {
+                    status.innerText = 'Free Tier (Non Salvata)';
+                    status.style.color = '#f59e0b'; // Warning
+                    document.getElementById('gemini_key').value = ''; // Rimuovi se free
+                    tg.HapticFeedback.notificationOccurred('warning');
+                } else {
+                    status.innerText = tier;
+                    status.style.color = '#10b981';
+                }
+            } else {
+                status.innerText = 'Chiave non valida';
+                status.style.color = 'var(--danger)';
+                tg.HapticFeedback.notificationOccurred('error');
+            }
+        } catch (e) {
+            console.error(e);
+            status.innerText = 'Errore verifica';
+            status.style.color = 'var(--danger)';
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    }
+
+    // VALIDATE STEP 1
+    function validateStep1() {
+        const chkPrivacy = document.getElementById('chk_privacy').checked;
+        const chkTerms = document.getElementById('chk_terms').checked;
+        const chkAi = document.getElementById('chk_ai').checked;
+        const name = document.getElementById('name').value.trim();
+        const surname = document.getElementById('surname').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        
+        return chkPrivacy && chkTerms && chkAi && name && surname && email && phone;
+    }
+
+    function checkStep1() {
+        const chkPrivacy = document.getElementById('chk_privacy').checked;
+        const chkTerms = document.getElementById('chk_terms').checked;
+        const chkAi = document.getElementById('chk_ai').checked;
+        const allChecked = chkPrivacy && chkTerms && chkAi;
+        
+        // Gestione visibilità input
+        const container = document.getElementById('step1-inputs-container');
+        if (container) {
+            container.style.opacity = allChecked ? '1' : '0.5';
+            container.style.pointerEvents = allChecked ? 'auto' : 'none';
+        }
+        
+        document.getElementById('btn-step1').disabled = !validateStep1();
+    }
+
+    // ANALYZE SKILLS WITH AI
+    window.analyzeSkills = async function() {
+        const workDescription = document.getElementById('work_description').value.trim();
+        
+        if (!workDescription) {
+            alert('Inserisci una descrizione della tua esperienza lavorativa');
+            return;
+        }
+        
+        const btn = document.getElementById('analyze-skills-btn');
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analisi in corso...';
+        
+        try {
+            const res = await fetch(ONBOARDING_API, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    action: 'analyze_skills',
+                    msg_id: msgId,
+                    chat_id: chatId,
+                    gemini_key: document.getElementById('gemini_key').value,
+                    work_description: workDescription,
+                    job_title: document.getElementById('job_title').value,
+                    experience_years: document.getElementById('experience_years').value
+                })
+            });
+            
+            const data = await res.json();
+            
+            if (res.ok && data.skills) {
+                selectedSkills = data.skills.map(s => s.name || s.skill);
+                humanVerificationPerformed = true; // AI ha generato le skill
+                
+                document.getElementById('skills-result').classList.remove('hidden');
+                renderSkillsGrid();
+                
+                tg.HapticFeedback.notificationOccurred('success');
+            } else {
+                throw new Error('Analysis failed');
+            }
+            
+        } catch (e) {
+            console.error(e);
+            alert('❌ Errore durante l\'analisi. Riprova o inserisci competenze manualmente.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    }
+
+    // === DOM CONTENT LOADED ===
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // Toggle prima esperienza
+        const firstJobCheckbox = document.getElementById('is_first_job');
+        if (firstJobCheckbox) {
+            firstJobCheckbox.addEventListener('change', function() {
+                const experienceFields = document.getElementById('experience-fields');
+                const experienceYears = document.getElementById('experience_years');
+                const firstJobYear = document.getElementById('first_job_year');
+                
+                if (this.checked) {
+                    experienceFields.style.opacity = '0.5';
+                    experienceFields.style.pointerEvents = 'none';
+                    experienceYears.disabled = true;
+                    firstJobYear.disabled = true;
+                    experienceYears.value = '';
+                    firstJobYear.value = '';
+                } else {
+                    experienceFields.style.opacity = '1';
+                    experienceFields.style.pointerEvents = 'auto';
+                    experienceYears.disabled = false;
+                    firstJobYear.disabled = false;
+                }
+            });
+        }
+        
+        // Toggle owner work details
+        const worksCheckbox = document.getElementById('works_for_owner');
+        if (worksCheckbox) {
+            worksCheckbox.addEventListener('change', function() {
+                const details = document.getElementById('owner-work-details');
+                if (this.checked) {
+                    details.classList.remove('hidden');
+                } else {
+                    details.classList.add('hidden');
+                    document.getElementById('years_with_owner').value = '';
+                    document.getElementById('collaboration_type').value = '';
+                }
+            });
+        }
+        
+        // CV UPLOAD & PARSING
+        const cvUpload = document.getElementById('cv_upload');
+        if (cvUpload) {
+            cvUpload.addEventListener('change', async function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const cvStatus = document.getElementById('cv-status');
+                const cvStatusText = document.getElementById('cv-status-text');
+                
+                cvStatus.classList.remove('hidden');
+                cvStatusText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analisi CV in corso...';
+                
+                const reader = new FileReader();
+                reader.onload = async function(event) {
+                    const base64 = event.target.result;
+                    
+                    try {
+                        const res = await fetch(ONBOARDING_API, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                action: 'parse_cv',
+                                msg_id: msgId,
+                                chat_id: chatId,
+                                cv_base64: base64,
+                                gemini_key: document.getElementById('gemini_key').value
+                            })
+                        });
+                        
+                        const data = await res.json();
+                        
+                        if (res.ok && data.profile) {
+                            const p = data.profile;
+                            
+                            // Formazione
+                            if (p.education_level) document.getElementById('education_level').value = p.education_level;
+                            if (p.education_field) document.getElementById('education_field').value = p.education_field;
+                            
+                            // Esperienza
+                            if (p.job_title) document.getElementById('job_title').value = p.job_title;
+                            if (p.experience_years) document.getElementById('experience_years').value = p.experience_years;
+                            if (p.first_job_year) document.getElementById('first_job_year').value = p.first_job_year;
+                            
+                            // Descrizione
+                            if (p.work_description) document.getElementById('work_description').value = p.work_description;
+                            
+                            // Skills (estrai solo nomi)
+                            if (p.hard_skills && p.hard_skills.length > 0) {
+                                selectedSkills = p.hard_skills.map(s => s.skill || s.name);
+                                humanVerificationPerformed = true; // AI mapping via CV
+                                document.getElementById('skills-result').classList.remove('hidden');
+                                renderSkillsGrid();
+                            }
+                            
+                            // Certificazioni
+                            if (p.certifications && p.certifications.length > 0) {
+                                certifications = p.certifications;
+                                renderCertifications();
+                            }
+                            
+                            cvStatusText.innerHTML = '<i class="fas fa-check" style="color:var(--success);"></i> CV analizzato! Verifica e modifica se necessario.';
+                            tg.HapticFeedback.notificationOccurred('success');
+                        } else {
+                            throw new Error('Parsing failed');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        cvStatusText.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#ffc107;"></i> Impossibile analizzare CV. Compila manualmente.';
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // LISTENERS STEP 1
+        document.querySelectorAll('#step-1 input, #step-1 select').forEach(el => {
+            el.addEventListener('input', checkStep1);
+            el.addEventListener('change', checkStep1);
+        });
+        
+        const btnStep1 = document.getElementById('btn-step1');
+        if (btnStep1) {
+            btnStep1.addEventListener('click', () => {
+                if (validateStep1()) {
+                    goToStep(2);
+                }
+            });
+        }
+        
+        const btnBackS2 = document.getElementById('btn-back-s2');
+        if (btnBackS2) {
+            btnBackS2.addEventListener('click', () => goToStep(1));
+        }
+        
+        // SUBMIT FINALE
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', async () => {
+                const originalHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvataggio...';
+                
+                // Raccogli certificazioni finali
+                document.querySelectorAll('[data-cert-index]').forEach(input => {
+                    const idx = parseInt(input.getAttribute('data-cert-index'));
+                    certifications[idx] = input.value.trim();
+                });
+                
+                const isFirstJob = document.getElementById('is_first_job').checked;
+                const email = document.getElementById('email').value.trim();
+                const nome = document.getElementById('name').value.trim();
+                const cognome = document.getElementById('surname').value.trim();
+                
+                // STRUTTURA STAKEHOLDER (Canonical JSON)
+                const stakeholderProfile = {
+                    sessionId: email,
+                    data: {
+                        document_type: "STAKEHOLDER_PROFILE",
+                        owner_data_ref: {
+                            vat_number: ownerDataFromGet?.vat_number || ownerDataFromGet?.user_id,
+                            ragioneSociale: ownerDataFromGet?.ragione_sociale || ownerDataFromGet?.company_name,
+                            chat_id: ownerDataFromGet?.chat_id
+                        },
+                        user_ref: {
+                            nome: nome,
+                            cognome: cognome,
+                            email: email,
+                            telefono: document.getElementById('phone').value.trim(),
+                            fiscal_code: document.getElementById('fiscal_code').value.trim(),
+                            status: "ACTIVE",
+                            profileCompleted: true,
+                            operator_chat_id: chatId,
+                            address: {
+                                route: document.getElementById('addr_route').value,
+                                number: document.getElementById('addr_num').value,
+                                zip: document.getElementById('addr_zip').value,
+                                city: document.getElementById('addr_city').value,
+                                province: document.getElementById('addr_prov').value
+                            },
+                            config: {
+                                gemini_key: document.getElementById('gemini_key').value,
+                                language: langParam
+                            }
+                        },
+                        professional_profile: {
+                            role: "Operator",
+                            job_title: document.getElementById('job_title').value,
+                            experience_years: isFirstJob ? "0" : document.getElementById('experience_years').value,
+                            education: {
+                                level: document.getElementById('education_level').value,
+                                field: document.getElementById('education_field').value
+                            },
+                            hard_skills: selectedSkills,
+                            certifications: certifications.filter(c => c).join(", "),
+                            work_description: document.getElementById('work_description').value,
+                            other_skills: document.getElementById('other_skills').value
+                        },
+                        behavioral_profile: {
+                            current_stance: {
+                                stance_id: "ONBOARDED_OPERATOR",
+                                rationale: "Onboarding completed via WebApp"
+                            }
+                        },
+                        compliance_log: {
+                            ai_disclosure_seen: document.getElementById('chk_ai').checked,
+                            human_verification_performed: humanVerificationPerformed,
+                            api_provider: "Google Gemini",
+                            timestamp: new Date().toISOString()
+                        }
+                    }
+                };
+
+                // AGGIORNAMENTO LISTA OPERATORI PER OWNER
+                const ownerOperatorsUpdate = {
+                    OperatorName: `${nome} ${cognome}`,
+                    OperatorChatID: chatId,
+                    OperatorEmail: email,
+                    Role: "Operator",
+                    status: "ACTIVE",
+                    FreeHandOperator: true,
+                    GeminiKey: document.getElementById('gemini_key').value
+                };
+                
+                try {
+                    const res = await fetch(ONBOARDING_API, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            action: 'complete_onboarding',
+                            msg_id: msgId,
+                            chat_id: chatId,
+                            operator_data: stakeholderProfile,
+                            owner_operators_update: ownerOperatorsUpdate
+                        })
+                    });
+                    
+                    if (res.ok) {
+                        tg.HapticFeedback.notificationOccurred('success');
+                        alert('✅ Attivazione completata con successo!');
+                        
+                        const redirectUrl = res.headers.get('X-Redirect-Url');
+                        if (redirectUrl) {
+                            window.location.href = redirectUrl;
+                        } else {
+                            tg.close();
+                        }
+                    } else {
+                        throw new Error('Save failed');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('❌ Errore durante il salvataggio. Riprova.');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
+                }
+            });
+        }
+    });
+
+    // START
+    validateInvitation();
+  </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

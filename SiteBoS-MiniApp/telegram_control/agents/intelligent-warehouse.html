@@ -1,0 +1,1937 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Carica Acquisto | SiteBoS</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+
+/* SiteBoS Architect Alignment */
+body { background-color: #fafafa !important; color: #000000 !important; }
+.card, .section-card, .dark-card, .upload-box { 
+    background: white !important; 
+    border: 1px solid #eeeeee !important; 
+    box-shadow: none !important; 
+}
+input:focus, textarea:focus, select:focus { 
+    border-color: #000000 !important; 
+    box-shadow: none !important; 
+    outline: none !important;
+}
+.text-primary, .text-black, .text-blue-600, .text-black { color: #000000 !important; }
+.bg-primary, .bg-black, .bg-black, .bg-black { background-color: #000000 !important; color: #ffffff !important; }
+.border-primary, .border-black, .border-blue-600, .border-black { border-color: #000000 !important; }
+.spinner { border-top-color: #000 !important; }
+input[type="checkbox"]:checked { background-color: #000 !important; border-color: #000 !important; }
+/* Forza icone pesanti */
+.fas, .far, .fal { font-weight: 900 !important; font-family: "Font Awesome 6 Free" !important; }
+
+
+        body { font-family: 'Inter', sans-serif; background-color: #fafafa; color: #000; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { border: 2px solid rgba(0,0,0,0.1); border-top-color: #000; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .upload-area {
+            border: 2px dashed #eeeeee; border-radius: 1.5rem; padding: 2.5rem; text-align: center;
+            background: #ffffff; transition: all 0.2s; position: relative; overflow: hidden; cursor: pointer;
+        }
+        .upload-area:active { transform: scale(0.98); }
+        .upload-area.dragover { border-color: #000; background: #fafafa; }
+
+        /* 3D Stack Container */
+        .stack-container {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            perspective: 1200px;
+            transform-style: preserve-3d;
+            flex-shrink: 0;
+        }
+
+        .platform-card-3d {
+            position: absolute;
+            top: 5%;
+            left: 14% !important;
+            width: 72% !important;
+            height: 90%;
+            background: #ffffff;
+            border: 1.5px solid transparent;
+            border-radius: 1.5rem;
+            color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            text-align: center;
+            padding: 1.2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.005);
+            transform-origin: center center;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+                        opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+                        filter 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                        box-shadow 0.6s ease;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            cursor: pointer;
+        }
+
+        .platform-card-3d.active {
+            border-color: #cbd5e1;
+            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 
+                        0 10px 10px -5px rgba(15, 23, 42, 0.04);
+        }
+
+        .platform-card-3d:active {
+            transform: scale(0.98) !important;
+        }
+
+        .btn-glass-minimal {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            color: #64748b;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-glass-minimal:hover {
+            background: #ffffff;
+            color: #1e293b;
+        }
+        .btn-glass-minimal:active {
+            transform: scale(0.90) !important;
+        }
+    </style>
+
+    <script>
+        // Blocco di Sicurezza: controlla tg.initData
+        (function() {
+            if (!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)) {
+                document.documentElement.innerHTML = `<body class="bg-black text-white flex items-center justify-center h-screen text-center p-10 font-sans"><div><h1 class="text-6xl mb-4">🚫</h1><h2 class="text-xl font-bold uppercase tracking-widest">Accesso Proibito</h2></div></body>`;
+                window.stop();
+            }
+        })();
+    </script>
+</head>
+<body class="p-5 pb-24">
+
+    <!-- LOADER (Globale) -->
+    <div id="loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center space-y-4 hidden">
+        <div class="spinner"></div>
+        <div id="loader-text" class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Elaborazione in corso...</div>
+    </div>
+
+    <div class="max-w-md mx-auto space-y-6 animate-fade-in" id="app-content">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-start pt-2 shrink-0">
+            <div>
+                <div class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1 italic">
+                    Logistica AI
+                </div>
+                <h1 id="header-title" class="text-xl font-black tracking-tighter uppercase leading-none text-slate-900">Magazzino Intelligente</h1>
+                <p id="header-subtitle" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">Carico Acquisti (IN)</p>
+            </div>
+        </header>
+
+        <!-- MAIN MENU CONTAINER (3D CARD STACK) -->
+        <div id="main-menu-container" class="space-y-4 animate-fade-in">
+            <!-- DIRECTION TOGGLE (IN / OUT) -->
+            <div class="w-[72%] select-none z-50 p-1 bg-white/30 border border-slate-100/50 rounded-2xl shadow-sm backdrop-blur-sm shrink-0 flex items-center justify-between mx-auto relative">
+                <button onclick="setDirection('IN')" id="toggle-in" class="flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-300 bg-slate-900 text-white shadow-sm">
+                    <i class="fas fa-arrow-down mr-1"></i> Carico (IN)
+                </button>
+                <button onclick="setDirection('OUT')" id="toggle-out" class="flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-300 text-slate-400 hover:text-slate-900">
+                    <i class="fas fa-arrow-up mr-1"></i> Scarico (OUT)
+                </button>
+            </div>
+
+            <!-- CAROUSEL VIEWPORT CONTAINER (3D VIEW) -->
+            <main class="relative flex-1 flex flex-col items-center justify-center select-none z-10 w-full py-12" style="min-height: 280px; max-height: calc(100vh - 280px); max-height: calc(100dvh - 280px);">
+                <!-- Desktop/Mobile Nav Up -->
+                <button onclick="playTick(750, 0.03, 0.05); navigateStack(-1)" class="btn-glass-minimal absolute top-2 left-1/2 -translate-x-1/2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900">
+                    <i class="fas fa-chevron-up text-[10px]"></i>
+                </button>
+
+                <!-- 3D Card Stack -->
+                <div id="stack-container" class="stack-container">
+                    <!-- Rendered dynamically -->
+                </div>
+
+                <!-- Desktop/Mobile Nav Down -->
+                <button onclick="playTick(750, 0.03, 0.05); navigateStack(1)" class="btn-glass-minimal absolute bottom-2 left-1/2 -translate-x-1/2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900">
+                    <i class="fas fa-chevron-down text-[10px]"></i>
+                </button>
+
+                <!-- Dynamic Side Dot Indicators with Scrubbing Area -->
+                <div id="dot-indicators-wrapper" class="absolute -right-2 top-1/2 -translate-y-1/2 z-50 py-4 px-2.5 bg-slate-100/90 border border-slate-200 rounded-full shadow-md backdrop-blur-sm select-none touch-none">
+                    <div id="dot-indicators" class="flex flex-col gap-2.5 items-center">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+
+                <!-- Float User Guide Button -->
+                <button onclick="playTick(750, 0.03, 0.05); openUserGuide('../userguide/07_magazzino_logistica.html')" class="btn-glass-minimal absolute -right-2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900" style="top: calc(50% - 200px);" title="Manuale Utente">
+                    <i class="fas fa-globe text-[10px]"></i>
+                </button>
+
+                <!-- Float Speech Audio Button -->
+                <button id="btn-nav-audio" onclick="playTick(750, 0.03, 0.05); toggleCatalogAudio()" class="btn-glass-minimal absolute -right-2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900" style="top: calc(50% - 155px);">
+                    <i class="fas fa-volume-high text-[10px]"></i>
+                </button>
+
+                <!-- Float Help Gesture Button -->
+                <button onclick="playTick(750, 0.03, 0.05); toggleHelpModal(true)" class="btn-glass-minimal absolute -right-2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900" style="top: calc(50% - 110px);">
+                    <i class="fas fa-question text-[10px]"></i>
+                </button>
+            </main>
+        </div>
+
+        <div id="modes-container" class="hidden">
+            
+            <!-- Torna Indietro -->
+            <button onclick="backToMenu()" class="mb-4 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-black flex items-center gap-2 active:scale-95 transition">
+                <i class="fas fa-arrow-left"></i> Torna al Menu
+            </button>
+
+            <!-- MODE CONTENT: XML -->
+            <div id="mode-xml" class="hidden animate-fade-in space-y-4">
+                <div class="bg-white rounded-3xl p-5 border border-border shadow-sm text-center">
+                    <span class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-300 block mb-2">Fattura Elettronica XML</span>
+                    <p class="text-xs font-medium text-gray-500 leading-tight">Carica il file XML. L'AI estrarrà gli articoli strutturati per la tua supervisione.</p>
+                </div>
+
+                <div class="upload-area" id="upload-xml" onclick="document.getElementById('file-xml').click()">
+                    <i class="fas fa-cloud-upload-alt text-3xl text-gray-200 mb-3"></i>
+                    <div class="font-black text-[10px] uppercase tracking-widest text-gray-500">Carica File XML</div>
+                    <input type="file" id="file-xml" accept=".xml" class="hidden">
+                </div>
+
+                <div class="bg-white border border-border rounded-2xl p-4 hidden items-center gap-3 shadow-sm" id="info-xml">
+                    <i class="fas fa-file-code text-2xl text-black"></i>
+                    <div class="flex-1 overflow-hidden">
+                        <div class="font-bold text-xs truncate" id="filename-xml"></div>
+                        <div class="text-[9px] font-black uppercase tracking-widest text-gray-500" id="filesize-xml"></div>
+                    </div>
+                    <button class="text-red-500 p-2" onclick="removeFile('xml')"><i class="fas fa-times"></i></button>
+                </div>
+
+                <button id="submit-xml" disabled onclick="submitXML()" class="w-full h-12 bg-black text-white rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all disabled:opacity-20 shadow-md">
+                    Estrai Dati da XML
+                </button>
+            </div>
+
+            <!-- MODE CONTENT: PDF -->
+            <div id="mode-pdf" class="hidden animate-fade-in space-y-4">
+                <div class="bg-white rounded-3xl p-5 border border-border shadow-sm text-center">
+                    <span class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-300 block mb-2">Fattura PDF / Foto</span>
+                    <p class="text-xs font-medium text-gray-500 leading-tight">L'intelligenza artificiale analizzerà il file per estrarre la lista degli articoli.</p>
+                </div>
+
+                <div class="upload-area" id="upload-pdf" onclick="document.getElementById('file-pdf').click()">
+                    <i class="fas fa-cloud-upload-alt text-3xl text-gray-200 mb-3"></i>
+                    <div class="font-black text-[10px] uppercase tracking-widest text-gray-500">Carica PDF o Foto</div>
+                    <input type="file" id="file-pdf" accept=".pdf,image/*" class="hidden">
+                </div>
+
+                <div class="bg-white border border-border rounded-2xl p-4 hidden items-center gap-3 shadow-sm" id="info-pdf">
+                    <i class="fas fa-file-pdf text-2xl text-black"></i>
+                    <div class="flex-1 overflow-hidden">
+                        <div class="font-bold text-xs truncate" id="filename-pdf"></div>
+                        <div class="text-[9px] font-black uppercase tracking-widest text-gray-500" id="filesize-pdf"></div>
+                    </div>
+                    <button class="text-red-500 p-2" onclick="removeFile('pdf')"><i class="fas fa-times"></i></button>
+                </div>
+
+                <button id="submit-pdf" disabled onclick="submitPDF()" class="w-full h-12 bg-black text-white rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all disabled:opacity-20 shadow-md">
+                    Estrai Dati da Documento
+                </button>
+            </div>
+
+            <!-- MODE CONTENT: EXPENSE (RICEVUTA/NOTA SPESE) -->
+            <div id="mode-photo" class="hidden animate-fade-in space-y-4">
+                <div class="bg-white rounded-3xl p-5 border border-border shadow-sm text-center">
+                    <span class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-300 block mb-2">Ricevuta / Nota Spese</span>
+                    <p class="text-xs font-medium text-gray-500 leading-tight">Registra una spesa operativa (es. pasti, carburante). L'AI estrarrà l'importo, l'IVA e la categoria.</p>
+                </div>
+
+                <div class="upload-area" id="upload-photo" onclick="document.getElementById('file-photo').click()">
+                    <i class="fas fa-camera text-3xl text-gray-200 mb-3"></i>
+                    <div class="font-black text-[10px] uppercase tracking-widest text-gray-500">Scatta Foto o Carica Ricevuta</div>
+                    <input type="file" id="file-photo" accept="image/*" capture="environment" class="hidden">
+                </div>
+
+                <div class="bg-white border border-border rounded-2xl p-4 hidden items-center gap-3 shadow-sm" id="info-photo">
+                    <i class="fas fa-image text-2xl text-black"></i>
+                    <div class="flex-1 overflow-hidden">
+                        <div class="font-bold text-xs truncate" id="filename-photo"></div>
+                        <div class="text-[9px] font-black uppercase tracking-widest text-gray-500" id="filesize-photo"></div>
+                    </div>
+                    <button class="text-red-500 p-2" onclick="removeFile('photo')"><i class="fas fa-times"></i></button>
+                </div>
+
+                <img id="preview-photo" class="w-full rounded-2xl hidden" alt="Preview">
+
+                <button id="submit-photo" disabled onclick="submitPhoto()" class="w-full h-12 bg-black text-white rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all disabled:opacity-20 shadow-md">
+                    Analizza Ricevuta
+                </button>
+            </div>
+
+            <!-- MODE CONTENT: AI LOTSNAP (Vision) -->
+            <div id="mode-vision" class="hidden animate-fade-in space-y-4">
+                <div class="bg-white rounded-3xl p-5 border border-border shadow-sm text-center">
+                    <span class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-300 block mb-2">AI LOTSNAP</span>
+                    <h3 class="text-xs font-black uppercase">1. Scansione Lotti Prodotti</h3>
+                    <p class="text-[10px] font-medium text-gray-500 leading-tight mt-1">Scatta foto ai lotti/scadenze sulle confezioni dei prodotti, una alla volta.</p>
+                </div>
+                
+                <!-- Scanned Lots List -->
+                <div id="lotsnap-scanned-container" class="space-y-3 max-h-64 overflow-y-auto pr-1">
+                    <div class="text-center py-6 text-gray-300 border border-dashed border-gray-200 rounded-2xl bg-white" id="lotsnap-empty-state">
+                        <i class="fas fa-barcode text-2xl mb-1"></i>
+                        <p class="text-[8px] font-black uppercase tracking-wider">Nessun lotto scansionato</p>
+                    </div>
+                </div>
+
+                <!-- Add Lot Button -->
+                <div class="upload-area p-4" id="upload-logistics" onclick="document.getElementById('file-logistics').click()">
+                    <i class="fas fa-camera text-2xl text-black mb-1"></i>
+                    <div class="font-black text-[9px] uppercase tracking-widest">Scatta Foto Lotto</div>
+                    <input type="file" id="file-logistics" accept="image/*" capture="environment" class="hidden">
+                </div>
+
+                <!-- Fiscal Ingestion Block (Hidden until at least 1 lot is scanned) -->
+                <div id="lotsnap-fiscal-section" class="hidden space-y-4 pt-4 border-t border-border">
+                    <div class="bg-white rounded-3xl p-5 border border-border shadow-sm text-center">
+                        <h3 class="text-xs font-black uppercase">2. Carica Documento Fiscale</h3>
+                        <p class="text-[10px] font-medium text-gray-500 leading-tight mt-1">Carica la fattura o lo scontrino per estrarre i prezzi e associarli ai lotti.</p>
+                    </div>
+                    
+                    <div class="upload-area p-4" id="upload-fiscal" onclick="document.getElementById('file-fiscal').click()">
+                        <i class="fas fa-file-invoice-dollar text-2xl text-black mb-1"></i>
+                        <div class="font-black text-[9px] uppercase tracking-widest" id="fiscal-upload-label">Carica Fattura/Scontrino (PDF/Foto)</div>
+                        <input type="file" id="file-fiscal" accept=".pdf,.xml,image/*" class="hidden">
+                    </div>
+                </div>
+
+                <button id="submit-vision" disabled onclick="submitVision()" class="w-full h-12 bg-black text-white rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all disabled:opacity-20 shadow-md mt-2">
+                    Procedi all'Associazione e Review
+                </button>
+            </div>
+        </div>
+
+        <!-- VISTA PRODUZIONE (Semilavorati) -->
+        <div id="production-view" class="hidden animate-fade-in space-y-6">
+            <button onclick="backToMenuFromProduction()" class="mb-4 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-black flex items-center gap-2 active:scale-95 transition">
+                <i class="fas fa-arrow-left"></i> Torna al Menu
+            </button>
+            
+            <header class="text-center py-2">
+                <div class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1">Produzione</div>
+                <h1 class="text-xl font-black tracking-tighter uppercase leading-none">Produzione Semilavorati</h1>
+                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1 italic">Sottrai materie prime e genera il lotto semilavorato</p>
+            </header>
+
+            <div class="card rounded-3xl p-5 space-y-4 bg-white border border-border shadow-sm">
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black uppercase tracking-widest text-gray-400">Seleziona Semilavorato (SOP)</label>
+                    <select id="prod-sop-select" onchange="handleProductionSopChange(this.value)" class="w-full bg-gray-50 p-3 rounded-xl text-xs font-bold border border-transparent focus:border-black outline-none transition">
+                        <option value="">-- Seleziona Procedura --</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[8px] font-black uppercase tracking-widest text-gray-400">Quantità da Produrre</label>
+                        <input type="number" id="prod-qty" value="1" min="1" onchange="recalcProductionBOM()" class="w-full bg-gray-50 p-3 rounded-xl text-xs font-black border border-transparent focus:border-black outline-none transition">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[8px] font-black uppercase tracking-widest text-gray-400">Lotto da Assegnare</label>
+                        <input type="text" id="prod-lot-id" class="w-full bg-gray-50 p-3 rounded-xl text-xs font-black border border-transparent focus:border-black outline-none transition uppercase">
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOM Materials Check Card -->
+            <div id="prod-bom-card" class="card rounded-3xl p-5 space-y-3 bg-white border border-border shadow-sm hidden">
+                <p class="text-[8px] font-black uppercase tracking-[0.2em] text-gray-300">📋 Verifica Ingredienti (BOM)</p>
+                <div id="prod-bom-list" class="space-y-2">
+                    <!-- List of ingredients with Required vs Stock -->
+                </div>
+            </div>
+
+            <button id="btn-submit-production" disabled onclick="submitProduction()" class="w-full h-12 bg-black text-white rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all disabled:opacity-20 shadow-md">
+                ⚡ Avvia Produzione
+            </button>
+        </div>
+
+        <!-- VISTA REVIEW (Human-in-the-loop) -->
+        <div id="review-view" class="hidden animate-fade-in space-y-6">
+            <header class="text-center py-2">
+                <div class="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-[7px] font-black uppercase tracking-widest rounded-full mb-1">Successo</div>
+                <h1 class="text-xl font-black tracking-tighter uppercase leading-none">Approva Dati</h1>
+                <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1 italic">Controlla e correggi l'estrazione AI</p>
+            </header>
+
+            <div id="review-items-container" class="space-y-4">
+                <!-- Editable Items -->
+            </div>
+
+            <button onclick="addReviewItem()" class="w-full h-12 bg-white border-2 border-dashed border-gray-300 text-gray-500 rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all">
+                <i class="fas fa-plus mr-1"></i> Aggiungi Riga
+            </button>
+
+            <button id="btn-confirm-review" onclick="submitApprovedItems()" class="w-full h-12 bg-black text-white rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all shadow-md">
+                <i class="fas fa-save mr-2"></i> Conferma e Salva in Magazzino
+            </button>
+            
+            <button onclick="cancelReview()" class="w-full text-[9px] font-black uppercase tracking-widest text-red-500 hover:text-red-700 mt-2">
+                Scarta e Torna Indietro
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+    'use strict';
+    const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+    try { tg.ready(); tg.expand(); } catch(e){}
+
+    const WEBHOOK_URL = 'https://prod.workflow.trinai.it/webhook/19efc8b9-5579-4d01-8856-54deb0f3d294';
+
+    let uploadedFiles = { xml: null, pdf: null, photo: null, fiscal: null, logistics: [] };
+    let currentExtractedItems = [];
+    let currentDirection = 'IN';
+    let currentFlowMode = 'INVOICE'; // INVOICE | EXPENSE | LOTSNAP
+    let lotsnapScannedLots = [];
+    let productionSops = [];
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const ash = urlParams.get('ash');
+
+    // AUTH & ASH Helper function for payloads
+    function buildPayload(action, additionalData = {}) {
+        return {
+            _auth: tg.initData, // Telegram initData per sicurezza
+            ash: ash,           // Auth Session Hash dal server
+            action: action,
+            direction: currentDirection,
+            ...additionalData
+        };
+    }
+
+    let modules = [];
+    let activeIdx = 0;
+
+    const stackContainer = document.getElementById('stack-container');
+    const dotContainer = document.getElementById('dot-indicators');
+
+    function getModulesForDirection(dir) {
+        if (dir === 'IN') {
+            return [
+                { id: 'xml', label: 'Fattura XML', desc: 'Importa file XML da fattura elettronica SDI per il carico.', icon: 'fa-file-code', action: () => openMode('xml') },
+                { id: 'pdf', label: 'Fattura PDF / Foto', desc: 'Estrazione automatica dei dati da documento cartaceo con IA OCR.', icon: 'fa-file-pdf', action: () => openMode('pdf') },
+                { id: 'photo', label: 'Ricevuta / Nota Spese', desc: 'Registrazione spese operative da scontrino o ricevuta.', icon: 'fa-receipt', action: () => openMode('photo') },
+                { id: 'vision', label: 'Ai LotSnap (Vision)', desc: 'Riconoscimento 360 lotti e scadenze con la fotocamera.', icon: 'fa-eye', action: () => openMode('vision') }
+            ];
+        } else {
+            return [
+                { id: 'xml_out', label: 'Fattura Attiva XML', desc: 'Scarico giacenza da fatturazione elettronica emessa.', icon: 'fa-file-invoice', action: () => openMode('xml') },
+                { id: 'pdf_out', label: 'Fattura Paziente PDF', desc: 'Deduzione articoli da fattura sanitaria emessa.', icon: 'fa-file-medical', action: () => openMode('pdf') },
+                { id: 'prod', label: 'Prod. Semilavorati', desc: 'Deduci ricetta distinta base (BOM) per lavorazioni interne.', icon: 'fa-hammer', action: () => openProductionMode() },
+                { id: 'manual', label: 'Scarico Manuale', desc: 'Inserimento rapido e rettifica manuale delle giacenze.', icon: 'fa-keyboard', action: () => openManualMode() }
+            ];
+        }
+    }
+
+    function buildStack() {
+        if (!stackContainer || !dotContainer) return;
+        stackContainer.innerHTML = "";
+        dotContainer.innerHTML = "";
+
+        modules = getModulesForDirection(currentDirection);
+        if (activeIdx >= modules.length) activeIdx = 0;
+
+        modules.forEach((mod, idx) => {
+            const card = document.createElement('div');
+            card.className = `platform-card-3d ${idx === activeIdx ? 'active' : ''}`;
+            card.id = `card-${idx}`;
+
+            card.innerHTML = `
+                <div class="w-full text-left shrink-0">
+                    <span class="text-[8px] font-black uppercase tracking-widest text-slate-400 italic">Opzione Logistica</span>
+                </div>
+
+                <div class="my-auto flex items-center gap-4 w-full px-2 text-left">
+                    <div class="w-12 h-12 bg-slate-950 text-white rounded-2xl flex items-center justify-center text-xl shadow-sm shrink-0">
+                        <i class="fas ${mod.icon}"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <h3 class="text-xs font-black tracking-tight text-slate-900 leading-none uppercase mb-1">${mod.label}</h3>
+                        <p class="text-[10px] text-slate-600 font-bold leading-snug mt-1">${mod.desc}</p>
+                    </div>
+                </div>
+
+                <div class="w-full text-right shrink-0">
+                    <span class="text-[7px] font-black uppercase tracking-wider text-blue-600 flex items-center justify-end gap-1 animate-pulse">
+                        Apri <i class="fas fa-chevron-right text-[6px]"></i>
+                    </span>
+                </div>
+            `;
+
+            let touchStartX = 0, touchStartY = 0, isSwipe = false;
+            card.addEventListener('touchstart', e => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                isSwipe = false;
+            }, { passive: true });
+
+            card.addEventListener('touchmove', e => {
+                if (Math.abs(e.touches[0].clientX - touchStartX) > 10 || Math.abs(e.touches[0].clientY - touchStartY) > 10) {
+                    isSwipe = true;
+                }
+            }, { passive: true });
+
+            card.addEventListener('click', () => {
+                if (isSwipe) return;
+                if (idx === activeIdx) {
+                    mod.action();
+                } else {
+                    selectIdx(idx);
+                }
+            });
+
+            stackContainer.appendChild(card);
+
+            const dot = document.createElement('button');
+            dot.className = `w-2 h-2 rounded-full transition-all duration-300 ${idx === activeIdx ? 'bg-slate-900 scale-125' : 'bg-slate-300 hover:bg-slate-400'}`;
+            dot.addEventListener('click', () => selectIdx(idx));
+            dotContainer.appendChild(dot);
+        });
+
+        updateStackPositions();
+    }
+
+    function selectIdx(targetIdx) {
+        if (targetIdx < 0 || targetIdx >= modules.length) return;
+        activeIdx = targetIdx;
+
+        const cards = stackContainer.querySelectorAll('.platform-card-3d');
+        cards.forEach((card, idx) => {
+            if (idx === activeIdx) card.classList.add('active');
+            else card.classList.remove('active');
+        });
+
+        const dots = dotContainer.querySelectorAll('button');
+        dots.forEach((dot, idx) => {
+            if (idx === activeIdx) dot.className = "w-2 h-2 rounded-full transition-all duration-300 bg-slate-900 scale-125";
+            else dot.className = "w-2 h-2 rounded-full transition-all duration-300 bg-slate-300 hover:bg-slate-400";
+        });
+
+        updateStackPositions();
+    }
+
+    function updateStackPositions() {
+        const cards = stackContainer.querySelectorAll('.platform-card-3d');
+        cards.forEach((card, idx) => {
+            const diff = idx - activeIdx;
+            let translateY = diff * 28;
+            let translateZ = -Math.abs(diff) * 50;
+            let rotateX = -diff * 6;
+            let opacity = 1 - Math.abs(diff) * 0.35;
+            let filter = Math.abs(diff) > 0 ? `blur(${Math.min(Math.abs(diff) * 1.5, 3)}px)` : 'none';
+
+            if (Math.abs(diff) > 2) opacity = 0;
+
+            card.style.transform = `translate3d(0, ${translateY}px, ${translateZ}px) rotateX(${rotateX}deg)`;
+            card.style.opacity = Math.max(0, opacity);
+            card.style.filter = filter;
+            card.style.zIndex = 100 - Math.abs(diff) * 10;
+        });
+    }
+
+    window.navigateStack = function(direction) {
+        let targetIdx = activeIdx + direction;
+        if (targetIdx >= 0 && targetIdx < modules.length) {
+            selectIdx(targetIdx);
+        }
+    };
+
+    window.addEventListener('keydown', e => {
+        if (['ArrowUp', 'ArrowDown', 'Enter'].includes(e.key)) {
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+            e.preventDefault();
+            if (e.key === 'ArrowUp') navigateStack(-1);
+            if (e.key === 'ArrowDown') navigateStack(1);
+            if (e.key === 'Enter' && modules[activeIdx]) modules[activeIdx].action();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setupFileInputs();
+        setupDragAndDrop();
+        buildStack();
+    });
+
+    // --- DIRECTION TOGGLE LOGIC ---
+    function setDirection(dir) {
+        currentDirection = dir;
+        activeIdx = 0;
+
+        const btnIn = document.getElementById('toggle-in');
+        const btnOut = document.getElementById('toggle-out');
+        const titleText = document.getElementById('header-title');
+        const subtitleText = document.getElementById('header-subtitle');
+
+        if (dir === 'IN') {
+            btnIn.className = "flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-300 bg-slate-900 text-white shadow-sm";
+            btnOut.className = "flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-300 text-slate-400 hover:text-slate-900";
+            titleText.innerText = "Magazzino Intelligente";
+            subtitleText.innerText = "Carico Acquisti (IN)";
+        } else {
+            btnIn.className = "flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-300 text-slate-400 hover:text-slate-900";
+            btnOut.className = "flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-300 bg-slate-900 text-white shadow-sm";
+            titleText.innerText = "Magazzino Intelligente";
+            subtitleText.innerText = "Scarico Vendite (OUT)";
+        }
+
+        buildStack();
+        if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+    }
+
+    // --- NAVIGATION LOGIC ---
+    function openMode(mode) {
+        document.getElementById('main-menu-container').classList.add('hidden');
+        document.getElementById('modes-container').classList.remove('hidden');
+        document.getElementById('production-view').classList.add('hidden');
+        
+        ['xml', 'pdf', 'photo', 'vision'].forEach(m => {
+            const el = document.getElementById(`mode-${m}`);
+            if (el) el.classList.add('hidden');
+        });
+        document.getElementById(`mode-${mode}`).classList.remove('hidden');
+        
+        if (mode === 'xml' || mode === 'pdf') {
+            currentFlowMode = 'INVOICE';
+        } else if (mode === 'photo') {
+            currentFlowMode = 'EXPENSE';
+        } else if (mode === 'vision') {
+            currentFlowMode = 'LOTSNAP';
+            lotsnapScannedLots = [];
+            renderLotsnapScannedLots();
+            document.getElementById('lotsnap-fiscal-section').classList.add('hidden');
+            checkVisionReady();
+        }
+
+        if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+    }
+
+    // --- BACK TO MENU LOGIC ---
+    function backToMenu() {
+        document.getElementById('modes-container').classList.add('hidden');
+        document.getElementById('main-menu-container').classList.remove('hidden');
+        
+        ['xml', 'pdf', 'photo', 'fiscal'].forEach(removeFile);
+        uploadedFiles.logistics = [];
+        lotsnapScannedLots = [];
+        document.getElementById('lotsnap-fiscal-section').classList.add('hidden');
+        renderLotsnapScannedLots();
+        checkVisionReady();
+        
+        if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    }
+
+    // --- MANUAL MODE LOGIC ---
+    function openManualMode() {
+        currentFlowMode = 'INVOICE';
+        currentExtractedItems = [{ name: '', qty: 1, price: 0, tax: 22, account_code: '631.01000', deductibility: 100 }];
+        document.getElementById('main-menu-container').classList.add('hidden');
+        document.getElementById('review-view').classList.remove('hidden');
+        renderReviewItems();
+        if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+    }
+
+    // --- UPLOAD LOGIC ---
+    function setupFileInputs() {
+        document.getElementById('file-xml').addEventListener('change', (e) => handleFileSelect(e, 'xml'));
+        document.getElementById('file-pdf').addEventListener('change', (e) => handleFileSelect(e, 'pdf'));
+        document.getElementById('file-photo').addEventListener('change', (e) => handleFileSelect(e, 'photo'));
+        document.getElementById('file-fiscal').addEventListener('change', (e) => handleFileSelect(e, 'fiscal'));
+        document.getElementById('file-logistics').addEventListener('change', (e) => handleLogisticsSelect(e));
+    }
+
+    function setupDragAndDrop() {
+        ['xml', 'pdf', 'photo', 'fiscal', 'logistics'].forEach(type => {
+            const area = document.getElementById(`upload-${type}`);
+            if(!area) return;
+            area.addEventListener('dragover', (e) => { e.preventDefault(); area.classList.add('dragover'); });
+            area.addEventListener('dragleave', () => area.classList.remove('dragover'));
+            area.addEventListener('drop', (e) => {
+                e.preventDefault(); area.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const input = document.getElementById(`file-${type}`);
+                    input.files = files;
+                    if(type === 'logistics') handleLogisticsSelect({ target: input });
+                    else handleFileSelect({ target: input }, type);
+                }
+            });
+        });
+    }
+
+    function handleFileSelect(event, type) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const val = validateFile(file, type);
+        if (!val.valid) { alert(val.error); return; }
+
+        uploadedFiles[type] = file;
+        displayFileInfo(file, type);
+
+        if (type === 'fiscal') {
+            const label = document.getElementById('fiscal-upload-label');
+            if (label) label.textContent = file.name + ' (' + (file.size/1024).toFixed(1) + ' KB)';
+        }
+
+        enableSubmitButton(type, true);
+        checkVisionReady();
+
+        if (type === 'photo') showImagePreview(file);
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    }
+
+    // --- VISION AI LOGIC (AI LOTSNAP Sequential Camera Scan) ---
+    async function handleLogisticsSelect(event) {
+        const files = Array.from(event.target.files);
+        if (!files.length) return;
+        event.target.value = '';
+
+        showLoader('Analisi etichetta lotto con AI...');
+        for (const file of files) {
+            const val = validateFile(file, 'photo');
+            if (!val.valid) continue;
+            try {
+                const compressed = await compressImage(file);
+                
+                // Invia immediatamente all'AI per analizzare l'etichetta
+                const payload = buildPayload('extract_lotsnap_label', {
+                    filename: file.name,
+                    mimetype: file.type || 'image/jpeg',
+                    file_base64: compressed
+                });
+                
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) throw new Error();
+                const result = await response.json();
+                
+                if (result && result.lot_data) {
+                    lotsnapScannedLots.push({
+                        id: 'lot_' + Date.now() + Math.random(),
+                        name: result.lot_data.name || result.lot_data.suggested_name || '',
+                        brand: result.lot_data.brand || '',
+                        lot: result.lot_data.lot || '',
+                        expiry: result.lot_data.expiry || '',
+                        productId: result.lot_data.productId || '',
+                        price: 0,
+                        qty: 1,
+                        tax: 22,
+                        account_code: result.lot_data.account_code || '631.01000',
+                        deductibility: result.lot_data.deductibility ?? 100
+                    });
+                } else {
+                    lotsnapScannedLots.push({
+                        id: 'lot_' + Date.now() + Math.random(),
+                        name: 'Articolo Non Riconosciuto',
+                        brand: '',
+                        lot: '',
+                        expiry: '',
+                        productId: '',
+                        price: 0,
+                        qty: 1,
+                        tax: 22,
+                        account_code: '631.01000',
+                        deductibility: 100
+                    });
+                }
+            } catch (err) {
+                alert('Errore scansione lotto. Inserimento vuoto.');
+                lotsnapScannedLots.push({
+                    id: 'lot_' + Date.now() + Math.random(),
+                    name: '',
+                    brand: '',
+                    lot: '',
+                    expiry: '',
+                    productId: '',
+                    price: 0,
+                    qty: 1,
+                    tax: 22,
+                    account_code: '631.01000',
+                    deductibility: 100
+                });
+            }
+        }
+        hideLoader();
+        renderLotsnapScannedLots();
+        checkVisionReady();
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    }
+
+    async function compressImage(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const max = 1600;
+                    if (width > height && width > max) { height *= max / width; width = max; }
+                    else if (height > max) { width *= max / height; height = max; }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
+                };
+            };
+        });
+    }
+
+    function renderLogisticsGallery() {
+        // Opzionale: mostrare una piccola gallery sotto il pulsante
+    }
+
+    function checkVisionReady() {
+        const hasFiscal = uploadedFiles.fiscal !== null;
+        const hasLogistics = uploadedFiles.logistics.length > 0;
+        document.getElementById('submit-vision').disabled = !(hasFiscal || hasLogistics);
+    }
+
+    async function submitVision() {
+        if (!uploadedFiles.fiscal) {
+            // Se non c'è il documento fiscale, passiamo direttamente alla review dei lotti scansionati
+            currentExtractedItems = [...lotsnapScannedLots];
+            currentFlowMode = 'LOTSNAP';
+            showReviewView();
+            return;
+        }
+
+        showLoader('Estrazione prezzi dal documento fiscale...');
+        try {
+            const data = await readFileAsBase64(uploadedFiles.fiscal);
+            const payload = buildPayload('extract_lotsnap_document', {
+                filename: uploadedFiles.fiscal.name,
+                mimetype: uploadedFiles.fiscal.type,
+                file_base64: data
+            });
+
+            const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) throw new Error();
+            const result = await response.json();
+            
+            const docItems = result.items || [];
+            
+            // Associazione automatica dei prezzi ai lotti scansionati
+            lotsnapScannedLots.forEach((lotItem, idx) => {
+                // Tenta il matching per brand o nome simile
+                const matched = docItems.find(doc => {
+                    const docName = (doc.name || '').toLowerCase();
+                    const lotName = (lotItem.name || '').toLowerCase();
+                    const lotBrand = (lotItem.brand || '').toLowerCase();
+                    return (lotBrand && docName.includes(lotBrand)) || (lotName && docName.includes(lotName)) || (lotName && lotName.includes(docName));
+                });
+                
+                if (matched) {
+                    lotItem.price = matched.price || 0;
+                    lotItem.qty = matched.qty || 1;
+                    lotItem.tax = matched.tax || 22;
+                    if (matched.productId) lotItem.productId = matched.productId;
+                } else if (docItems[idx]) {
+                    // Fallback per indice se non si trova un match testuale
+                    lotItem.price = docItems[idx].price || 0;
+                    lotItem.qty = docItems[idx].qty || 1;
+                    lotItem.tax = docItems[idx].tax || 22;
+                    if (docItems[idx].productId) lotItem.productId = docItems[idx].productId;
+                }
+            });
+
+            currentExtractedItems = [...lotsnapScannedLots];
+            currentFlowMode = 'LOTSNAP';
+            showReviewView();
+        } catch (error) {
+            alert('Errore caricamento documento fiscale. Procedo con prezzi vuoti.');
+            currentExtractedItems = [...lotsnapScannedLots];
+            currentFlowMode = 'LOTSNAP';
+            showReviewView();
+        } finally {
+            hideLoader();
+        }
+    }
+
+    // --- MAIN EXTRACTION (Human in the loop) ---
+    async function submitXML() {
+        const file = uploadedFiles.xml; if (!file) return;
+        showLoader('Estrazione dati XML...');
+        try {
+            const xmlText = await readFileAsText(file);
+            const payload = buildPayload('extract_xml', { filename: file.name, xml_content: xmlText });
+            await sendPayloadForExtraction(payload, 'xml');
+        } catch (error) { handleError(error); } finally { hideLoader(); }
+    }
+
+    async function submitPDF() {
+        const file = uploadedFiles.pdf; if (!file) return;
+        showLoader('Analisi Documento con AI...');
+        try {
+            const base64Data = await readFileAsBase64(file);
+            const payload = buildPayload('extract_pdf', { filename: file.name, mimetype: file.type, file_base64: base64Data });
+            await sendPayloadForExtraction(payload, 'pdf');
+        } catch (error) { handleError(error); } finally { hideLoader(); }
+    }
+
+    async function submitPhoto() {
+        const file = uploadedFiles.photo; if (!file) return;
+        showLoader('Analisi Ricevuta...');
+        try {
+            const base64Data = await readFileAsBase64(file);
+            let localOcrText = "";
+            try {
+                const loaderText = document.getElementById('loader-text');
+                if(loaderText) loaderText.innerText = "OCR IN CORSO...";
+                localOcrText = await performLocalOCR(file, false);
+                if(loaderText) loaderText.innerText = "ANALISI AI...";
+            } catch(e) {}
+
+            const payload = buildPayload('extract_expense', { filename: file.name, mimetype: file.type, file_base64: base64Data, ocr_text: localOcrText });
+            const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            
+            if (!response.ok) throw new Error();
+            const result = await response.json();
+            
+            if (result && result.expense) {
+                currentExtractedItems = [result.expense];
+            } else {
+                currentExtractedItems = [{ merchant: '', date: new Date().toISOString().split('T')[0], total: 0, vat_rate: 22, account_code: '626.00202', deductibility: 75 }];
+            }
+            currentFlowMode = 'EXPENSE';
+            showReviewView();
+        } catch (error) {
+            alert('Errore nell\'analisi della ricevuta. Procedo ad inserimento manuale.');
+            currentExtractedItems = [{ merchant: '', date: new Date().toISOString().split('T')[0], total: 0, vat_rate: 22, account_code: '626.00202', deductibility: 75 }];
+            currentFlowMode = 'EXPENSE';
+            showReviewView();
+        } finally {
+            hideLoader();
+        }
+    }
+
+    async function sendPayloadForExtraction(payload, type) {
+        const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        if (!response.ok) throw new Error(`Errore Server`);
+        
+        let result = {};
+        try { result = await response.json(); } catch(e) {}
+
+        if (result && result.items && Array.isArray(result.items) && result.items.length > 0) {
+            if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            currentExtractedItems = result.items;
+            showReviewView();
+        } else {
+            if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+            alert(`Documento inviato (Nessun articolo estratto dall'AI).`);
+            tg.close();
+        }
+    }
+
+    // --- REVIEW UI LOGIC ---
+    async function showReviewView() {
+        document.getElementById('modes-container').classList.add('hidden');
+        document.getElementById('review-view').classList.remove('hidden');
+        showLoader('Caricamento catalogo prodotti...');
+        await loadCatalogProducts();
+        hideLoader();
+        renderReviewItems();
+    }
+
+    async function loadCatalogProducts() {
+        if (catalogProducts.length > 0) return;
+        try {
+            const payload = buildPayload('get_products_list');
+            const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            catalogProducts = result.products || [];
+        } catch(e) {
+            console.error("Error loading products:", e);
+        }
+    }
+
+    function cancelReview() {
+        if(!confirm("Scartare i dati estratti?")) return;
+        currentExtractedItems = [];
+        document.getElementById('review-view').classList.add('hidden');
+        document.getElementById('main-menu-container').classList.remove('hidden');
+    }
+
+    function renderReviewItems() {
+        const container = document.getElementById('review-items-container');
+        container.innerHTML = '';
+        let validatedCount = 0;
+
+        if (currentFlowMode === 'EXPENSE') {
+            const exp = currentExtractedItems[0] || { merchant: '', date: new Date().toISOString().split('T')[0], total: 0, vat_rate: 22, account_code: '626.00202', deductibility: 75 };
+            const isReady = !!(exp.merchant && exp.total);
+            if (isReady) validatedCount = 1;
+
+            const el = document.createElement('div');
+            el.className = `bg-white border-l-4 border-black shadow-sm rounded-3xl p-5 relative animate-fade-in space-y-4`;
+            el.innerHTML = `
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black uppercase tracking-widest text-gray-400 ml-1">Fornitore / Esercente</label>
+                    <input type="text" value="${exp.merchant || ''}" onchange="updateExpenseField('merchant', this.value)" class="w-full bg-gray-50 p-3 rounded-xl text-xs font-bold border border-transparent focus:border-black outline-none transition" placeholder="Es. Ristorante da Mimmo">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[8px] font-black uppercase tracking-widest text-gray-400 ml-1">Data Spesa</label>
+                        <input type="date" value="${exp.date || ''}" onchange="updateExpenseField('date', this.value)" class="w-full bg-gray-50 p-3 rounded-xl text-xs font-bold border border-transparent focus:border-black outline-none transition">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[8px] font-black uppercase tracking-widest text-gray-400 ml-1">Totale Lordo (€)</label>
+                        <input type="number" step="any" placeholder="€" value="${exp.total || 0}" onchange="updateExpenseField('total', parseFloat(this.value))" class="w-full bg-gray-50 p-3 rounded-xl text-xs font-black border border-transparent focus:border-black outline-none transition text-right">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[8px] font-black uppercase tracking-widest text-gray-400 ml-1">Aliquota IVA (%)</label>
+                        <input type="number" value="${exp.vat_rate ?? 22}" onchange="updateExpenseField('vat_rate', parseInt(this.value))" class="w-full bg-gray-50 p-3 rounded-xl text-xs font-bold border border-transparent focus:border-black outline-none transition text-center">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[8px] font-black uppercase tracking-widest text-gray-400 ml-1">Conto Fiscale</label>
+                        <select onchange="updateExpenseField('account_code', this.value)" class="w-full bg-gray-50 p-3 rounded-xl text-xs font-bold border border-transparent focus:border-black outline-none transition">
+                            <option value="626.00202" ${exp.account_code === '626.00202' ? 'selected' : ''}>626.00202 - Pasti & Soggiorni</option>
+                            <option value="621.00005" ${exp.account_code === '621.00005' ? 'selected' : ''}>621.00005 - Carburante Auto</option>
+                            <option value="631.00020" ${exp.account_code === '631.00020' ? 'selected' : ''}>631.00020 - Cancelleria/Ufficio</option>
+                            <option value="631.01001" ${exp.account_code === '631.01001' ? 'selected' : ''}>631.01001 - Consumo Uffici</option>
+                            <option value="631.00251" ${exp.account_code === '631.00251' ? 'selected' : ''}>631.00251 - Altri Indeducibili</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black uppercase tracking-widest text-gray-400 ml-1">Deducibilità (%)</label>
+                    <div class="flex gap-3 items-center bg-gray-50 p-3 rounded-xl">
+                        <input type="number" min="0" max="100" value="${exp.deductibility ?? 75}" onchange="updateExpenseField('deductibility', parseInt(this.value))" class="w-16 bg-white p-2 rounded-xl text-xs font-black border border-transparent focus:border-black outline-none transition text-center">
+                        <span class="text-xs font-bold">%</span>
+                        <div class="flex gap-1 flex-1 justify-end text-[8px] font-bold">
+                            <button onclick="updateExpenseField('deductibility', 100)" class="px-2 py-1 bg-white hover:bg-black hover:text-white rounded-lg border border-gray-100">100</button>
+                            <button onclick="updateExpenseField('deductibility', 75)" class="px-2 py-1 bg-white hover:bg-black hover:text-white rounded-lg border border-gray-100">75</button>
+                            <button onclick="updateExpenseField('deductibility', 40)" class="px-2 py-1 bg-white hover:bg-black hover:text-white rounded-lg border border-gray-100">40</button>
+                            <button onclick="updateExpenseField('deductibility', 0)" class="px-2 py-1 bg-white hover:bg-black hover:text-white rounded-lg border border-gray-100">0</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(el);
+        } else {
+            // Invoice or LotSnap
+            currentExtractedItems.forEach((item, index) => {
+                const isAnagraficaOk = !!item.productId;
+                const isLogisticaOk = !!(item.lot && item.expiry);
+                const isFiscaleOk = !!(item.qty && item.price);
+                const isReady = isAnagraficaOk && isLogisticaOk && isFiscaleOk;
+                if (isReady) validatedCount++;
+
+                const el = document.createElement('div');
+                el.className = `bg-white border-l-4 ${isReady ? 'border-green-500' : 'border-yellow-400'} shadow-sm rounded-3xl p-5 relative animate-fade-in`;
+                el.innerHTML = `
+                    <button onclick="removeReviewItem(${index})" class="absolute top-4 right-4 text-red-400 bg-red-50 w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-100 transition"><i class="fas fa-trash-alt text-[10px]"></i></button>
+                    
+                    <!-- Identificazione -->
+                    <div class="mb-3 pr-10 space-y-1">
+                        <label class="text-[8px] font-black uppercase tracking-widest text-gray-400 ml-1">Anagrafica Prodotto</label>
+                        <select onchange="handleProductSelect(${index}, this.value)" class="w-full bg-gray-50 p-2 rounded-xl text-xs font-bold border border-transparent focus:border-black outline-none transition">
+                            <option value="">-- Associa Prodotto a Catalogo --</option>
+                            <option value="NEW">➕ Crea Nuovo Prodotto...</option>
+                            ${catalogProducts.map(p => `<option value="${p._id}" ${item.productId === p._id ? 'selected' : ''}>${p.name}</option>`).join('')}
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- Logistica -->
+                        <div class="space-y-1">
+                            <label class="text-[8px] font-black uppercase tracking-widest text-gray-400 ml-1">Lotto / Scadenza</label>
+                            <div class="flex items-center gap-1">
+                                 <input type="text" placeholder="Lotto" value="${item.lot || ''}" onchange="updateReviewItem(${index}, 'lot', this.value)" class="w-full bg-gray-50 p-2 rounded-xl text-[10px] font-bold border border-transparent focus:border-black outline-none transition">
+                                 <input type="date" value="${item.expiry || ''}" onchange="updateReviewItem(${index}, 'expiry', this.value)" class="w-full bg-gray-50 p-2 rounded-xl text-[10px] font-bold border border-transparent focus:border-black outline-none transition">
+                            </div>
+                        </div>
+                        <!-- Fiscale -->
+                        <div class="space-y-1">
+                            <label class="text-[8px] font-black uppercase tracking-widest text-gray-400 ml-1">Prezzo / Quantità</label>
+                            <div class="flex gap-1">
+                                <input type="number" step="any" placeholder="Qtà" value="${item.qty || 1}" onchange="updateReviewItem(${index}, 'qty', parseFloat(this.value))" class="w-12 bg-gray-50 p-2 rounded-xl text-[10px] font-bold border border-transparent focus:border-black outline-none transition text-center">
+                                <input type="number" step="any" placeholder="€" value="${item.price || 0}" onchange="updateReviewItem(${index}, 'price', parseFloat(this.value))" class="w-16 bg-gray-50 p-2 rounded-xl text-[10px] font-black border border-transparent focus:border-black outline-none transition text-right">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-100 pt-3 mt-3 grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[8px] font-black uppercase tracking-widest text-gray-400 ml-1">Conto Fiscale</label>
+                            <select onchange="updateReviewItem(${index}, 'account_code', this.value)" class="w-full bg-gray-50 p-2 rounded-xl text-[9px] font-bold border border-transparent focus:border-black outline-none transition">
+                                <option value="631.01000" ${item.account_code === '631.01000' ? 'selected' : ''}>631.01000 - Consumabili Prod.</option>
+                                <option value="631.01001" ${item.account_code === '631.01001' ? 'selected' : ''}>631.01001 - Consumo Uffici</option>
+                                <option value="631.00020" ${item.account_code === '631.00020' ? 'selected' : ''}>631.00020 - Cancelleria</option>
+                                <option value="601.00004" ${item.account_code === '601.00004' ? 'selected' : ''}>601.00004 - Amm. Macchinari</option>
+                                <option value="601.00007" ${item.account_code === '601.00007' ? 'selected' : ''}>601.00007 - Amm. Computer/HW</option>
+                                <option value="601.00010" ${item.account_code === '601.00010' ? 'selected' : ''}>601.00010 - Amm. Arredamenti</option>
+                                <option value="631.00017" ${item.account_code === '631.00017' ? 'selected' : ''}>631.00017 - Software SaaS</option>
+                                <option value="621.00005" ${item.account_code === '621.00005' ? 'selected' : ''}>621.00005 - Carburanti Auto</option>
+                                <option value="626.00202" ${item.account_code === '626.00202' ? 'selected' : ''}>626.00202 - Pasti & Soggiorni</option>
+                                <option value="631.00251" ${item.account_code === '631.00251' ? 'selected' : ''}>631.00251 - Altri Indeducibili</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[8px] font-black uppercase tracking-widest text-gray-400 ml-1">Deducibilità (%)</label>
+                            <div class="flex gap-1 items-center">
+                                <input type="number" min="0" max="100" placeholder="%" value="${item.deductibility ?? 100}" onchange="updateReviewItem(${index}, 'deductibility', parseInt(this.value))" class="w-12 bg-gray-50 p-2 rounded-xl text-[10px] font-bold border border-transparent focus:border-black outline-none transition text-center">
+                                <span class="text-[10px] font-bold">%</span>
+                                <div class="flex gap-0.5 text-[7px] font-black">
+                                    <button onclick="updateReviewItem(${index}, 'deductibility', 100)" class="px-1.5 py-1 bg-gray-100 hover:bg-black hover:text-white rounded-lg">100</button>
+                                    <button onclick="updateReviewItem(${index}, 'deductibility', 75)" class="px-1.5 py-1 bg-gray-100 hover:bg-black hover:text-white rounded-lg">75</button>
+                                    <button onclick="updateReviewItem(${index}, 'deductibility', 0)" class="px-1.5 py-1 bg-gray-100 hover:bg-black hover:text-white rounded-lg">0</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        const confirmBtn = document.getElementById('btn-confirm-review');
+        confirmBtn.innerHTML = `<i class="fas fa-save mr-2"></i> Salva ${validatedCount} Elementi`;
+        confirmBtn.disabled = validatedCount === 0;
+    }
+
+    function handleProductSelect(index, val) {
+        if (val === 'NEW') {
+            const defaultName = currentExtractedItems[index].name || '';
+            const newName = prompt('Inserisci nome del nuovo prodotto da inserire a catalogo:', defaultName);
+            if (newName) {
+                const tempId = 'NEW_' + Date.now();
+                catalogProducts.push({ _id: tempId, name: '[PRO] ' + newName, account_code: '631.01000', deductibility: 100 });
+                currentExtractedItems[index].productId = tempId;
+                currentExtractedItems[index].name = newName;
+                currentExtractedItems[index].account_code = '631.01000';
+                currentExtractedItems[index].deductibility = 100;
+            }
+        } else {
+            currentExtractedItems[index].productId = val;
+            const matched = catalogProducts.find(p => p._id === val);
+            if (matched) {
+                currentExtractedItems[index].name = matched.name.replace('[PRO] ', '');
+                currentExtractedItems[index].account_code = matched.account_code || '631.01000';
+                currentExtractedItems[index].deductibility = matched.deductibility ?? 100;
+            }
+        }
+        renderReviewItems();
+    }
+
+    function updateExpenseField(key, value) {
+        if (!currentExtractedItems[0]) {
+            currentExtractedItems[0] = { merchant: '', date: new Date().toISOString().split('T')[0], total: 0, vat_rate: 22, account_code: '626.00202', deductibility: 75 };
+        }
+        currentExtractedItems[0][key] = value;
+        if (key === 'account_code') {
+            if (value === '626.00202') currentExtractedItems[0].deductibility = 75;
+            else if (value === '621.00005') currentExtractedItems[0].deductibility = 40;
+            else if (value === '631.00251') currentExtractedItems[0].deductibility = 0;
+            else currentExtractedItems[0].deductibility = 100;
+        }
+        renderReviewItems();
+    }
+
+    function takeItemPhoto(index) {
+        // Logica per scattare foto al volo per quel lotto
+        alert("Apertura fotocamera per articolo " + (index + 1));
+    }
+
+    function addReviewItem() {
+        currentExtractedItems.push({ name: '', qty: 1, price: 0, tax: 22, account_code: '631.01000', deductibility: 100 });
+        renderReviewItems();
+        setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 100);
+    }
+
+    function removeReviewItem(index) {
+        currentExtractedItems.splice(index, 1);
+        renderReviewItems();
+    }
+
+    function updateReviewItem(index, key, value) { 
+        currentExtractedItems[index][key] = value; 
+        renderReviewItems();
+    }
+
+    async function submitApprovedItems() {
+        if (currentFlowMode === 'EXPENSE') {
+            const exp = currentExtractedItems[0];
+            if (!exp || !exp.merchant || !exp.total) {
+                return alert('Inserisci almeno Esercente e Importo Totale.');
+            }
+            showLoader('SALVATAGGIO SPESA...');
+            try {
+                const payload = buildPayload('save_expense', { expense: exp });
+                const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error();
+                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                alert('Nota Spesa salvata con successo!');
+                tg.close();
+            } catch (e) {
+                handleError(e);
+            } finally {
+                hideLoader();
+            }
+            return;
+        }
+
+        // Invoice or LotSnap
+        const toSave = currentExtractedItems.filter(item => {
+            return !!item.productId && !!(item.lot && item.expiry) && !!(item.qty && item.price);
+        });
+
+        if (toSave.length === 0) return alert('Nessun articolo pronto per il salvataggio (Anagrafica, Logistica e Prezzo richiesti).');
+        
+        showLoader('SALVATAGGIO...');
+        try {
+            const payload = buildPayload('save_approved_items', { items: toSave, flow: currentFlowMode });
+            const response = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+
+            if (!response.ok) throw new Error(`Errore Server`);
+            if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            
+            // Rimuovi quelli salvati dalla lista corrente
+            currentExtractedItems = currentExtractedItems.filter(item => !toSave.includes(item));
+            renderReviewItems();
+
+            if (currentExtractedItems.length === 0) {
+                const btn = document.getElementById('btn-confirm-review');
+                btn.classList.replace('bg-black', 'bg-green-600');
+                btn.innerHTML = `<i class="fas fa-check"></i> Tutto Salvato!`;
+                setTimeout(() => tg.close(), 1200);
+            } else {
+                alert(`Salvati ${toSave.length} articoli. Gli altri rimangono nel vassoio per completamento.`);
+            }
+        } catch (error) { handleError(error); } finally { hideLoader(); }
+    }
+
+    // --- LOTSNAP FRONTEND RENDERING ---
+    function renderLotsnapScannedLots() {
+        const container = document.getElementById('lotsnap-scanned-container');
+        container.innerHTML = '';
+        
+        if (lotsnapScannedLots.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-6 text-gray-300 border border-dashed border-gray-200 rounded-2xl bg-white animate-fade-in" id="lotsnap-empty-state">
+                    <i class="fas fa-barcode text-2xl mb-1"></i>
+                    <p class="text-[8px] font-black uppercase tracking-wider">Nessun lotto scansionato</p>
+                </div>
+            `;
+            document.getElementById('lotsnap-fiscal-section').classList.add('hidden');
+            return;
+        }
+        
+        // Mostra la sezione di caricamento fiscale se c'è almeno un lotto
+        document.getElementById('lotsnap-fiscal-section').classList.remove('hidden');
+        
+        lotsnapScannedLots.forEach((lotItem, index) => {
+            const el = document.createElement('div');
+            el.className = 'bg-white border border-border p-4 rounded-2xl animate-fade-in relative shadow-sm flex flex-col gap-2';
+            el.innerHTML = `
+                <button onclick="removeLotsnapLot(${index})" class="absolute top-3 right-3 text-red-400"><i class="fas fa-times-circle"></i></button>
+                
+                <div class="space-y-1">
+                    <label class="text-[7px] font-black uppercase tracking-widest text-gray-400">Associa Prodotto</label>
+                    <select onchange="handleLotsnapProductSelect(${index}, this.value)" class="w-full bg-gray-50 p-2 rounded-xl text-[10px] font-bold border border-transparent focus:border-black outline-none transition">
+                        <option value="">-- Seleziona Prodotto --</option>
+                        <option value="NEW">➕ Crea Nuovo...</option>
+                        ${catalogProducts.map(p => `<option value="${p._id}" ${lotItem.productId === p._id ? 'selected' : ''}>${p.name}</option>`).join('')}
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="space-y-1">
+                        <label class="text-[7px] font-black uppercase tracking-widest text-gray-400">Lotto</label>
+                        <input type="text" value="${lotItem.lot || ''}" onchange="lotsnapScannedLots[${index}].lot = this.value; renderLotsnapScannedLots();" class="w-full bg-gray-50 p-2 rounded-xl text-[10px] font-bold outline-none" placeholder="Lotto">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[7px] font-black uppercase tracking-widest text-gray-400">Scadenza</label>
+                        <input type="date" value="${lotItem.expiry || ''}" onchange="lotsnapScannedLots[${index}].expiry = this.value; renderLotsnapScannedLots();" class="w-full bg-gray-50 p-2 rounded-xl text-[10px] font-bold outline-none">
+                    </div>
+                </div>
+            `;
+            container.appendChild(el);
+        });
+    }
+
+    function removeLotsnapLot(index) {
+        lotsnapScannedLots.splice(index, 1);
+        renderLotsnapScannedLots();
+        checkVisionReady();
+    }
+
+    function handleLotsnapProductSelect(index, val) {
+        if (val === 'NEW') {
+            const name = prompt('Inserisci nome nuovo prodotto:');
+            if (name) {
+                const tempId = 'NEW_' + Date.now();
+                catalogProducts.push({ _id: tempId, name: '[PRO] ' + name, account_code: '631.01000', deductibility: 100 });
+                lotsnapScannedLots[index].productId = tempId;
+                lotsnapScannedLots[index].name = name;
+                lotsnapScannedLots[index].account_code = '631.01000';
+                lotsnapScannedLots[index].deductibility = 100;
+            }
+        } else {
+            lotsnapScannedLots[index].productId = val;
+            const matched = catalogProducts.find(p => p._id === val);
+            if (matched) {
+                lotsnapScannedLots[index].name = matched.name.replace('[PRO] ', '');
+                lotsnapScannedLots[index].account_code = matched.account_code || '631.01000';
+                lotsnapScannedLots[index].deductibility = matched.deductibility ?? 100;
+            }
+        }
+        renderLotsnapScannedLots();
+    }
+
+    function checkVisionReady() {
+        const hasLots = lotsnapScannedLots.length > 0;
+        document.getElementById('submit-vision').disabled = !hasLots;
+    }
+
+    // --- PRODUCTION SEMILAVORATI LOGIC ---
+    async function openProductionMode() {
+        document.getElementById('main-menu-container').classList.add('hidden');
+        document.getElementById('modes-container').classList.add('hidden');
+        document.getElementById('production-view').classList.remove('hidden');
+        
+        showLoader('Caricamento ricette semilavorati...');
+        try {
+            const payload = buildPayload('get_semilavorati_list');
+            const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error();
+            const result = await response.json();
+            productionSops = result.sops || [];
+            
+            const select = document.getElementById('prod-sop-select');
+            select.innerHTML = '<option value="">-- Seleziona Procedura --</option>';
+            productionSops.forEach(sop => {
+                const option = document.createElement('option');
+                option.value = sop._id;
+                option.textContent = (sop.name || '').replace('[SOP] ', '');
+                select.appendChild(option);
+            });
+        } catch (e) {
+            alert('Errore nel recupero delle ricette dei semilavorati');
+        } finally {
+            hideLoader();
+        }
+        
+        if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+    }
+
+    function backToMenuFromProduction() {
+        document.getElementById('production-view').classList.add('hidden');
+        document.getElementById('main-menu-container').classList.remove('hidden');
+        if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    }
+
+    function handleProductionSopChange(sopId) {
+        const select = document.getElementById('prod-sop-select');
+        const card = document.getElementById('prod-bom-card');
+        const submitBtn = document.getElementById('btn-submit-production');
+        
+        if (!sopId) {
+            card.classList.add('hidden');
+            submitBtn.disabled = true;
+            return;
+        }
+
+        const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+        document.getElementById('prod-lot-id').value = 'SEM-' + dateStr + '-' + Math.floor(Math.random()*1000);
+        
+        card.classList.remove('hidden');
+        recalcProductionBOM();
+    }
+
+    function recalcProductionBOM() {
+        const sopId = document.getElementById('prod-sop-select').value;
+        const qty = parseFloat(document.getElementById('prod-qty').value) || 1;
+        const sop = productionSops.find(s => s._id === sopId);
+        if (!sop) return;
+        
+        const container = document.getElementById('prod-bom-list');
+        container.innerHTML = '';
+        
+        let allAvailable = true;
+        
+        (sop.materials || []).forEach(m => {
+            const req = (m.qty || 0) * qty;
+            const avail = m.available_stock || 0;
+            const ok = avail >= req;
+            if (!ok) allAvailable = false;
+            
+            const div = document.createElement('div');
+            div.className = 'flex justify-between items-center bg-gray-50 p-2.5 rounded-xl border border-gray-100 text-[10px]';
+            div.innerHTML = `
+                <div class="font-bold text-gray-700">${m.name}</div>
+                <div class="flex items-center gap-2 font-black">
+                    <span>Richiesto: ${req.toFixed(2)} ${m.unit || 'pz'}</span>
+                    <span class="${ok ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'} px-2 py-0.5 rounded-md">
+                        Disponibile: ${avail.toFixed(2)}
+                    </span>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+
+        document.getElementById('btn-submit-production').disabled = !allAvailable;
+    }
+
+    async function submitProduction() {
+        const sopId = document.getElementById('prod-sop-select').value;
+        const qty = parseFloat(document.getElementById('prod-qty').value) || 1;
+        const lotId = document.getElementById('prod-lot-id').value.trim();
+        
+        if (!lotId) return alert('ID Lotto obbligatorio');
+        
+        showLoader('Registrazione movimento di produzione...');
+        try {
+            const payload = buildPayload('produce_semilavorato', {
+                sop_id: sopId,
+                qty: qty,
+                lot_id: lotId
+            });
+            const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) throw new Error();
+            if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            alert('Produzione registrata e materie prime scaricate!');
+            tg.close();
+        } catch (e) {
+            handleError(e);
+        } finally {
+            hideLoader();
+        }
+    }
+
+    // --- UTILS ---
+    function validateFile(file, type) {
+        const maxSize = type === 'photo' ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+        if (file.size > maxSize) return { valid: false, error: `Max ${maxSize/1024/1024}MB` };
+        if (type === 'xml' && !file.name.toLowerCase().endsWith('.xml')) return { valid: false, error: 'Serve file XML' };
+        if (type === 'pdf' && !file.type.includes('pdf')) return { valid: false, error: 'Serve file PDF' };
+        if (type === 'photo' && !file.type.startsWith('image/')) return { valid: false, error: "Serve un'immagine" };
+        return { valid: true };
+    }
+
+    function displayFileInfo(file, type) {
+        document.getElementById(`filename-${type}`).textContent = file.name;
+        document.getElementById(`filesize-${type}`).textContent = (file.size/1024).toFixed(1) + ' KB';
+        document.getElementById(`info-${type}`).classList.remove('hidden');
+        document.getElementById(`info-${type}`).classList.add('flex');
+        document.getElementById(`upload-${type}`).classList.add('hidden');
+    }
+
+    function removeFile(type) {
+        uploadedFiles[type] = null;
+        const el = document.getElementById(`file-${type}`);
+        if(el) el.value = '';
+        document.getElementById(`info-${type}`).classList.add('hidden');
+        document.getElementById(`info-${type}`).classList.remove('flex');
+        document.getElementById(`upload-${type}`).classList.remove('hidden');
+        enableSubmitButton(type, false);
+        if (type === 'photo') document.getElementById('preview-photo').classList.add('hidden');
+    }
+
+    function showImagePreview(file) {
+        const r = new FileReader();
+        r.onload = (e) => {
+            const p = document.getElementById('preview-photo');
+            p.src = e.target.result; p.classList.remove('hidden');
+        };
+        r.readAsDataURL(file);
+    }
+
+    function enableSubmitButton(type, enable) { document.getElementById(`submit-${type}`).disabled = !enable; }
+    function showLoader(text) { document.getElementById('loader-text').innerText = text; document.getElementById('loader').classList.remove('hidden'); }
+    function hideLoader() { document.getElementById('loader').classList.add('hidden'); }
+    function readFileAsText(f) { return new Promise((r, j) => { const rd = new FileReader(); rd.onload = e => r(e.target.result); rd.onerror = j; rd.readAsText(f); }); }
+    function readFileAsBase64(f) { return new Promise((r, j) => { const rd = new FileReader(); rd.onload = e => r(e.target.result.split(',')[1]); rd.onerror = j; rd.readAsDataURL(f); }); }
+    function handleError(error) { if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error'); alert(`❌ Errore di Rete`); }
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        // Audio Sensory Feedback (Tick)
+        let audioCtx = null;
+        function playTick(freq = 800, dur = 0.03, vol = 0.05) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + dur);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch (e) { console.warn(e); }
+        }
+
+        // Touch Scrubbing on dotWrapper & Vertical Swipe on stackContainer
+        const dotWrapper = document.getElementById('dot-indicators-wrapper');
+        if (dotWrapper) {
+            dotWrapper.addEventListener('touchmove', e => {
+                const rect = dotWrapper.getBoundingClientRect();
+                const touchY = e.touches[0].clientY - rect.top;
+                const ratio = Math.max(0, Math.min(1, touchY / rect.height));
+                const targetIdx = Math.floor(ratio * modules.length);
+                selectIdx(targetIdx);
+            }, { passive: true });
+        }
+
+        if (stackContainer) {
+            let touchStartY = 0, touchStartX = 0;
+            stackContainer.addEventListener('touchstart', e => {
+                touchStartY = e.touches[0].clientY;
+                touchStartX = e.touches[0].clientX;
+            }, { passive: true });
+
+            stackContainer.addEventListener('touchend', e => {
+                const diffY = touchStartY - e.changedTouches[0].clientY;
+                const diffX = touchStartX - e.changedTouches[0].clientX;
+                if (Math.abs(diffY) > 40 && Math.abs(diffY) > Math.abs(diffX)) {
+                    playTick(750, 0.03, 0.05);
+                    if (diffY > 0) navigateStack(1);
+                    else navigateStack(-1);
+                }
+            }, { passive: true });
+        }
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        let catalogAudio = null;
+        let isCatalogAudioPlaying = false;
+        window.toggleCatalogAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (!catalogAudio) {
+                catalogAudio = new Audio('catalog.wav');
+                catalogAudio.addEventListener('ended', () => {
+                    isCatalogAudioPlaying = false;
+                    catalogAudio.currentTime = 0;
+                    if (icon) icon.className = 'fas fa-volume-high text-[10px]';
+                    if (btn) btn.classList.remove('bg-slate-900/10', 'text-slate-900');
+                });
+            }
+            if (isCatalogAudioPlaying) {
+                catalogAudio.pause();
+                catalogAudio.currentTime = 0;
+                isCatalogAudioPlaying = false;
+                if (icon) icon.className = 'fas fa-volume-high text-[10px]';
+                if (btn) btn.classList.remove('bg-slate-900/10', 'text-slate-900');
+            } else {
+                catalogAudio.play().then(() => {
+                    isCatalogAudioPlaying = true;
+                    if (icon) icon.className = 'fas fa-stop text-[10px]';
+                    if (btn) btn.classList.add('bg-slate-900/10', 'text-slate-900');
+                }).catch(err => console.error(err));
+            }
+        };
+
+        window.switchHelpTab = function(tab) {
+            const btnMobile = document.getElementById('tab-btn-mobile');
+            const btnDesktop = document.getElementById('tab-btn-desktop');
+            const contentMobile = document.getElementById('tab-content-mobile');
+            const contentDesktop = document.getElementById('tab-content-desktop');
+            if (!btnMobile || !btnDesktop || !contentMobile || !contentDesktop) return;
+
+            if (tab === 'mobile') {
+                btnMobile.classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+                btnMobile.classList.remove('text-slate-400');
+                btnDesktop.classList.remove('bg-white', 'text-slate-900', 'shadow-sm');
+                btnDesktop.classList.add('text-slate-400');
+                contentMobile.classList.remove('hidden');
+                contentDesktop.classList.add('hidden');
+            } else {
+                btnDesktop.classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+                btnDesktop.classList.remove('text-slate-400');
+                btnMobile.classList.remove('bg-white', 'text-slate-900', 'shadow-sm');
+                btnMobile.classList.add('text-slate-400');
+                contentDesktop.classList.remove('hidden');
+                contentMobile.classList.add('hidden');
+            }
+        };
+
+        window.toggleHelpModal = function(show) {
+            const overlay = document.getElementById('help-overlay');
+            if (!overlay) return;
+            if (show) {
+                const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (window.Telegram?.WebApp && window.Telegram.WebApp.platform !== 'unknown' && window.Telegram.WebApp.platform !== 'tdesktop');
+                window.switchHelpTab(isMobileDevice ? 'mobile' : 'desktop');
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                    overlay.querySelector('.modal-content').classList.remove('scale-95');
+                }, 10);
+            } else {
+                overlay.classList.add('opacity-0');
+                overlay.querySelector('.modal-content').classList.add('scale-95');
+                setTimeout(() => { overlay.classList.add('hidden'); }, 300);
+            }
+        };
+    })();
+    </script>
+
+    <!-- HELP OVERLAY MODAL -->
+    <div id="help-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="modal-content bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 border border-slate-150 shadow-2xl transition-all duration-300 scale-95">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+                <span class="text-xs font-black uppercase tracking-tight text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-hand text-slate-900"></i> Guida ai Gesti & Navigazione
+                </span>
+                <button onclick="toggleHelpModal(false)" class="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+
+            <div class="flex bg-slate-100 p-1 rounded-2xl border border-slate-200">
+                <button id="tab-btn-mobile" onclick="switchHelpTab('mobile')" class="flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-300 bg-white text-slate-900 shadow-sm">
+                    <i class="fas fa-mobile-screen mr-1"></i> Mobile (Touch)
+                </button>
+                <button id="tab-btn-desktop" onclick="switchHelpTab('desktop')" class="flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-300 text-slate-400">
+                    <i class="fas fa-desktop mr-1"></i> PC (Tastiera)
+                </button>
+            </div>
+
+            <div id="tab-content-mobile" class="space-y-4 pt-2">
+                <div class="flex items-center gap-3.5 border-b border-slate-100 pb-3">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+                        <i class="fas fa-hand-pointer text-xs"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Tap sulla Card</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Tocca la card attiva per aprirla; tocca le card in background per portarle in primo piano</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3.5 border-b border-slate-100 pb-3">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+                        <i class="fas fa-arrows-up-down text-xs"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Swipe Verticale</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Fai uno scorrimento (swipe) verso l'alto o il basso sulle card 3D per scorrere la lista</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-content-desktop" class="space-y-4 pt-2 hidden">
+                <div class="flex items-center gap-3.5 border-b border-slate-100 pb-3">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0 font-black text-xs">
+                        ↑ ↓
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Frecce Verticali</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Usa le frecce Su / Giù sulla tastiera per navigare</div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="toggleHelpModal(false)" class="w-full mt-6 bg-slate-900 hover:bg-black text-white font-black py-3.5 rounded-2xl text-[9px] uppercase tracking-widest shadow-md transition-all active:scale-[0.98]">
+                Ho Capito
+            </button>
+        </div>
+    </div>
+
+    <!-- USER GUIDE DRAWER -->
+    <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+        <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+            <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                    <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                </div>
+                <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+            <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

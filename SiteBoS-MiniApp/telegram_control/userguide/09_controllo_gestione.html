@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>09. Controllo di Gestione | SiTeBoS Guide</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { primary: '#000000', bg: '#fafafa', surface: '#ffffff', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #ffffff; color: #000000; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .content-area { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .prose h1 { font-size: 2.25rem; font-weight: 900; tracking: -0.04em; line-height: 1.1; margin-bottom: 1.5rem; text-transform: uppercase; font-style: italic; }
+        .prose h2 { font-size: 1.25rem; font-weight: 800; tracking: -0.02em; margin-top: 3rem; margin-bottom: 1rem; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 0.5rem; display: inline-block; }
+        .prose h3 { font-size: 1.1rem; font-weight: 900; text-transform: uppercase; margin-top: 2rem; color: #111827; }
+        .prose p { font-size: 0.95rem; line-height: 1.7; color: #374151; margin-bottom: 1.5rem; }
+        .prose b { font-weight: 800; color: #000; }
+        .img-container { margin: 2rem 0; background: #fafafa; border: 1px solid #eeeeee; border-radius: 2rem; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05); }
+        .info-card { background: #f9fafb; border-left: 4px solid #000; padding: 1.5rem; border-radius: 0 1.5rem 1.5rem 0; margin: 1.5rem 0; }
+        .math-box { background: #f3f4f6; font-family: monospace; padding: 1rem; border-radius: 1rem; margin: 1rem 0; border: 1px solid #e5e7eb; font-size: 0.85rem; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeIn 0.4s ease forwards; }
+    </style>
+</head>
+<body class="safe-area-inset min-h-screen pb-32">
+
+    <!-- TOP NAV -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-5 py-4 flex items-center justify-between">
+        <button onclick="location.href='index.html'" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
+            <i class="fas fa-arrow-left"></i> Index
+        </button>
+        <div class="text-[9px] font-black uppercase tracking-[0.2em] text-blue-600 italic">Capitolo 09</div>
+    </nav>
+
+    <main class="content-area animate-in">
+        <article class="prose">
+            <h1>Controllo di Gestione</h1>
+            
+            <p>
+                Il modulo di <b>Controllo di Gestione (CFO)</b> rappresenta il cuore pulsante dell'intelligenza industriale di SiTeBoS. Accessibile direttamente dall'interfaccia principale tramite il pulsante <b>⚙️ Gestione Avanzata</b>, questo modulo consente al titolare dello studio dentistico di visualizzare una scomposizione analitica dei margini economici delle singole prestazioni, simulare scenari operativi e verificare la conformità fiscale in base a dati reali aggregati. Tutti i parametri base (retribuzioni staff, ammortamento attrezzature, leasing e piano dei conti) che alimentano questo modulo vengono inizializzati e mappati nella sezione <a href="02_onboarding.html" class="text-blue-600 font-bold hover:underline">Setup Avanzato</a>.
+            </p>
+
+            
+
+    <!-- HEADER PRINCIPALE -->
+    <header class="bg-white border-b border-border sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center gap-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-md">SiteBoS advanced</span>
+                    <span class="text-xs text-gray-400 font-bold" id="header-version">V5.0</span>
+                </div>
+                <h1 class="text-xl font-black uppercase tracking-tight mt-1" id="header-owner">Centro Odontoiatrico Buscemi srl</h1>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest italic" id="header-subtitle">Prestazione: ...</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="hidden md:block text-right pr-4 border-r border-gray-200">
+                    <span class="block text-[9px] text-gray-400 font-black uppercase tracking-widest">Tempo Poltrona</span>
+                    <span class="text-lg font-black text-blue-600" id="header-time">0 min</span>
+                </div>
+                <div class="hidden md:block text-right pr-4 border-r border-gray-200">
+                    <span class="block text-[9px] text-gray-400 font-black uppercase tracking-widest">MDC Totale</span>
+                    <span class="text-lg font-black text-green-600" id="header-mdc">€ 0,00</span>
+                </div>
+                <button onclick="return false;" class="p-3 bg-black text-white rounded-2xl flex items-center justify-center transition-all duration-200">
+                    <i class="fas fa-bars text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTAINER PRINCIPALE -->
+    <main class="max-w-7xl w-full mx-auto px-6 mt-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- SIDEBAR: CONTROLLO DI GESTIONE & INPUT EDITABILI -->
+        <div class="lg:col-span-4 space-y-6">
+            <div class="card rounded-3xl p-6 space-y-5 shadow-sm border-gray-200 bg-white sticky top-28">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 block">📊 PARAMETRI DI BILANCIO</span>
+                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-[8px] font-black uppercase rounded">EDITABILI</span>
+                </div>
+                
+                <!-- INPUTS EDITABILI -->
+                <div class="space-y-3">
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Tariffa della Prestazione (€)</label>
+                        <input type="number" id="in-tariffa" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2.5 text-sm font-black text-black focus:outline-none focus:border-black transition-colors">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Costo Operatori Totale (€)</label>
+                            <input type="number" id="in-compenso" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Materiali Consumo (€)</label>
+                            <input type="number" id="in-materiali" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Costo Lab. Odontotec. (€)</label>
+                            <input type="number" id="in-lab" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Tempo Poltrona (Min)</label>
+                            <input type="number" id="in-tempo" oninput="recalculateAll()" class="hide-arrows w-full bg-blue-50 border border-blue-150 rounded-xl p-2 text-xs font-black text-blue-600 focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Costo Ora Poltrona (€/h)</label>
+                            <input type="number" id="in-poltrona" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Tasse Ordinario (%)</label>
+                            <input type="number" id="in-tasse" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SINTESI CARATTERISTICA -->
+                <div class="border-t border-border pt-5 space-y-2.5">
+                    <h3 class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Sintesi Caratteristica</h3>
+                    
+                    <div class="flex justify-between items-end text-xs">
+                        <span class="font-semibold text-gray-500">Ricavi Totali</span>
+                        <span class="font-black text-black" id="out-ricavi">€ 0.00</span>
+                    </div>
+                    <div class="flex justify-between items-end text-xs">
+                        <span class="font-semibold text-gray-500">Costi Variabili Diretti</span>
+                        <span class="font-black text-red-500" id="out-costi-var">€ 0.00</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-end pt-2">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-black">Margine Contribuzione</span>
+                        <span class="text-sm font-black text-green-600" id="out-mdc">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end text-xs border-b border-dashed border-border pb-2 pt-1">
+                        <span class="font-semibold text-gray-500">Costo Fisso Sedia Allocato</span>
+                        <span class="font-black text-gray-700" id="out-costo-fisso">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end pt-2">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-black">Reddito Operativo</span>
+                        <span class="text-sm font-black text-black" id="out-reddito">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end text-xs pb-2 border-b border-border">
+                        <span class="font-semibold text-gray-500">Fisco ed ENPAM stimati</span>
+                        <span class="font-black text-red-500" id="out-tasse">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end pt-2">
+                        <span class="text-[11px] font-black uppercase tracking-widest text-black">Utile Netto Stimato</span>
+                        <span class="text-xl font-black" id="out-utile">€ 0.00</span>
+                    </div>
+
+                    <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden mt-3">
+                        <div class="h-full transition-all duration-300" id="margin-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- PUNTO DI PAREGGIO -->
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl mt-4">
+                    <span class="text-[9px] font-black uppercase tracking-widest text-amber-700">🎯 Terapie per Break-Even</span>
+                    <div class="text-2xl font-black text-amber-900 mt-1" id="bep-units">Calcolo...</div>
+                    <p class="text-[9px] text-amber-700/80 font-medium leading-relaxed mt-1" id="bep-rationale"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- AREA DESTRA: CONTENUTI A SCHEDE -->
+        <div class="lg:col-span-8 space-y-6">
+            
+            <div class="flex justify-between items-center border-b border-border pb-3">
+                <div class="space-y-0.5">
+                    <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Sezione Attiva</span>
+                    <!-- ═══════════════════════════════════════════════════════════════
+                 PREVIEW REALE SANIFICATO: agents/controllo_gestione.html
+                 Estratto automaticamente dall'HTML sorgente della MiniApp.
+                 ═══════════════════════════════════════════════════════════════ -->
+            <div class="my-10 rounded-3xl overflow-hidden border border-slate-200 shadow-xl" id="preview-09_controllo_gestione-0" style="background:#f8fafc;">
+
+                <!-- Header dell'anteprima -->
+                <div style="background:#0f172a; padding:0.6rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.4rem; min-width:0;">
+                        <span style="width:9px; height:9px; border-radius:50%; background:#ef4444; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#f59e0b; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#22c55e; flex-shrink:0; display:block;"></span>
+                        <span style="font-size:8px; font-family:ui-monospace,monospace; color:#64748b; margin-left:0.5rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Controllo di Gestione CFO</span>
+                    </div>
+                    <span style="font-size:7px; font-family:ui-monospace,monospace; color:#3b82f6; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; flex-shrink:0; white-space:nowrap;">SiTeBoS Interface</span>
+                </div>
+
+                <!-- Viewport scalato con touch/scroll pass-through -->
+                <div style="position:relative; overflow:hidden; height:460px; background:#f8fafc;">
+
+                    <style>
+                        #preview-09_controllo_gestione-0 .preview-body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
+                        #preview-09_controllo_gestione-0 .no-scrollbar::-webkit-scrollbar { display:none; }
+                        
+        #preview-09_controllo_gestione-0 .preview-body { font-family: 'Inter', sans-serif; background-color: #fafafa; color: #000000; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .card { background: white; border: 1px solid #eeeeee; }
+        
+        /* Stile Slider personalizzato */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: #000000; cursor: pointer; margin-top: -7px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.1s; }
+        input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e5e7eb; border-radius: 2px; }
+        .hide-arrows::-webkit-outer-spin-button, .hide-arrows::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    
+                    </style>
+
+                    <div class="preview-body" style="
+                        transform: scale(0.5);
+                        transform-origin: top left;
+                        width: 200%;
+                        position: absolute;
+                        top: 0; left: 0;
+                        pointer-events: none;
+                        user-select: none;
+                        min-height: 920px;
+                        overflow: hidden;
+                    ">
+                        <!-- MENU LATERALE -->
+    <div id="menu-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300" ></div>
+    <div id="menu-drawer" class="fixed top-0 left-0 h-full w-[300px] bg-white border-r border-border z-50 shadow-2xl -translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-5 border-b border-border flex justify-between items-center bg-gray-50/50">
+            <div>
+                <span class="px-2 py-0.5 bg-black text-white text-[8px] font-black uppercase rounded">SiteBoS Menu</span>
+                <h3 class="text-xs font-black uppercase text-gray-500 mt-1">Seleziona Sezione</h3>
+            </div>
+            <button  class="w-8 h-8 rounded-full border border-border bg-white text-gray-500 hover:text-black flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-1">
+            <button  class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 bg-black text-white" id="menu-tab-cfo">
+                <i class="fas fa-balance-scale text-sm w-5 text-center"></i> 🏛️ CFO Advisory
+            </button>
+            <button  class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-bom">
+                <i class="fas fa-cogs text-sm w-5 text-center"></i> ⚙️ Distinta Base (BOM)
+            </button>
+            <button  class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-competitors">
+                <i class="fas fa-bullseye text-sm w-5 text-center"></i> 🎯 Analisi Concorrenza
+            </button>
+            <button  class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-suppliers">
+                <i class="fas fa-box text-sm w-5 text-center"></i> 📦 Sourcing Fornitori
+            </button>
+            <button  class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-locations">
+                <i class="fas fa-map-marker-alt text-sm w-5 text-center"></i> 📍 Aree & Riuniti
+            </button>
+            <button  class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-assets">
+                <i class="fas fa-tools text-sm w-5 text-center"></i> 🛠️ Tecnologie Cliniche
+            </button>
+            <button  class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-meta">
+                <i class="fas fa-users text-sm w-5 text-center"></i> 👥 Personale & Supporto
+            </button>
+            <button  class="menu-link w-full text-left p-3.5 rounded-2xl text-[10px] font-black uppercase tracking-wider flex items-center gap-3 text-gray-400 hover:bg-gray-50 hover:text-black" id="menu-tab-fiscal">
+                <i class="fas fa-briefcase text-sm w-5 text-center"></i> 💼 Tassazione & ENPAM
+            </button>
+        </div>
+    </div>
+
+    <!-- HEADER PRINCIPALE -->
+    <header class="bg-white border-b border-border sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center gap-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-md">SiteBoS advanced</span>
+                    <span class="text-xs text-gray-400 font-bold" id="header-version">V5.0</span>
+                </div>
+                <h1 class="text-xl font-black uppercase tracking-tight mt-1" id="header-owner">Centro Odontoiatrico Buscemi srl</h1>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest italic" id="header-subtitle">Prestazione: ...</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="hidden md:block text-right pr-4 border-r border-gray-200">
+                    <span class="block text-[9px] text-gray-400 font-black uppercase tracking-widest">Tempo Poltrona</span>
+                    <span class="text-lg font-black text-blue-600" id="header-time">0 min</span>
+                </div>
+                <div class="hidden md:block text-right pr-4 border-r border-gray-200">
+                    <span class="block text-[9px] text-gray-400 font-black uppercase tracking-widest">MDC Totale</span>
+                    <span class="text-lg font-black text-green-600" id="header-mdc">€ 0,00</span>
+                </div>
+                <button  class="p-3 bg-black text-white rounded-2xl flex items-center justify-center transition-all duration-200">
+                    <i class="fas fa-bars text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTAINER PRINCIPALE -->
+    <main class="max-w-7xl w-full mx-auto px-6 mt-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- SIDEBAR: CONTROLLO DI GESTIONE & INPUT EDITABILI -->
+        <div class="lg:col-span-4 space-y-6">
+            <div class="card rounded-3xl p-6 space-y-5 shadow-sm border-gray-200 bg-white sticky top-28">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 block">📊 PARAMETRI DI BILANCIO</span>
+                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-[8px] font-black uppercase rounded">EDITABILI</span>
+                </div>
+                
+                <!-- INPUTS EDITABILI -->
+                <div class="space-y-3">
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Tariffa della Prestazione (€)</label>
+                        <input type="number" id="in-tariffa" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2.5 text-sm font-black text-black focus:outline-none focus:border-black transition-colors">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Costo Operatori Totale (€)</label>
+                            <input type="number" id="in-compenso" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Materiali Consumo (€)</label>
+                            <input type="number" id="in-materiali" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Costo Lab. Odontotec. (€)</label>
+                            <input type="number" id="in-lab" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Tempo Poltrona (Min)</label>
+                            <input type="number" id="in-tempo" oninput="recalculateAll()" class="hide-arrows w-full bg-blue-50 border border-blue-150 rounded-xl p-2 text-xs font-black text-blue-600 focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Costo Ora Poltrona (€/h)</label>
+                            <input type="number" id="in-poltrona" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider">Tasse Ordinario (%)</label>
+                            <input type="number" id="in-tasse" oninput="recalculateAll()" class="hide-arrows w-full bg-gray-50 border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SINTESI CARATTERISTICA -->
+                <div class="border-t border-border pt-5 space-y-2.5">
+                    <h3 class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Sintesi Caratteristica</h3>
+                    
+                    <div class="flex justify-between items-end text-xs">
+                        <span class="font-semibold text-gray-500">Ricavi Totali</span>
+                        <span class="font-black text-black" id="out-ricavi">€ 0.00</span>
+                    </div>
+                    <div class="flex justify-between items-end text-xs">
+                        <span class="font-semibold text-gray-500">Costi Variabili Diretti</span>
+                        <span class="font-black text-red-500" id="out-costi-var">€ 0.00</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-end pt-2">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-black">Margine Contribuzione</span>
+                        <span class="text-sm font-black text-green-600" id="out-mdc">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end text-xs border-b border-dashed border-border pb-2 pt-1">
+                        <span class="font-semibold text-gray-500">Costo Fisso Sedia Allocato</span>
+                        <span class="font-black text-gray-700" id="out-costo-fisso">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end pt-2">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-black">Reddito Operativo</span>
+                        <span class="text-sm font-black text-black" id="out-reddito">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end text-xs pb-2 border-b border-border">
+                        <span class="font-semibold text-gray-500">Fisco ed ENPAM stimati</span>
+                        <span class="font-black text-red-500" id="out-tasse">€ 0.00</span>
+                    </div>
+
+                    <div class="flex justify-between items-end pt-2">
+                        <span class="text-[11px] font-black uppercase tracking-widest text-black">Utile Netto Stimato</span>
+                        <span class="text-xl font-black" id="out-utile">€ 0.00</span>
+                    </div>
+
+                    <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden mt-3">
+                        <div class="h-full transition-all duration-300" id="margin-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- PUNTO DI PAREGGIO -->
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl mt-4">
+                    <span class="text-[9px] font-black uppercase tracking-widest text-amber-700">🎯 Terapie per Break-Even</span>
+                    <div class="text-2xl font-black text-amber-900 mt-1" id="bep-units">Calcolo...</div>
+                    <p class="text-[9px] text-amber-700/80 font-medium leading-relaxed mt-1" id="bep-rationale"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- AREA DESTRA: CONTENUTI A SCHEDE -->
+        <div class="lg:col-span-8 space-y-6">
+            
+            <div class="flex justify-between items-center border-b border-border pb-3">
+                <div class="space-y-0.5">
+                    <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Sezione Attiva</span>
+                    <h2 class="text-xs font-black uppercase tracking-wider text-black" id="active-section-title">🏛️ CFO Advisory</h2>
+                </div>
+                <button  class="px-3 py-1.5 bg-gray-100 rounded-xl text-[9px] font-black uppercase tracking-wider text-gray-600 hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-list-ul mr-1"></i> Tutte le sezioni
+                </button>
+            </div>
+
+            <!-- TAB CFO (DEFAULT) -->
+            <div id="tab-cfo" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <!-- HEALTH RATING -->
+                    <div class="md:col-span-4 card rounded-3xl p-6 flex flex-col justify-between items-center text-center bg-black text-white" id="cfo-health-card">
+                        <div class="space-y-2">
+                            <span class="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400">HEALTH RATING</span>
+                            <h3 class="text-sm font-black uppercase text-gray-200">Stato di Salute</h3>
+                        </div>
+                        <div class="py-6">
+                            <span class="px-4 py-2 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-md" id="label-health">VERIFICA...</span>
+                        </div>
+                        <p class="text-[9px] text-gray-400 leading-relaxed font-semibold" id="label-health-desc"></p>
+                    </div>
+
+                    <!-- ADVISORY TESTUALE -->
+                    <div class="md:col-span-8 card rounded-3xl p-6 space-y-3 border-gray-200 bg-white">
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">💡 STRATEGIA DI PREZZO & ADVISORY</span>
+                        <p class="text-xs text-gray-700 leading-relaxed font-medium" id="pricing-advisory-text"></p>
+                    </div>
+                </div>
+
+                <!-- SIMULATORE PREDITTIVO -->
+                <div class="card rounded-3xl p-6 space-y-6 border-gray-200 bg-white shadow-sm">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">🚀 SIMULATORE DI VOLUMI MENSILI</span>
+                            <p class="text-[10px] text-gray-500 font-medium mt-1">Sposta l'indicatore per simulare l'impatto sul bilancio (Volumi/Mese).</p>
+                        </div>
+                        <div class="bg-gray-100 border border-gray-200 px-4 py-2 rounded-xl text-center min-w-[80px]">
+                            <span id="slider-val" class="text-lg font-black text-black">50</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 px-2">
+                        <span class="text-xs font-bold text-gray-400">0</span>
+                        <input type="range" id="volume-slider" min="0" max="200" value="50" class="flex-1" oninput="updateSimulation()">
+                        <span class="text-xs font-bold text-gray-400">200</span>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-gray-100">
+                        <div class="bg-gray-50 border border-gray-100 p-3 rounded-2xl">
+                            <span class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Fatturato</span>
+                            <span id="sim-fatturato" class="text-sm font-black text-black">€0,00</span>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-100 p-3 rounded-2xl">
+                            <span class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Margine Totale</span>
+                            <span id="sim-margine" class="text-sm font-black text-green-600">€0,00</span>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-100 p-3 rounded-2xl">
+                            <span class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Costi Struttura</span>
+                            <span id="sim-costi" class="text-sm font-black text-gray-700">€0,00</span>
+                        </div>
+                        <div class="bg-green-50 border border-green-200 p-3 rounded-2xl" id="sim-utile-card">
+                            <span class="block text-[8px] font-black uppercase tracking-widest mb-1" id="sim-utile-label">Utile Netto</span>
+                            <span id="sim-utile" class="text-base font-black text-green-700">€0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RACCOMANDAZIONI -->
+                <div class="card rounded-3xl p-6 space-y-4 border-gray-200 bg-white">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">🛠️ RACCOMANDAZIONI OPERATIVE</span>
+                    <div class="space-y-2" id="cost-optimization-list"></div>
+                </div>
+            </div>
+
+            <!-- GLI ALTRI TAB GENERATI DINAMICAMENTE -->
+            <div id="tab-bom" class="tab-content space-y-4 hidden"><div id="bom-list-container" class="space-y-4"></div></div>
+            <div id="tab-suppliers" class="tab-content space-y-4 hidden"><div id="suppliers-list-container" class="space-y-4"></div></div>
+            <div id="tab-locations" class="tab-content space-y-4 hidden"><div id="locations-list-container" class="space-y-4"></div></div>
+            <div id="tab-assets" class="tab-content space-y-4 hidden"><div id="assets-list-container" class="space-y-4"></div></div>
+            <div id="tab-meta" class="tab-content space-y-4 hidden"><div id="meta-list-container" class="grid grid-cols-1 gap-4"></div></div>
+            <div id="tab-competitors" class="tab-content space-y-6 hidden">
+                <div class="card rounded-3xl p-6 bg-zinc-50 border-zinc-200">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 block mb-2">🎯 POSIZIONAMENTO DI MERCATO</span>
+                    <p class="text-xs text-zinc-700 font-medium leading-relaxed" id="market-pos-summary"></p>
+                </div>
+                <div id="competitor-list-container" class="space-y-4"></div>
+            </div>
+            
+            <!-- TAB TASSI E FISCO CON MODIFICHE DI BILANCIO ED ENPAM SELEZIONABILE -->
+            <div id="tab-fiscal" class="tab-content space-y-4 hidden">
+                <div class="card rounded-3xl p-6 space-y-4 border-gray-200 bg-white shadow-sm">
+                    <div class="flex justify-between items-center border-b border-border pb-3">
+                        <div class="space-y-1">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Inquadramento Fiscale Consigliato</span>
+                            <h3 class="text-sm font-black uppercase tracking-tight text-black" id="fiscal-regime-name">S.r.l. Ordinaria Commerciale</h3>
+                        </div>
+                    </div>
+
+                    <!-- STRUMENTO MODIFICA CONFIGURAZIONE DI BILANCIO SUL FISCO & ENPAM -->
+                    <div class="bg-gray-50 p-4 rounded-2xl border border-gray-150 space-y-3">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-gray-500 block">⚙️ STRUMENTI DI MODIFICA DEL BILANCIO</span>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-bold text-gray-400 uppercase">Aliquota ENPAM Societaria</label>
+                                <select id="select-enpam-rate"  class="w-full bg-white border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                                    <option value="2.0">2.0% (S.r.l. Ordinaria - L. 205/2017)</option>
+                                    <option value="0.5" selected>0.5% (Aliquota Ridotta STP / Accreditate)</option>
+                                    <option value="0.0">0.0% (Esente ENPAM)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-bold text-gray-400 uppercase">Costi Fissi Strutturali Annui (€)</label>
+                                <input type="number" id="in-fissi-annui" oninput="recalculateAll()" class="hide-arrows w-full bg-white border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PARAMETRI STATISTICI -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 py-2">
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Codice ATECO</span>
+                            <div class="text-lg font-black text-black mt-1" id="fiscal-ateco">86.23.00</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Coeff. Redditività</span>
+                            <div class="text-lg font-black text-black mt-1" id="fiscal-coeff">78%</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Aliquota Tasse S.r.l.</span>
+                            <div class="text-lg font-black text-black mt-1" id="fiscal-tax-rate">24%</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">ENPAM Societario</span>
+                            <div class="text-lg font-black text-black mt-1" id="fiscal-enpam-label">0.50%</div>
+                        </div>
+                    </div>
+                    
+                    <!-- BOX GIALLO RISOLTO E DINAMICO -->
+                    <div class="bg-amber-50/50 p-4 rounded-2xl border border-amber-200/60 text-xs text-amber-800 font-medium leading-relaxed" id="fiscal-explanation"></div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- LOGICA E DATI REALI HARDCODED -->
+    
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+                    </div>
+
+                    <!-- Fade gradient inferiore -->
+                    <div style="position:absolute; bottom:0; left:0; right:0; height:100px; background:linear-gradient(to bottom, transparent 0%, #f8fafc 90%); pointer-events:none; z-index:10;"></div>
+                </div>
+
+                <!-- Didascalia -->
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig  Cruscotto CFO — Analisi Gestionale
+                </div>
+            </div>
+
+            <h2 class="text-xs font-black uppercase tracking-wider text-black" id="active-section-title">🏛️ CFO Advisory</h2>
+                </div>
+                <button onclick="return false;" class="px-3 py-1.5 bg-gray-100 rounded-xl text-[9px] font-black uppercase tracking-wider text-gray-600 hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-list-ul mr-1"></i> Tutte le sezioni
+                </button>
+            </div>
+
+            <!-- TAB CFO (DEFAULT) -->
+            <div id="tab-cfo" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <!-- HEALTH RATING -->
+                    <div class="md:col-span-4 card rounded-3xl p-6 flex flex-col justify-between items-center text-center bg-black text-white" id="cfo-health-card">
+                        <div class="space-y-2">
+                            <span class="text-[8px] font-black uppercase tracking-[0.2em] text-gray-400">HEALTH RATING</span>
+                            <h3 class="text-sm font-black uppercase text-gray-200">Stato di Salute</h3>
+                        </div>
+                        <div class="py-6">
+                            <span class="px-4 py-2 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-md" id="label-health">VERIFICA...</span>
+                        </div>
+                        <p class="text-[9px] text-gray-400 leading-relaxed font-semibold" id="label-health-desc"></p>
+                    </div>
+
+                    <!-- ADVISORY TESTUALE -->
+                    <div class="md:col-span-8 card rounded-3xl p-6 space-y-3 border-gray-200 bg-white">
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">💡 STRATEGIA DI PREZZO & ADVISORY</span>
+                        <p class="text-xs text-gray-700 leading-relaxed font-medium" id="pricing-advisory-text"></p>
+                    </div>
+                </div>
+
+                <!-- SIMULATORE PREDITTIVO -->
+                <div class="card rounded-3xl p-6 space-y-6 border-gray-200 bg-white shadow-sm">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">🚀 SIMULATORE DI VOLUMI MENSILI</span>
+                            <p class="text-[10px] text-gray-500 font-medium mt-1">Sposta l'indicatore per simulare l'impatto sul bilancio (Volumi/Mese).</p>
+                        </div>
+                        <div class="bg-gray-100 border border-gray-200 px-4 py-2 rounded-xl text-center min-w-[80px]">
+                            <span id="slider-val" class="text-lg font-black text-black">50</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 px-2">
+                        <span class="text-xs font-bold text-gray-400">0</span>
+                        <input type="range" id="volume-slider" min="0" max="200" value="50" class="flex-1" oninput="updateSimulation()">
+                        <span class="text-xs font-bold text-gray-400">200</span>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-gray-100">
+                        <div class="bg-gray-50 border border-gray-100 p-3 rounded-2xl">
+                            <span class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Fatturato</span>
+                            <span id="sim-fatturato" class="text-sm font-black text-black">€0,00</span>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-100 p-3 rounded-2xl">
+                            <span class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Margine Totale</span>
+                            <span id="sim-margine" class="text-sm font-black text-green-600">€0,00</span>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-100 p-3 rounded-2xl">
+                            <span class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Costi Struttura</span>
+                            <span id="sim-costi" class="text-sm font-black text-gray-700">€0,00</span>
+                        </div>
+                        <div class="bg-green-50 border border-green-200 p-3 rounded-2xl" id="sim-utile-card">
+                            <span class="block text-[8px] font-black uppercase tracking-widest mb-1" id="sim-utile-label">Utile Netto</span>
+                            <span id="sim-utile" class="text-base font-black text-green-700">€0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RACCOMANDAZIONI -->
+                <div class="card rounded-3xl p-6 space-y-4 border-gray-200 bg-white">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-black block">🛠️ RACCOMANDAZIONI OPERATIVE</span>
+                    <div class="space-y-2" id="cost-optimization-list"></div>
+                </div>
+            </div>
+
+            <!-- GLI ALTRI TAB GENERATI DINAMICAMENTE -->
+            <div id="tab-bom" class="tab-content space-y-4 hidden"><div id="bom-list-container" class="space-y-4"></div></div>
+            <div id="tab-suppliers" class="tab-content space-y-4 hidden"><div id="suppliers-list-container" class="space-y-4"></div></div>
+            <div id="tab-locations" class="tab-content space-y-4 hidden"><div id="locations-list-container" class="space-y-4"></div></div>
+            <div id="tab-assets" class="tab-content space-y-4 hidden"><div id="assets-list-container" class="space-y-4"></div></div>
+            <div id="tab-meta" class="tab-content space-y-4 hidden"><div id="meta-list-container" class="grid grid-cols-1 gap-4"></div></div>
+            <div id="tab-competitors" class="tab-content space-y-6 hidden">
+                <div class="card rounded-3xl p-6 bg-zinc-50 border-zinc-200">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 block mb-2">🎯 POSIZIONAMENTO DI MERCATO</span>
+                    <p class="text-xs text-zinc-700 font-medium leading-relaxed" id="market-pos-summary"></p>
+                </div>
+                <div id="competitor-list-container" class="space-y-4"></div>
+            </div>
+            
+            <!-- TAB TASSI E FISCO CON MODIFICHE DI BILANCIO ED ENPAM SELEZIONABILE -->
+            <div id="tab-fiscal" class="tab-content space-y-4 hidden">
+                <div class="card rounded-3xl p-6 space-y-4 border-gray-200 bg-white shadow-sm">
+                    <div class="flex justify-between items-center border-b border-border pb-3">
+                        <div class="space-y-1">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Inquadramento Fiscale Consigliato</span>
+                            <h3 class="text-sm font-black uppercase tracking-tight text-black" id="fiscal-regime-name">S.r.l. Ordinaria Commerciale</h3>
+                        </div>
+                    </div>
+
+                    <!-- STRUMENTO MODIFICA CONFIGURAZIONE DI BILANCIO SUL FISCO & ENPAM -->
+                    <div class="bg-gray-50 p-4 rounded-2xl border border-gray-150 space-y-3">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-gray-500 block">⚙️ STRUMENTI DI MODIFICA DEL BILANCIO</span>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-bold text-gray-400 uppercase">Aliquota ENPAM Societaria</label>
+                                <select id="select-enpam-rate"  class="w-full bg-white border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                                    <option value="2.0">2.0% (S.r.l. Ordinaria - L. 205/2017)</option>
+                                    <option value="0.5" selected>0.5% (Aliquota Ridotta STP / Accreditate)</option>
+                                    <option value="0.0">0.0% (Esente ENPAM)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-bold text-gray-400 uppercase">Costi Fissi Strutturali Annui (€)</label>
+                                <input type="number" id="in-fissi-annui" oninput="recalculateAll()" class="hide-arrows w-full bg-white border border-border rounded-xl p-2 text-xs font-black text-black focus:outline-none focus:border-black transition-colors">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PARAMETRI STATISTICI -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 py-2">
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Codice ATECO</span>
+                            <div class="text-lg font-black text-black mt-1" id="fiscal-ateco">86.23.00</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Coeff. Redditività</span>
+                            <div class="text-lg font-black text-black mt-1" id="fiscal-coeff">78%</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Aliquota Tasse S.r.l.</span>
+                            <div class="text-lg font-black text-black mt-1" id="fiscal-tax-rate">24%</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">ENPAM Societario</span>
+                            <div class="text-lg font-black text-black mt-1" id="fiscal-enpam-label">0.50%</div>
+                        </div>
+                    </div>
+                    
+                    <!-- BOX GIALLO RISOLTO E DINAMICO -->
+                    <div class="bg-amber-50/50 p-4 rounded-2xl border border-amber-200/60 text-xs text-amber-800 font-medium leading-relaxed" id="fiscal-explanation"></div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- LOGICA E DATI REALI HARDCODED -->
+    
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+                    </div>
+
+                    <!-- Fade gradient in fondo per nascondere il cutoff -->
+                    <div style="position:absolute; bottom:0; left:0; right:0; height:100px; background:linear-gradient(to bottom, transparent 0%, #f8fafc 90%); pointer-events:none; z-index:10;"></div>
+                </div>
+
+                <!-- Didascalia -->
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig  Cruscotto CFO — Analisi Gestionale
+                </div>
+            </div>
+
+            <!-- SEZIONE: PIPELINE DI GENERAZIONE -->
+            <h2>Il Flusso Operativo di Generazione AI</h2>
+            <p>
+                La scomposizione economica e la progettazione dei requisiti del trattamento non si basano su stime arbitrarie o statiche. Quando viene avviata la generazione avanzata di un prodotto, il sistema avvia una pipeline di calcolo strutturata in <b>5 macro-fasi sequenziali</b>. Questo processo coordina l'azione collaborativa di <b>14 Agenti AI specializzati</b> che lavorano in sinergia per circa <b>14-15 minuti</b>. Questo tempo di elaborazione, nettamente superiore a quello dei tradizionali software commerciali che propongono stime approssimative in pochi secondi, rappresenta un enorme <b>vantaggio di precisione</b>: gli agenti eseguono scansioni OCR reali dei documenti, interrogano geolocalizzazioni catastali, mappano listini territoriali ed integrano i bilanci d'esercizio per raggiungere un'accuratezza analitica senza precedenti.
+            </p>
+
+            <div class="my-8 space-y-4">
+                <div class="border border-gray-100 rounded-3xl p-6 bg-gray-50">
+                    <h3 class="text-xs font-black uppercase text-blue-600 tracking-wider mb-4"><i class="fas fa-map-marked-alt mr-2"></i> Flusso di Generazione Avanzata (14-15 Minuti)</h3>
+                    <div class="relative pl-6 border-l-2 border-black space-y-6">
+                        <!-- Phase 1 -->
+                        <div class="relative">
+                            <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-black border-4 border-white"></div>
+                            <h4 class="font-black text-xs uppercase text-black">FASE 1: Orchestrazione Clinica & Inizializzazione</h4>
+                            <p class="text-xs text-gray-500 mt-1">L'architettura iniziale mappa i requisiti logistici preliminari del trattamento (materiali, operatori, attrezzature, spazi fisici).</p>
+                        </div>
+                        <!-- Phase 2 -->
+                        <div class="relative">
+                            <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-black border-4 border-white"></div>
+                            <h4 class="font-black text-xs uppercase text-black">FASE 2: Estrazione OCR & Scouting Fornitori</h4>
+                            <p class="text-xs text-gray-500 mt-1">Gli agenti scansionano listini e fatture dello studio per ricavare i costi commerciali dei materiali e comparare le tariffe di e-commerce.</p>
+                        </div>
+                        <!-- Phase 3 -->
+                        <div class="relative">
+                            <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-black border-4 border-white"></div>
+                            <h4 class="font-black text-xs uppercase text-black">FASE 3: Scomposizione Analitica dei Sottoprocessi</h4>
+                            <p class="text-xs text-gray-500 mt-1">Creazione del flusso di lavoro a tre livelli. Vengono isolati i tempi clinici ed estratti i costi del personale di supporto (ASO, segreteria).</p>
+                        </div>
+                        <!-- Phase 4 -->
+                        <div class="relative">
+                            <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-black border-4 border-white"></div>
+                            <h4 class="font-black text-xs uppercase text-black">FASE 4: Infrastruttura, Asset & Macchinari</h4>
+                            <p class="text-xs text-gray-500 mt-1">Gli analisti logistici calcolano le quote di ammortamento delle attrezzature e i costi d'uso delle stanze fisiche, incorporando i protocolli di manutenzione obbligatori per legge.</p>
+                        </div>
+                        <!-- Phase 5 -->
+                        <div class="relative">
+                            <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-black border-4 border-white"></div>
+                            <h4 class="font-black text-xs uppercase text-black">FASE 5: Local Tax, Conformità ISA & CFO Advisory</h4>
+                            <p class="text-xs text-gray-500 mt-1">Gli esperti tributari calcolano l'impatto dei balzelli territoriali locali, simulano gli scenari di volume d'agenda, valutano la coerenza del Modello ISA DK21U ed emettono la consulenza strategica di prezzo.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>I 14 Agenti AI Collaborativi della Pipeline</h3>
+            <p>
+                Il calcolo analitico e il posizionamento fiscale sono il risultato del lavoro integrato di 14 intelligenze verticali:
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6 text-xs text-gray-700 font-medium">
+                <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-1">
+                    <span class="font-black text-black block uppercase tracking-wider text-[9px]"><i class="fas fa-project-diagram mr-1"></i> 1. Orchestratore Clinico</span>
+                    Mappa i bisogni del trattamento (materiali, operatori, attrezzature, spazi) leggendo ed interpretando la descrizione commerciale del servizio.
+                </div>
+                <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-1">
+                    <span class="font-black text-black block uppercase tracking-wider text-[9px]"><i class="fas fa-file-scan mr-1"></i> 2. Estrattore OCR di Listini e Preventivi</span>
+                    Scansiona le fatture d'acquisto dello studio ed estrae con precisione i nomi dei fornitori storici, le quantità e i relativi costi dei materiali di consumo.
+                </div>
+                <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-1">
+                    <span class="font-black text-black block uppercase tracking-wider text-[9px]"><i class="fas fa-list-ol mr-1"></i> 3. Estrattore di Ricette e Procedure</span>
+                    Mappa i consumi fisici DPI e le sequenze cliniche di preparazione al riunito ricavandoli da protocolli industriali o storici di studio.
+                </div>
+                <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-1">
+                    <span class="font-black text-black block uppercase tracking-wider text-[9px]"><i class="fas fa-compress-alt mr-1"></i> 4. Parser di Approvvigionamento Gerarchico</span>
+                    Raccorda i materiali necessari con le opzioni d'acquisto scovate online e con i laboratori o depositi fisici di prossimità geografica.
+                </div>
+                <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-1">
+                    <span class="font-black text-black block uppercase tracking-wider text-[9px]"><i class="fas fa-history mr-1"></i> 5. Progettista di Processo e dei Tempi</span>
+                    Costruisce la scomposizione analitica del trattamento a 3 livelli ed esegue lo scompattamento (unbundling) delle procedure complesse per isolare i tempi clinici.
+                </div>
+                <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-1">
+                    <span class="font-black text-black block uppercase tracking-wider text-[9px]"><i class="fas fa-chair mr-1"></i> 6. Pianificatore Logistico e Costi Stanza</span>
+                    Mappa i locali occupati per la prestazione (ambulatorio, sterilizzazione, reception) e alloca le quote di costo orario delle mura raccordate dal bilancio.
+                </div>
+                <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-1">
+                    <span class="font-black text-black block uppercase tracking-wider text-[9px]"><i class="fas fa-clock mr-1"></i> 7. Gestore Asset e Ammortamento Tecnologico</span>
+                    Calcola la quota d'usura e ammortamento delle attrezzature odontoiatriche proporzionandole sui minuti di impiego effettivo del riunito o delle tecnologie.
+                </div>
+                <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-1">
+                    <span class="font-black text-black block uppercase tracking-wider text-[9px]"><i class="fas fa-shield-alt mr-1"></i> 8. Auditor Conformità e Sicurezza Strumentale</span>
+                    Pianifica i controlli obbligatori di legge sugli asset (Helix test, Bowie & Dick per autoclave, visite radioprotezione D.Lgs. 101/2020 per RX).
+                </div>
+                <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-1">
+                    <span class="font-black text-black block uppercase tracking-wider text-[9px]"><i class="fas fa-globe-europe mr-1"></i> 9. Crawler Geografico di Prossimità</span>
+                    Analizza l'indirizzo dello studio e geolocalizza i concorrenti attivi e i magazzini fornitori nel raggio chilometrico territoriale.
+                </div>
+                <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-1">
+                    <span class="font-black text-black block uppercase tracking-wider text-[9px]"><i class="fas fa-percentage mr-1"></i> 10. Rilevatore Tributario e Balzelli Locali</span>
+                    Esegue scansioni real-time sul web per estrarre le aliquote IRAP regionali, i regolamenti TARI comunali per studi medici, e i diritti camerali provinciali.
+                </div>
+                <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-1">
+                    <span class="font-black text-black block uppercase tracking-wider text-[9px]"><i class="fas fa-balance-scale-left mr-1"></i> 11. Analista della Concorrenza Territoriale</span>
+                    Scrapea i listini pubblici dei competitor geolocalizzati per calcolare i prezzi medi di mercato della zona per quel trattamento.
+                </div>
+                <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-1">
+                    <span class="font-black text-black block uppercase tracking-wider text-[9px]"><i class="fas fa-users-cog mr-1"></i> 12. Analista dei Ruoli e Costi dello Staff</span>
+                    Pesa il costo orario reale di ASO e segreteria distinguendo il lavoro a quattro mani in poltrona dai tempi amministrativi.
+                </div>
+                <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-1">
+                    <span class="font-black text-black block uppercase tracking-wider text-[9px]"><i class="fas fa-calculator mr-1"></i> 13. Senior CFO e Consulente Economico</span>
+                    Elabora la Sintesi Caratteristica, il Margine di Contribuzione, il Reddito Operativo, gli scenari volumetrici e il punto di pareggio (Break-Even).
+                </div>
+                <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-1">
+                    <span class="font-black text-black block uppercase tracking-wider text-[9px]"><i class="fas fa-landmark mr-1"></i> 14. Verificatore Affidabilità Fiscale (ISA)</span>
+                    Incrocia i costi operativi e i ricavi simulati con i parametri ISA DK21U per valutare la congruità fiscale e segnalare rischi di accertamento.
+                </div>
+            </div>
+
+            <!-- SEZIONE: MENU E ACCESSO -->
+            <h2>1. Accesso e Navigazione Modulo</h2>
+            <p>
+                All'apertura della pagina di <b>Gestione Avanzata</b>, l'utente visualizza un'interfaccia strutturata in schede. 
+                Utilizzando il menu laterale mobile (icona ☰ in alto a destra), è possibile scorrere rapidamente tra le diverse visualizzazioni della prestazione.
+            </p>
+
+            <div class="img-container max-w-xs mx-auto">
+                <img src="../../images/userguide/Menu.jpg" alt="Menu di Navigazione" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Menu di navigazione per le schede dell'area destra
+                </div>
+            </div>
+
+            <!-- SEZIONE: RICALIBRAZIONE E SIDEBAR -->
+            <h2>2. La Sidebar: Parametri Editabili & Ricalibrazione</h2>
+            <p>
+                Il pannello laterale sinistro della schermata consente di simulare in tempo reale l'impatto economico della variazione dei costi e dei prezzi della singola prestazione.
+            </p>
+
+            <div class="img-container">
+                <img src="../../images/userguide/ControlloGestione.jpg" alt="Schermata Controllo di Gestione" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Sidebar sinistra dei parametri e area delle schede
+                </div>
+            </div>
+
+            <p>
+                In questa sezione è possibile editare e simulare i seguenti parametri:
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-sm text-gray-600 mb-6">
+                <li><b>Tariffa della Prestazione (€)</b>: Il prezzo al pubblico del trattamento.</li>
+                <li><b>Ricalibrazione Ingaggio (%)</b>: Parametro introdotto per scollegare il compenso calcolato dall'AI (scomposizione basata sul tempo) rispetto all'ingaggio a percentuale reale concordato con il professionista. Accetta solo numeri interi. Modificando questo valore, il sistema ricalcola all'istante il compenso in € e aggiorna i margini. Se non presente a database, applica un <b>fallback automatico al 20.0%</b>.</li>
+                <li><b>Staff di Supporto (€)</b>: Il costo del personale di supporto per la prestazione (ASO, segreteria). Viene ereditato dalla Distinta dei Sottoprocessi ma può essere modificato manualmente.</li>
+                <li><b>Materiali Consumo (€) e Lavorazioni Esterne (€)</b>: Rispettivamente i costi dei consumabili fisici e delle lavorazioni protesiche/ortodontiche esterne.</li>
+                <li><b>Tempo Utilizzo (Minuti) & Costo Ora Sedia (€/h)</b>: Il tempo di occupazione fisica della poltrona clinica e la tariffa oraria di struttura dello studio.</li>
+            </ul>
+
+            <div class="info-card">
+                <p class="font-black text-[10px] uppercase text-black mb-1"><i class="fas fa-calculator mr-2"></i> Logica di Calcolo del Costo Fisso Sedia Allocato</p>
+                <p class="text-sm text-gray-600 m-0">
+                    Il costo sedia fisso viene calcolato proporzionando la tariffa oraria complessiva dello studio sui minuti reali di occupazione poltrona, integrando sistematicamente un <b>overhead tecnico fisso di 15 minuti standard</b> necessario per lo sbarco del paziente e la decontaminazione/sanificazione rapida del riunito post-seduta:
+                </p>
+                <div class="math-box">
+                    Costo Fisso Sedia = ((Costo Ora Sedia + Quota Balzelli Locali Oraria) / 60) * (Tempo Utilizzo Minuti + 15)
+                </div>
+            </div>
+
+            <h3>Sintesi Caratteristica (Conto Economico)</h3>
+            <p>
+                Sotto i parametri editabili, la sidebar mostra in tempo reale la scomposizione economica caratteristica della prestazione, ripartendo i ricavi, i costi variabili diretti e i costi fissi sedia.
+            </p>
+
+            <div class="img-container">
+                <img src="../../images/userguide/SintesiCaratteristica.jpg" alt="Sintesi Caratteristica" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Visualizzazione della Sintesi Caratteristica sul pannello laterale
+                </div>
+            </div>
+
+            <!-- SEZIONE: CFO ADVISORY -->
+            <h2>3. CFO Advisory & Posizionamento</h2>
+            <p>
+                La scheda principale 🏛️ <b>CFO Advisory</b> fornisce le analisi di posizionamento elaborate dall'AI, un semaforo di profitto basato sui margini e le raccomandazioni operative per l'ottimizzazione economica del servizio.
+            </p>
+
+            <div class="img-container">
+                <img src="../../images/userguide/HelthRate-PriceStrategyAdvisory.jpg" alt="Health Rating e Price Strategy Advisory" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Valutazione della marginalità (Health Rating) e raccomandazioni di prezzo
+                </div>
+            </div>
+
+            <div class="img-container">
+                <img src="../../images/userguide/Riconciliazione.jpg" alt="Analisi di Riconciliazione" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Moltiplicatori geografici e di posizionamento raccordati con il bilancio
+                </div>
+            </div>
+
+            <h3>Simulatore di Volumi & Raccomandazioni</h3>
+            <p>
+                Attraverso lo slider interattivo, è possibile simulare la variazione dei profitti e della saturazione dell'agenda su base mensile in funzione delle prestazioni eseguite, leggendo i suggerimenti IA integrati.
+            </p>
+
+            <div class="img-container">
+                <img src="../../images/userguide/Simulatore-Raccomandazioni.jpg" alt="Simulatore e Raccomandazioni" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Slider dei volumi predittivi mensili e lista raccomandazioni operative
+                </div>
+            </div>
+
+            <div class="info-card">
+                <p class="font-black text-[10px] uppercase text-black mb-1"><i class="fas fa-exclamation-triangle mr-2"></i> Analisi di Sensibilità No-Show & Costo Opportunità</p>
+                <p class="text-sm text-gray-600 m-0">
+                    Il sistema calcola la perdita finanziaria causata da appuntamenti mancati (5% e 10% di no-show). Il calcolo dell'AI include il <b>costo opportunità reale legato alla sedia rimasta inutilizzata</b>:
+                </p>
+                <div class="math-box">
+                    Perdita No-Show = Volume No-Show * (Margine di Contribuzione + Costo Fisso Sedia)
+                </div>
+            </div>
+
+            <!-- SEZIONE: SOTTOPROCESSI OPERATIVI (BOM) -->
+            <h2>4. Sottoprocessi Operativi & Scomposizione Analitica</h2>
+            <p>
+                La scheda <b>Sottoprocessi</b> scompone il trattamento in una distinta dei sottoprocessi strutturata a 3 livelli: <i>Sottoprocessi &rarr; Fasi &rarr; Step</i>. Questo consente all'AI di mappare i tempi di setup e le singole azioni per assegnare il costo orario reale di medici e ASO.
+            </p>
+
+            <div class="img-container">
+                <img src="../../images/userguide/Sottoprocessi.jpg" alt="Distinta Sottoprocessi" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Distinta analitica delle fasi del trattamento e modifica delle voci di costo
+                </div>
+            </div>
+
+            <div class="info-card">
+                <p class="font-black text-[10px] uppercase text-black mb-1"><i class="fas fa-users-cog mr-2"></i> Ripartizione Oraria del Personale</p>
+                <p class="text-sm text-gray-600 m-0">
+                    Il costo del personale di supporto (ASO, segreteria) e del Professionista viene riproporzionato in base al tipo di attività svolta in ciascuno step operativo:
+                </p>
+                <ul class="list-disc pl-6 mt-2 text-xs text-gray-600 space-y-1">
+                    <li><b>Lavoro clinico a quattro mani (Professionista + ASO)</b>: Durante gli step eseguiti al riunito, le tariffe orarie di Medico e ASO si sommano e si ripartiscono sulla durata dello step.</li>
+                    <li><b>Sanificazione e Setup (Solo ASO)</b>: Fasi di decontaminazione riunito e sterilizzazione degli strumenti. Si applica la sola tariffa dell'ASO.</li>
+                    <li><b>Check-In e Check-Out (Segretaria)</b>: Attività extra-cliniche amministrative e di preventivazione. Si applica la sola tariffa della segretaria.</li>
+                </ul>
+            </div>
+
+            <!-- SEZIONE: AREE E STRUTTURA LOGISTICA -->
+            <h2>5. Aree & Struttura Logistica</h2>
+            <p>
+                Questa scheda gestisce gli ambienti fisici occupati durante il trattamento (es. Studio Clinico, Reception, Sterilizzazione), ciascuno con la propria tariffa d'uso oraria.
+            </p>
+
+            <div class="img-container">
+                <img src="../../images/userguide/Aree.jpg" alt="Aree e Struttura" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Mappatura delle stanze fisiche occupate e relativi costi orari d'uso
+                </div>
+            </div>
+
+            <p>
+                Cliccando sul pulsante con il punto di domanda <b>"?"</b> a fianco del costo di ciascun ambiente, viene visualizzato un overlay (modal) interattivo contenente il razionale esatto di calcolo.
+            </p>
+
+            <div class="img-container">
+                <img src="../../images/userguide/RazionaleAree.jpg" alt="Razionale Aree e Struttura" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Overlay interattivo di spiegazione matematica del costo dell'ambiente
+                </div>
+            </div>
+
+            <div class="info-card">
+                <p class="font-black text-[10px] uppercase text-black mb-1"><i class="fas fa-coins mr-2"></i> Equazione di Calcolo del Costo d'Uso della Stanza</p>
+                <div class="math-box">
+                    Costo Ambiente = Minuti Occupazione Ambiente * (Tariffa Oraria Stanza Riconciliata / 60)
+                </div>
+            </div>
+
+            <!-- SEZIONE: ASSET E MACCHINARI -->
+            <h2>6. Asset & Attrezzature Cliniche</h2>
+            <p>
+                In questa sezione vengono mappati i cespiti tecnologici associati alla prestazione (es. Riunito Odontoiatrico, Scanner Intraorale, Autoclave di Classe B). L'AI rileva la quota di ammortamento e usura oraria raccordata con il bilancio e imposta la checklist per i controlli preventivi e le verifiche obbligatorie per legge.
+            </p>
+
+            <div class="img-container">
+                <img src="../../images/userguide/Asset.jpg" alt="Asset e Macchinari" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Inventario dei cespiti tecnologici, ammortamento e protocolli di manutenzione
+                </div>
+            </div>
+
+            <p>
+                Anche in questo caso, la trasparenza è supportata da un overlay interattivo richiamabile con il pulsante <b>"?"</b>, che mostra la quota esatta di usura e ammortamento tecnologico calcolata in base al tempo di effettivo impiego della macchina.
+            </p>
+
+            <div class="img-container">
+                <img src="../../images/userguide/RazionaleAsset.jpg" alt="Razionale Asset" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Overlay interattivo con l'equazione di calcolo dell'ammortamento orario dell'asset
+                </div>
+            </div>
+
+            <div class="info-card">
+                <p class="font-black text-[10px] uppercase text-black mb-1"><i class="fas fa-radiation-alt mr-2"></i> Standard di Manutenzione e Obblighi di Legge Generati</p>
+                <ul class="list-disc pl-6 text-xs text-gray-600 space-y-2">
+                    <li><b>Dispositivi di Sterilizzazione</b>: Inserimento automatico dei test giornalieri obbligatori (Helix Test, Vacuum Test, Bowie & Dick) e della validazione annuale dei sensori di pressione/temperatura.</li>
+                    <li><b>Apparecchiature Radiologiche (CBCT / RX Endorale)</b>: Programmazione delle ispezioni dell'Esperto di Radioprotezione ai sensi del D.Lgs. 101/2020 e calibrazione dei tubi radiogeni.</li>
+                </ul>
+            </div>
+
+            <!-- SEZIONE: SOURCING FORNITORI -->
+            <h2>7. Sourcing Fornitori & Competitor</h2>
+            <p>
+                Gli agenti di scouting eseguono una scansione dei listini dello studio e raccolgono in tempo reale i prezzi web (es. portali nazionali B2B come Dentaltix) per comparare le alternative di acquisto. 
+                L'utente può consultare il report di scouting e selezionare il fornitore partner preferito per ciascuna risorsa fisica.
+            </p>
+
+            <div class="img-container">
+                <img src="../../images/userguide/Fornitori1.jpg" alt="Sourcing Fornitori" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Pannello di selezione dei fornitori e comparatore e-commerce
+                </div>
+            </div>
+
+            <div class="img-container">
+                <img src="../../images/userguide/ReportdiScouting.jpg" alt="Report di Scouting" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Dettaglio del report di scouting territoriale generato dall'AI
+                </div>
+            </div>
+
+            <p>
+                In parallelo, gli agenti rilevano i prezzi praticati nella stessa area geografica dagli studi concorrenti, calcolando un benchmark di prezzo medio per verificare il posizionamento strategico sul mercato.
+            </p>
+
+            <div class="img-container">
+                <img src="../../images/userguide/Concorrenza.jpg" alt="Analisi Concorrenza" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Analisi dei prezzi dei competitor locali e benchmark medio di zona
+                </div>
+            </div>
+
+            <!-- SEZIONE: PERSONALE DI SUPPORTO -->
+            <h2>8. Personale & Supporto (Overhead Staff)</h2>
+            <p>
+                Questa scheda mostra l'elenco dei collaboratori indiretti coinvolti nella gestione clinica e amministrativa della prestazione (es. Coordinatore di Clinica, Receptionist, Responsabile Sterilizzazione). Mostra la scomposizione del costo orario allocato per ciascun ruolo overhead.
+            </p>
+
+            <div class="img-container">
+                <img src="../../images/userguide/PersonaleSupporto.jpg" alt="Personale di Supporto" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Ripartizione oraria del costo del personale non direttamente clinico
+                </div>
+            </div>
+
+            <!-- SEZIONE: INQUADRAMENTO FISCALE -->
+            <h2>9. Inquadramento Fiscale & Affidabilità ISA (Modello DK21U)</h2>
+            <p>
+                In questa scheda l'utente configura i parametri tributari e previdenziali dello studio, quali l'aliquota previdenziale ENPAM societaria, i costi fissi strutturali totali annui e la quota di budget allocata per il calcolo del Break-Even Point.
+            </p>
+
+            <div class="img-container">
+                <img src="../../images/userguide/InquadramentoFiscale.jpg" alt="Inquadramento Fiscale" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Regime societario, parametri previdenziali ENPAM ed Indici di Affidabilità Fiscale (ISA)
+                </div>
+            </div>
+
+            <p>
+                Per comprendere la composizione delle spese e delle tasse regionali/comunali, la scheda mostra il dettaglio dei balzelli territoriali stimati ed elaborati in tempo reale dagli agenti dedicati alla ricerca fiscale.
+            </p>
+
+            <div class="img-container">
+                <img src="../../images/userguide/TasseLocali.jpg" alt="Tassazione Locale" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Sezione dei balzelli locali e costi di adempimento territoriale
+                </div>
+            </div>
+
+            <div class="info-card">
+                <p class="font-black text-[10px] uppercase text-black mb-1"><i class="fas fa-landmark mr-2"></i> Affidabilità Fiscale - ISA Modello DK21U</p>
+                <p class="text-sm text-gray-600 m-0">
+                    Gli analisti fiscali estraggono i dati ministeriali legati all'ATECO 86.23.00 (Odontoiatria) per verificare che la ripartizione dei costi di poltrona, staff e materiali sia coerente con gli indici di affidabilità fiscale ISA dell'Agenzia delle Entrate. 
+                    Il sistema calcola se il Reddito Operativo generato dallo studio garantisce l'accesso al <b>Regime Premiale (punteggio >= 8/10)</b>, salvaguardando lo studio da accertamenti dovuti a anomalie dichiarative.
+                </p>
+            </div>
+
+            <div class="info-card">
+                <p class="font-black text-[10px] uppercase text-black mb-1"><i class="fas fa-percent mr-2"></i> Coefficiente di Redditività Normativo</p>
+                <p class="text-sm text-gray-600 m-0">
+                    Per gli studi dentistici (Codice ATECO 86.23.00), il coefficiente di redditività stabilito è pari al <b>78%</b>. Questo significa che, ai fini tributari ordinari e previdenziali del regime forfettario, lo Stato presume che il 78% del fatturato sia utile imponibile (e il 22% rappresenti i costi sostenuti per l'esercizio).
+                </p>
+            </div>
+
+            <div class="info-card">
+                <p class="font-black text-[10px] uppercase text-black mb-1"><i class="fas fa-file-invoice-dollar mr-2"></i> Balzelli Territoriali e Locali Rilevati</p>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                    Il web crawler rileva dinamicamente le imposte locali della sede dello studio, integrandole nel calcolo del costo fisso sedia:
+                </p>
+                <ul class="list-disc pl-6 text-xs text-gray-600 space-y-1 mt-1">
+                    <li><b>Addizionali Regionali IRAP</b> e diritti annuali dovuti all'Organismo di Accreditamento Sanitario regionale.</li>
+                    <li><b>TARI Comunale</b> applicata alle superfici adibite a studio medico/sanitario (al netto delle riduzioni per rifiuti speciali pericolosi smaltiti autonomamente).</li>
+                    <li><b>Diritto Camerale Annuo</b> dovuto alla Camera di Commercio (CCIAA) e quote di iscrizione al <b>RENTRI</b> (Registro Elettronico Nazionale Tracciabilità Rifiuti) per la gestione dei rifiuti infettivi EER 18.01.03*.</li>
+                </ul>
+            </div>
+
+            <!-- SEZIONE: BLUEPRINT -->
+            <h2>10. Blueprint di Riepilogo Requisiti</h2>
+            <p>
+                La scheda finale mostra la sintesi strutturata dei requisiti generati dagli agenti dell'infrastruttura operativa: materiali di consumo, sottoprocessi operativi e adempimenti di compliance (consensi informati e informative privacy GDPR), spazi fisici, attrezzature necessarie ed operatori. 
+                Rappresenta la mappa di conformità e di allestimento per l'esecuzione della prestazione clinica.
+            </p>
+
+            <div class="img-container">
+                <img src="../../images/userguide/BlueprintdiRiepilogo.jpg" alt="Blueprint di Riepilogo" class="w-full h-auto">
+                <div class="p-4 bg-white border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">
+                    Il Blueprint finale riassuntivo dei requisiti clinici ed infrastrutturali
+                </div>
+            </div>
+
+            <!-- SEZIONE VALUTAZIONE DI AFFIDABILITA' -->
+            <h2>Valutazione dell'Affidabilità: Forza e Limiti del Simulatore</h2>
+            <p>
+                Questo sistema di controllo di gestione ha un’affidabilità molto elevata per la pianificazione strategica e la definizione dei prezzi (pricing), posizionandosi decisamente al di sopra della media dei gestionali odontoiatrici tradizionali. Tuttavia, non è un bilancio contabile in tempo reale: va considerato come un simulatore predittivo estremamente preciso.
+            </p>
+            <p>
+                Ecco una sintesi pragmatica dei suoi punti di forza reali e dei suoi limiti strutturali.
+            </p>
+
+            <h3>Cosa lo rende molto affidabile (I punti di forza reali)</h3>
+            <ul class="space-y-4 my-6 list-none p-0 text-sm text-gray-700">
+                <li class="flex gap-4">
+                    <div class="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center shrink-0"><i class="fas fa-check text-xs"></i></div>
+                    <div>
+                        <b>Il costo orario della poltrona non è "inventato":</b> La maggior parte dei dentisti calcola il costo orario sedia a spanne (es. "50 euro all'ora per convenzione"). Questa pipeline lo calcola partendo dalle voci reali del bilancio depositato (leasing, ammortamenti, costi di gestione). Se i dati di bilancio inseriti sono corretti, il costo sedia calcolato è matematicamente solido.
+                    </div>
+                </li>
+                <li class="flex gap-4">
+                    <div class="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center shrink-0"><i class="fas fa-check text-xs"></i></div>
+                    <div>
+                        <b>La correzione della saturazione (la svolta pratica):</b> Calcolare i costi fissi sulle ore di apertura teoriche è l'errore più comune. Questo sistema, applicando il filtro del 70% di saturazione (modificabile), calcola il costo orario reale solo sulle ore in cui la poltrona produce. Questo evita di trovarsi a fine anno con perdite inspiegabili.
+                    </div>
+                </li>
+                <li class="flex gap-4">
+                    <div class="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center shrink-0"><i class="fas fa-check text-xs"></i></div>
+                    <div>
+                        <b>La gestione dei no-show:</b> Il calcolo che include il costo opportunità (margine perso + costo fisso della sedia vuota) restituisce il reale danno economico di un appuntamento mancato, permettendo di prendere decisioni informate sulle politiche di caparra o recall.
+                    </div>
+                </li>
+                <li class="flex gap-4">
+                    <div class="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center shrink-0"><i class="fas fa-check text-xs"></i></div>
+                    <div>
+                        <b>La scomposizione del lavoro a quattro mani:</b> Calcolare il costo del personale dividendo i minuti dei singoli passaggi tra odontoiatra (es. 62 €/h) e ASO (es. 17 €/h) offre una precisione che un costo medio orario indistinto dello staff non può dare.
+                    </div>
+                </li>
+            </ul>
+
+            <h3>Quali sono i limiti di affidabilità (I limiti pratici)</h3>
+            <ul class="space-y-4 my-6 list-none p-0 text-sm text-gray-700">
+                <li class="flex gap-4">
+                    <div class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0"><i class="fas fa-info text-xs"></i></div>
+                    <div>
+                        <b>La regola "Garbage In, Garbage Out":</b> Il sistema è affidabile solo quanto lo sono i dati di partenza. Se i dati del bilancio d'esercizio (CompanyBalanceSheet) sono vecchi, incompleti o presentano voci mal classificate dal commercialista, l'intera struttura dei costi orari della sedia risulterà falsata.
+                    </div>
+                </li>
+                <li class="flex gap-4">
+                    <div class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0"><i class="fas fa-info text-xs"></i></div>
+                    <div>
+                        <b>L'imprecisione dello scouting dei prezzi B2B:</b> La pipeline interroga il web per cercare i prezzi di mercato di concorrenti e materiali. Nel settore dentale, molti listini dei depositi o le tariffe dei laboratori odontotecnici sono protetti da login o soggetti a scontistiche private. Di conseguenza, i prezzi dei materiali o della concorrenza ottenuti tramite scraping web vanno considerati come stime di massima e spesso richiedono una correzione manuale da parte dell'utente nella schermata dedicata.
+                    </div>
+                </li>
+                <li class="flex gap-4">
+                    <div class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0"><i class="fas fa-info text-xs"></i></div>
+                    <div>
+                        <b>La variabilità clinica reale:</b> Il simulatore assume che l'intervento chirurgico duri esattamente i minuti stabiliti nel protocollo (es. 45 minuti). Nella realtà clinica, un canale calcificato o una complicanza anatomica possono raddoppiare i tempi. Il sistema fotografa lo scenario ideale (standard di processo), non lo storico effettivo di ogni singola seduta. Per superare questo limite e ottenere la contabilità analitica quotidiana, il simulatore predittivo va accoppiato al <b>Supervisor Hub</b>, che traccia i tempi effettivi di esecuzione, integrandoli con i dati di no-show e magazzino importati dal proprio CRM.
+                    </div>
+                </li>
+            </ul>
+
+            <h3>In sintesi: come sfruttarlo al massimo?</h3>
+            <div class="space-y-4 my-6">
+                <div class="p-4 bg-green-50 border border-green-200 rounded-2xl">
+                    <p class="text-xs font-black text-green-800 uppercase tracking-widest mb-1"><i class="fas fa-check-double mr-1"></i> Per decidere le tariffe dei trattamenti e capire dove si perde margine (Modello Preventivo): Fiducia al 90%</p>
+                    <p class="text-xs text-green-700 m-0">È uno strumento eccellente per evitare di vendere sottocosto prestazioni complesse, simulare la sostenibilità dei compensi e verificare la marginalità oraria ottimale.</p>
+                </div>
+                <div class="p-4 bg-blue-50 border border-blue-200 rounded-2xl">
+                    <p class="text-xs font-black text-blue-800 uppercase tracking-widest mb-1"><i class="fas fa-network-wired mr-1"></i> Per la Contabilità Analitica Quotidiana (Consuntivo): Fiducia al 60% (In isolamento) &rarr; Fiducia al 95% (In accoppiamento)</p>
+                    <p class="text-xs text-blue-700 m-0">Se utilizzato da solo, il simulatore predittivo ha un'accuratezza stimata intorno al <b>60%</b> per simulazioni di contabilità quotidiana consuntiva, poiché non può prevedere gli scostamenti operativi. Per ottenere una contabilità analitica quotidiana reale, il predittivo va accoppiato al modulo <b>Supervisor Hub</b> (che traccia i tempi effettivi di servizio registrati dal timer sedia) e all'importazione dei dati di magazzino e no-show dal proprio <b>CRM</b> di studio, riconciliando preventivo e consuntivo in tempo reale.</p>
+                </div>
+            </div>
+
+        </article>
+
+        <!-- PAGINATION -->
+        <div class="flex items-center justify-between mt-20 pt-10 border-t border-gray-100">
+            <a href="08_security.html" class="flex flex-col gap-1 items-start group text-left">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Precedente</span>
+                <span class="font-black text-xs uppercase group-hover:underline">08. Sicurezza & Dati</span>
+            </a>
+            <a href="10_agenda_radar.html" class="flex flex-col gap-1 items-end group text-right">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Successivo</span>
+                <span class="font-black text-xs uppercase group-hover:underline text-blue-600">10. Agenda Radar <i class="fas fa-arrow-right ml-1"></i></span>
+            </a>
+        </div>
+    </main>
+
+    <script>
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            tg.BackButton.show();
+            tg.BackButton.onClick(() => location.href='index.html');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor Progetto - SiteBoS</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="operators.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="twa_guard.js"></script>
+    <script src="operator_session_utils.js"></script>
+    <style>
+        .fab-actions {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1000;
+        }
+        
+        .fab-action-btn {
+            width: 56px !important;
+            height: 56px !important;
+            border-radius: 50% !important;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .fab-action-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+        
+        .fab-action-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .fab-pdf {
+            background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+        }
+        
+        .fab-mail {
+            background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+        }
+        
+        .fab-app {
+            background: linear-gradient(135deg, #10b981, #059669) !important;
+        }
+        
+        .fab-save {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
+        }
+        
+        .fab-back {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            margin-top: 20px;
+        }
+        
+        .fab-back:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+        }
+        
+        .fab-cost-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: rgba(0,0,0,0.9);
+            color: #fbbf24;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px !important;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            white-space: nowrap;
+        }
+        
+        .fab-tooltip {
+            position: absolute;
+            right: 70px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .fab-action-btn:hover .fab-tooltip {
+            opacity: 1;
+        }
+        
+        /* Editable fields */
+        .editable {
+            border: 1px dashed transparent;
+            border-radius: 4px;
+            padding: 4px 8px;
+            transition: all 0.2s ease;
+            cursor: text;
+        }
+        
+        .editable:hover {
+            border-color: rgba(50, 173, 230, 0.5);
+            background: rgba(50, 173, 230, 0.05);
+        }
+        
+        .editable:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(50, 173, 230, 0.1);
+        }
+        
+        .discount-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 12px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        .discount-input input {
+            width: 80px;
+            padding: 8px 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.3);
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        .discount-input input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .discount-label {
+            color: #c4b5fd;
+            font-weight: 600;
+        }
+        
+        /* Tax Included Toggle */
+        .tax-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 15px 0;
+            padding: 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tax-toggle:hover {
+            background: rgba(16, 185, 129, 0.15);
+        }
+        
+        .tax-toggle-checkbox {
+            width: 48px;
+            height: 28px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 14px;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .tax-toggle-checkbox.active {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .tax-toggle-slider {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .tax-toggle-checkbox.active .tax-toggle-slider {
+            left: 23px;
+        }
+        
+        .tax-toggle-label {
+            color: #6ee7b7;
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        /* HTML Viewer Modal */
+        #html-viewer-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        #html-viewer-modal.open {
+            display: flex;
+        }
+        
+        .viewer-header {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.1));
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(16, 185, 129, 0.5);
+        }
+        
+        .viewer-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .viewer-success-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+        
+        .viewer-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .viewer-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .viewer-content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #preview-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+        
+        .viewer-footer {
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: center;
+        }
+        
+        .viewer-btn-close {
+            padding: 12px 32px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .viewer-btn-close:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="header-info">
+                <h1><i class="fas fa-file-contract"></i> Editor Progetto</h1>
+                <small id="project-status">Caricamento...</small>
+            </div>
+        </div>
+
+        <!-- Project Content Container -->
+        <div id="project-container">
+            <div style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
+                <i class="fas fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 20px; display: block;"></i>
+                <p>Caricamento progetto...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Buttons -->
+    <div class="fab-actions">
+        <!-- Save Changes -->
+        <button class="fab-action-btn fab-save" onclick="saveProjectChanges()" aria-label="Salva Modifiche" title="Salva Modifiche" id="fab-save-btn" style="display: none;">
+            <i class="fas fa-save"></i>
+            <span class="fab-tooltip">Salva Modifiche</span>
+        </button>
+        
+        <!-- Download PDF (100 crediti) -->
+        <button class="fab-action-btn fab-pdf" onclick="downloadProjectPDF()" aria-label="Scarica PDF" title="Scarica PDF (100 crediti)">
+            <i class="fas fa-file-pdf"></i>
+            <span class="fab-cost-badge">100</span>
+            <span class="fab-tooltip">Scarica PDF (100 cr)</span>
+        </button>
+        
+        <!-- Send SiteBoS Mail (200 crediti) -->
+        <button class="fab-action-btn fab-mail" onclick="sendViaSiteBosMailButton()" aria-label="Invia via SiteBoS Mail" title="Invia via SiteBoS Mail (200 crediti)">
+            <i class="fas fa-envelope"></i>
+            <span class="fab-cost-badge">200</span>
+            <span class="fab-tooltip">Invia Mail (200 cr)</span>
+        </button>
+        
+        <!-- Send to App (gratis) -->
+        <button class="fab-action-btn fab-app" onclick="sendToAppButton()" aria-label="Invia su App" title="Invia su App (Gratis)">
+            <i class="fas fa-mobile-alt"></i>
+            <span class="fab-cost-badge" style="background: rgba(16, 185, 129, 0.9); color: white; border-color: rgba(16, 185, 129, 0.5);">FREE</span>
+            <span class="fab-tooltip">Invia su App (Gratis)</span>
+        </button>
+        
+        <!-- Torna Indietro -->
+        <button class="fab-action-btn fab-back" onclick="goBack()" aria-label="Torna Indietro" title="Torna Indietro">
+            <i class="fas fa-arrow-left"></i>
+            <span class="fab-tooltip">Torna Indietro</span>
+        </button>
+    </div>
+
+    <!-- HTML Viewer Modal (Post-Send Preview) -->
+    <div id="html-viewer-modal">
+        <div class="viewer-header">
+            <div class="viewer-title">
+                <i class="fas fa-check-circle" style="color: #6ee7b7;"></i>
+                <span>Inviato su App Cliente</span>
+                <span class="viewer-success-badge">✓ Status: Pending</span>
+            </div>
+            <button class="viewer-close" onclick="closeHTMLViewer()" aria-label="Chiudi">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="viewer-content">
+            <iframe id="preview-iframe" title="Project Preview"></iframe>
+        </div>
+        
+        <div class="viewer-footer">
+            <button class="viewer-btn-close" onclick="closeHTMLViewer()">
+                <i class="fas fa-check"></i>
+                Chiudi
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="hidden">
+        <div class="loader-content">
+            <div class="spinner-ring"></div>
+            <p id="loading-text" style="margin-top: 15px; color: var(--text-muted);">Elaborazione...</p>
+        </div>
+    </div>
+
+    <script src="operator_project_editor_logic.js"></script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>TrinAI OS</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: { extend: { colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' }, borderRadius: { '3xl': '1.5rem' } } }
+        }
+    </script>
+    <style>
+
+/* SiteBoS Architect Alignment */
+body { background-color: #fafafa !important; color: #000000 !important; }
+.card, .section-card, .dark-card, .upload-box { 
+    background: white !important; 
+    border: 1px solid #eeeeee !important; 
+    box-shadow: none !important; 
+}
+input:focus, textarea:focus, select:focus { 
+    border-color: #000000 !important; 
+    box-shadow: none !important; 
+    outline: none !important;
+}
+.text-primary, .text-black, .text-blue-600, .text-black { color: #000000 !important; }
+.bg-primary, .bg-black, .bg-black, .bg-black { background-color: #000000 !important; color: #ffffff !important; }
+.border-primary, .border-black, .border-blue-600, .border-black { border-color: #000000 !important; }
+.spinner { border-top-color: #000 !important; }
+input[type="checkbox"]:checked { background-color: #000 !important; border-color: #000 !important; }
+/* Forza icone pesanti */
+.fas, .far, .fal { font-weight: 900 !important; font-family: "Font Awesome 6 Free" !important; }
+
+
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes messageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .msg-anim { animation: messageIn 0.3s ease forwards; }
+    </style>
+</head>
+<body class="bg-bg text-black overflow-hidden h-screen">
+
+    <div id="drawer-overlay" class="fixed inset-0 bg-black/40 z-[999] hidden transition-opacity" onclick="toggleDrawer()"></div>
+    
+    <nav id="agent-drawer" class="fixed top-0 left-0 w-64 h-full bg-white shadow-2xl -translate-x-full transition-transform duration-300 z-[1000] flex flex-col p-6 space-y-4">
+        <div class="border-b border-gray-50 pb-4">
+            <p class="text-[8px] font-black uppercase tracking-widest text-gray-500 mb-1">TrinAI OS</p>
+            <h2 class="text-lg font-black tracking-tighter uppercase">Direzione</h2>
+        </div>
+        <div class="flex-1 space-y-2 overflow-y-auto no-scrollbar pt-4">
+            <div class="p-3 flex items-center gap-3 rounded-xl active:bg-gray-50 font-bold text-xs uppercase tracking-tight" onclick="switchAgent('pm')"><i class="fas fa-tasks w-5"></i> Lavori</div>
+            <div class="p-3 flex items-center gap-3 rounded-xl active:bg-gray-50 font-bold text-xs uppercase tracking-tight" onclick="switchAgent('mkt')"><i class="fas fa-bullhorn w-5"></i> Vendite</div>
+            <div class="p-3 flex items-center gap-3 rounded-xl active:bg-gray-50 font-bold text-xs uppercase tracking-tight" onclick="switchAgent('hr')"><i class="fas fa-shield-alt w-5"></i> Team</div>
+        </div>
+        <button class="w-full bg-black text-white h-12 rounded-xl text-[10px] font-black uppercase tracking-widest" onclick="openSolver()">Agenda</button>
+    </nav>
+
+    <div id="insight-drawer" class="fixed bottom-0 left-0 right-0 h-[75vh] bg-white rounded-t-[2.5rem] shadow-2xl z-[500] translate-y-full transition-transform duration-500 flex flex-col overflow-hidden">
+        <div class="w-10 h-1 bg-gray-100 rounded-full mx-auto my-3"></div>
+        <div class="px-6 flex justify-between items-center mb-2">
+            <span class="text-sm font-black uppercase tracking-tight">Analisi Insight</span>
+            <button onclick="closeInsightDrawer()" class="text-gray-300"><i class="fas fa-times-circle text-lg"></i></button>
+        </div>
+        <div class="flex border-b border-gray-50">
+            <button class="insight-tab flex-1 py-3 text-[9px] font-black uppercase border-b-2 border-black">Traccia</button>
+            <button class="insight-tab flex-1 py-3 text-[9px] font-black uppercase text-gray-300">Summary</button>
+        </div>
+        <div id="panel-trace" class="flex-1 overflow-y-auto p-5 space-y-4 no-scrollbar"></div>
+    </div>
+
+    <div id="viewport" class="flex w-[300vw] h-screen transition-transform duration-500 ease-out" style="transform: translateX(-100vw);">
+        
+        <section class="w-screen h-full flex flex-col bg-white">
+            <header class="p-4 border-b border-gray-50 flex justify-between items-center">
+                <button onclick="toggleDrawer()"><i class="fas fa-bars"></i></button>
+                <span class="font-black uppercase tracking-tighter text-base">Archivio</span>
+                <div class="w-6"></div>
+            </header>
+            <div id="thread-list" class="flex-1 overflow-y-auto p-4 space-y-2"></div>
+        </section>
+
+        <section class="w-screen h-full flex flex-col bg-bg">
+            <header class="p-4 bg-white border-b border-gray-50 flex justify-between items-center z-50 shadow-sm">
+                <button onclick="goToScreen(0)" class="text-gray-300"><i class="fas fa-history"></i></button>
+                <div class="text-center flex-1">
+                    <h1 id="ui-agent-name" class="text-[8px] font-black uppercase tracking-widest text-gray-300">PM AGENT</h1>
+                    <p id="ui-thread-name" class="text-xs font-black uppercase tracking-tight">Discussione</p>
+                </div>
+                <button onclick="goToScreen(2)" class="text-gray-200"><i class="fas fa-microphone"></i></button>
+            </header>
+
+            <main id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar"></main>
+
+            <footer class="p-3 bg-white border-t border-gray-50 flex items-center gap-3 pb-8 relative">
+                <button onclick="toggleFabMenu()" class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center shadow-sm"><i class="fas fa-plus"></i></button>
+                <input type="text" id="chat-input" placeholder="Chiedi a TrinAI..." class="flex-1 bg-gray-50 py-3 px-4 rounded-2xl outline-none text-sm font-medium border-none">
+                <button onclick="sendText()" class="w-8 h-8 flex items-center justify-center"><i class="fas fa-paper-plane text-black"></i></button>
+            </footer>
+        </section>
+
+        <section class="w-screen h-full flex flex-col bg-black text-white items-center justify-center px-10 relative">
+            <button onclick="goToScreen(1)" class="absolute top-6 left-6 text-xl"><i class="fas fa-chevron-left"></i></button>
+            <div class="text-center space-y-8">
+                <div id="voice-status" class="text-[8px] font-black uppercase tracking-[0.3em] text-neutral-600 animate-pulse">In attesa</div>
+                <div id="mic-btn" class="w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition transform duration-300"><i class="fas fa-microphone text-black text-4xl"></i></div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff'); tg.expand(); tg.ready();
+        const WH_CHAT = "https://prod.workflow.trinai.it/webhook/81ab5292-43c3-4f93-afaf-7411b95fc010";
+        let activeAgents = ['pm'], primaryAgent = 'pm', currentScreen = 1, chatLog = [];
+
+        function goToScreen(i) { currentScreen = i; document.getElementById('viewport').style.transform = `translateX(-${i * 100}vw)`; }
+        function toggleDrawer() { document.getElementById('agent-drawer').classList.toggle('-translate-x-full'); document.getElementById('drawer-overlay').classList.toggle('hidden'); }
+        function openInsightDrawer() { document.getElementById('insight-drawer').classList.remove('translate-y-full'); }
+        function closeInsightDrawer() { document.getElementById('insight-drawer').classList.add('translate-y-full'); }
+
+        function addMessage(sender, text) {
+            const c = document.getElementById('chat-container'); const d = document.createElement('div');
+            d.className = `msg-anim flex flex-col ${sender === 'user' ? 'items-end' : 'items-start'}`;
+            d.innerHTML = `<div class="${sender==='user'?'bg-black text-white':'bg-white text-black border border-gray-100'} px-4 py-2.5 rounded-2xl text-[13px] max-w-[85%] shadow-sm">${text}</div>`;
+            c.appendChild(d); c.scrollTop = c.scrollHeight;
+        }
+
+        async function sendText() {
+            const i = document.getElementById('chat-input'); const t = i.value.trim(); if(!t) return;
+            addMessage('user', t); i.value = '';
+            try {
+                const r = await fetch(WH_CHAT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'npl_chat', message: t, _auth: tg.initData }) });
+                const d = await r.json(); if(d.reply) addMessage('ai', d.reply);
+            } catch(e) { addMessage('ai', '⚠️ Offline'); }
+        }
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

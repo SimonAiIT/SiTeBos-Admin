@@ -1,0 +1,4070 @@
+{
+  "name": "dental-advanced-setup",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Access Denied or Data Not Found\",\n  \"code\": 500\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1888,
+        -240
+      ],
+      "id": "1a2fa733-b207-459b-a4f5-05ba03d4ad27",
+      "name": "500"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "5a58b38d-dfe5-44c2-9d58-34309585c057",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        1616,
+        -48
+      ],
+      "id": "3573ee46-d6cb-446d-88fd-2337a7dd3bb5",
+      "name": "Webhook",
+      "webhookId": "5a58b38d-dfe5-44c2-9d58-34309585c057"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "da04c4f2-5349-4013-b1a2-b0d971334780",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "5a58b38d-dfe5-44c2-9d58-34309585c057",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2128,
+        -48
+      ],
+      "id": "a5657d32-31d1-4a3b-a9ea-df68284b35fa",
+      "name": "Autorize"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- 1. CONFIGURAZIONE ---\nconst BOT_TOKEN = \"8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ\";\nconst initData = $input.item.json.body._auth;\n\nif (!initData) return { isValid: false, error: \"Dato _auth mancante\" };\n\n// --- 2. LIBRERIA CRIPTOGRAFICA PURE JS (SHA-256 & HMAC) ---\nconst CryptoJS = (function() {\n    function sha256(m) {\n        var h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];\n        var k = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];\n        var b = Array.from(typeof m === 'string' ? new TextEncoder().encode(m) : m);\n        var l = b.length * 8; b.push(0x80);\n        while ((b.length * 8) % 512 !== 448) b.push(0);\n        for (var i = 7; i >= 0; i--) b.push((l / Math.pow(2, i * 8)) & 0xff);\n        for (var i = 0; i < b.length; i += 64) {\n            var w = new Int32Array(64);\n            for (var j = 0; j < 16; j++) w[j] = (b[i + j * 4] << 24) | (b[i + j * 4 + 1] << 16) | (b[i + j * 4 + 2] << 8) | (b[i + j * 4 + 3]);\n            for (var j = 16; j < 64; j++) {\n                var s0 = ((w[j - 15] >>> 7) | (w[j - 15] << 25)) ^ ((w[j - 15] >>> 18) | (w[j - 15] << 14)) ^ (w[j - 15] >>> 3);\n                var s1 = ((w[j - 2] >>> 17) | (w[j - 2] << 15)) ^ ((w[j - 2] >>> 19) | (w[j - 2] << 13)) ^ (w[j - 2] >>> 10);\n                w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;\n            }\n            var [a, c, d, e, f, g, i_h, j_h] = h;\n            var v = [...h];\n            for (var j = 0; j < 64; j++) {\n                var S1 = ((v[4] >>> 6) | (v[4] << 26)) ^ ((v[4] >>> 11) | (v[4] << 21)) ^ ((v[4] >>> 25) | (v[4] << 7));\n                var ch = (v[4] & v[5]) ^ (~v[4] & v[6]);\n                var t1 = (v[7] + S1 + ch + k[j] + w[j]) | 0;\n                var S0 = ((v[0] >>> 2) | (v[0] << 30)) ^ ((v[0] >>> 13) | (v[0] << 19)) ^ ((v[0] >>> 22) | (v[0] << 10));\n                var maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);\n                var t2 = (S0 + maj) | 0;\n                v.unshift((t1 + t2) | 0); v.splice(8); v[4] = (v[4] + t1) | 0;\n            }\n            for (var j = 0; j < 8; j++) h[j] = (h[j] + v[j]) | 0;\n        }\n        return h.reduce((acc, val) => acc.concat([(val >>> 24) & 0xff, (val >>> 16) & 0xff, (val >>> 8) & 0xff, val & 0xff]), []);\n    }\n\n    if (typeof TextEncoder === \"undefined\") {\n        window.TextEncoder = function() {};\n        TextEncoder.prototype.encode = function(s) {\n            return new Uint8Array(unescape(encodeURIComponent(s)).split(\"\").map(c => c.charCodeAt(0)));\n        };\n    }\n\n    return {\n        hmac: function(key, message) {\n            var k = typeof key === 'string' ? Array.from(new TextEncoder().encode(key)) : key;\n            var m = Array.from(new TextEncoder().encode(message));\n            var b = 64;\n            if (k.length > b) k = sha256(k);\n            while (k.length < b) k.push(0);\n            var ipad = k.map(x => x ^ 0x36);\n            var opad = k.map(x => x ^ 0x5c);\n            var inner = sha256(ipad.concat(m));\n            return sha256(opad.concat(inner));\n        }\n    };\n})();\n\n// --- 3. LOGICA PARSING ---\nconst data = {};\ninitData.split('&').forEach(pair => {\n    const [k, v] = pair.split('=');\n    data[k] = decodeURIComponent(v);\n});\n\nconst hashReceived = data.hash;\nconst checkString = Object.keys(data)\n    .filter(k => k !== 'hash')\n    .sort()\n    .map(k => k + '=' + data[k])\n    .join('\\n');\n\n// --- 4. CALCOLO HASH TELEGRAM ---\nconst secretKey = CryptoJS.hmac(\"WebAppData\", BOT_TOKEN);\nconst computedHashBytes = CryptoJS.hmac(secretKey, checkString);\nconst computedHash = computedHashBytes.map(b => b.toString(16).padStart(2, '0')).join('');\n\n// --- 5. CONTROLLO SCADENZA (MAX 1 ORA) ---\nconst now = Math.floor(Date.now() / 1000);\nconst authDate = parseInt(data.auth_date);\nconst isExpired = (now - authDate) > 3600; // Scade dopo 3600 secondi (1 ora)\n\n// --- 6. RISULTATO FINALE ---\nconst isHashValid = (computedHash === hashReceived);\n\nreturn {\n    isValid: isHashValid && !isExpired,\n    isExpired: isExpired,\n    isHashValid: isHashValid,\n    user: data.user ? JSON.parse(data.user) : null,\n    auth_date_human: new Date(authDate * 1000).toLocaleString('it-IT'),\n    debug: {\n        time_diff_seconds: now - authDate,\n        computed: computedHash,\n        received: hashReceived\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2128,
+        -256
+      ],
+      "id": "8ce7279f-d673-4442-92c7-330bab1f80ff",
+      "name": "telegram_validator"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&'; // La tua chiave segreta\n\n// 1. Recupero del token\nconst rawAsh =\n  item.ash ||\n  item.query?.ash ||\n  item.body?.ash ||\n  item.body?.web_app_data?.data ||\n  item.body?.message?.web_app_data?.data;\n\nif (!rawAsh || typeof rawAsh !== \"string\") {\n  throw new Error(\"ASH non trovato nell'input.\");\n}\n\n// 2. Separazione Payload e Firma\nconst [encodedPayload, signatureReceived] = rawAsh.split(\".\");\n\nif (!encodedPayload || !signatureReceived) {\n  throw new Error(\"Formato ASH non valido.\");\n}\n\n// 3. Decodifica e verifica integrit\u00e0\nlet decodedPayload;\ntry {\n    decodedPayload = Buffer.from(encodedPayload, \"base64\").toString(\"utf8\");\n} catch (e) {\n    throw new Error(\"Errore decodifica Base64.\");\n}\n\n// --- LOGICA DI VERIFICA FIRMA ---\nfunction verifySignature(payload, secret, receivedSig) {\n    let hash = 0;\n    const combined = payload + secret;\n    for (let i = 0; i < combined.length; i++) {\n        hash = ((hash << 5) - hash) + combined.charCodeAt(i);\n        hash = hash & hash; \n    }\n    const expectedSig = Math.abs(hash).toString(16);\n    return expectedSig === receivedSig;\n}\n\nif (!verifySignature(decodedPayload, SECRET_KEY, signatureReceived)) {\n    // Se la firma non corrisponde, blocchiamo tutto qui!\n    throw new Error(\"SICUREZZA: Firma ASH non valida o manomessa. Accesso negato.\");\n}\n// --------------------------------\n\n// 4. Estrazione ID (Solo se la firma \u00e8 valida)\nconst parts = decodedPayload.split(\"|\");\n\nreturn [{\n    json: {\n        ...item,\n        ids: {\n            owner_id: parts[0],\n            timestamp: parts[1],\n            webhook: parts[2]\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2352,
+        -64
+      ],
+      "id": "9242c429-f7e9-41df-bc04-c127d1a1ced1",
+      "name": "Ash Decoder",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.chat_id\": {\n        \"$eq\": {{ $json.ids.owner_id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2128,
+        352
+      ],
+      "id": "a1978c18-0828-44f9-85ba-2b9f12be1176",
+      "name": "owner_data",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2336,
+        352
+      ],
+      "id": "45d1d990-1d78-436d-98fd-e12982f96f58",
+      "name": "OwnerExist1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2128,
+        -480
+      ],
+      "id": "952a466a-d38a-4962-a03f-b315e605e0e7",
+      "name": "Merge27"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e2b87107-8dd3-4615-ab05-e2f40efe38ba",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2352,
+        -256
+      ],
+      "id": "a2a080e7-2285-4652-8eb7-5ce94150a370",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2352,
+        -464
+      ],
+      "id": "aaec1a67-7903-44e2-8df3-2ba48fb4da49",
+      "name": "Merge28"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2352,
+        176
+      ],
+      "id": "70985b1c-f805-4463-89c5-cb2e9e2bcfb3",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d14b4715-baea-47c3-ac0b-a151a3b384be",
+              "name": "urlMiniApp",
+              "value": "={{ \n  (() => {\n    const userId = $json.body?.data?.owner_id || \n                   $json.body?.data?.chat_id || \n                   $json.body?.callback_query?.from?.id || \n                   $json.body?.message?.from?.id ||\n                   $json.body?.owner_id ||\n                   $json.user?.id ||\n                   $json.ids?.owner_id ||\n                   $json.owner_data?.chat_id;\n                   \n    // Array degli ID abilitati all'ambiente di test (GitHub Pages)\n    const testers = [\"2041408875\", \"8305126267\"];\n                   \n    return testers.includes(String(userId)) \n      ? \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/telegram_control/\" \n      : \"https://telegram.trinai.it/\";\n  })()\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1888,
+        -48
+      ],
+      "id": "8afb2b3b-c054-4b9a-9656-a55d264d4f34",
+      "name": "appUrl"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_business_vertical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7b103dd9-2ecd-4b8d-bea1-732c4bb9d3c1"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Vertical"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1c5b2257-b69f-409c-a776-a182d9accb1b",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_dental_setup",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get_Dental"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d992be5a-7d1e-44d4-8101-3315d3e75d60",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "generate_operator_invite",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Operator_Invite"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "20252108-167d-40f4-9d6e-71cbeae5a38c",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "execute_financial_decomposition",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Extcute_Financial"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a577d8cf-daad-46ca-ae8d-8f37c31c3e45",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "save_dental_setup",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Save"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2656,
+        128
+      ],
+      "id": "adb0ecae-5db6-43fb-b5c5-29dc1ff2ecea",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"vertical\": \"{{ $json.owner_data.vertical }}\"\n} ",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2656,
+        -16
+      ],
+      "id": "7da42b8e-ccad-4b3d-b973-32dbd7fc3492",
+      "name": "Respond to vertical"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b787af28-e7fa-4707-af4d-9944f3cdf1d6",
+              "name": "operators",
+              "value": "={{ $json.owner_data.operators }}",
+              "type": "array"
+            },
+            {
+              "id": "b9c523f1-fc1e-4e9d-83cc-bcd5200b143e",
+              "name": "machinery",
+              "value": "={{ $json.owner_data.machinery }}",
+              "type": "array"
+            },
+            {
+              "id": "079264d2-9a34-4260-8e44-6a251b3f7397",
+              "name": "financials",
+              "value": "={{ $json.owner_data.financials }}",
+              "type": "object"
+            },
+            {
+              "id": "549567de-52a1-457c-979b-7dc16f712ff4",
+              "name": "number_of_chairs",
+              "value": "={{ $json.owner_data.number_of_chairs }}",
+              "type": "number"
+            },
+            {
+              "id": "1ebc3f4f-0efa-4ef1-b3e6-476e10387ca8",
+              "name": "profile_type",
+              "value": "={{ $json.owner_data.profile_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2976,
+        144
+      ],
+      "id": "75e5939f-1f3f-483a-8ed7-d6425a102368",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3392,
+        800
+      ],
+      "id": "5e9e0fe9-ccd5-462b-ae12-9c6eb0752070",
+      "name": "Respond to vertical1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "212941f9-8078-4830-b797-266d07c0e25a",
+              "name": "owner_data.operators",
+              "value": "={{ $json.body.operators }}",
+              "type": "array"
+            },
+            {
+              "id": "926341ad-bfa2-4935-bd53-0a349cc15109",
+              "name": "owner_data.machinery",
+              "value": "={{ $json.body.machinery }}",
+              "type": "array"
+            },
+            {
+              "id": "ccff553b-d410-47c3-b51d-59891e6be108",
+              "name": "owner_data.financials",
+              "value": "={{ $json.body.financials }}",
+              "type": "object"
+            },
+            {
+              "id": "4f40310d-182d-4011-9e5a-9c86b614ad94",
+              "name": "owner_data.number_of_chairs",
+              "value": "={{ $json.body.number_of_chairs }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2656,
+        1024
+      ],
+      "id": "5f4784f9-3877-44f5-a185-67a994fd32e7",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2656,
+        816
+      ],
+      "id": "dc5aab63-b8d5-48ad-b985-0d7c8ce99d54",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        3056,
+        960
+      ],
+      "id": "39c7b5aa-a476-4220-83b9-33ff88e563c0",
+      "name": "MongoDB Chat Memory8",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        3056,
+        816
+      ],
+      "id": "0a811448-5623-44ff-ac52-166a4517d886",
+      "name": "owner1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recupero dell'input unificato della chiamata\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst body = item.body || {};\n\nconst COSTO = 20;\nconst timestamp = new Date().toISOString();\n\n// 1. Identificazione dell'operatore target nell'array (Sara - Indice 1)\nconst opIndex = parseInt(body.operator_id);\nif (isNaN(opIndex) || !owner.operators || !owner.operators[opIndex]) {\n    throw new Error(\"Errore: Operatore non trovato nell'anagrafica aziendale.\");\n}\n\nconst targetOp = owner.operators[opIndex];\n\n// 2. Controllo Antiduplicazione ed evitare doppi addebiti\nlet inviteLink = \"\";\nconst BOT_NAME = \"TrinAi_Team_bot\";\n\nif (targetOp.status === \"PENDING\" && targetOp.invitation_code) {\n    // Caso Recupero: Invito gi\u00e0 esistente, restituiamo il link senza scalare crediti\n    inviteLink = `https://t.me/${BOT_NAME}?start=${targetOp.invitation_code}`;\n    \n    return [{\n        json: {\n            success: true,\n            action: \"retrieve_existing_invite\",\n            invite_link: inviteLink,\n            operator_name: targetOp.OperatorName,\n            owner_data: owner // Nessuna modifica al bilancio\n        }\n    }];\n}\n\nif (targetOp.OperatorChatID || targetOp.status === \"ACTIVE\") {\n    throw new Error(\"Errore: Il collaboratore \u00e8 gi\u00e0 attivo e associato a un ID Telegram.\");\n}\n\n// 3. Verifica capienza saldo crediti\nconst previousBalance = owner.credits_balance || 0;\nif (previousBalance < COSTO) {\n    return [{\n        json: {\n            success: false,\n            error: true,\n            code: \"INSUFFICIENT_CREDITS\",\n            message: \"Saldo crediti insufficiente per acquistare uno slot operatore.\"\n        }\n    }];\n}\n\n// 4. Esecuzione Transazione (Addebito 20 Crediti)\nconst finalBalance = previousBalance - COSTO;\nowner.credits_balance = finalBalance;\nowner.last_update = timestamp;\n\n// 5. Generazione Codice d'Invito e Stato\nconst randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();\nconst invCode = `INV-${owner.vat_number}-${randomPart}`;\ninviteLink = `https://t.me/${BOT_NAME}?start=${invCode}`;\n\n// Aggiornamento anagrafica collaboratore specifico\ntargetOp.invitation_code = invCode;\ntargetOp.status = \"PENDING\";\n\n// 6. Generazione Tracciato di Audit (billing_source strutturato come da immagine)\nconst transaction_summary = {\n    model: \"operator_invite_logic_v1\",\n    is_long_context: false,\n    usage: { in: 0, out: 0 },\n    usd_cost: 0,\n    credits_deducted: COSTO,\n    previous_balance: previousBalance,\n    final_balance: finalBalance,\n    timestamp: timestamp,\n    billing_source: {\n        use: \"operator_invitation\",\n        wh: \"https://prod.workflow.trinai.it/webhook/5a58b38d-dfe5-44c2-9d58-34309585c057\"\n    }\n};\n\n// 7. Output strutturato per i nodi di salvataggio MongoDB e risposta WebApp\nreturn [{\n    json: {\n        success: true,\n        action: \"generate_new_invite\",\n        invite_link: inviteLink,\n        operator_name: targetOp.OperatorName,\n        owner_data: owner,\n        transaction_summary: transaction_summary\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2656,
+        -240
+      ],
+      "id": "456d2487-1b16-4a12-82d1-5c34599c900c",
+      "name": "CommitAdd"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.owner_data_ref.chat_id\": {\n        \"$eq\": {{ $json.owner_data.chat_id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2656,
+        -1200
+      ],
+      "id": "f6a00b26-0144-49f8-a1cc-fde0384d5965",
+      "name": "Stakeholder1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d12c796a-4e17-4456-9a7d-022242576163",
+              "leftValue": "={{ $json.stakeholder }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2656,
+        -976
+      ],
+      "id": "bca8ca77-6ad3-46dc-9abc-1ec1ada8af2f",
+      "name": "Stakeholder Exist1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2656,
+        -1360
+      ],
+      "id": "322291a0-6cba-4bf8-8b5d-16ed28baeafa",
+      "name": "Merge11"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.user_ref.email }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        2944,
+        -992
+      ],
+      "id": "134ab686-c182-47d6-935a-017de6cd8016",
+      "name": "MongoDB Chat Memory7",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.stakeholder }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        2944,
+        -1136
+      ],
+      "id": "efa6db2d-a2e1-4328-a814-e20337f63f93",
+      "name": "stakeholeder1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "billing_buffers",
+        "databaseName": "MemoryManager",
+        "contextWindowLength": 150
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        2944,
+        -704
+      ],
+      "id": "59731ec7-e935-4bee-9c70-b26ab4628629",
+      "name": "MongoDB Chat Memory1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.transaction_summary }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        2944,
+        -848
+      ],
+      "id": "8de12aff-fa0c-4311-9cf2-bc244b59b300",
+      "name": "billing_buffers1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3408,
+        -1344
+      ],
+      "id": "45fb0eb5-f207-4494-8321-774ba0244832",
+      "name": "Merge13"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3408,
+        -1024
+      ],
+      "id": "f65c3bf1-abf9-4fbc-a5f1-e6839188a241",
+      "name": "Merge14"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3408,
+        -720
+      ],
+      "id": "f0e0ed4b-2aa9-4102-beb5-bae1294cc360",
+      "name": "Merge15"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        2944,
+        -416
+      ],
+      "id": "e36a757c-be2f-424a-a5fe-a440bc9eaf1c",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        2944,
+        -560
+      ],
+      "id": "a77271ce-8e20-4c42-8b96-0877edfab7ee",
+      "name": "owner",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "df6e9256-58fb-481a-80a6-f19d54010c37",
+              "name": "stakeholder.commercial_profile.credit_balance.available_credits",
+              "value": "={{ $json.owner_data.credits_balance }}",
+              "type": "number"
+            },
+            {
+              "id": "2c22eb6b-0e37-47ee-a626-f6105f075cbe",
+              "name": "stakeholder.commercial_profile.credit_balance.last_transaction_id",
+              "value": "={{ $json.transaction_summary.timestamp }}",
+              "type": "string"
+            },
+            {
+              "id": "908516d6-3bd5-40fe-97f3-df6aef1c8298",
+              "name": "stakeholder.commercial_profile.credit_balance.last_update",
+              "value": "={{ $json.transaction_summary.timestamp }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2944,
+        -1360
+      ],
+      "id": "2c8f85f1-5df0-4946-bb0f-75f68fadd2b6",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3680,
+        -1344
+      ],
+      "id": "cfa82079-0b6f-439f-a026-492ee9cc9a9a",
+      "name": "Respond to vertical2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://dashboard.trinai.it/api/external-data",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer a57ab9e507dda3b4bae253095aa9bd90c2640d6b6f1ec4bd6b4244a84302f2ed"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"service\": \"openapi_company\",\n  \"lookup_value\": \"{{ ($json.owner_data?.vat_number || '').replace(/^[iI][tT]/, '').trim() }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2976,
+        -32
+      ],
+      "id": "49745593-8a7b-401a-afd0-3f1efa4cd2af",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9e2c3b0c-5ea5-4f78-b103-383f54efdbe7",
+              "name": "api_balance",
+              "value": "={{ $json.data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3184,
+        -192
+      ],
+      "id": "3f6b1cc6-21de-45b1-a5c7-0a43fd002aa0",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1d147b99-7707-4b9e-b591-e6b5b50694e1",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3184,
+        -32
+      ],
+      "id": "7fb68bd1-0bae-4c78-9771-f27a9fc2cfa7",
+      "name": "Success"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3392,
+        -16
+      ],
+      "id": "f8c9f12f-1355-4708-9d7c-48522415a1c3",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3392,
+        -176
+      ],
+      "id": "1dc4fe5b-ec42-4bd4-a47b-80057c4a0a03",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3392,
+        160
+      ],
+      "id": "2239da44-5ea8-48c9-b106-9373f4e6f726",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c901fb9d-5d06-43f7-8612-7552a7b601aa",
+              "leftValue": "={{ $json.body.isForfettario }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1888,
+        1904
+      ],
+      "id": "6a0f3733-a5c2-4c4a-9915-411e97feddff",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.profile_type }}",
+                    "rightValue": "societa_capitali",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "4563b6d8-5f07-49a9-822a-dba04db39b43"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Capitali"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "9d396d54-011d-4a01-adbc-8249c882d03a",
+                    "leftValue": "={{ $json.body.profile_type }}",
+                    "rightValue": "societa_persone",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Persone"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "21280e66-278d-4842-bdc5-7cdb7db9b68d",
+                    "leftValue": "={{ $json.body.profile_type }}",
+                    "rightValue": "professionista",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Professionista"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2256,
+        1712
+      ],
+      "id": "f928c47b-8ca2-4b1b-8b8f-45e7576f0d25",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2b12b743-8402-470b-b9c2-43286b329636",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            },
+            {
+              "id": "e85e8ae2-a58b-48e3-ab97-0587f852d5ac",
+              "name": "owner_data.financials.isForfettario",
+              "value": "={{ $json.body.isForfettario }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1888,
+        2192
+      ],
+      "id": "64f5392c-f703-4d6e-bbb6-950a8de9d313",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2592,
+        2176
+      ],
+      "id": "27138ad4-2a46-4f8e-9629-1580650af535",
+      "name": "Respond to vertical3"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        2336
+      ],
+      "id": "41a11492-53e7-40df-999d-d800ee22fb6e",
+      "name": "MongoDB Chat Memory9",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        2080,
+        2192
+      ],
+      "id": "db1d9586-c579-4b4e-a60e-6fd2d6de4198",
+      "name": "owner2",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2944,
+        1728
+      ],
+      "id": "1e76ba02-f31e-48ed-a4e1-f6c5b8485360",
+      "name": "Call Gemini Rec1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n<Role>TrinAi_Dental_CFO_Capitali</Role>\n<Objective>\nEseguire la scomposizione analitica del bilancio di una Societ\u00e0 di Capitali odontoiatrica (S.r.l.) compilando con precisione chirurgica tutti i 45 conti dello schema financials, applicando per ciascuno di essi l'ipotesi contabile e il vincolo di calcolo obbligatorio descritti di seguito.\n</Objective>\n\n<Constraint_Rules_Anti_Lazy_Mandatory>\n1. DIVIETO ASSOLUTO DI VALORI NULLI FACILI (ZERO-TOLERANCE POLICY):\n   I conti indicati come \"Strutturali\" non possono mai essere impostati a 0.00, poich\u00e9 rappresentano costi obbligatori per l'esercizio di uno studio odontoiatrico in Italia.\n2. LIQUIDAZIONE DEI CONTI DI COMODO (631.00201, 631.00251):\n   \u00c8 vietato allocare quote superiori al 5% delle macro-voci di bilancio sui conti generici \"631.00201\" (Altre spese documentate) e \"631.00251\" (Altri costi indeducibili). Eventuali eccedenze di bilancio devono essere distribuite proporzionalmente tra le voci specifiche.\n3. QUADRATURA DEI GRUPPI AL CENTESIMO:\n   La somma dei conti interni ad ogni sezione (a, b, c, d) deve coincidere perfettamente con la somma delle macro-voci del bilancio originario presentate nel Prompt (IIC131, IIC132, IIC133, IIC134, IIC135, IIC136, IIC138, IIC139).\n</Constraint_Rules_Anti_Lazy_Mandatory>\n\n<Ipotesi_Di_Scomposizione_Per_Singola_Voce>\n\n=== GRUPPO A: Consumi e Spese di Gestione (Totale di Gruppo = IIC131 + quote IIC132 e IIC139) ===\n* 631.01000 (Materiale Dentale) \u27a1\ufe0f Ipotizza il 35% del totale acquisti IIC131 (compositi, anestetici, monouso).\n* 631.01001 (DPI & Sterilizzazione) \u27a1\ufe0f Ipotizza il 10% del totale IIC131 (guanti, mascherine, buste autoclave).\n* 631.01002 (Protesi Terzi) \u27a1\ufe0f Ipotizza il 30% di IIC131 (fatture odontotecniche). Riduci del 5% se \u00e8 presente uno scanner intraorale e fresatore in <Equipment_Context> (CAD-CAM).\n* 631.01003 (Protesi Ortodonzia Terzi) \u27a1\ufe0f Ipotizza il 10% di IIC131 se in <Staff_Context> \u00e8 presente un Ortodontista. Altrimenti imposta a 0.00.\n* 631.01004 (Apparecchi Ortodontici) \u27a1\ufe0f Ipotizza il 10% di IIC131 se \u00e8 presente un Ortodontista (costo mascherine/allineatori). Altrimenti imposta a 0.00.\n* 631.01005 (Smaltimento Rifiuti Speciali) \u27a1\ufe0f Calcola una quota fissa compresa tra \u20ac 1.200,00 e \u20ac 1.800,00 all'anno (estratta da IIC139 o IIC132).\n* 631.01006 (Protesi in Proprio) \u27a1\ufe0f Ipotizza il 5% di IIC131 se in <Equipment_Context> \u00e8 presente una fresatrice o stampante 3D. Altrimenti imposta a 0.00.\n* 631.00002 (Assicurazioni Studio) \u27a1\ufe0f Ipotizza una quota compresa tra \u20ac 1.000,00 e \u20ac 2.000,00 (estratta da IIC132 o IIC139) per polizze furto/incendio mura dello studio.\n* 631.00005 (Pubblicit\u00e0/Marketing) \u27a1\ufe0f Ipotizza il 2.5% dei Costi Servizi IIC132.\n* 631.00007 (Spese Legali) \u27a1\ufe0f Ipotizza una quota compresa tra \u20ac 1.500,00 e \u20ac 3.000,00 (estratta da IIC132).\n* 631.00008 (Spese Postali) \u27a1\ufe0f Ipotizza una quota compresa tra \u20ac 300,00 e \u20ac 800,00 (estratta da IIC139).\n* 631.00009 (Formazione/Sicurezza) \u27a1\ufe0f Ipotizza una quota compresa tra \u20ac 1.500,00 e \u20ac 2.500,00 (estratta da IIC132) per corsi di sicurezza 81/08.\n* 631.00011 (Servizi Bancari/POS) \u27a1\ufe0f Calcola lo 0.5% del fatturato totale delle prestazioni cliniche (Voce A1/IIC124) e alloca qui (estratta da IIC139 o IIC132).\n* 631.00020 (Cancelleria) \u27a1\ufe0f Ipotizza una quota compresa tra \u20ac 500,00 e \u20ac 1.200,00 (estratta da IIC131 o IIC139).\n* 631.00023 (Riviste/Sala d'attesa) \u27a1\ufe0f Ipotizza una quota compresa tra \u20ac 200,00 e \u20ac 500,00 (estratta da IIC139).\n* 631.00026 (Iscrizione Ordine Medici) \u27a1\ufe0f Calcola esattamente \u20ac 200,00 per ciascun odontoiatra attivo presente in <Staff_Context> (estratta da IIC139).\n* 631.00201 (Altre spese documentate) \u27a1\ufe0f Alloca solo la quota strettamente residuale di IIC139 (Massimo 5% di IIC139).\n* 631.00251 (Altri costi indeducibili) \u27a1\ufe0f Alloca solo la quota indeducibile fiscale residua di IIC139 (Massimo 5% di IIC139).\n\n=== GRUPPO B: Costi del Personale & Collaboratori (Totale di Gruppo = IIC134 + IIC135 + IIC136 + quote IIC132) ===\n* 610.00001 (Salari Stipendi) \u27a1\ufe0f Deve coincidere esattamente con il totale dei salari lordi annuali dei dipendenti inseriti in <Staff_Context> (Wages/Stipendi da IIC134).\n* 610.00021 (Oneri INPS) \u27a1\ufe0f Calcola esattamente il 28% del monte salari dipendenti (610.00001) prendendo la cifra da IIC135.\n* 610.00031 (Oneri INAIL) \u27a1\ufe0f Calcola esattamente il 2% del monte salari dipendenti (610.00001) prendendo la cifra da IIC135 o IIC139.\n* 610.00101 (TFR Accantonato) \u27a1\ufe0f Deve coincidere con il TFR annuo da bilancio (IIC136) o essere calcolato come il 7.41% del monte salari (610.00001).\n* 610.00201 (Altri Costi Personale) \u27a1\ufe0f Calcola \u20ac 300,00 per ciascun dipendente in <Staff_Context> per visite mediche d'obbligo e divise (estratta da IIC132).\n* 610.01000 (Salari Indeducibili) \u27a1\ufe0f Imposta a 0.00 salvo anomalie specifiche.\n* 612.00001 (Costo Commercialista/Consulenti) \u27a1\ufe0f Ipotizza il 3.5% dei Costi Servizi IIC132.\n* 612.00005 (Compensi Medici P.IVA) \u27a1\ufe0f Calcolato sottraendo alla voce totale Servizi IIC132 tutte le altre spese per servizi allocate (Commercialista, software, pubblicit\u00e0, assicurazioni, ecc.). Questa quota deve coprire gli ingaggi dei medici consulenti a percentuale.\n\n=== GRUPPO C: Spese Immobili, Utenze e Bolli (Totale di Gruppo = IIC133 + quote IIC132 e IIC139) ===\n* 606.00001 (Locazione Immobili) \u27a1\ufe0f Pari al totale della voce IIC133 meno la quota leasing calcolata sul conto 605.00001.\n* 606.00005 (Riscaldamento) \u27a1\ufe0f Ipotizza una quota annua compresa tra \u20ac 1.500,00 e \u20ac 3.500,00 (estratto da IIC132 o IIC139).\n* 606.00007 (Acqua) \u27a1\ufe0f Calcola esattamente \u20ac 300,00 per ciascuna sala operativa indicata in Num_Chairs (es. \u20ac 900,00 per 3 riuniti).\n* 606.00010 (Spese Condominiali) \u27a1\ufe0f Ipotizza una quota annua compresa tra \u20ac 1.200,00 e \u20ac 2.400,00 (estratto da IIC132 o IIC139).\n* 621.00001 (Telefonia Fissa/Internet) \u27a1\ufe0f Ipotizza una quota compresa tra \u20ac 600,00 e \u20ac 1.200,00 (estratto da IIC132).\n* 621.00002 (Telefonia Mobile) \u27a1\ufe0f Ipotizza una quota compresa tra \u20ac 300,00 e \u20ac 600,00 (estratto da IIC132).\n* 621.00005 (Carburanti) \u27a1\ufe0f Ipotizza una quota compresa tra \u20ac 1.000,00 e \u20ac 2.500,00 se in <Equipment_Context> \u00e8 presente una vettura aziendale. Altrimenti imposta a 0.00.\n* 621.00031 (Energia Elettrica) \u27a1\ufe0f Calcola esattamente \u20ac 1.500,00 per ciascuna sala operativa in Num_Chairs (es. \u20ac 4.500,00 per 3 riuniti).\n* 631.00017 (Manutenzione Software) \u27a1\ufe0f Ipotizza il 3% dei Costi Servizi IIC132 per canoni di gestionali e licenze.\n* 626.00201 (Aggiornamento Professionale) \u27a1\ufe0f Ipotizza una quota annua compresa tra \u20ac 1.500,00 e \u20ac 3.500,00 (estratto da IIC132).\n* 626.00202 (Pasti/Soggiorni ECM) \u27a1\ufe0f Calcola esattamente il 30% del costo di aggiornamento professionale (626.00201).\n* 632.00001 (Imposta Bollo) \u27a1\ufe0f Calcola esattamente lo 0.3% del fatturato delle prestazioni cliniche (IIC124), corrispondente all'acquisto delle marche da bollo da \u20ac2 esenti IVA.\n* 632.00002 (Imposta Registro) \u27a1\ufe0f Ipotizza una quota compresa tra \u20ac 200,00 e \u20ac 500,00 (estratto da IIC139) per contratti d'affitto.\n* 632.00005 (Tassa Rifiuti TARI) \u27a1\ufe0f Calcola esattamente \u20ac 1.200,00 per ciascuna sala operativa in Num_Chairs (es. \u20ac 3.600,00 per 3 riuniti).\n* 632.00015 (Valori Bollati) \u27a1\ufe0f Ipotizza una quota compresa tra \u20ac 100,00 e \u20ac 300,00.\n\n=== GRUPPO D: Ammortamenti, Leasing e Manutenzioni (Totale di Gruppo = IIC138 + quote IIC133 e IIC132) ===\n* 601.00001 (Ammortamento Impianti Generici) \u27a1\ufe0f Ipotizza il 5% degli ammortamenti materiali totali IIC138.\n* 601.00004 (Ammortamento Attrezzature Mediche) \u27a1\ufe0f Calcolato raccordando l'inventario dei cespiti di propriet\u00e0 in <Equipment_Context> (Costo di acquisto / useful_life).\n* 601.00007 (Ammortamento Macchine Ufficio) \u27a1\ufe0f Ipotizza il 5% di IIC138 o calcola basandoti sui PC in inventario.\n* 601.00008 (Ammortamento Autovetture) \u27a1\ufe0f Calcolato basandoti sul valore della vettura in <Equipment_Context> diviso per la vita utile. Altrimenti imposta a 0.00.\n* 601.00010 (Ammortamento Arredamento) \u27a1\ufe0f Ipotizza il 5% di IIC138 (mobili operativi e d'attesa).\n* 601.00012 (Ammortamento Beni inferiori a \u20ac 516,46) \u27a1\ufe0f Ipotizza il 10% di IIC138 (manipoli, turbine, contrangoli di rapido ricambio).\n* 601.00013 (Ammortamento Telefonia) \u27a1\ufe0f Ipotizza una quota compresa tra \u20ac 150,00 e \u20ac 300,00.\n* 601.00101 (Ammortamenti Indeducibili) \u27a1\ufe0f Rappresenta unicamente la quota fiscale non deducibile derivante da beni a uso promiscuo. Calcolala solo come: (80% dell'ammortamento auto 601.00008) + (20% dell'ammortamento telefonia 601.00013). Se questi conti sono a zero, questo conto DEVE essere 0.00. VIETATO far confluire qui la voce IIC135 (Oneri Sociali) o altre spese del personale.\n* 605.00001 (Leasing Beni Mobili) \u27a1\ufe0f Esattamente pari al canone leasing annuo di tutti i beni in leasing inseriti in <Equipment_Context> (es. CBCT: \u20ac 900/mese * 12 = \u20ac 10.800/anno).\n* 605.00061 (Interessi Leasing) \u27a1\ufe0f Ipotizza il 5% del canone leasing annuale calcolato sul conto 605.00001.\n* 631.00016 (Assicurazione RC Medici) \u27a1\ufe0f Ipotizza l'1.5% dei Costi Servizi IIC132 (RC professionale medica obbligatoria).\n* 631.00101 (Manutenzione Auto) \u27a1\ufe0f Ipotizza una quota compresa tra \u20ac 500,00 e \u20ac 1.500,00 se presente auto. Altrimenti imposta a 0.00.\n* 631.00103 (Manutenzioni-Riparazioni) \u27a1\ufe0f Ipotizza il 2.5% dei Costi Servizi IIC132 per verifiche impianti, autoclavi, esperti qualificati.\n* 631.00111 (Pedaggi Autostradali) \u27a1\ufe0f Ipotizza una quota compresa tra \u20ac 100,00 e \u20ac 400,00 se presente auto. Altrimenti imposta a 0.00.\n* 631.00121 (Assicurazione RCA Auto) \u27a1\ufe0f Ipotizza una quota compresa tra \u20ac 500,00 e \u20ac 1.000,00 se presente auto. Altrimenti imposta a 0.00.\n* 635.00001 (Abbuoni e Arrotondamenti passivi) \u27a1\ufe0f Alloca solo la piccolissima eccedenza decimale matematica finale (Massimo \u20ac 99,00) per far quadrare i conti di gruppo.\n\n</Ipotesi_Di_Scomposizione_Per_Singola_Voce>\n\n<Mathematical_Constraint>\nLa somma dei conti interni ad ogni sezione (a, b, c, d) deve coincidere perfettamente con la somma delle macro-voci del bilancio originario presentate nel Prompt.\n</Mathematical_Constraint>\n\n<Output_Schema>\nRispondi esclusivamente con un oggetto JSON valido, senza preamboli o markdown (no ```json):\n{\n  \"financials\": {\n    \"631.01000\": 0.00, \"631.01001\": 0.00, \"631.01002\": 0.00, \"631.01003\": 0.00, \"631.01004\": 0.00, \"631.01005\": 0.00, \"631.01006\": 0.00,\n    \"631.00002\": 0.00, \"631.00005\": 0.00, \"631.00007\": 0.00, \"631.00008\": 0.00, \"631.00009\": 0.00, \"631.00011\": 0.00, \"631.00020\": 0.00,\n    \"631.00023\": 0.00, \"631.00026\": 0.00, \"631.00201\": 0.00, \"631.00251\": 0.00,\n    \"610.00001\": 0.00, \"610.00021\": 0.00, \"610.00003\": 0.00, \"610.00101\": 0.00, \"610.00201\": 0.00, \"610.01000\": 0.00,\n    \"612.00001\": 0.00, \"612.00005\": 0.00,\n    \"606.00001\": 0.00, \"606.00005\": 0.00, \"606.00007\": 0.00, \"606.00010\": 0.00,\n    \"621.00001\": 0.00, \"621.00002\": 0.00, \"621.00005\": 0.00, \"621.00031\": 0.00, \"631.00017\": 0.00,\n    \"626.00201\": 0.00, \"626.00202\": 0.00,\n    \"632.00001\": 0.00, \"632.00002\": 0.00, \"632.00005\": 0.00, \"632.00015\": 0.00,\n    \"601.00001\": 0.00, \"601.00004\": 0.00, \"601.00007\": 0.00, \"601.00008\": 0.00, \"601.00010\": 0.00, \"601.00012\": 0.00, \"601.00013\": 0.00, \"601.00101\": 0.00,\n    \"605.00001\": 0.00, \"605.00061\": 0.00,\n    \"631.00016\": 0.00, \"631.00101\": 0.00, \"631.00103\": 0.00, \"631.00111\": 0.00, \"631.00121\": 0.00, \"635.00001\": 0.00\n  }\n}\n</Output_Schema>\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<Prompt>\n<Structured_Balance_Sheet>\n{{ JSON.stringify($json.body.api_balance) }}\n</Structured_Balance_Sheet>\n\n<Staff_Context>\n{{ JSON.stringify($json.body.operators) }}\n</Staff_Context>\n\n<Equipment_Context>\n{{ JSON.stringify($json.body.machinery) }}\nNum_Chairs: {{ $json.owner_data.number_of_chairs }}\n</Equipment_Context>\n\n<Live_Fiscal_And_Compliance_Snapshot>\n{{ $json.fiscal_reserch_output }}\n</Live_Fiscal_And_Compliance_Snapshot>\n\n<Instructions>\nEsegui la scomposizione analitica del bilancio d'esercizio basandoti sulle regole descritte nelle istruzioni di sistema. \nUtilizza i dati reali di tasse locali, TARI, contratti rifiuti e conformit\u00e0 contenuti in <Live_Fiscal_And_Compliance_Snapshot> per compilare con precisione millimetrica i rispettivi conti del modello financials, evitando stime astratte laddove la ricerca ha individuato cifre reali sul territorio.\n</Instructions>\n</Prompt>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "calculate_output",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.body.uploaded_file_data }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.body.uploaded_file_mimetype }}",
+              "type": "string"
+            },
+            {
+              "id": "2c668bee-f5df-49a0-b8e2-4ada02558fda",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "96a48d96-a341-4a86-8c11-c1ea66983a73",
+              "name": "billing_source.use",
+              "value": "=Advanced Setup {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "b534f990-488a-4aa6-a246-924630d544ad",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/5a58b38d-dfe5-44c2-9d58-34309585c057",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2512,
+        1568
+      ],
+      "id": "31222f17-7f06-4306-a494-acce391c9d14",
+      "name": "CalculateCapital"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n<Role>TrinAi_Dental_CFO_Persone</Role>\n<Objective>\nEseguire la scomposizione analitica del bilancio interno (Stato Patrimoniale / Conto Economico) o del Modello Redditi SP di una Societ\u00e0 di Persone odontoiatrica (S.n.c. o S.a.s.), compilando con precisione chirurgica tutti i 45 conti dello schema financials tramite analisi visiva avanzata (OCR) ed eliminando zeri di comodo.\n</Objective>\n\n<Constraint_Rules_Anti_Lazy_Mandatory>\n1. DIVIETO ASSOLUTO DI VALORI NULLI FACILI (ZERO-TOLERANCE POLICY):\n   I conti indicati come \"Strutturali\" non possono mai essere impostati a 0.00, poich\u00e9 rappresentano costi obbligatori per l'esistenza di uno studio odontoiatrico attivo:\n   * \"632.00005\" (Tassa Rifiuti TARI): Sempre maggiore di 0 (minimo \u20ac 1.200,00 per poltrona attiva).\n   * \"606.00005\" (Riscaldamento locali): Sempre maggiore di 0.\n   * \"606.00010\" (Spese condominiali): Sempre maggiore di 0.\n   * \"632.00001\" (Imposte di bollo): Sempre maggiore di 0 (esenzione IVA medica obbliga al bollo da \u20ac2 per fatture > \u20ac77,47. Calcola un importo coerente, es. \u20ac 500,00 - \u20ac 1.500,00).\n   * \"601.00012\" (Ammortamento beni inferiori a \u20ac 516,46): Sempre maggiore di 0 (rapido ricambio di manipoli, turbine e strumenti di sedia).\n   * \"605.00061\" (Interessi passivi leasing): Se il conto 605.00001 \u00e8 maggiore di 0, calcola gli interessi passivi stimando il 5% del canone.\n   * \"601.00001\" (Ammortamento impianti generici): Sempre maggiore di 0 (usura impianti idraulici ed elettrici speciali delle sale riunito).\n   * \"610.00201\" (Altri costi del personale): Sempre maggiore di 0 (spese mediche del lavoro e divise per i dipendenti).\n\n2. LIQUIDAZIONE DEI CONTI DI COMODO (631.00201, 631.00251):\n   \u00c8 vietato allocare quote superiori al 5% dei costi totali sui conti generici \"631.00201\" (Altre spese documentate) e \"631.00251\" (Altri costi indeducibili). Distribuisci le eccedenze di bilancio proporzionalmente tra le voci specifiche.\n\n3. VINCOLO LEASING ATTREZZATURE:\n   Estrai dall'array <Equipment_Context> i beni in 'Leasing/Noleggio' e calcola il canone annuo (Canone mensile * 12).\n   La somma dei canoni deve essere inserita su \"605.00001\". La parte restante della voce \"Godimento beni di terzi\" trovata nel documento va su \"606.00001\" (Locazione).\n\n4. RECONCILIAZIONE STIPENDI DIPENDENTI (610.00001):\n   La somma del conto \"610.00001\" deve corrispondere esattamente alla somma dei salari annuali reali dei dipendenti inseriti in <Staff_Context>.\n</Constraint_Rules_Anti_Lazy_Mandatory>\n\n<Ipotesi_Di_Scomposizione_Per_Singola_Voce>\n\n=== GRUPPO A: Consumi e Spese di Gestione ===\n* 631.01000 (Materiale Dentale) \u27a1\ufe0f Ipotizza il 35% del totale acquisti merci/consumi (compositi, impronte).\n* 631.01001 (DPI & Sterilizzazione) \u27a1\ufe0f Ipotizza il 10% del totale acquisti merci (guanti, mascherine, buste).\n* 631.01002 (Protesi Terzi) \u27a1\ufe0f Ipotizza il 30% del totale acquisti (fatture odontotecnico). Riduci del 5% se c'\u00e8 uno scanner intraorale e fresatore (CAD-CAM).\n* 631.01003 (Protesi Ortodonzia Terzi) \u27a1\ufe0f Ipotizza il 10% degli acquisti se in <Staff_Context> \u00e8 presente un Ortodontista. Altrimenti 0.00.\n* 631.01004 (Apparecchi Ortodontici) \u27a1\ufe0f Ipotizza il 10% degli acquisti se \u00e8 presente un Ortodontista (allineatori). Altrimenti 0.00.\n* 631.01005 (Smaltimento Rifiuti Speciali) \u27a1\ufe0f Calcola una quota fissa tra \u20ac 1.200,00 e \u20ac 1.800,00 all'anno (estratta da spese di gestione/servizi).\n* 631.01006 (Protesi in Proprio) \u27a1\ufe0f Ipotizza il 5% degli acquisti se in <Equipment_Context> \u00e8 presente una fresatrice o stampante 3D. Altrimenti 0.00.\n* 631.00002 (Assicurazioni Studio) \u27a1\ufe0f Ipotizza una quota tra \u20ac 1.000,00 e \u20ac 2.000,00 (estratta da spese generali) per furto/incendio mura dello studio.\n* 631.00005 (Pubblicit\u00e0/Marketing) \u27a1\ufe0f Ipotizza il 2.5% dei Costi Servizi.\n* 631.00007 (Spese Legali) \u27a1\ufe0f Ipotizza una quota tra \u20ac 1.500,00 e \u20ac 3.000,00.\n* 631.00008 (Spese Postali) \u27a1\ufe0f Ipotizza una quota tra \u20ac 300,00 e \u20ac 800,00.\n* 631.00009 (Formazione/Sicurezza) \u27a1\ufe0f Ipotizza una quota tra \u20ac 1.500,00 e \u20ac 2.500,00 per corsi 81/08.\n* 631.00011 (Servizi Bancari/POS) \u27a1\ufe0f Calcola lo 0.5% del fatturato totale delle prestazioni cliniche (POS commissioni).\n* 631.00020 (Cancelleria) \u27a1\ufe0f Ipotizza una quota tra \u20ac 500,00 e \u20ac 1.200,00.\n* 631.00023 (Riviste/Sala d'attesa) \u27a1\ufe0f Ipotizza una quota tra \u20ac 200,00 e \u20ac 500,00.\n* 631.00026 (Iscrizione Ordine Medici) \u27a1\ufe0f Calcola esattamente \u20ac 200,00 per ciascun odontoiatra attivo presente in <Staff_Context>.\n* 631.00201 (Altre spese documentate) \u27a1\ufe0f Alloca solo la quota residuale (Massimo 5% del totale di gruppo).\n* 631.00251 (Altri costi indeducibili) \u27a1\ufe0f Alloca solo la quota indeducibile fiscale residua (Massimo 5% del totale).\n\n=== GRUPPO B: Costi del Personale & Collaboratori ===\n* 610.00001 (Salari Stipendi) \u27a1\ufe0f Deve coincidere esattamente con il totale dei salari lordi annuali dei dipendenti inseriti in <Staff_Context>.\n* 610.00021 (Oneri INPS) \u27a1\ufe0f Calcola esattamente il 28% del monte salari dipendenti (610.00001) dalla voce oneri sociali del documento.\n* 610.00031 (Oneri INAIL) \u27a1\ufe0f Calcola esattamente il 2% del monte salari dipendenti (610.00001).\n* 610.00101 (TFR Accantonato) \u27a1\ufe0f Deve coincidere con il TFR annuo da bilancio o essere calcolato come il 7.41% del monte salari (610.00001).\n* 610.00201 (Altri Costi Personale) \u27a1\ufe0f Calcola \u20ac 300,00 per ciascun dipendente in <Staff_Context> per visite mediche d'obbligo e divise.\n* 610.01000 (Salari Indeducibili) \u27a1\ufe0f Imposta a 0.00 salvo anomalie.\n* 612.00001 (Costo Commercialista/Consulenti) \u27a1\ufe0f Ipotizza il 3.5% dei Costi Servizi complessivi.\n* 612.00005 (Compensi Medici P.IVA) \u27a1\ufe0f Calcolato sottraendo alla voce totale \"Servizi\" del bilancio tutte le altre spese per servizi allocate. Deve coprire l'ingaggio dei medici consulenti a percentuale.\n\n=== GRUPPO C: Spese Immobili, Utenze e Bolli ===\n* 606.00001 (Locazione Immobili) \u27a1\ufe0f Pari al totale della voce \"Affitti/Locazioni\" meno la quota leasing calcolata sul conto 605.00001.\n* 606.00005 (Riscaldamento) \u27a1\ufe0f Ipotizza una quota annua tra \u20ac 1.500,00 e \u20ac 3.500,00.\n* 606.00007 (Acqua) \u27a1\ufe0f Calcola esattamente \u20ac 300,00 per ciascuna sala operativa in Num_Chairs (es. \u20ac 900,00 per 3 riuniti).\n* 606.00010 (Spese Condominiali) \u27a1\ufe0f Ipotizza una quota annua tra \u20ac 1.200,00 e \u20ac 2.400,00.\n* 621.00001 (Telefonia Fissa/Internet) \u27a1\ufe0f Ipotizza una quota tra \u20ac 600,00 e \u20ac 1.200,00.\n* 621.00002 (Telefonia Mobile) \u27a1\ufe0f Ipotizza una quota tra \u20ac 300,00 e \u20ac 600,00.\n* 621.00005 (Carburanti) \u27a1\ufe0f Ipotizza una quota tra \u20ac 1.000,00 e \u20ac 2.500,00 se in <Equipment_Context> \u00e8 presente una vettura aziendale. Altrimenti 0.00.\n* 621.00031 (Energia Elettrica) \u27a1\ufe0f Calcola esattamente \u20ac 1.500,00 per ciascuna sala operativa in Num_Chairs (es. \u20ac 4.500,00 per 3 riuniti).\n* 631.00017 (Manutenzione Software) \u27a1\ufe0f Ipotizza il 3% dei Costi Servizi per canoni gestionali.\n* 626.00201 (Aggiornamento Professionale) \u27a1\ufe0f Ipotizza una quota annua tra \u20ac 1.500,00 e \u20ac 3.500,00.\n* 626.00202 (Pasti/Soggiorni ECM) \u27a1\ufe0f Calcola esattamente il 30% del costo di aggiornamento professionale (626.00201).\n* 632.00001 (Imposta Bollo) \u27a1\ufe0f Calcola lo 0.3% del fatturato totale delle prestazioni (emissione marche da bollo).\n* 632.00002 (Imposta Registro) \u27a1\ufe0f Ipotizza una quota tra \u20ac 200,00 e \u20ac 500,00 per contratti d'affitto.\n* 632.00005 (Tassa Rifiuti TARI) \u27a1\ufe0f Calcola esattamente \u20ac 1.200,00 per ciascuna sala operativa in Num_Chairs (es. \u20ac 3.600,00 per 3 riuniti).\n* 632.00015 (Valori Bollati) \u27a1\ufe0f Ipotizza una quota tra \u20ac 100,00 e \u20ac 300,00.\n\n=== GRUPPO D: Ammortamenti, Leasing e Manutenzioni ===\n* 601.00001 (Ammortamento Impianti Generici) \u27a1\ufe0f Ipotizza il 5% degli ammortamenti materiali totali del bilancio.\n* 601.00004 (Ammortamento Attrezzature Mediche) \u27a1\ufe0f Calcolato raccordando l'inventario dei cespiti di propriet\u00e0 in <Equipment_Context> (Costo di acquisto / useful_life).\n* 601.00007 (Ammortamento Macchine Ufficio) \u27a1\ufe0f Ipotizza il 5% degli ammortamenti totali o calcola basandoti sui PC in inventario.\n* 601.00008 (Ammortamento Autovetture) \u27a1\ufe0f Calcolato basandoti sulla vettura in <Equipment_Context>. Altrimenti 0.00.\n* 601.00010 (Ammortamento Arredamento) \u27a1\ufe0f Ipotizza il 5% degli ammortamenti materiali (mobili operativi e d'attesa).\n* 601.00012 (Ammortamento Beni inferiori a \u20ac 516,46) \u27a1\ufe0f Ipotizza il 10% degli ammortamenti materiali (turbine/manipoli di rapido ricambio).\n* 601.00013 (Ammortamento Telefonia) \u27a1\ufe0f Ipotizza una quota tra \u20ac 150,00 e \u20ac 300,00.\n* 601.00101 (Ammortamenti Indeducibili) \u27a1\ufe0f Imposta a 0.00 salvo anomalie.\n* 605.00001 (Leasing Beni Mobili) \u27a1\ufe0f Esattamente pari al canone leasing annuo dei beni in leasing in <Equipment_Context> (es. \u20ac 900/mese * 12 = \u20ac 10.800/anno).\n* 605.00061 (Interessi Leasing) \u27a1\ufe0f Ipotizza il 5% del canone leasing annuale calcolato sul conto 605.00001.\n* 631.00016 (Assicurazione RC Medici) \u27a1\ufe0f Ipotizza l'1.5% dei Costi Servizi per polizze RC professionali obbligatorie.\n* 631.00101 (Manutenzione Auto) \u27a1\ufe0f Ipotizza una quota tra \u20ac 500,00 e \u20ac 1.500,00 se presente auto. Altrimenti 0.00.\n* 631.00103 (Manutenzioni-Riparazioni) \u27a1\ufe0f Ipotizza il 2.5% dei Costi Servizi per verifiche impianti, autoclavi, esperti.\n* 631.00111 (Pedaggi Autostradali) \u27a1\ufe0f Ipotizza una quota tra \u20ac 100,00 e \u20ac 400,00 se presente auto. Altrimenti 0.00.\n* 631.00121 (Assicurazione RCA Auto) \u27a1\ufe0f Ipotizza una quota tra \u20ac 500,00 e \u20ac 1.000,00 se presente auto. Altrimenti 0.00.\n* 635.00001 (Abbuoni e Arrotondamenti passivi) \u27a1\ufe0f Alloca solo la piccolissima eccedenza decimale matematica finale (Massimo \u20ac 99,00) per far quadrare i conti di gruppo.\n</Ipotesi_Di_Scomposizione_Per_Singola_Voce>\n\n<Mathematical_Constraint>\nLa somma dei conti deve quadrare perfettamente con i totali contabili del documento interno S.n.c./S.a.s. o del Modello Redditi SP analizzato.\n</Mathematical_Constraint>\n\n<Output_Schema>\nRispondi esclusivamente con un oggetto JSON valido, senza preamboli o markdown (no ```json):\n{\n  \"financials\": {\n    \"631.01000\": 0.00, \"631.01001\": 0.00, \"631.01002\": 0.00, \"631.01003\": 0.00, \"631.01004\": 0.00, \"631.01005\": 0.00, \"631.01006\": 0.00,\n    \"631.00002\": 0.00, \"631.00005\": 0.00, \"631.00007\": 0.00, \"631.00008\": 0.00, \"631.00009\": 0.00, \"631.00011\": 0.00, \"631.00020\": 0.00,\n    \"631.00023\": 0.00, \"631.00026\": 0.00, \"631.00201\": 0.00, \"631.00251\": 0.00,\n    \"610.00001\": 0.00, \"610.00021\": 0.00, \"610.00031\": 0.00, \"610.00101\": 0.00, \"610.00201\": 0.00, \"610.01000\": 0.00,\n    \"612.00001\": 0.00, \"612.00005\": 0.00,\n    \"606.00001\": 0.00, \"606.00005\": 0.00, \"606.00007\": 0.00, \"606.00010\": 0.00,\n    \"21.00001\": 0.00, \"621.00002\": 0.00, \"621.00005\": 0.00, \"621.00031\": 0.00, \"631.00017\": 0.00,\n    \"626.00201\": 0.00, \"626.00202\": 0.00,\n    \"632.00001\": 0.00, \"632.00002\": 0.00, \"632.00005\": 0.00, \"632.00015\": 0.00,\n    \"601.00001\": 0.00, \"601.00004\": 0.00, \"601.00007\": 0.00, \"601.00008\": 0.00, \"601.00010\": 0.00, \"601.00012\": 0.00, \"601.00013\": 0.00, \"601.00101\": 0.00,\n    \"605.00001\": 0.00, \"605.00061\": 0.00,\n    \"631.00016\": 0.00, \"631.00101\": 0.00, \"631.00103\": 0.00, \"631.00111\": 0.00, \"631.00121\": 0.00, \"635.00001\": 0.00\n  }\n}\n</Output_Schema>\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<Prompt>\n<Staff_Context>\n{{ JSON.stringify($json.body.operators) }}\n</Staff_Context>\n\n<Equipment_Context>\n{{ JSON.stringify($json.body.machinery) }}\nNum_Chairs: {{ $json.owner_data.number_of_chairs }}\n</Equipment_Context>\n\n<Live_Fiscal_And_Compliance_Snapshot>\n{{ $json.fiscal_reserch_output }}\n</Live_Fiscal_And_Compliance_Snapshot>\n\n<Instructions>\nAnalizza visivamente l'immagine o il PDF del bilancio interno / Modello Redditi SP allegato nei dati binari. \nUtilizza i dati reali di imposte locali, TARI, contratti rifiuti e adempimenti contenuti in <Live_Fiscal_And_Compliance_Snapshot> per eseguire la scomposizione analitica delle voci di costo con precisione millimetrica, popolando lo schema financials ed evitando stime teoriche laddove la ricerca ha individuato cifre reali sul territorio.\n</Instructions>\n</Prompt>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "calculate_output",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.body.uploaded_file_data }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.body.uploaded_file_mimetype }}",
+              "type": "string"
+            },
+            {
+              "id": "2c668bee-f5df-49a0-b8e2-4ada02558fda",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "96a48d96-a341-4a86-8c11-c1ea66983a73",
+              "name": "billing_source.use",
+              "value": "=Advanced Setup {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "b534f990-488a-4aa6-a246-924630d544ad",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/5a58b38d-dfe5-44c2-9d58-34309585c057",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2512,
+        1728
+      ],
+      "id": "3bfafdbc-6119-41c7-b3d2-a61f368ca37c",
+      "name": "CalculatePersone"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n<Role>TrinAi_Dental_CFO_Professionisti</Role>\n<Objective>\nEseguire la scomposizione contabile analitica per un Libero Professionista odontoiatrico analizzando visivamente il Quadro RE del Modello Unico PF allegato, stimando ed ipotizzando con precisione millimetrica ogni singola voce per evitare conti a zero.\n</Objective>\n\n<Constraint_Rules_Anti_Lazy_Mandatory>\n1. COMPILAZIONE COMPLETA E DETTAGLIATA (NO LAZY ZEROS):\n   Tutti i conti di spesa (es. utenze, bolli, cancelleria, software) devono essere calcolati o ipotizzati in modo realistico. \u00c8 vietato lasciare i conti a 0.00 se la compilazione del Quadro RE (RE11, RE12, RE15, RE19) ne presuppone l'esistenza.\n2. COERENZA ALGEBRICA QUADRO RE:\n   La somma di tutti i conti clinici e gestionali mappati deve coincidere matematicamente con la somma dei righi di spesa dichiarati nel Quadro RE (RE11 + RE12 + RE15 + RE19). Ogno valore deve essere arrotondato a due decimali.\n3. RECONCILIAZIONE PERSONALE E CONSULENTI (RE11 e RE12):\n   - Le cifre allocate su 610.00001 (Stipendi) e correlati devono quadrare con il rigo RE11 e con i dipendenti in <Staff_Context>.\n   - Le cifre allocate su 612.00005 (Collaboratori medici) devono quadrare con il rigo RE12 e con i contratti a P.IVA in <Staff_Context>.\n4. VINCOLO LEASING ATTREZZATURE (MANDATORIO):\n   Estrai dall'array <Equipment_Context> i beni in 'Leasing/Noleggio' e calcola il canone annuo (Canone mensile * 12).\n   La somma dei canoni deve essere inserita su \"605.00001\". La parte restante di godimento beni di terzi (Locazioni passive, rigo RE19) va su \"606.00001\" (Locazione).\n</Constraint_Rules_Anti_Lazy_Mandatory>\n\n<Quadro_RE_Decomposition_Rules_By_Code>\n- Rigo RE11 (Dipendenti) \u27a1\ufe0f Mappa su 610.00001 (Stipendi), 610.00021 (INPS dipendenti, ~28%), 610.00031 (INAIL, ~2%) e 610.00101 (TFR). Equilibra con il personale in <Staff_Context>.\n- Rigo RE12 (Compensi a terzi) \u27a1\ufe0f Mappa interamente su 612.00005 (Collaboratori a P.IVA).\n- Rigo RE15 (Quote ammortamento cespiti) \u27a1\ufe0f Mappa sui conti di ammortamento ordinario raccordando con l'inventario in <Equipment_Context>:\n  * 601.00004 (Ammortamento attrezzature mediche, es. riuniti di propriet\u00e0).\n  * 601.00007 (Ammortamento computer d'ufficio).\n  * 601.00010 (Ammortamento arredi operativi).\n  * 601.00012 (Ammortamento beni inferiori a \u20ac 516,46, es. manipoli/turbine).\n- Rigo RE19 (Altre spese documentate) \u27a1\ufe0f Rappresenta la somma dei consumabili, delle utenze e dell'affitto dello studio. Applica la seguente ripartizione logica di default, ipotizzando importi per ciascuna voce:\n  * 631.01000 (Materiale dentale): Ipotizza il 35% di RE19.\n  * 631.01002 (Lavorazioni protesi da terzi): Ipotizza il 30% di RE19.\n  * 631.01004 (Ortodonzia): Ipotizza il 10% di RE19 se in <Staff_Context> \u00e8 presente un Ortodontista.\n  * 631.01001 (DPI e sterilizzazione): Ipotizza il 5% di RE19.\n  * 621.00031 (Energia elettrica): Calcola esattamente \u20ac 1.500,00 per ciascuna sala operativa in Num_Chairs.\n  * 632.00005 (Tassa Rifiuti TARI): Calcola esattamente \u20ac 1.200,00 per ciascuna sala operativa in Num_Chairs.\n  * 606.00007 (Acqua): Calcola esattamente \u20ac 300,00 per ciascuna sala operativa in Num_Chairs.\n  * 632.00001 (Imposta Bollo): Calcola esattamente lo 0.3% dei compensi totali del rigo RE3 (acquisto marche da bollo).\n  * 606.00001 (Quota affitto dello studio): La parte restante del rigo RE19 (dopo aver detratto utenze, consumi e quote leasing 605.00001).\n</Quadro_RE_Decomposition_Rules_By_Code>\n\n<Output_Schema>\nRispondi esclusivamente con un oggetto JSON valido, senza preamboli o markdown (no ```json):\n{\n  \"financials\": {\n    \"631.01000\": 0.00, \"631.01001\": 0.00, \"631.01002\": 0.00, \"631.01003\": 0.00, \"631.01004\": 0.00, \"631.01005\": 0.00, \"631.01006\": 0.00,\n    \"631.00002\": 0.00, \"631.00005\": 0.00, \"631.00007\": 0.00, \"631.00008\": 0.00, \"631.00009\": 0.00, \"631.00011\": 0.00, \"631.00020\": 0.00,\n    \"631.00023\": 0.00, \"631.00026\": 0.00, \"631.00201\": 0.00, \"631.00251\": 0.00,\n    \"610.00001\": 0.00, \"610.00021\": 0.00, \"610.00031\": 0.00, \"610.00101\": 0.00, \"610.00201\": 0.00, \"610.01000\": 0.00,\n    \"612.00001\": 0.00, \"612.00005\": 0.00,\n    \"606.00001\": 0.00, \"606.00005\": 0.00, \"606.00007\": 0.00, \"606.00010\": 0.00,\n    \"621.00001\": 0.00, \"621.00002\": 0.00, \"621.00005\": 0.00, \"621.00031\": 0.00, \"631.00017\": 0.00,\n    \"626.00201\": 0.00, \"626.00202\": 0.00,\n    \"632.00001\": 0.00, \"632.00002\": 0.00, \"632.00005\": 0.00, \"632.00015\": 0.00,\n    \"601.00001\": 0.00, \"601.00004\": 0.00, \"601.00007\": 0.00, \"601.00008\": 0.00, \"601.00010\": 0.00, \"601.00012\": 0.00, \"601.00013\": 0.00, \"601.00101\": 0.00,\n    \"605.00001\": 0.00, \"605.00061\": 0.00,\n    \"631.00016\": 0.00, \"631.00101\": 0.00, \"631.00103\": 0.00, \"631.00111\": 0.00, \"631.00121\": 0.00, \"635.00001\": 0.00\n  }\n}\n</Output_Schema>\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<Prompt>\n<Staff_Context>\n{{ JSON.stringify($json.body.operators) }}\n</Staff_Context>\n\n<Equipment_Context>\n{{ JSON.stringify($json.body.machinery) }}\nNum_Chairs: {{ $json.owner_data.number_of_chairs }}\n</Equipment_Context>\n\n<Live_Fiscal_And_Compliance_Snapshot>\n{{ $json.fiscal_reserch_output }}\n</Live_Fiscal_And_Compliance_Snapshot>\n\n<Instructions>\nAnalizza visivamente l'immagine o il PDF del Quadro RE (Modello Unico) allegato nei dati binari. \nUtilizza i dati reali di imposte, TARI, contratti rifiuti e adempimenti contenuti in <Live_Fiscal_And_Compliance_Snapshot> per eseguire la scomposizione analitica dei righi di spesa (RE11, RE12, RE15, RE19) con precisione millimetrica, popolando lo schema financials ed evitando stime teoriche laddove la ricerca ha individuato cifre reali sul territorio.\n</Instructions>\n</Prompt>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "calculate_output",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.body.uploaded_file_data }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.body.uploaded_file_mimetype }}",
+              "type": "string"
+            },
+            {
+              "id": "2c668bee-f5df-49a0-b8e2-4ada02558fda",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "96a48d96-a341-4a86-8c11-c1ea66983a73",
+              "name": "billing_source.use",
+              "value": "=Advanced Setup {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "b534f990-488a-4aa6-a246-924630d544ad",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/5a58b38d-dfe5-44c2-9d58-34309585c057",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2512,
+        1888
+      ],
+      "id": "f72ce6d0-7262-4cbc-a651-b6dece171da7",
+      "name": "CalculateProfessionisti"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "db651d7b-7494-4161-9932-8cb1e068453b",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            },
+            {
+              "id": "87ec84be-d0a9-4e1f-b21e-5c6cd6dbfe02",
+              "name": "owner_data.financials",
+              "value": "={{ $json.calculate_output.financials }}",
+              "type": "object"
+            },
+            {
+              "id": "184c0d66-ac82-4504-9030-65be211e9cb8",
+              "name": "owner_data.advanced_setup",
+              "value": "={{ $json.body.advanced_setup }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3152,
+        1728
+      ],
+      "id": "3ca43f37-dd1d-4b78-b467-85a96bc95315",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n  <Role>RealTime_Localized_Fiscal_and_Compliance_Research_Agent</Role>\n  <Context>\n    Sei un consulente tributario, previdenziale ed esperto di adempimenti amministrativi locali per studi professionali e strutture sanitarie in Italia. Il tuo unico scopo \u00e8 scansionare il web in tempo reale tramite lo strumento di ricerca Google Search per raccogliere un'istantanea (un fermo immagine reale al centesimo) di tutte le aliquote, imposte, tasse territoriali (regionali, camerali, comunali) e dei costi di conformit\u00e0 sanitaria obbligatori vigenti per lo studio clinico in base alla sua esatta localizzazione geografica fornita nel Prompt.\n  </Context>\n\n  <Scouting_Directives>\n    Esegui ricerche Google mirate, geolocalizzando l'indagine esclusivamente in base al Comune, alla Provincia e alla Regione dello studio estratte dall'indirizzo fornito nel Prompt:\n\n    1. TASSAZIONE REGIONALE:\n       - Identifica l'aliquota IRAP ordinaria e le eventuali addizionali correnti applicate dalla Regione di riferimento dello studio per la forma giuridica del tenant (S.r.l., STP, o ditta individuale).\n       - Cerca i costi, i diritti di segreteria e le tariffe ispettive regionali dovute all'Organismo di Accreditamento / Vigilanza Sanitaria della specifica Regione per il mantenimento dell'Autorizzazione Sanitaria Clinica legata alla tipologia di prestazione indicata.\n\n    2. ADEMPIMENTI E TASSE COMUNALI / PROVINCIALI:\n       - Cerca i regolamenti TARI (Tassa Rifiuti) dello specifico Comune di riferimento applicati alle strutture sanitarie/studi professionali. Verifica se sono previste riduzioni della tariffa per le superfici dei locali operativi clinici che producono rifiuti speciali smaltiti privatamente.\n       - Identifica l'importo del Diritto Camerale Annuo dovuto alla Camera di Commercio (CCIAA) della Provincia dello studio per l'iscrizione societaria del tenant.\n\n    3. ADEMPIMENTI SANITARI E DI TRACCIABILIT\u00c0 NAZIONALI OBBLIGATORI:\n       - Verifica le tariffe di iscrizione, i diritti di segreteria e il contributo annuo obbligatorio per l'iscrizione al RENTRI (Registro Elettronico Nazionale Tracciabilit\u00e0 Rifiuti) in base alla forma giuridica del tenant e alla produzione di rifiuti speciali pericolosi a rischio infettivo (EER 18.01.03*).\n       - Identifica la tariffa media di mercato nella Regione o Provincia dello studio per un contratto annuo standard di smaltimento rifiuti speciali sanitari pericolosi (infettivi e taglienti) riproporzionata per il numero di poltrone attive dello studio.\n\n    4. PARAMETRI FISCALI NAZIONALI DI CATEGORIA:\n       - Identifica il coefficiente di redditivit\u00e0 corrente per il codice ATECO dello studio nel regime forfettario e la relativa soglia limite di ricavi.\n       - Conferma l'aliquota d'imposta societaria ordinaria (IRES) e le regole della contribuzione previdenziale o di solidariet\u00e0 obbligatoria di categoria (es. ENPAM per STP o ditte individuali odontoiatriche) in vigore.\n       - Identifica la sigla e i parametri del modello ISA (Indici Sintetici di Affidabilit\u00e0 Fiscale) corrente per l'attivit\u00e0 del tenant, focalizzandoti sulle soglie di coerenza per l'accesso al \"Regime Premiale\" (punteggio minimo atteso).\n  </Scouting_Directives>\n\n  <OutputFormat>\n    Genera esclusivamente una scheda tecnica quantitativa strutturata in Markdown con i dati reali raccolti, senza preamboli, introduzioni o interpretazioni teoriche. Usa questa struttura standard:\n\n    # LIVE FISCAL SNAPSHOT: ATECO [Inserisci Codice ATECO] ([Inserisci Comune] - [Inserisci Sigla Provincia])\n\n    ## 1. Imposte Nazionali e di Categoria (S.r.l. / STP / Individuale)\n    *   INCOME_TAX_RATE_CURRENT: [Valore decimale o %, es. 0.24]\n    *   PREVIDENTIAL_SOLIDARITY_RATE: [Valore % di categoria societario o individuale]\n    *   FORFETTARIO_LIMIT_REVENUE: [Valore in \u20ac]\n    *   FORFETTARIO_PROFITABILITY_COEFFICIENT: [Valore %]\n\n    ## 2. Balzelli Regionali ([Inserisci Nome Regione])\n    *   IRAP_RATE_REGIONAL: [Valore %]\n    *   ADD_REGIONALE_TAX_RATE: [Valore %]\n    *   HEALTH_AUTHORIZATION_COMPLIANCE_FEE_ANNUAL: [Costo annuale stimato o diritti ispettivi per rinnovo/mantenimento autorizzazione in \u20ac]\n    *   REGIONAL_LAW_HEALTH_REFERENCE: [Sigla legge o regolamento regionale di riferimento]\n\n    ## 3. Balzelli Provinciali e Comunali ([Comune] / [Provincia])\n    *   TARI_SPECIAL_WASTE_REDUCTION_RATE: [Costo stimato/tariffa TARI mq o percentuale di riduzione TARI per locali sanitari]\n    *   CCIAA_PROVINCIAL_ANNUAL_FEE: [Valore in \u20ac del diritto camerale annuo per la forma giuridica del tenant]\n    *   IMU_COMMERCIAL_RATE_MUNICIPAL: [Aliquota IMU locale per categoria d'uso dell'immobile]\n\n    ## 4. Adempimenti Speciali e Rifiuti (RENTRI & Smaltimento)\n    *   RENTRI_ANNUAL_SUBSCRIPTION_FEE: [Contributo e diritti annuali di iscrizione per la forma giuridica del tenant in \u20ac]\n    *   HAZARDOUS_WASTE_DISPOSAL_CONTRACT_LOCAL: [Costo medio stimato di mercato per contratto smaltimento rifiuti speciali a rischio infettivo per poltrona attiva in \u20ac]\n\n    ## 5. Indici di Affidabilit\u00e0 Fiscale (ISA)\n    *   ISA_MODEL_CODE: [Codice modello corrente per l'attivit\u00e0]\n    *   ISA_PREMIAL_THRESHOLD_SCORE: [Punteggio minimo per il regime premiale]\n    *   ISA_COMPLIANCE_RISK_FACTORS: [Breve elenco puntato delle incoerenze sedia/personale monitorate dal fisco per l'attivit\u00e0]\n  </OutputFormat>\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<Prompt>\n  <TenantContext>\n    <BusinessName>{{ $json.owner_data?.ragione_sociale }}</BusinessName>\n    <VatNumber>{{ $json.owner_data?.vat_number }}</VatNumber>\n    <Address>{{ $json.owner_data?.indirizzo }}</Address>\n    <GPS>{{ $json.lat }}, {{ $json.lon }}</GPS>\n    <ActiveChairs>{{ $json.owner_data?.numero_riuniti || 3 }}</ActiveChairs>\n    <Sector>{{ $json.owner_data?.sector }}</Sector>\n  </TenantContext>\n\n  <HoneypotContext>\n    <CompanyOverview>{{ $json.honeypots?.company_context_string }}</CompanyOverview>\n    <TeamSize>{{ $json.owner_data?.kyc_details?.professional_questionnaire?.team_size }}</TeamSize>\n  </HoneypotContext>\n\n  <Instructions>\n    Analizza i dettagli geografici presenti in TenantContext (estrapolando attivamente Comune, Provincia e Regione dal campo Address) e la configurazione strutturale indicata nei nodi del profilo.\n    - Esegui una scansione web mirata tramite Google Search per catturare le esatte aliquote d'imposta nazionali, regionali e comunali applicabili alla posizione geografica del tenant in questo istante.\n    - Rileva tutti i balzelli e adempimenti specifici (TARI locali, diritti camerali provinciali, contributi obbligatori RENTRI, contratti di smaltimento rifiuti speciali pericolosi e tariffe ispettive regionali per l'autorizzazione/accreditamento sanitario).\n    - Popola rigorosamente lo schema tecnico richiesto nelle istruzioni di sistema (System Instruction) utilizzando esclusivamente i dati reali, numerici e geografici scovati durante la ricerca.\n  </Instructions>\n</Prompt>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "fiscal_reserch_output",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.body.grounded_files.locations?.data }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.body.grounded_files.locations?.type }}",
+              "type": "string"
+            },
+            {
+              "id": "2c668bee-f5df-49a0-b8e2-4ada02558fda",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "96a48d96-a341-4a86-8c11-c1ea66983a73",
+              "name": "billing_source.use",
+              "value": "=Advanced Product {{ $json.owner_data.vat_number }}-{{ $json.body.sop_id }}",
+              "type": "string"
+            },
+            {
+              "id": "b534f990-488a-4aa6-a246-924630d544ad",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/6333dff0-d886-499c-8000-f3e0266845ed",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1888,
+        1728
+      ],
+      "id": "e3014ff5-3492-4999-98bc-86f8a567a765",
+      "name": "Fiscal Profiler"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "i6kSWyKrKQytzwQlFs92T",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/i6kSWyKrKQytzwQlFs92T",
+          "cachedResultName": "GeminiGoogleSerch"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2064,
+        1728
+      ],
+      "id": "f74a23b1-7e79-4982-976d-ade6d8792058",
+      "name": "Call Gemini Fiscal",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3328,
+        1552
+      ],
+      "id": "bc10f401-8682-48ff-a6c9-d8eb979d627b",
+      "name": "Respond to vertical4"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        3152,
+        2048
+      ],
+      "id": "978b3a65-0c99-4ad4-9a73-eb4baad58763",
+      "name": "MongoDB Chat Memory10",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        3152,
+        1904
+      ],
+      "id": "0561933b-a4d6-47c8-81bb-9a07510ae27f",
+      "name": "owner3",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3152,
+        1552
+      ],
+      "id": "ebb78fec-1874-4fcf-a6e7-0ba0b182e576",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "20f05e66-f3ad-4bc9-8719-ef4d1bd98368",
+              "name": "financials",
+              "value": "={{ $json.calculate_output.financials }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2944,
+        1568
+      ],
+      "id": "4550a81c-4d98-4373-8261-73718e48eee0",
+      "name": "Edit Fields7"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0",
+            "content-length": "17511",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "it,it-IT;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "content-type": "application/json",
+            "origin": "https://trinaibusinessoperatingsystem.github.io",
+            "priority": "u=1, i",
+            "referer": "https://trinaibusinessoperatingsystem.github.io/",
+            "sec-ch-ua": "\"Not)A;Brand\";v=\"24\", \"Microsoft Edge WebView2\";v=\"149\", \"Microsoft Edge\";v=\"149\", \"Chromium\";v=\"149\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "151.43.29.122",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "_auth": "query_id=AAF7KwZvAwAAAHsrBm9skBL3&user=%7B%22id%22%3A8305126267%2C%22first_name%22%3A%22Giuseppe%22%2C%22last_name%22%3A%22B%22%2C%22language_code%22%3A%22it%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2Fp6piCXvtNSGj4KPd60vozxgOJss0ji-aGRNNX4I7CVNme0ergMr6kC1wUoV60zBY.svg%22%7D&auth_date=1781691886&signature=fYuBD15dALuGCE-yGFHofWnYUT64StEUWRobVYm4ccxjuEaf6M5vWHMoWkx3ziK6LC_JLB0hNc_kL-qI252YAw&hash=55ad938a32b3b3c0d5433ecf1337ddeffd49731c14ea9296e9a1b138ffca9c7b",
+            "ash": "ODMwNTEyNjI2N3wxNzgxNjc3MDM3Mjg5fGVmNGFlY2U0LTllYzAtNDAyNi1hN2E3LTMyODU2MmJjYmRmNg==.5c01a833",
+            "action": "execute_financial_decomposition",
+            "operators": [
+              {
+                "OperatorName": "GIUSEPPE BUSCEMI",
+                "OperatorChatID": 8305126267,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Owner",
+                "Job": "Odontoiatra",
+                "isOwner": true,
+                "contract": "Partita IVA",
+                "level": "",
+                "hours": 40,
+                "salary": 0,
+                "rate_type": "percentage",
+                "rate": 30,
+                "specialization": "Ortodontista",
+                "GeminiKey": "AIzaSyBCV2D4FL-1Nww0jYJRJTDBG5QRdm7Kclc",
+                "status": "",
+                "invitation_code": ""
+              },
+              {
+                "OperatorName": "Sara",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Operator",
+                "Job": "Igienista",
+                "isOwner": false,
+                "contract": "Dipendente (CCNL)",
+                "level": "2\u00b0 Livello",
+                "hours": 40,
+                "salary": 1878.32,
+                "rate_type": "percentage",
+                "rate": 0,
+                "specialization": "Generico / Generalista",
+                "GeminiKey": "",
+                "status": "PENDING",
+                "invitation_code": "INV-IT02564250849-XNUAX"
+              },
+              {
+                "OperatorName": "Vita",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Operator",
+                "Job": "ASO (Assistente)",
+                "isOwner": false,
+                "contract": "Dipendente (CCNL)",
+                "level": "5\u00b0 Livello",
+                "hours": 30,
+                "salary": 1126.64,
+                "rate_type": "percentage",
+                "rate": 0,
+                "specialization": "Generico / Generalista",
+                "GeminiKey": "",
+                "status": "",
+                "invitation_code": ""
+              },
+              {
+                "OperatorName": "Arianna",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Operator",
+                "Job": "ASO (Assistente)",
+                "isOwner": false,
+                "contract": "Dipendente (CCNL)",
+                "level": "4\u00b0 Livello",
+                "hours": 30,
+                "salary": 1210.59,
+                "rate_type": "percentage",
+                "rate": 0,
+                "specialization": "Generico / Generalista",
+                "GeminiKey": "",
+                "status": "",
+                "invitation_code": ""
+              },
+              {
+                "OperatorName": "Filippo",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "External",
+                "Job": "Odontoiatra",
+                "isOwner": false,
+                "contract": "Partita IVA",
+                "level": "",
+                "hours": 40,
+                "salary": 0,
+                "rate_type": "percentage",
+                "rate": 30,
+                "specialization": "Chirurgo / Implantologo",
+                "GeminiKey": "",
+                "status": "",
+                "invitation_code": ""
+              }
+            ],
+            "machinery": [
+              {
+                "type": "Riunito Odontoiatrico (Fascia Media)",
+                "year": 2024,
+                "ownership": "Propriet\u00e0",
+                "value": 18500,
+                "useful_life": 10
+              },
+              {
+                "type": "Riunito Odontoiatrico (Fascia Media)",
+                "year": 2024,
+                "ownership": "Propriet\u00e0",
+                "value": 18500,
+                "useful_life": 10
+              },
+              {
+                "type": "Compressore d'Aria Medicale Secco con Essiccatore (2-3 riuniti)",
+                "year": 2026,
+                "ownership": "Propriet\u00e0",
+                "value": 1600,
+                "useful_life": 8
+              },
+              {
+                "type": "Sistema di Aspirazione Chirurgica ad Anello Umido",
+                "year": 2025,
+                "ownership": "Propriet\u00e0",
+                "value": 2000,
+                "useful_life": 8
+              },
+              {
+                "type": "Radiografico Endorale a Parete (Generatore RX)",
+                "year": 2010,
+                "ownership": "Propriet\u00e0",
+                "value": 3000,
+                "useful_life": 8
+              },
+              {
+                "type": "Autoclave di Classe B 18-23 L (Fascia Base)",
+                "year": 2026,
+                "ownership": "Propriet\u00e0",
+                "value": 2600,
+                "useful_life": 5
+              },
+              {
+                "type": "Termosigillatrice / Sigillatrice Rotativa",
+                "year": 2026,
+                "ownership": "Propriet\u00e0",
+                "value": 900,
+                "useful_life": 5
+              },
+              {
+                "type": "Riunito Odontoiatrico (Fascia Media)",
+                "year": 2024,
+                "ownership": "Propriet\u00e0",
+                "value": 18500,
+                "useful_life": 10
+              },
+              {
+                "type": "TAC CBCT (Cone Beam 3D \u2013 FOV standard)",
+                "year": 2022,
+                "ownership": "Leasing/Noleggio",
+                "value": 900,
+                "useful_life": 8
+              }
+            ],
+            "api_balance": {
+              "managers": [
+                {
+                  "isLegalRepresentative": true,
+                  "age": 47,
+                  "birthDate": "1978-11-29T00:00:00",
+                  "birthTown": "PALERMO (PA)",
+                  "name": "GIUSEPPE MARIA",
+                  "roles": [
+                    {
+                      "role": {
+                        "code": "AUN",
+                        "description": "Managing director"
+                      },
+                      "roleStartDate": "2019-02-05T00:00:00"
+                    }
+                  ],
+                  "gender": {
+                    "code": "M",
+                    "description": "Man"
+                  },
+                  "surname": "BUSCEMI",
+                  "taxCode": "BSCGPP78S29G273C"
+                }
+              ],
+              "rae": {
+                "code": "950",
+                "description": "SERVIZI SANITARI DESTINABILI ALLA VENDITA"
+              },
+              "sae": {
+                "code": "430",
+                "description": "Imprese produttive"
+              },
+              "shareholders": [
+                {
+                  "shareholdersInformation": [
+                    {
+                      "sinceDate": "2019-02-05T00:00:00",
+                      "streetName": "VIA STORICO GIUSEPPE VOLPE 19",
+                      "town": "MENFI",
+                      "name": "GIUSEPPE MARIA",
+                      "zipCode": "92013",
+                      "surname": "BUSCEMI",
+                      "taxCode": "BSCGPP78S29G273C"
+                    }
+                  ],
+                  "percentShare": 50,
+                  "shareType": {
+                    "code": "ND99",
+                    "description": "N. a."
+                  }
+                },
+                {
+                  "shareholdersInformation": [
+                    {
+                      "sinceDate": "2019-02-05T00:00:00",
+                      "streetName": "VIA VOLPE STORICO G. 19",
+                      "town": "MENFI",
+                      "name": "FILIPPO",
+                      "zipCode": "92013",
+                      "surname": "BUSCEMI",
+                      "taxCode": "BSCFPP81D27G273N"
+                    }
+                  ],
+                  "percentShare": 50,
+                  "shareType": {
+                    "code": "ND99",
+                    "description": "N. a."
+                  }
+                }
+              ],
+              "pec": "CENTROBUSCEMI@PEC.IT",
+              "adjustments": [
+                {
+                  "code": "IIC163",
+                  "value": 0
+                },
+                {
+                  "code": "IIC162",
+                  "value": 0
+                },
+                {
+                  "code": "IIC164",
+                  "value": 0
+                },
+                {
+                  "code": "IIC246",
+                  "value": 0
+                },
+                {
+                  "code": "IIC245",
+                  "value": 0
+                },
+                {
+                  "code": "IIC350",
+                  "value": 0
+                },
+                {
+                  "code": "IICC351",
+                  "value": 0
+                },
+                {
+                  "code": "IIC167",
+                  "value": 0
+                },
+                {
+                  "code": "IIC168",
+                  "value": 0
+                },
+                {
+                  "code": "IIC166",
+                  "value": 0
+                },
+                {
+                  "code": "IIC165",
+                  "value": 0
+                },
+                {
+                  "code": "IIC169",
+                  "value": 0
+                }
+              ],
+              "productionCosts": [
+                {
+                  "code": "IIC134",
+                  "value": 55930
+                },
+                {
+                  "code": "IIC188",
+                  "value": 34412
+                },
+                {
+                  "code": "IIC140",
+                  "value": 4099
+                },
+                {
+                  "code": "IIC141",
+                  "value": 30313
+                },
+                {
+                  "code": "IIC142",
+                  "value": 0
+                },
+                {
+                  "code": "IIC143",
+                  "value": 0
+                },
+                {
+                  "code": "IIC133",
+                  "value": 14336
+                },
+                {
+                  "code": "IIC138",
+                  "value": 5860
+                },
+                {
+                  "code": "IIC148",
+                  "value": 7021
+                },
+                {
+                  "code": "IIC147",
+                  "value": 40000
+                },
+                {
+                  "code": "IIC137",
+                  "value": 0
+                },
+                {
+                  "code": "IIC131",
+                  "value": 86766
+                },
+                {
+                  "code": "IIC146",
+                  "value": 0
+                },
+                {
+                  "code": "IIC132",
+                  "value": 100133
+                },
+                {
+                  "code": "IIC136",
+                  "value": 3450
+                },
+                {
+                  "code": "IIC187",
+                  "value": 9310
+                },
+                {
+                  "code": "IIC135",
+                  "value": 11324
+                },
+                {
+                  "code": "IIC144",
+                  "value": 34412
+                },
+                {
+                  "code": "IIC139",
+                  "value": 76564
+                },
+                {
+                  "code": "IIC145",
+                  "value": 0
+                }
+              ],
+              "revenuesFinancialCharges": [
+                {
+                  "code": "IIC226",
+                  "value": 0
+                },
+                {
+                  "code": "IPL231",
+                  "value": 0
+                },
+                {
+                  "code": "IIC236",
+                  "value": 0
+                },
+                {
+                  "code": "IIC227",
+                  "value": 0
+                },
+                {
+                  "code": "IPL232",
+                  "value": 0
+                },
+                {
+                  "code": "IIC237",
+                  "value": 0
+                },
+                {
+                  "code": "IIC225",
+                  "value": 0
+                },
+                {
+                  "code": "IIC230",
+                  "value": 0
+                },
+                {
+                  "code": "IIC235",
+                  "value": 0
+                },
+                {
+                  "code": "IIC228",
+                  "value": 0
+                },
+                {
+                  "code": "IIC233",
+                  "value": 0
+                },
+                {
+                  "code": "IIC238",
+                  "value": 0
+                },
+                {
+                  "code": "IIC229",
+                  "value": 0
+                },
+                {
+                  "code": "IIC234",
+                  "value": 0
+                },
+                {
+                  "code": "IIC239",
+                  "value": 0
+                },
+                {
+                  "code": "IIC156",
+                  "value": 0
+                },
+                {
+                  "code": "IIC190",
+                  "value": 0
+                },
+                {
+                  "code": "IIC152",
+                  "value": 0
+                },
+                {
+                  "code": "IIC155",
+                  "value": 0
+                },
+                {
+                  "code": "IIC154",
+                  "value": 0
+                },
+                {
+                  "code": "IIC150",
+                  "value": 0
+                },
+                {
+                  "code": "IIC189",
+                  "value": 0
+                },
+                {
+                  "code": "IIC241",
+                  "value": 0
+                },
+                {
+                  "code": "IIC243",
+                  "value": 0
+                },
+                {
+                  "code": "IIC244",
+                  "value": 7317
+                },
+                {
+                  "code": "IIC242",
+                  "value": 0
+                },
+                {
+                  "code": "IIC240",
+                  "value": 0
+                },
+                {
+                  "code": "IIC159",
+                  "value": 7317
+                },
+                {
+                  "code": "IIC158",
+                  "value": 0
+                }
+              ],
+              "annualResult": [
+                {
+                  "code": "IIC191",
+                  "value": 9724
+                },
+                {
+                  "code": "IIC192",
+                  "value": 0
+                },
+                {
+                  "code": "IIC250",
+                  "value": 0
+                },
+                {
+                  "code": "IIC179",
+                  "value": 62486
+                },
+                {
+                  "code": "IIC177",
+                  "value": 72210
+                },
+                {
+                  "code": "IIC347",
+                  "value": 0
+                },
+                {
+                  "code": "IIC178",
+                  "value": 9724
+                }
+              ],
+              "incomeStatementAggregateValues": [
+                {
+                  "code": "IIC224",
+                  "value": 79527
+                },
+                {
+                  "code": "IIC149",
+                  "value": 359232
+                },
+                {
+                  "code": "IIC130",
+                  "value": 438759
+                },
+                {
+                  "code": "IIC161",
+                  "value": -7317
+                },
+                {
+                  "code": "IIC170",
+                  "value": 0
+                }
+              ],
+              "productionValue": [
+                {
+                  "code": "IIC127",
+                  "value": 0
+                },
+                {
+                  "code": "IIC129",
+                  "value": 17315
+                },
+                {
+                  "code": "IIC223",
+                  "value": 129
+                },
+                {
+                  "code": "IIC125",
+                  "value": 0
+                },
+                {
+                  "code": "IIC124",
+                  "value": 421315
+                },
+                {
+                  "code": "IIC128",
+                  "value": 17444
+                },
+                {
+                  "code": "IIC186",
+                  "value": 0
+                },
+                {
+                  "code": "IIC126",
+                  "value": 0
+                }
+              ],
+              "assetsAggregateValues": [
+                {
+                  "code": "IIC072",
+                  "value": 1434
+                },
+                {
+                  "code": "IIC001",
+                  "value": 0
+                },
+                {
+                  "code": "IIC071",
+                  "value": 145448
+                },
+                {
+                  "code": "IIC074",
+                  "value": 513493
+                },
+                {
+                  "code": "IIC039",
+                  "value": 366611
+                }
+              ],
+              "intangibleFixedAssets": [
+                {
+                  "code": "IIC008",
+                  "value": 0
+                },
+                {
+                  "code": "IIC007",
+                  "value": 0
+                },
+                {
+                  "code": "IIC009",
+                  "value": 4852
+                },
+                {
+                  "code": "IIC005",
+                  "value": 0
+                },
+                {
+                  "code": "IIC006",
+                  "value": 0
+                },
+                {
+                  "code": "IIC004",
+                  "value": 0
+                },
+                {
+                  "code": "IIC003",
+                  "value": 0
+                },
+                {
+                  "code": "IIC011",
+                  "value": 4852
+                }
+              ],
+              "tangibleFixedAssets": [
+                {
+                  "code": "IIC016",
+                  "value": 0
+                },
+                {
+                  "code": "IIC014",
+                  "value": 6170
+                },
+                {
+                  "code": "IIC012",
+                  "value": 228207
+                },
+                {
+                  "code": "IIC015",
+                  "value": 8546
+                },
+                {
+                  "code": "IIC013",
+                  "value": 13537
+                },
+                {
+                  "code": "IIC018",
+                  "value": 256460
+                }
+              ],
+              "cashEquivalents": [
+                {
+                  "code": "IIC067",
+                  "value": 94868
+                },
+                {
+                  "code": "IIC070",
+                  "value": 107613
+                },
+                {
+                  "code": "IIC069",
+                  "value": 12745
+                },
+                {
+                  "code": "IIC068",
+                  "value": 0
+                }
+              ],
+              "credits": [
+                {
+                  "code": "IIC057",
+                  "value": 0
+                },
+                {
+                  "code": "IIC052",
+                  "value": 0
+                },
+                {
+                  "code": "IIC053",
+                  "value": 0
+                },
+                {
+                  "code": "IIC046",
+                  "value": 0
+                },
+                {
+                  "code": "IIC047",
+                  "value": 0
+                },
+                {
+                  "code": "IIC054",
+                  "value": 37835
+                },
+                {
+                  "code": "IIC055",
+                  "value": 0
+                },
+                {
+                  "code": "IIC050",
+                  "value": 0
+                },
+                {
+                  "code": "IIC051",
+                  "value": 0
+                },
+                {
+                  "code": "IIC048",
+                  "value": 0
+                },
+                {
+                  "code": "IIC049",
+                  "value": 0
+                },
+                {
+                  "code": "IIC198",
+                  "value": 0
+                },
+                {
+                  "code": "IIC199",
+                  "value": 0
+                },
+                {
+                  "code": "IIC056",
+                  "value": 37835
+                },
+                {
+                  "code": "IIC180",
+                  "value": 0
+                },
+                {
+                  "code": "IIC181",
+                  "value": 0
+                },
+                {
+                  "code": "IIC324",
+                  "value": 0
+                },
+                {
+                  "code": "IIC321",
+                  "value": 0
+                },
+                {
+                  "code": "IIC058",
+                  "value": 37835
+                },
+                {
+                  "code": "IIC325",
+                  "value": 0
+                },
+                {
+                  "code": "IIC326",
+                  "value": 0
+                },
+                {
+                  "code": "IIC328",
+                  "value": 37835
+                },
+                {
+                  "code": "IIC323",
+                  "value": 0
+                },
+                {
+                  "code": "IIC322",
+                  "value": 0
+                },
+                {
+                  "code": "IIC327",
+                  "value": 0
+                }
+              ],
+              "financialFixedAssets": [
+                {
+                  "code": "IIC038",
+                  "value": 105299
+                }
+              ],
+              "creditsToShareholders": [
+                {
+                  "code": "IIC002",
+                  "value": 0
+                },
+                {
+                  "code": "IIC193",
+                  "value": 0
+                }
+              ],
+              "financialAssets": [
+                {
+                  "code": "IIC201",
+                  "value": 0
+                },
+                {
+                  "code": "IIC202",
+                  "value": 0
+                },
+                {
+                  "code": "IIC200",
+                  "value": 0
+                },
+                {
+                  "code": "IIC062",
+                  "value": 0
+                },
+                {
+                  "code": "IIC065",
+                  "value": 0
+                },
+                {
+                  "code": "IIC060",
+                  "value": 0
+                },
+                {
+                  "code": "IIC059",
+                  "value": 0
+                },
+                {
+                  "code": "IIC061",
+                  "value": 0
+                },
+                {
+                  "code": "IIC066",
+                  "value": 0
+                }
+              ],
+              "inventory": [
+                {
+                  "code": "IIC043",
+                  "value": 0
+                },
+                {
+                  "code": "IIC044",
+                  "value": 0
+                },
+                {
+                  "code": "IIC040",
+                  "value": 0
+                },
+                {
+                  "code": "IIC041",
+                  "value": 0
+                },
+                {
+                  "code": "IIC349",
+                  "value": 0
+                },
+                {
+                  "code": "IIC045",
+                  "value": 0
+                },
+                {
+                  "code": "IIC042",
+                  "value": 0
+                }
+              ],
+              "debts": [
+                {
+                  "code": "IIC099",
+                  "value": 0
+                },
+                {
+                  "code": "IIC098",
+                  "value": 0
+                },
+                {
+                  "code": "IIC091",
+                  "value": 0
+                },
+                {
+                  "code": "IIC090",
+                  "value": 0
+                },
+                {
+                  "code": "IIC092",
+                  "value": 0
+                },
+                {
+                  "code": "IIC093",
+                  "value": 0
+                },
+                {
+                  "code": "IIC103",
+                  "value": 0
+                },
+                {
+                  "code": "IIC102",
+                  "value": 0
+                },
+                {
+                  "code": "IIC117",
+                  "value": 111158
+                },
+                {
+                  "code": "IIC097",
+                  "value": 0
+                },
+                {
+                  "code": "IIC107",
+                  "value": 0
+                },
+                {
+                  "code": "IIC112",
+                  "value": 6604
+                },
+                {
+                  "code": "IIC113",
+                  "value": 0
+                },
+                {
+                  "code": "IIC109",
+                  "value": 0
+                },
+                {
+                  "code": "IIC105",
+                  "value": 0
+                },
+                {
+                  "code": "IIC220",
+                  "value": 0
+                },
+                {
+                  "code": "IIC221",
+                  "value": 0
+                },
+                {
+                  "code": "IIC106",
+                  "value": 0
+                },
+                {
+                  "code": "IIC094",
+                  "value": 0
+                },
+                {
+                  "code": "IIC095",
+                  "value": 111158
+                },
+                {
+                  "code": "IIC096",
+                  "value": 0
+                },
+                {
+                  "code": "IIC108",
+                  "value": 0
+                },
+                {
+                  "code": "IIC185",
+                  "value": 0
+                },
+                {
+                  "code": "IIC184",
+                  "value": 0
+                },
+                {
+                  "code": "IIC104",
+                  "value": 0
+                },
+                {
+                  "code": "IIC101",
+                  "value": 0
+                },
+                {
+                  "code": "IIC100",
+                  "value": 45376
+                },
+                {
+                  "code": "IIC114",
+                  "value": 5724
+                },
+                {
+                  "code": "IIC115",
+                  "value": 0
+                },
+                {
+                  "code": "IIC116",
+                  "value": 70228
+                },
+                {
+                  "code": "IIC110",
+                  "value": 12524
+                },
+                {
+                  "code": "IIC111",
+                  "value": 0
+                },
+                {
+                  "code": "IIC334",
+                  "value": 0
+                },
+                {
+                  "code": "IIC329",
+                  "value": 0
+                },
+                {
+                  "code": "IIC333",
+                  "value": 0
+                },
+                {
+                  "code": "IIC338",
+                  "value": 0
+                },
+                {
+                  "code": "IIC337",
+                  "value": 0
+                },
+                {
+                  "code": "IIC330",
+                  "value": 0
+                },
+                {
+                  "code": "IIC336",
+                  "value": 0
+                },
+                {
+                  "code": "IIC342",
+                  "value": 6604
+                },
+                {
+                  "code": "IIC340",
+                  "value": 0
+                },
+                {
+                  "code": "IIC339",
+                  "value": 0
+                },
+                {
+                  "code": "IIC331",
+                  "value": 0
+                },
+                {
+                  "code": "IIC332",
+                  "value": 111158
+                },
+                {
+                  "code": "IIC343",
+                  "value": 5724
+                },
+                {
+                  "code": "IIC341",
+                  "value": 12524
+                },
+                {
+                  "code": "IIC335",
+                  "value": 45376
+                }
+              ],
+              "liabilitiesAggregateValues": [
+                {
+                  "code": "IIC119",
+                  "value": 15483
+                },
+                {
+                  "code": "IIC089",
+                  "value": 18106
+                },
+                {
+                  "code": "IIC118",
+                  "value": 181386
+                },
+                {
+                  "code": "IIC121",
+                  "value": 513493
+                },
+                {
+                  "code": "IIC084",
+                  "value": 193518
+                },
+                {
+                  "code": "IIC088",
+                  "value": 105000
+                }
+              ],
+              "netWorth": [
+                {
+                  "code": "IIC211",
+                  "value": 0
+                },
+                {
+                  "code": "IIC207",
+                  "value": 0
+                },
+                {
+                  "code": "IIC209",
+                  "value": 0
+                },
+                {
+                  "code": "IIC210",
+                  "value": 0
+                },
+                {
+                  "code": "IIC208",
+                  "value": 0
+                },
+                {
+                  "code": "IIC203",
+                  "value": 0
+                },
+                {
+                  "code": "IIC206",
+                  "value": 0
+                },
+                {
+                  "code": "IIC078",
+                  "value": 5197
+                },
+                {
+                  "code": "IIC212",
+                  "value": 0
+                },
+                {
+                  "code": "IIC216",
+                  "value": 0
+                },
+                {
+                  "code": "IIC214",
+                  "value": 1
+                },
+                {
+                  "code": "IIC218",
+                  "value": 0
+                },
+                {
+                  "code": "IIC081",
+                  "value": 1
+                },
+                {
+                  "code": "IIC082",
+                  "value": 0
+                },
+                {
+                  "code": "IIC083",
+                  "value": 62486
+                },
+                {
+                  "code": "IIC345",
+                  "value": 0
+                },
+                {
+                  "code": "IIC204",
+                  "value": 0
+                },
+                {
+                  "code": "IIC213",
+                  "value": 0
+                },
+                {
+                  "code": "IIC215",
+                  "value": 0
+                },
+                {
+                  "code": "IIC077",
+                  "value": 0
+                },
+                {
+                  "code": "IIC075",
+                  "value": 10000
+                },
+                {
+                  "code": "IIC076",
+                  "value": 0
+                },
+                {
+                  "code": "IIC205",
+                  "value": 0
+                },
+                {
+                  "code": "IIC080",
+                  "value": 115834
+                }
+              ],
+              "artisanBusinessRegistry": {
+                "belongsToArtisanBusinessRegistry": false
+              },
+              "atecoClassification": {
+                "ateco": {
+                  "code": "8623",
+                  "description": "Dental practice care activities"
+                },
+                "firstLevel": {
+                  "ateco": {
+                    "code": "Q",
+                    "description": "Q - Health and social work"
+                  },
+                  "ateco2025": {
+                    "code": "R",
+                    "description": "R - Human health and social work activities"
+                  }
+                },
+                "secondaryAteco": "",
+                "ateco2022": {
+                  "code": "8623",
+                  "description": "Activities of dental practices"
+                },
+                "secondaryAteco2022": ""
+              },
+              "financialCycle": {
+                "accountsReceivableDuration": 0,
+                "debtsToSuppliersDuration": 87.4021,
+                "financialCycleDuration": -87.4021,
+                "stockDuration": 0
+              },
+              "efficiency": {
+                "turnoverIndex": 0.8205
+              },
+              "financialStability": {
+                "acidTest": 1.7137,
+                "workingCapitalCoverage": 0.1394,
+                "currentRatio": 1.7137,
+                "fixedAssetsCoverageRate": 0.8311,
+                "marginStructureIndex": -173093,
+                "marginStructure": 0.5279,
+                "secondaryMarginStructure ": -61935
+              },
+              "development": {
+                "addedValue": 7.76,
+                "ebitVariation": 0.3828,
+                "grossFinancialDebt": -0.0891,
+                "mol": 16.97,
+                "productionValue": -8.49,
+                "totalAssets": 8.15
+              },
+              "indebtedness": {
+                "bankDebtRatio": 0.5744,
+                "capitalizationDegree": 0.3769,
+                "bankDebtTotalAssets": 0.2165,
+                "debtRatio": 0.9373,
+                "leverage": 2.6535
+              },
+              "financialBurden": {
+                "burdenIndex": 4.75,
+                "rod": 6.58,
+                "rodFinanziario": 6.58
+              },
+              "liquidityRatios": {
+                "cashTotalShortTermDebt": 1.5323
+              },
+              "financialStatementKpi": {
+                "debtsTurnover": 0.4305,
+                "financialCostsOnEbitda": 0.0475,
+                "totalInventoryTurnover": 0,
+                "ebitdaMargin": 36.54,
+                "netWorthOnAssets": 0.3769
+              },
+              "coverageRatios": {
+                "ebitdaGrossInterestCoverage": 21.0385,
+                "ebitdaNetInterestCoverage": 21.0385,
+                "ebitGrossInterestCoverage": 10.8688,
+                "ebitNetInterestCoverage": 10.8688
+              },
+              "leverageRatios": {
+                "ebitdaGrossLeverage": 0.7221,
+                "ebitdaNetLeverage": 0.023,
+                "pfnEbitda": 0.023
+              },
+              "structureRatios": {
+                "financialDebtComposition": 0,
+                "grossFinancialDebtNetWorth": 0.5744,
+                "netDebtTotalSources": 0.018,
+                "netFinancialDebtEquityNetWorth": 0.0183,
+                "pfnNetWorth": 0.0183
+              },
+              "profitability": {
+                "incidenceOfExtraFeaturesManagement": 78.57,
+                "roaMonetary": 15.49,
+                "roe": 32.29,
+                "roi": 40.36,
+                "ros": 18.88
+              },
+              "ecofin": {
+                "shareCapital": 10000,
+                "netWorth": 193518,
+                "balanceSheetDate": "2025-12-31T00:00:00",
+                "enterpriseSize": {
+                  "code": "MICRO",
+                  "description": "Micro enterprise"
+                },
+                "turnover": 421315,
+                "turnoverRange": {
+                  "code": "TR5",
+                  "description": "100000 - 499999"
+                },
+                "turnoverTrend": -5.58,
+                "turnoverYear": 2025
+              },
+              "operatingResults": {
+                "cashFlow": 136898,
+                "ebit": 79527,
+                "ebitda": 153939,
+                "cashFlowL2Y": 112017,
+                "ebitL2Y": 57512,
+                "ebitdaL2Y": 131604
+              },
+              "branches": {
+                "numberOfBranches": 0
+              },
+              "companyDetails": {
+                "cciaa": "AG",
+                "companyName": "CENTRO ODONTOIATRICO SPECIALISTICO BUSCEMI SRL",
+                "officeType": {
+                  "code": "SSL",
+                  "description": "Administrative headquarter and registered office"
+                },
+                "reaCode": "191074",
+                "taxCode": "02564250849",
+                "vatCode": "02564250849",
+                "lastUpdateDate": "2026-06-01T13:38:25.6347346Z",
+                "openapiNumber": "IT0C660F0AS0001"
+              },
+              "corporateGroups": {
+                "belongsToGroup": true,
+                "groupName": "BUSCEMI",
+                "totalGroupSubsidiaries": 0,
+                "hasForeignParents": false,
+                "hasForeignSubsidiaries": false,
+                "holdingCompanyName": "GIUSEPPE MARIA BUSCEMI",
+                "nationalParentCompany": {
+                  "province": {
+                    "code": "ND99",
+                    "description": "N. A."
+                  }
+                }
+              },
+              "webAndSocial": {
+                "hasSocial": false
+              },
+              "mail": {
+                "email": ""
+              },
+              "contacts": {
+                "fax": "",
+                "telephoneNumber": "092572773"
+              },
+              "legalForm": {
+                "detailedLegalForm": {
+                  "code": "SR",
+                  "description": "Limited liability company/ limited company"
+                },
+                "legalForm": {
+                  "code": "SC",
+                  "description": "Joint stock business"
+                }
+              },
+              "employees": {
+                "employee": 3,
+                "employeeRange": {
+                  "code": "ER2",
+                  "description": "\u2264 5"
+                },
+                "employeeTrend": 0
+              },
+              "companyDates": {
+                "incorporationDate": "2009-06-01T00:00:00",
+                "registrationDate": "2009-06-18T00:00:00",
+                "startDate": "2010-07-20T00:00:00"
+              },
+              "foreignTrade": {
+                "isExporter": false,
+                "isImporter": false
+              },
+              "address": {
+                "zipCode": "92013",
+                "province": {
+                  "code": "AG",
+                  "description": "AGRIGENTO"
+                },
+                "region": {
+                  "code": "19",
+                  "description": "SICILY"
+                },
+                "country": {
+                  "code": "IT",
+                  "description": "Italia"
+                },
+                "streetName": "VIA TAGLIAVIA, 7/10",
+                "town": "MENFI"
+              },
+              "innovativeSmeAndSu": {
+                "isInnovativeSme": false,
+                "isInnovativeStartUp": false
+              },
+              "marketable": {
+                "isMarketable": true
+              },
+              "internationalClassification": {
+                "nace": {
+                  "code": "8623",
+                  "description": "Dental practice activities"
+                },
+                "firstLevel": {
+                  "nace": {
+                    "code": "86",
+                    "description": "86 - Human health activities\u00e2\u00a0"
+                  },
+                  "primarySic": {
+                    "code": "COD_09",
+                    "description": "I - Various services"
+                  }
+                },
+                "primarySic": {
+                  "code": "8021",
+                  "description": "Offices of dentists"
+                },
+                "secondarySic": ""
+              },
+              "soaCertification": {
+                "hasSoaCertification": false
+              },
+              "companyStatus": {
+                "activityStatus": {
+                  "code": "A",
+                  "description": "Enable"
+                }
+              },
+              "allOffices": [
+                {
+                  "companyDetails": {
+                    "cciaa": "AG",
+                    "companyName": "CENTRO ODONTOIATRICO SPECIALISTICO BUSCEMI SRL",
+                    "officeType": {
+                      "code": "SSL",
+                      "description": "Administrative headquarter and registered office"
+                    },
+                    "reaCode": "191074",
+                    "taxCode": "02564250849",
+                    "vatCode": "02564250849",
+                    "lastUpdateDate": "2026-06-01T13:38:25.6347346Z",
+                    "openapiNumber": "IT0C660F0AS0001"
+                  },
+                  "address": {
+                    "zipCode": "92013",
+                    "province": {
+                      "code": "AG",
+                      "description": "AGRIGENTO"
+                    },
+                    "region": {
+                      "code": "19",
+                      "description": "SICILY"
+                    },
+                    "country": {
+                      "code": "IT",
+                      "description": "Italia"
+                    },
+                    "streetName": "VIA TAGLIAVIA, 7/10",
+                    "town": "MENFI"
+                  },
+                  "companyStatus": {
+                    "activityStatus": {
+                      "code": "A",
+                      "description": "Enable"
+                    }
+                  }
+                }
+              ]
+            },
+            "profile_type": "societa_capitali",
+            "isForfettario": false,
+            "financials_snapshot": "8305126267-Odontoiatra--40-30|null-Igienista-1878.32-40-0|null-ASO (Assistente)-1126.64-30-0|null-ASO (Assistente)-1210.59-30-0|null-Odontoiatra--40-30#Riunito Odontoiatrico (Fascia Media)-18500-Propriet\u00e0|Riunito Odontoiatrico (Fascia Media)-18500-Propriet\u00e0|Compressore d'Aria Medicale Secco con Essiccatore (2-3 riuniti)-1600-Propriet\u00e0|Sistema di Aspirazione Chirurgica ad Anello Umido-2000-Propriet\u00e0|Radiografico Endorale a Parete (Generatore RX)-3000-Propriet\u00e0|Autoclave di Classe B 18-23 L (Fascia Base)-2600-Propriet\u00e0|Termosigillatrice / Sigillatrice Rotativa-900-Propriet\u00e0|Riunito Odontoiatrico (Fascia Media)-18500-Propriet\u00e0|TAC CBCT (Cone Beam 3D \u2013 FOV standard)-900-Leasing/Noleggio",
+            "advanced_setup": true
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/5a58b38d-dfe5-44c2-9d58-34309585c057",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "appUrl",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "Ash Decoder",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge27",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "telegram_validator": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ash Decoder": {
+      "main": [
+        [
+          {
+            "node": "Merge27",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner_data": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerExist1": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge27": {
+      "main": [
+        [
+          {
+            "node": "telegram_validator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge28",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Merge28",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge28": {
+      "main": [
+        [
+          {
+            "node": "owner_data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "appUrl": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Respond to vertical",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CommitAdd",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory8": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "owner1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner1": {
+      "main": [
+        [
+          {
+            "node": "Respond to vertical1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CommitAdd": {
+      "main": [
+        [
+          {
+            "node": "Stakeholder1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Stakeholder1": {
+      "main": [
+        [
+          {
+            "node": "Stakeholder Exist1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stakeholder Exist1": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge11": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory7": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholeder1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholeder1": {
+      "main": [
+        [
+          {
+            "node": "Merge14",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "billing_buffers1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "billing_buffers1": {
+      "main": [
+        [
+          {
+            "node": "Merge15",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge14": {
+      "main": [
+        [
+          {
+            "node": "Merge13",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge15": {
+      "main": [
+        [
+          {
+            "node": "Merge14",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner": {
+      "main": [
+        [
+          {
+            "node": "Merge15",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "stakeholeder1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "billing_buffers1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "owner",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge13": {
+      "main": [
+        [
+          {
+            "node": "Respond to vertical2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Respond to vertical1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Fiscal Profiler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory9": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner2": {
+      "main": [
+        [
+          {
+            "node": "Respond to vertical3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "owner2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "CalculateCapital",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CalculatePersone",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CalculateProfessionisti",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CalculateCapital": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini Rec1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CalculatePersone": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini Rec1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CalculateProfessionisti": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini Rec1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Gemini Rec1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fiscal Profiler": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini Fiscal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Gemini Fiscal": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "owner3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory10": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner3",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner3": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields7": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Respond to vertical4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "95a46fc7-20a1-4121-bd51-e9be261802f8",
+  "meta": {
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "JhqpmKVQJ24oSIWc",
+  "tags": []
+}

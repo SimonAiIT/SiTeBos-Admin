@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Agenda Manager | SiteBoS</title>
+  
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="agenda-ocr-helper.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+          borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background-color: #fafafa !important; color: #000000 !important; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; overflow: hidden; height: 100vh; }
+    .card-noir { background: white !important; border: 1px solid #eeeeee !important; border-radius: 1.5rem; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    
+    .view-overlay { position: fixed; inset: 0; background: #fafafa; z-index: 50; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(100%); }
+    .view-overlay.active { transform: translateX(0); }
+    
+    .spinner { border: 2px solid rgba(0,0,0,0.1); border-top-color: #000; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .event-pill { border-left: 4px solid #eeeeee; transition: all 0.2s; }
+    .event-pill.active { border-left-color: #000; background: #fcfcfc; }
+
+    /* Help Overlay */
+    .help-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); z-index: 100; display: none; align-items: flex-end; justify-content: center; }
+    .help-overlay.open { display: flex; }
+    .help-sheet { background: #fafafa; border-radius: 2rem 2rem 0 0; width: 100%; max-height: 85vh; overflow-y: auto; padding: 2rem 1.5rem 3rem; animation: slideUp 0.3s ease-out; }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .help-step { display: flex; gap: 12px; align-items: flex-start; }
+    .help-step-num { min-width: 28px; height: 28px; background: #000; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; flex-shrink: 0; }
+  </style>
+</head>
+<body class="bg-bg text-black">
+
+  <!-- MAIN APP (SCREEN A: HOME) -->
+  <div id="screen-home" class="h-full flex flex-col p-5 space-y-6 overflow-y-auto no-scrollbar">
+    
+    <!-- HEADER FISSO -->
+    <header class="flex justify-between items-center pt-2">
+        <div>
+            <h1 class="text-2xl font-black tracking-tighter uppercase leading-none">⏳ Agenda</h1>
+            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1 flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-black inline-block"></span>
+                <span>Agenda di Sede</span>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="openView('settings')" class="w-10 h-10 bg-white border border-border rounded-xl flex items-center justify-center text-black shadow-sm active:scale-90 transition">
+                <i class="fas fa-cog text-xs"></i>
+            </button>
+            <button onclick="loadInitialData()" class="w-10 h-10 bg-white border border-border rounded-xl flex items-center justify-center text-black shadow-sm active:scale-90 transition">
+                <i class="fas fa-sync-alt text-xs"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- WIDGET RADAR SATURAZIONE & SOP -->
+    <div class="grid grid-cols-2 gap-3 mb-4">
+        <!-- Card Saturazione -->
+        <div class="card-noir p-4 flex flex-col justify-between">
+            <span class="text-[8px] font-black uppercase tracking-widest text-gray-400">Saturazione Agenda</span>
+            <div class="flex items-baseline gap-1 mt-2">
+                <span id="radar-saturation-val" class="text-2xl font-black">--%</span>
+                <span class="text-[8px] text-gray-400 uppercase font-black" id="radar-saturation-label">Caricamento...</span>
+            </div>
+            <button onclick="openView('radar')" class="text-[8px] font-black uppercase text-black underline tracking-widest mt-2 text-left">Apri Radar AI</button>
+        </div>
+        <!-- Card SOP Rapide -->
+        <div class="card-noir p-4 flex flex-col justify-between">
+            <span class="text-[8px] font-black uppercase tracking-widest text-gray-400">SOP Giornaliere</span>
+            <div class="flex items-center gap-2 mt-2">
+                <i class="fas fa-tasks text-xs text-gray-400"></i>
+                <span id="radar-sop-count" class="text-xs font-bold">0 / 0 Completate</span>
+            </div>
+            <button onclick="openView('sop-list')" class="text-[8px] font-black uppercase text-black underline tracking-widest mt-2 text-left">Esegui SOP</button>
+        </div>
+    </div>
+
+    <!-- CONSULTAZIONE IMPEGNI -->
+    <section class="space-y-4 flex-1">
+        <div class="flex justify-between items-end">
+            <div>
+                <p id="today-date-label" class="text-[10px] font-black uppercase tracking-widest text-gray-400">Oggi · ---</p>
+                <h2 class="text-xl font-black tracking-tight">I tuoi impegni</h2>
+            </div>
+            <button onclick="openView('week')" class="text-[9px] font-black uppercase tracking-widest text-black border-b-2 border-black pb-0.5">Ved. Settimana</button>
+        </div>
+
+        <div id="today-events-list" class="space-y-3">
+            <!-- Eventi caricati via JS dal gestionale -->
+            <div class="py-10 text-center opacity-20"><i class="fas fa-calendar-day text-4xl"></i></div>
+        </div>
+    </section>
+  </div>
+
+  <!-- SCREEN E: WEEK VIEW -->
+  <div id="screen-week" class="view-overlay flex flex-col">
+    <header class="p-6 pb-2 flex justify-between items-center">
+        <button onclick="closeView()" class="w-10 h-10 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+        <div class="flex items-center gap-4">
+            <button onclick="changeWeek(-1)"><i class="fas fa-chevron-left text-xs"></i></button>
+            <span id="week-range-label" class="text-xs font-black uppercase tracking-tighter">---</span>
+            <button onclick="changeWeek(1)"><i class="fas fa-chevron-right text-xs"></i></button>
+        </div>
+        <div class="w-10"></div>
+    </header>
+
+    <!-- STRIP GIORNI -->
+    <div id="week-days-strip" class="grid grid-cols-5 px-4 py-4 border-b border-gray-50">
+        <!-- Generato via JS -->
+    </div>
+
+    <div id="week-events-list" class="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
+        <!-- Eventi raggruppati per giorno -->
+    </div>
+  </div>
+
+  <!-- SCREEN F: SETTINGS -->
+  <div id="screen-settings" class="view-overlay flex flex-col p-6">
+    <header class="flex justify-between items-center mb-8">
+        <button onclick="closeView()" class="w-10 h-10 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+        <h2 class="text-sm font-black uppercase tracking-widest">Configurazione</h2>
+        <div class="w-10"></div>
+    </header>
+
+    <div class="flex-1 space-y-8">
+        <!-- STRUTTURA 3 VIE INGESTIONE IN CONFIGURAZIONE -->
+        <div class="space-y-6">
+            <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Sorgente Dati Agenda</p>
+            
+            <!-- Switch di Selezione -->
+            <div class="grid grid-cols-3 gap-2 bg-gray-100 p-1 rounded-xl">
+                <button onclick="switchIngestionType('ical')" id="btn-tab-ical" class="py-2 text-[9px] font-black uppercase tracking-widest rounded-lg bg-white text-black shadow-sm">iCal</button>
+                <button onclick="switchIngestionType('api')" id="btn-tab-api" class="py-2 text-[9px] font-black uppercase tracking-widest rounded-lg text-gray-400">API CRM</button>
+                <button onclick="switchIngestionType('vision')" id="btn-tab-vision" class="py-2 text-[9px] font-black uppercase tracking-widest rounded-lg text-gray-400">Vision AI</button>
+            </div>
+
+            <!-- SEZIONE 1: ICAL (Mostrata di default) -->
+            <div id="config-section-ical" class="space-y-3">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-[9px] font-black uppercase tracking-widest text-black">Link Agenda Esterna (iCal)</h3>
+                    <button onclick="document.getElementById('ical-help-overlay').classList.add('open')" class="w-4 h-4 bg-gray-200 rounded-full flex items-center justify-center text-[8px] font-black text-gray-500">?</button>
+                </div>
+                <input type="url" id="config-ical-url" class="w-full bg-white border border-border rounded-xl p-4 text-xs font-medium outline-none focus:border-black transition-colors" placeholder="https://calendar.google.com/.../basic.ics">
+            </div>
+
+            <!-- SEZIONE 2: API GESTIONALE (Dental Manager) -->
+            <div id="config-section-api" class="space-y-3 hidden">
+                <h3 class="text-[9px] font-black uppercase tracking-widest text-black">Integrazione API Gestionale</h3>
+                <input type="text" id="config-api-url" class="w-full bg-white border border-border rounded-xl p-4 text-xs font-medium outline-none focus:border-black transition-colors" placeholder="https://app.dental-manager.it/api/v1">
+                <input type="password" id="config-api-token" class="w-full bg-white border border-border rounded-xl p-4 text-xs font-medium outline-none focus:border-black transition-colors" placeholder="Inserisci API Token dello Studio">
+            </div>
+
+            <!-- SEZIONE 3: VISION AI (Weekly Ingestion Queue) -->
+            <div id="config-section-vision" class="space-y-4 hidden">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-[9px] font-black uppercase tracking-widest text-black">Coda Vision AI (Max 6 pag.)</h3>
+                    <span id="vision-queue-counter" class="text-[9px] font-black text-gray-400">0 / 6 Pagine</span>
+                </div>
+                
+                <!-- Queue Cards Container -->
+                <div id="vision-queue-container" class="space-y-3 max-h-72 overflow-y-auto no-scrollbar">
+                    <!-- Cards will be dynamically rendered here -->
+                </div>
+
+                <!-- Add Button -->
+                <button id="btn-add-vision" onclick="triggerVisionSelect()" class="w-full py-4 bg-gray-100 border-2 border-dashed border-gray-200 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-500 flex items-center justify-center gap-2 active:scale-95 transition">
+                    <i class="fas fa-camera"></i> <span id="btn-add-vision-text">Aggiungi Giorno (Scatta Foto)</span>
+                </button>
+                <input type="file" id="vision-file-input" class="hidden" accept="image/*" onchange="handleVisionFileChange(event)">
+
+                <!-- Batch Send Button -->
+                <button id="btn-submit-vision-batch" onclick="submitVisionBatch()" class="w-full bg-black text-white py-4 rounded-xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 shadow-md hidden">
+                    <i class="fas fa-cloud-upload-alt"></i> Elabora Settimana Completa
+                </button>
+            </div>
+        </div>
+
+        <!-- BOOTSTRAP AGENDA -->
+        <div class="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-3">
+            <div class="flex items-start gap-3">
+                <i class="fas fa-magic text-gray-400 mt-0.5 text-xs"></i>
+                <div class="space-y-1">
+                    <h4 class="text-[10px] font-black uppercase tracking-widest text-black">Inizializzazione Agenda</h4>
+                    <p class="text-[9px] text-gray-400 leading-relaxed">Non hai ancora un'agenda attiva? Genera e scarica la struttura di calendario ideale basata sul tuo Setup Avanzato.</p>
+                </div>
+            </div>
+            <button onclick="downloadIdealCalendar()" class="w-full py-4 bg-white border border-border rounded-xl text-[9px] font-black uppercase tracking-widest text-black flex items-center justify-center gap-2 active:scale-95 transition shadow-sm">
+                <i class="fas fa-calendar-plus"></i> Scarica Struttura Agenda (iCal)
+            </button>
+        </div>
+    </div>
+
+    <!-- HELP OVERLAY: Come ottenere il link iCal -->
+    <div id="ical-help-overlay" class="help-overlay" onclick="if(event.target===this) this.classList.remove('open')">
+        <div class="help-sheet">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-sm font-black uppercase tracking-widest">Come ottenere il link</h3>
+                <button onclick="document.getElementById('ical-help-overlay').classList.remove('open')" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-xs"><i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- GOOGLE CALENDAR -->
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" class="w-4 h-4">
+                    <p class="text-[10px] font-black uppercase tracking-widest">Google Calendar</p>
+                </div>
+                <div class="space-y-3">
+                    <div class="help-step">
+                        <div class="help-step-num">1</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Apri <b>Google Calendar</b> da PC e clicca sull'icona <b>⚙️ Impostazioni</b> in alto a destra.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">2</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Nella colonna sinistra, seleziona il calendario desiderato sotto <b>"Impostazioni per i miei calendari"</b>.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">3</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Scorri fino a <b>"Indirizzo segreto in formato iCal"</b> e copia l'URL che termina in <b>.ics</b>.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 my-4"></div>
+
+            <!-- APPLE iCLOUD -->
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fab fa-apple text-gray-700"></i>
+                    <p class="text-[10px] font-black uppercase tracking-widest">Apple Calendar (iCloud)</p>
+                </div>
+                <div class="space-y-3">
+                    <div class="help-step">
+                        <div class="help-step-num">1</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Vai su <b>icloud.com/calendar</b> e accedi con il tuo Apple ID.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">2</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Clicca sull'icona di <b>condivisione</b> accanto al nome del calendario nella barra laterale.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">3</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Seleziona <b>"Calendario pubblico"</b> e copia le URL generate (inizia con <b>webcal://</b>).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 my-4"></div>
+
+            <!-- OUTLOOK -->
+            <div class="mb-2">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fab fa-microsoft text-blue-600"></i>
+                    <p class="text-[10px] font-black uppercase tracking-widest">Outlook / Microsoft 365</p>
+                </div>
+                <div class="space-y-3">
+                    <div class="help-step">
+                        <div class="help-step-num">1</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Apri <b>Outlook sul web</b> e vai su <b>Impostazioni → Calendario → Calendari condivisi</b>.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">2</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Sotto <b>"Pubblica un calendario"</b>, seleziona il calendario e il livello di dettaglio, poi clicca <b>"Pubblica"</b>.</p>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-step-num">3</div>
+                        <p class="text-[10px] text-gray-600 leading-relaxed">Copia il link <b>ICS</b> generato (non quello HTML).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 p-4 bg-gray-100 rounded-2xl">
+                <p class="text-[9px] text-gray-500 leading-relaxed"><i class="fas fa-info-circle mr-1"></i> <b>Nota:</b> Il link è in sola lettura. I tuoi eventi esterni verranno importati automaticamente ma non potranno essere modificati da qui.</p>
+            </div>
+        </div>
+    </div>
+
+    <button onclick="saveConfig()" class="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 mb-6 shadow-xl">
+        <i class="fas fa-save"></i> Salva Configurazione
+    </button>
+
+    <!-- Central Spinner for settings total UI lock -->
+    <div id="settings-lock-loader" class="hidden absolute inset-0 bg-white/80 z-50 flex flex-col items-center justify-center gap-3">
+        <div class="spinner"></div>
+        <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Elaborazione Batch in corso... Non chiudere la schermata</p>
+    </div>
+  </div>
+
+  <!-- SCREEN I: AGENDA RADAR -->
+  <div id="screen-radar" class="view-overlay flex flex-col p-6">
+      <header class="flex justify-between items-center mb-6">
+          <button onclick="closeView()" class="w-10 h-10 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+          <h2 class="text-sm font-black uppercase tracking-widest">Radar AI / Ottimizzazione</h2>
+          <div class="w-10"></div>
+      </header>
+
+      <div class="flex-1 space-y-6 overflow-y-auto no-scrollbar">
+          <!-- Tasto Analisi Predittiva -->
+          <button id="btn-run-radar" onclick="runRadarAnalysis()" class="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 shadow-xl">
+              <i class="fas fa-magic"></i> Ottimizza Agenda con AI
+          </button>
+
+          <!-- Indicatore di caricamento (UI Lock Spinner) -->
+          <div id="radar-ai-loader" class="hidden flex flex-col items-center justify-center py-12 gap-3">
+              <div class="spinner"></div>
+              <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Generazione in corso... Non chiudere la schermata</p>
+          </div>
+
+          <!-- Sezione Risultati -->
+          <div id="radar-results" class="space-y-4 hidden">
+              <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Consigli di Saturazione Rilevati</p>
+              <div id="radar-suggestions-container" class="space-y-3">
+                  <!-- Generato via JS -->
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- SCREEN J: SOP LIST -->
+  <div id="screen-sop-list" class="view-overlay flex flex-col p-6">
+      <header class="flex justify-between items-center mb-6">
+          <button onclick="closeView()" class="w-10 h-10 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+          <h2 class="text-sm font-black uppercase tracking-widest">SOP di Oggi</h2>
+          <div class="w-10"></div>
+      </header>
+      <div class="flex-1 space-y-4 overflow-y-auto no-scrollbar" id="sop-container">
+          <!-- Lista SOP con checkbox generata via JS -->
+      </div>
+  </div>
+
+  <script>
+    'use strict';
+    const WEBHOOK_URL = "https://prod.workflow.trinai.it/webhook/8f148592-cbb9-4c72-96e8-73c08fccee43";
+    const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+    tg.ready(); tg.expand();
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const ash = urlParams.get('ash');
+
+    // STATE
+    let allEvents = [];
+    let currentViewStack = [];
+    let currentWeekOffset = 0;
+    let selectedIngestionType = 'ical';
+    let visionQueue = [];
+    
+    const monthNames = [
+        "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+        "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
+    ];
+
+    // --- INITIALIZATION ---
+    async function init() {
+        if (!ash) {
+            document.body.innerHTML = `<div class="h-full flex items-center justify-center font-black text-red-500">ASH MISSING</div>`;
+            return;
+        }
+        
+        tg.BackButton.onClick(() => closeView());
+        updateTodayLabel();
+        
+        await loadInitialData();
+        await loadRadarSummary();
+
+        // FIRST-RUN CHECK: Se non ci sono impegni o non è configurato, porta l'utente in configurazione
+        if (allEvents.length === 0) {
+            tg.showPopup({ 
+                title: "Benvenuto", 
+                message: "Configura la tua sorgente dati (iCal, API o scattando una foto) per attivare l'Agenda Radar." 
+            });
+            openView('settings');
+        }
+    }
+
+    function updateTodayLabel() {
+        const now = new Date();
+        const options = { weekday: 'short', day: 'numeric', month: 'short' };
+        document.getElementById('today-date-label').innerText = `Oggi · ${now.toLocaleDateString('it-IT', options)}`;
+    }
+
+    // --- NAVIGATION ---
+    function openView(viewId) {
+        const el = document.getElementById('screen-' + viewId);
+        if (!el) return;
+        el.classList.add('active');
+        currentViewStack.push(viewId);
+        tg.BackButton.show();
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        
+        if (viewId === 'week') renderWeekView();
+        if (viewId === 'sop-list') loadSopList();
+    }
+
+    function closeView() {
+        const viewId = currentViewStack.pop();
+        if (!viewId) return;
+        const el = document.getElementById('screen-' + viewId);
+        el.classList.remove('active');
+        if (currentViewStack.length === 0) tg.BackButton.hide();
+    }
+
+    // --- API CALLS ---
+    async function apiCall(action, payload = {}) {
+        try {
+            const res = await fetch(WEBHOOK_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    action, 
+                    ash, 
+                    _auth: tg.initData,
+                    ...payload 
+                })
+            });
+            if (!res.ok) throw new Error("Network error");
+            return await res.json();
+        } catch (e) {
+            console.error("API Error:", e);
+            tg.showAlert("Errore di connessione al server.");
+            return null;
+        }
+    }
+
+    async function loadInitialData() {
+        const data = await apiCall('agenda_get', { date_range: 'today_tomorrow' });
+        if (data && data.events) {
+            allEvents = data.events;
+        } else {
+            allEvents = [];
+        }
+        renderTodayEvents();
+    }
+
+    // --- RENDERING ---
+    function renderTodayEvents() {
+        const container = document.getElementById('today-events-list');
+        container.innerHTML = '';
+        
+        const today = new Date().toISOString().split('T')[0];
+        const todayEvents = allEvents.filter(e => e.date === today)
+                                    .sort((a,b) => a.time_start.localeCompare(b.time_start));
+
+        if (todayEvents.length === 0) {
+            container.innerHTML = `<div class="py-10 text-center text-[10px] font-black uppercase tracking-widest text-gray-300">Nessun impegno per oggi</div>`;
+            return;
+        }
+
+        todayEvents.forEach(ev => {
+            const div = document.createElement('div');
+            div.className = `event-pill p-4 rounded-2xl flex items-center gap-4 ${isEventActive(ev) ? 'active' : 'bg-white border border-border opacity-60'}`;
+            div.innerHTML = `
+                <div class="text-[10px] font-black text-gray-400 w-10">${ev.time_start}</div>
+                <div class="flex-1">
+                    <h4 class="text-[11px] font-black uppercase tracking-tight">${ev.title}</h4>
+                    ${ev.location ? `<p class="text-[7px] text-gray-400 uppercase tracking-widest mt-0.5"><i class="fas fa-map-marker-alt mr-1"></i>${ev.location}</p>` : ''}
+                </div>
+                ${isEventActive(ev) ? `<div class="w-2 h-2 bg-black rounded-full animate-pulse"></div>` : ''}
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function isEventActive(ev) {
+        const now = new Date();
+        const [h, m] = ev.time_start.split(':').map(Number);
+        const start = new Date(); start.setHours(h, m, 0);
+        const end = new Date(start.getTime() + (ev.duration_min || 30) * 60000);
+        return now >= start && now <= end;
+    }
+
+    // --- WEEK VIEW (SCREEN E) ---
+    function renderWeekView() {
+        const strip = document.getElementById('week-days-strip');
+        const rangeLabel = document.getElementById('week-range-label');
+        strip.innerHTML = '';
+
+        const startOfWeek = getStartOfWeek(currentWeekOffset);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 4);
+
+        rangeLabel.innerText = `${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}`;
+
+        for (let i = 0; i < 5; i++) {
+            const d = new Date(startOfWeek);
+            d.setDate(startOfWeek.getDate() + i);
+            const dateStr = d.toISOString().split('T')[0];
+            const count = allEvents.filter(e => e.date === dateStr).length;
+
+            const div = document.createElement('div');
+            div.className = "flex flex-col items-center gap-1";
+            div.innerHTML = `
+                <span class="text-[7px] font-black text-gray-400 uppercase tracking-widest">${['LUN', 'MAR', 'MER', 'GIO', 'VEN'][i]}</span>
+                <span class="text-sm font-black">${d.getDate()}</span>
+                <div class="h-4">
+                    ${count > 0 ? `<div class="bg-black text-white text-[7px] font-black px-1.5 py-0.5 rounded-md">${count}</div>` : ''}
+                </div>
+            `;
+            strip.appendChild(div);
+        }
+
+        renderWeekEventsList(startOfWeek);
+    }
+
+    function renderWeekEventsList(start) {
+        const container = document.getElementById('week-events-list');
+        container.innerHTML = '';
+
+        for (let i = 0; i < 5; i++) {
+            const d = new Date(start);
+            d.setDate(start.getDate() + i);
+            const dateStr = d.toISOString().split('T')[0];
+            const dayEvents = allEvents.filter(e => e.date === dateStr).sort((a,b) => a.time_start.localeCompare(b.time_start));
+
+            const section = document.createElement('div');
+            section.className = "space-y-4";
+            section.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <h3 class="text-xs font-black uppercase tracking-widest">${d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric' })}</h3>
+                    <div class="flex-1 h-px bg-gray-50"></div>
+                </div>
+            `;
+
+            const list = document.createElement('div');
+            list.className = "space-y-3";
+
+            if (dayEvents.length === 0) {
+                list.innerHTML = `<p class="text-[9px] text-gray-300 italic">Nessun impegno</p>`;
+            } else {
+                dayEvents.forEach(ev => {
+                    const el = document.createElement('div');
+                    el.className = "card-noir p-4 flex flex-col gap-1";
+                    el.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <span class="text-[10px] font-black">${ev.time_start} — ${ev.title}</span>
+                            <span class="text-[7px] font-black text-gray-300 uppercase tracking-widest">${ev.type}</span>
+                        </div>
+                        ${ev.location ? `<p class="text-[8px] text-gray-400"><i class="fas fa-map-marker-alt mr-1"></i>${ev.location} · ${ev.duration_min}min</p>` : ''}
+                    `;
+                    list.appendChild(el);
+                });
+            }
+            section.appendChild(list);
+            container.appendChild(section);
+        }
+    }
+
+    function getStartOfWeek(offset) {
+        const d = new Date();
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1) + (offset * 7);
+        return new Date(d.setDate(diff));
+    }
+
+    function formatDate(d) {
+        return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+    }
+
+    function changeWeek(dir) {
+        currentWeekOffset += dir;
+        renderWeekView();
+    }
+
+    // --- RADAR & SOP ---
+    // 1. Caricamento dei dati di riepilogo per la Home (Saturazione e SOP)
+    async function loadRadarSummary() {
+        const data = await apiCall('radar_get_status', {});
+        if (data) {
+            document.getElementById('radar-saturation-val').innerText = `${data.saturation_rate}%`;
+            document.getElementById('radar-saturation-label').innerText = data.saturation_status_text || 'Standard';
+            document.getElementById('radar-sop-count').innerText = `${data.sop_completed} / ${data.sop_total} Completate`;
+        }
+    }
+
+    // 2. Chiamata di Analisi Predittiva (UI Lock con blocco totale degli input)
+    async function runRadarAnalysis() {
+        const loader = document.getElementById('radar-ai-loader');
+        const results = document.getElementById('radar-results');
+        const btn = document.getElementById('btn-run-radar');
+        const radarScreen = document.getElementById('screen-radar');
+        
+        // UI LOCK: attivazione spinner, disabilitazione tasto, nascondi vecchi risultati, disattiva click/back button
+        loader.classList.remove('hidden');
+        results.classList.add('hidden');
+        btn.disabled = true;
+        btn.classList.add('opacity-50');
+        if (radarScreen) radarScreen.style.pointerEvents = 'none';
+        tg.BackButton.hide();
+
+        try {
+            const data = await apiCall('radar_optimize_on_demand', {});
+            
+            if (data && data.suggestions) {
+                results.classList.remove('hidden');
+                renderRadarSuggestions(data.suggestions);
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            } else {
+                tg.showAlert("Nessun suggerimento disponibile. L'agenda potrebbe essere già satura.");
+            }
+        } catch (e) {
+            console.error("Errore durante l'ottimizzazione predittiva:", e);
+            tg.showAlert("Impossibile completare l'ottimizzazione in questo momento.");
+        } finally {
+            // Rilascio del Lock in ogni scenario (successo o fallimento)
+            loader.classList.add('hidden');
+            btn.disabled = false;
+            btn.classList.remove('opacity-50');
+            if (radarScreen) radarScreen.style.pointerEvents = 'auto';
+            tg.BackButton.show();
+        }
+    }
+
+    // 3. Rendering dei Suggerimenti (Communication Helper con pulsanti Copia e Condividi)
+    function renderRadarSuggestions(suggestions) {
+        const container = document.getElementById('radar-suggestions-container');
+        container.innerHTML = suggestions.map(s => `
+            <div class="card-noir p-5 space-y-3">
+                <div class="flex justify-between items-start">
+                    <span class="text-[8px] font-black uppercase tracking-widest text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
+                        <i class="fas fa-exclamation-triangle"></i> Slot: ${s.slot_time}
+                    </span>
+                    <span class="text-[8px] font-black uppercase tracking-widest text-gray-400">Priorità: ${s.priority}</span>
+                </div>
+                <h4 class="text-xs font-bold uppercase tracking-tight">${s.recommended_service}</h4>
+                <p class="text-[10px] text-gray-500 leading-relaxed">${s.reasoning}</p>
+                <div class="border-t border-gray-100 pt-3 flex gap-2">
+                    <button onclick="navigator.clipboard.writeText(\`${s.message_template}\`); tg.showAlert('Messaggio copiato!');" class="flex-1 py-3 bg-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-600 flex items-center justify-center gap-1.5 active:scale-95 transition">
+                        <i class="fas fa-copy"></i> Copia
+                    </button>
+                    <a href="https://t.me/share/url?url=&text=${encodeURIComponent(s.message_template)}" target="_blank" class="flex-1 py-3 bg-black text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 active:scale-95 transition text-center">
+                        <i class="fab fa-telegram-plane"></i> Invia
+                    </a>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // 4. Caricamento della Checklist SOP
+    async function loadSopList() {
+        const data = await apiCall('radar_get_sops', {});
+        if (data && data.sops) {
+            const container = document.getElementById('sop-container');
+            container.innerHTML = data.sops.map(sop => `
+                <div class="card-noir p-4 flex justify-between items-center bg-white border border-border">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-xs font-bold uppercase tracking-tight ${sop.completed ? 'line-through text-gray-300' : ''}">${sop.title}</span>
+                        <p class="text-[8px] text-gray-400 uppercase tracking-widest">${sop.description}</p>
+                    </div>
+                    <input type="checkbox" onchange="toggleSop('${sop.id}')" ${sop.completed ? 'checked' : ''} class="w-5 h-5 accent-black rounded">
+                </div>
+            `).join('');
+        }
+    }
+
+    // 5. Aggiornamento dello Stato di una SOP con feedback aptico
+    async function toggleSop(id) {
+        const data = await apiCall('radar_toggle_sop', { sop_id: id });
+        if (data && data.success) {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            loadSopList();
+            loadRadarSummary();
+        }
+    }
+
+    function switchIngestionType(type) {
+        selectedIngestionType = type;
+        
+        // Gestione Tab UI
+        ['ical', 'api', 'vision'].forEach(t => {
+            const btn = document.getElementById(`btn-tab-${t}`);
+            const sec = document.getElementById(`config-section-${t}`);
+            if (t === type) {
+                btn.classList.add('bg-white', 'text-black', 'shadow-sm');
+                btn.classList.remove('text-gray-400');
+                sec.classList.remove('hidden');
+            } else {
+                btn.classList.remove('bg-white', 'text-black', 'shadow-sm');
+                btn.classList.add('text-gray-400');
+                sec.classList.add('hidden');
+            }
+        });
+
+        if (type === 'vision') {
+            renderVisionQueue();
+        }
+    }
+
+    function renderVisionQueue() {
+        const container = document.getElementById('vision-queue-container');
+        const counter = document.getElementById('vision-queue-counter');
+        const addBtn = document.getElementById('btn-add-vision');
+        const submitBtn = document.getElementById('btn-submit-vision-batch');
+
+        if (!container || !counter || !addBtn || !submitBtn) return;
+
+        container.innerHTML = '';
+        counter.innerText = `${visionQueue.length} / 6 Pagine`;
+
+        // Toggle button visibility based on size limit
+        if (visionQueue.length >= 6) {
+            addBtn.classList.add('hidden');
+        } else {
+            addBtn.classList.remove('hidden');
+        }
+
+        // Toggle batch submit button
+        if (visionQueue.length > 0) {
+            submitBtn.classList.remove('hidden');
+        } else {
+            submitBtn.classList.add('hidden');
+        }
+
+        const currentYear = new Date().getFullYear();
+        const years = [currentYear, currentYear + 1];
+
+        visionQueue.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = "card-noir p-3 flex items-center gap-3 bg-white relative border border-border";
+            
+            // Month options
+            const monthOptions = monthNames.map((name, i) => 
+                `<option value="${i + 1}" ${item.month === (i + 1) ? 'selected' : ''}>${name}</option>`
+            ).join('');
+
+            // Year options
+            const yearOptions = years.map(yr => 
+                `<option value="${yr}" ${item.year === yr ? 'selected' : ''}>${yr}</option>`
+            ).join('');
+
+            card.innerHTML = `
+                <!-- Thumbnail -->
+                <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-border">
+                    <img src="data:${item.mime_type};base64,${item.image_base64}" class="w-full h-full object-cover">
+                </div>
+                
+                <!-- Date context selectors -->
+                <div class="flex-1 grid grid-cols-2 gap-2">
+                    <div class="flex flex-col gap-0.5">
+                        <label class="text-[7px] font-black uppercase text-gray-400 tracking-wider">Mese</label>
+                        <select onchange="updateQueueItem(${index}, 'month', this.value)" class="bg-gray-50 rounded-lg p-1.5 text-[10px] font-bold outline-none border border-transparent focus:border-black">
+                            ${monthOptions}
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-0.5">
+                        <label class="text-[7px] font-black uppercase text-gray-400 tracking-wider">Anno</label>
+                        <select onchange="updateQueueItem(${index}, 'year', this.value)" class="bg-gray-50 rounded-lg p-1.5 text-[10px] font-bold outline-none border border-transparent focus:border-black">
+                            ${yearOptions}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Remove Button -->
+                <button onclick="removeFromQueue(${index})" class="w-8 h-8 flex items-center justify-center text-red-500 hover:bg-red-55 rounded-lg transition">
+                    <i class="fas fa-trash-alt text-xs"></i>
+                </button>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function updateQueueItem(index, key, value) {
+        const parsedVal = parseInt(value, 10);
+        visionQueue[index][key] = parsedVal;
+        
+        // Ereditarietà temporale per le schede successive
+        for (let i = index + 1; i < visionQueue.length; i++) {
+            visionQueue[i][key] = parsedVal;
+        }
+        renderVisionQueue();
+    }
+
+    function removeFromQueue(index) {
+        visionQueue.splice(index, 1);
+        renderVisionQueue();
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    }
+
+    function triggerVisionSelect() {
+        document.getElementById('vision-file-input').click();
+    }
+
+    async function handleVisionFileChange(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (visionQueue.length >= 6) {
+            tg.showAlert("La coda Vision AI può contenere al massimo 6 pagine.");
+            return;
+        }
+
+        const addBtn = document.getElementById('btn-add-vision');
+        const addBtnText = document.getElementById('btn-add-vision-text');
+        
+        // LOCK DI SCATTO (Parziale)
+        addBtn.disabled = true;
+        addBtn.classList.add('opacity-50');
+        addBtnText.innerText = "Trascrizione OCR in corso...";
+
+        try {
+            // Client-side image compression/resize
+            const base64 = await resizeImage(file, 1024, 0.7);
+
+            // Fallback defaults basati sulla logica di ereditarietà
+            let defaultMonth = new Date().getMonth() + 1;
+            let defaultYear = new Date().getFullYear();
+
+            if (visionQueue.length > 0) {
+                const prevItem = visionQueue[visionQueue.length - 1];
+                defaultMonth = prevItem.month;
+                defaultYear = prevItem.year;
+            }
+
+            // Rilevamento OCR locale del contesto temporale
+            let ocrResult = { month: null, year: null };
+            if (window.RadarOCR) {
+                ocrResult = await window.RadarOCR.detectDateContext(`data:${file.type};base64,${base64}`);
+            }
+
+            const finalMonth = ocrResult.month || defaultMonth;
+            const finalYear = ocrResult.year || defaultYear;
+
+            // Inserimento in coda
+            visionQueue.push({
+                image_base64: base64,
+                mime_type: file.type,
+                month: finalMonth,
+                year: finalYear
+            });
+
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            renderVisionQueue();
+
+        } catch (e) {
+            console.error("Errore durante l'acquisizione della foto:", e);
+            tg.showAlert("Impossibile elaborare l'immagine.");
+        } finally {
+            // Rilascio lock di scatto
+            addBtn.disabled = false;
+            addBtn.classList.remove('opacity-50');
+            addBtnText.innerText = "Aggiungi Giorno (Scatta Foto)";
+            event.target.value = ''; // Reset input
+        }
+    }
+
+    function resizeImage(file, maxSide, quality) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let w = img.width, h = img.height;
+                    if (w > h) { if (w > maxSide) { h *= maxSide / w; w = maxSide; } }
+                    else { if (h > maxSide) { w *= maxSide / h; h = maxSide; } }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', quality).split(',')[1]);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function submitVisionBatch() {
+        if (visionQueue.length === 0) return;
+
+        const lockLoader = document.getElementById('settings-lock-loader');
+        const settingsScreen = document.getElementById('screen-settings');
+        
+        // LOCK DI INVIO (Totale)
+        if (lockLoader) lockLoader.classList.remove('hidden');
+        if (settingsScreen) settingsScreen.style.pointerEvents = 'none';
+        tg.BackButton.hide();
+
+        try {
+            const payload = {
+                pages: visionQueue.map(item => ({
+                    image_base64: item.image_base64,
+                    mime_type: item.mime_type,
+                    month: item.month,
+                    year: item.year
+                }))
+            };
+
+            const result = await apiCall('radar_ingest_vision_batch', payload);
+
+            if (result && result.success) {
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert("Settimana elaborata con successo. L'agenda è stata aggiornata.");
+                
+                visionQueue = [];
+                renderVisionQueue();
+                
+                closeView();
+                loadInitialData();
+            } else {
+                tg.showAlert("Impossibile elaborare la settimana. Si prega di riprovare.");
+            }
+        } catch (e) {
+            console.error("Errore durante l'invio batch:", e);
+            tg.showAlert("Si è verificato un errore di connessione.");
+        } finally {
+            // Sblocco UI Lock Totale
+            if (lockLoader) lockLoader.classList.add('hidden');
+            if (settingsScreen) settingsScreen.style.pointerEvents = 'auto';
+            tg.BackButton.show();
+        }
+    }
+
+    async function downloadIdealCalendar() {
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        
+        const lockLoader = document.getElementById('settings-lock-loader');
+        const settingsScreen = document.getElementById('screen-settings');
+        
+        // Rilevamento della Piattaforma (Desktop vs Mobile)
+        const isMobile = tg.platform === 'android' || 
+                         tg.platform === 'ios' || 
+                         /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+        
+        // UI Lock
+        if (lockLoader) lockLoader.classList.remove('hidden');
+        if (settingsScreen) settingsScreen.style.pointerEvents = 'none';
+        tg.BackButton.hide();
+
+        try {
+            if (isMobile) {
+                // Flusso Mobile: Invia tramite Bot Telegram
+                const result = await apiCall('radar_send_ideal_ical_to_bot', {});
+                if (result && result.success) {
+                    tg.showAlert("Struttura Agenda generata con successo! Il file .ics è stato inviato direttamente nella tua chat Telegram di SiTeBoS. Aprilo per importarlo nel tuo Google Calendar.");
+                } else {
+                    tg.showAlert("Impossibile inviare la struttura dell'agenda tramite Telegram.");
+                }
+            } else {
+                // Flusso Desktop: Download Diretto del file binario
+                const res = await fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        action: "radar_generate_ideal_ical", 
+                        ash, 
+                        _auth: tg.initData
+                    })
+                });
+                
+                if (!res.ok) throw new Error("Chiamata fallita");
+
+                const blob = await res.blob();
+                const calendarBlob = new Blob([blob], { type: 'text/calendar' });
+                
+                const downloadUrl = window.URL.createObjectURL(calendarBlob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = 'sitebos_struttura_agenda.ics';
+                document.body.appendChild(a);
+                a.click();
+                
+                // Pulizia
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(downloadUrl);
+
+                tg.showPopup({
+                    title: "Download Completato",
+                    message: "La struttura dell'agenda ideale è stata scaricata. Puoi importarla ora su Google Calendar o sulla tua app di calendario preferita."
+                });
+            }
+        } catch (e) {
+            console.error("Errore nella generazione dell'agenda ideale:", e);
+            tg.showAlert("Impossibile generare la struttura dell'agenda in questo momento.");
+        } finally {
+            // Rilascio lock
+            if (lockLoader) lockLoader.classList.add('hidden');
+            if (settingsScreen) settingsScreen.style.pointerEvents = 'auto';
+            tg.BackButton.show();
+        }
+    }
+
+    async function saveConfig() {
+        const payload = {
+            ingestion_type: selectedIngestionType
+        };
+
+        if (selectedIngestionType === 'ical') {
+            payload.ical_url = document.getElementById('config-ical-url').value;
+        } else if (selectedIngestionType === 'api') {
+            payload.api_url = document.getElementById('config-api-url').value;
+            payload.api_token = document.getElementById('config-api-token').value;
+        }
+
+        const result = await apiCall('agenda_config_save', payload);
+        if (result && result.success) {
+            tg.HapticFeedback.notificationOccurred('success');
+            tg.showPopup({ message: "Configurazione salvata correttamente." });
+            closeView();
+            loadInitialData();
+            loadRadarSummary();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

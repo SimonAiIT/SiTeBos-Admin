@@ -1,0 +1,701 @@
+{
+  "name": "saveCategory",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Access Denied or Data Not Found\",\n  \"code\": 500\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -32,
+        16
+      ],
+      "id": "b8a5ee03-a2dc-499c-a99a-6c3479995e7d",
+      "name": "500"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "7da6f424-dc2a-4476-a0bd-a3bfd21270fb",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -464,
+        592
+      ],
+      "id": "b1ad4ca3-7676-43c2-a8fd-1bd21f402417",
+      "name": "Webhook",
+      "webhookId": "7da6f424-dc2a-4476-a0bd-a3bfd21270fb"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}_setup_ik",
+        "collectionName": "service_catalog",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        496
+      ],
+      "id": "8a1f6041-64df-4c1f-9722-16b6c259b329",
+      "name": "MongoDB Chat Memory3",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1552,
+        304
+      ],
+      "id": "fdae0f39-c109-406d-8a63-79b97af89dc8",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.updated_service_library }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1232,
+        384
+      ],
+      "id": "26740134-dd88-45ee-96f6-6671312be927",
+      "name": "updateService"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Merge_And_Save_New_Category_FIXED\n// VERSIONE: 3.5 - Fix ReferenceError\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 1. RECUPERO DATI E VALIDAZIONE\n// ═══════════════════════════════════════════════════════════════════════════\nconst item = $input.first().json;\n\nconst existingLibrary = item.service_catalog_setup;\nconst interfaceConfig = item.interface;\nconst ownerData = item.owner_data; \nconst webhookBody = item.user_request;\nconst newCategoryBlock = webhookBody.new_category_block;\n\nif (!existingLibrary || !newCategoryBlock || !webhookBody || !ownerData) {\n    throw new Error(\"Input incompleto. Dati mancanti (libreria, nuova categoria, owner_data o body).\");\n}\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 2. LOGICA DI MERGE (ADD/UPDATE CATEGORY)\n// ═══════════════════════════════════════════════════════════════════════════\nlet updatedCategories = JSON.parse(JSON.stringify(existingLibrary.categories));\nconst categoryExists = updatedCategories.some(cat => cat.callback_data === newCategoryBlock.callback_data);\n\nif (!categoryExists) {\n    updatedCategories.push(newCategoryBlock);\n} else {\n    updatedCategories = updatedCategories.map(cat => \n        cat.callback_data === newCategoryBlock.callback_data ? newCategoryBlock : cat\n    );\n}\n\nconst updatedServiceLibrary = {\n    ...existingLibrary,\n    categories: updatedCategories,\n    metadata: {\n        ...(existingLibrary.metadata || {}),\n        last_updated_at: new Date().toISOString(),\n        updated_by: \"USER_VIA_WEB_APP\"\n    }\n};\n\n\n// ═══════════════════════════════════════════════════════════════════════════\n// 4. RETURN\n// ═══════════════════════════════════════════════════════════════════════════\nreturn [{\n    json: {\n        ...item,\n        updated_service_library: updatedServiceLibrary\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        288
+      ],
+      "id": "d28e14be-d4db-457e-b064-d6d1ed910cf7",
+      "name": "Merge_And_Save_New_Category"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Ingress_ID_Sanitizer_V2 (Collision Proof)\n// OBIETTIVO: Generare ID deterministici basati sul TEMPO + RANDOM\n// POSIZIONE: Subito dopo il Webhook\n\nconst item = $input.first().json;\nconst body = item.body;\n\nif (!body || !body.new_category_block) {\n    throw new Error(\"Payload non valido: new_category_block mancante.\");\n}\n\nconst categoryBlock = body.new_category_block;\n\n// ───────────────────────────────────────────────────────────────\n// GENERATORE DI ID \"TEMPORALI\" (Zero Collisioni)\n// ───────────────────────────────────────────────────────────────\nfunction generateUniqueId(prefix) {\n    // 1. Parte Temporale: Ultimi 4 caratteri del timestamp in base36\n    //    Garantisce che ID generati in momenti diversi siano sempre diversi.\n    const timePart = Date.now().toString(36).slice(-4).toUpperCase();\n    \n    // 2. Parte Casuale: 5 caratteri random (20 milioni di combinazioni per millisecondo)\n    const randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();\n    \n    // Es: CAT_K9L1_X5Y8Z (Lunghezza totale ID ~13-14 caratteri)\n    return `${prefix}_${timePart}${randomPart}`;\n}\n\n// 1. Sanitizzazione Categoria\ncategoryBlock.callback_data = generateUniqueId(\"CAT\");\n\n// 2. Sanitizzazione Sottocategorie\nif (categoryBlock.subcategories && Array.isArray(categoryBlock.subcategories)) {\n    categoryBlock.subcategories = categoryBlock.subcategories.map(sub => ({\n        ...sub,\n        // Generiamo un nuovo ID temporale per ogni servizio\n        callback_data: generateUniqueId(\"SVC\") \n    }));\n}\n\n// 3. Output\nreturn {\n    json: {\n        ...item,\n        body: {\n            ...body,\n            new_category_block: categoryBlock\n        },\n        sanitization: {\n            status: \"SECURE_TIME_BASED\",\n            new_cat_id: categoryBlock.callback_data\n        }\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -272,
+        592
+      ],
+      "id": "6ccf503b-cf84-430f-8b14-f75999432140",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5f811326-e6aa-4dc4-9e52-661a5749f844",
+              "name": "user_request",
+              "value": "={{ $json.body }}",
+              "type": "object"
+            },
+            {
+              "id": "fa7fe020-df36-4ac1-9481-ea6ee42c7555",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        464
+      ],
+      "id": "0b612e65-2ff0-4ca0-8d89-5021da12d2ba",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        160,
+        368
+      ],
+      "id": "f9b4e8c3-d8c5-4b93-a838-842d95562af9",
+      "name": "OwnerExist"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        416,
+        464
+      ],
+      "id": "88e046d6-ffd6-4b44-9444-32b87bee4bff",
+      "name": "Merge22"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.service_catalog_setup }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        576,
+        288
+      ],
+      "id": "b6c83514-ed76-4fb1-a58a-ee139df12974",
+      "name": "Honeypot Exist"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        416,
+        144
+      ],
+      "id": "513ce4f2-d1f9-4159-a085-c670df6ac3ec",
+      "name": "📤 Telegram Call1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        592,
+        32
+      ],
+      "id": "c894eb7b-55a1-4a33-9b92-4b0f60e2114c",
+      "name": "Merge24"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: System_Error_Collection_Retrieval\n// SCENARIO: Utente \"Fantasma\" (Startato ma dati DB persi/corrotti)\n// OUTPUT: Payload Telegram (Messaggio) + Payload Webhook (JSON Error)\n\n\nconst item = $input.first().json;\nconst body = item.user_request || {};\nconst msg = body.message || {};\nconst owner = item.owner_data || {};\n\n// 1. Recupero Dati Contesto\nconst chatId = owner.chat_id;\nconst userLang = body.lang || 'en';\n\n// 2. Definizione Errore\nconst errorCode = \"CRITICAL_DATA_LOSS\";\nconst errorMessage = \"Owner profile not found despite active session flag.\";\n\n// 3. Dizionario Multilingua (Messaggio per l'Utente)\nconst langMap = { 'it': 'it', 'en': 'en', 'fr': 'fr', 'de': 'de', 'es': 'es', 'pt': 'pt' };\nconst lang = langMap[userLang.slice(0,2)] || 'en';\n\nconst t = {\n  'it': {\n    title: \"⚠️ <b>Errore Critico Profilo</b>\",\n    text: \"Il sistema rileva che dovresti essere un utente attivo, ma non riesce a recuperare il tuo profilo aziendale.\",\n    reason: \"Possibile corruzione dei dati o cancellazione accidentale.\",\n    action: \"Per favore, contatta il supporto tecnico indicando il tuo ID:\",\n    btn: \"🆘 Supporto\"\n  },\n  'en': {\n    title: \"⚠️ <b>Critical Profile Error</b>\",\n    text: \"The system detects you should be an active user, but cannot retrieve your company profile.\",\n    reason: \"Possible data corruption or accidental deletion.\",\n    action: \"Please contact technical support providing your ID:\",\n    btn: \"🆘 Support\"\n  },\n  'fr': {\n    title: \"⚠️ <b>Erreur Critique de Profil</b>\",\n    text: \"Le système détecte que vous devriez être un utilisateur actif, mais ne parvient pas à récupérer votre profil d'entreprise.\",\n    reason: \"Corruption possible des données ou suppression accidentelle.\",\n    action: \"Veuillez contacter le support technique en indiquant votre ID :\",\n    btn: \"🆘 Support\"\n  },\n  'de': {\n    title: \"⚠️ <b>Kritischer Profilfehler</b>\",\n    text: \"Das System erkennt, dass Sie ein aktiver Benutzer sein sollten, kann aber Ihr Firmenprofil nicht abrufen.\",\n    reason: \"Mögliche Datenkorruption oder versehentliche Löschung.\",\n    action: \"Bitte kontaktieren Sie den technischen Support mit Ihrer ID:\",\n    btn: \"🆘 Support\"\n  },\n  'es': {\n    title: \"⚠️ <b>Error Crítico del Perfil</b>\",\n    text: \"El sistema detecta que deberías ser un usuario activo, pero no puede recuperar tu perfil de empresa.\",\n    reason: \"Posible corrupción de datos o eliminación accidental.\",\n    action: \"Por favor, contacta al soporte técnico indicando tu ID:\",\n    btn: \"🆘 Soporte\"\n  },\n  'pt': {\n    title: \"⚠️ <b>Erro Crítico de Perfil</b>\",\n    text: \"O sistema detecta que você deveria ser um usuário ativo, mas não consegue recuperar o perfil da sua empresa.\",\n    reason: \"Possível corrupção de dados ou exclusão acidental.\",\n    action: \"Por favor, contate o suporte técnico fornecendo seu ID:\",\n    btn: \"🆘 Suporte\"\n  }\n}[lang] || { // Fallback EN\n    title: \"⚠️ <b>Critical Profile Error</b>\",\n    text: \"The system detects you should be an active user, but cannot retrieve your company profile.\",\n    reason: \"Possible data corruption or accidental deletion.\",\n    action: \"Please contact technical support providing your ID:\",\n    btn: \"🆘 Support\"\n};\n\n// 4. Costruzione Messaggio Telegram\nconst messageText = \n`${t.title}\n\n${t.text}\n\n🛑 <b>Reason:</b> ${t.reason}\n\n👉 <b>${t.action}</b> de>${chatId}</code>`;\n\nconst telegramPayload = {\n    method: \"sendMessage\",\n    chat_id: chatId,\n    text: messageText,\n    parse_mode: \"HTML\",\n    reply_markup: {\n        inline_keyboard: [[{ text: t.btn, url: \"https://t.me/TrinAi_TecSupport_bot\" }]]\n    }\n};\n\n\n// 6. Return Unificato\nreturn {\n    json: {\n        // Payload per il nodo HTTP (Telegram)\n        telegramApiPayload: telegramPayload,\n        \n        // Flag per logica successiva n8n\n        error_type: \"GHOST_USER\",\n        is_fatal: true\n    }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        16
+      ],
+      "id": "ae1b8d65-9363-4f5e-bc33-78bbf7fb58c5",
+      "name": "🆘 System Error Collection"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        848,
+        448
+      ],
+      "id": "fd43d2a2-b35d-423e-9858-0a65963c6490",
+      "name": "Merge25"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        848,
+        288
+      ],
+      "id": "b7ed5a3a-2458-45f4-a026-6f1337ba2e65",
+      "name": "Merge26"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.vat_number || $json.body.vat }}\"\n      },\n      \"messages.0.data.access_token\": {\n        \"$eq\": \"{{ $json.body.token }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -32,
+        368
+      ],
+      "id": "a98a424a-16a5-45f2-91be-105e26b5935d",
+      "name": "owner1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "service_catalog",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}_setup_ik\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"service_catalog_setup\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        288
+      ],
+      "id": "5c03fce9-6cfa-4934-a6cc-340873db264b",
+      "name": "service_catalog_setup1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"success\",\n  \"message\": \"Category created\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1760,
+        304
+      ],
+      "id": "5b446f2f-3c80-4b85-857f-768eaaac7260",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "da04c4f2-5349-4013-b1a2-b0d971334780",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "7da6f424-dc2a-4476-a0bd-a3bfd21270fb",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        160,
+        592
+      ],
+      "id": "cf40a4f1-ffb2-4a33-ac63-54d75ae4f86d",
+      "name": "Autorize"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "curl/8.7.1",
+            "content-length": "322",
+            "accept": "*/*",
+            "content-type": "application/json",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "51.179.121.143",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https",
+            "accept-encoding": "gzip"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "token": "375e2f46-f815-4812-a415-ae5b0ecf7c1a",
+            "vat": "CLADDM85E03G273A",
+            "owner": "7278789809",
+            "lang": "it",
+            "new_category_block": {
+              "name": "Test Categoria",
+              "short_name": "Test",
+              "description": "Test",
+              "callback_data": "TEST_CAT_001",
+              "subcategories": []
+            }
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/7da6f424-dc2a-4476-a0bd-a3bfd21270fb",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "updateService",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "updateService": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge_And_Save_New_Category": {
+      "main": [
+        [
+          {
+            "node": "updateService",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge25",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Merge26",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "service_catalog_setup1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerExist": {
+      "main": [
+        [
+          {
+            "node": "Merge22",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge22": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Honeypot Exist": {
+      "main": [
+        [
+          {
+            "node": "Merge26",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge25",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Call1": {
+      "main": [
+        [
+          {
+            "node": "Merge24",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge24": {
+      "main": [
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🆘 System Error Collection": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge24",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge25": {
+      "main": [
+        [
+          {
+            "node": "🆘 System Error Collection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge26": {
+      "main": [
+        [
+          {
+            "node": "Merge_And_Save_New_Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner1": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "service_catalog_setup1": {
+      "main": [
+        [
+          {
+            "node": "Honeypot Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "owner1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge22",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "0c28954a-849f-4595-ae84-e2314c57d713",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "LKHXtqBfDq73Bq2m",
+  "tags": []
+}

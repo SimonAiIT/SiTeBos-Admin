@@ -1,0 +1,3911 @@
+{
+  "name": "videoProd",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -96,
+        224
+      ],
+      "id": "abf808c3-b5f2-41d0-ab28-725a65fdab6e",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json;\n\n// 1. Estrazione ID SVC\nconst callbackData = input.body.callback_query.data;\nconst svcId = callbackData.split('vid_')[1]; \n\n// 2. Recupero dati servizio dal catalogo\nlet selectedService = null;\nconst categories = input.service_catalog_setup.categories || [];\n\nfor (const cat of categories) {\n  const match = cat.subcategories.find(s => s.callback_data === svcId);\n  if (match) {\n    selectedService = {\n      ...match,\n      category_name: cat.name\n    };\n    break;\n  }\n}\n\n// 3. Ritorno SOLO i blocchi richiesti + il servizio estratto\nreturn {\n  HoneyPot: input.HoneyPot,\n  owner_data: input.owner_data,\n  body: input.body,\n  selected_service: selectedService\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        224
+      ],
+      "id": "c8e14db4-1858-4190-ade6-77371080f5f0",
+      "name": "Extract"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        192,
+        -128
+      ],
+      "id": "b5a68652-bc3e-4253-9177-98fdfc112eb0",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -224,
+        64
+      ],
+      "id": "ba116c7d-5d7d-4c67-8d34-840461ab64b9",
+      "name": "📤 Telegram Text2",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst service = item.selected_service || {};\n\nconst msgText = `\n⏳ <b>GENERAZIONE ASSET MULTIMODALI</b>\n━━━━━━━━━━━━━━━━━━━━\nL'AI sta forgiando i contenuti e la regia video per:\n📦 <b>${service.name}</b>\n\nQuesta operazione richiede circa <b>60 secondi</b>. \n<i>Si prega di attendere: <b>stiamo generando il video e lo script ora</b>. Non è possibile effettuare altre operazioni in questa fase.</i>\n\n🔄 Recupero frammenti di conoscenza...\n🔄 Ingegnerizzazione Script Video & Audio...\n`;\n\nreturn [{ json: { ...item, telegramApiPayload: {\n    method: \"editMessageText\", \n    chat_id: item.owner_data.chat_id, \n    message_id: item.body.callback_query.message.message_id,\n    text: msgText, \n    parse_mode: \"HTML\", \n    reply_markup: { inline_keyboard: [] } // UI Freeze: nessun bottone cliccabile\n}}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        64
+      ],
+      "id": "6f4a1502-44f7-45d3-b1f6-e077b06655eb",
+      "name": "StartPipeMSG"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        192,
+        48
+      ],
+      "id": "fb35d43b-eb58-4c4a-bb46-3c14dc4dacd6",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        64
+      ],
+      "id": "b23f1807-7ed4-486e-9161-e364ba0c0b7f",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "social_posts",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}-{{ $json.selected_service.callback_data }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"social_post\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -368,
+        -128
+      ],
+      "id": "4a2fe7ef-7d7b-4572-b176-2ee6a96e2d4f",
+      "name": "social_post1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "5pERtRttklNe4fOb",
+          "name": "AssetLake"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4810c34a-e11a-4810-88ea-cf5fe1832710",
+              "leftValue": "={{ $json.social_post }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -224,
+        -128
+      ],
+      "id": "1154c755-b6cd-4e35-b947-de3326818daa",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nreturn [{ json: { ...item, telegramApiPayload: {\n    method: \"editMessageText\", \n    chat_id: item.owner_data.chat_id, \n    message_id: item.body.callback_query.message.message_id,\n    text: \"✅ <b>Vedeo Generato Con Successo</b>\", \n    parse_mode: \"HTML\"\n}}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        -432
+      ],
+      "id": "e758036e-ea51-4935-b9c2-7c7b63ea6690",
+      "name": "1. Set simil Delete Msg"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        752,
+        -432
+      ],
+      "id": "4d0a941c-fd2a-4277-881b-1bd7ee03a7ea",
+      "name": "📤 Telegram Text1",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        912,
+        -432
+      ],
+      "id": "c54b5f38-6940-4b94-97b9-9b0eca4b9a8b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        576,
+        -272
+      ],
+      "id": "51698ee2-1de7-49e6-bcef-07d472a4e00f",
+      "name": "Merge45"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cc9a8217-f587-466f-a6cd-7f4d28ccb987",
+              "leftValue": "={{ $binary.data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        576,
+        -112
+      ],
+      "id": "a8763086-8c8b-4fe1-b348-8d214e076bab",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "modelId": {
+          "__rl": true,
+          "value": "models/veo-3.1-fast-generate-preview",
+          "mode": "list",
+          "cachedResultName": "models/veo-3.1-fast-generate-preview"
+        },
+        "prompt": "={{ $json.social_post.veo_master_prompt_8s }}\nAggiungi una musica accattivante di sottofondo.\nAggiungi effetti sonori realistici.",
+        "options": {
+          "durationSeconds": 8,
+          "aspectRatio": "9:16"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        576,
+        48
+      ],
+      "id": "8af8d967-361e-49fb-b680-7b4bdf83843d",
+      "name": "Generate a video",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "LR3Q6cuz4wPaBeGk",
+          "name": "TrinAi PayKey"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst owner = item.owner_data || {};\n\n// Recuperiamo l'immagine. Usiamo gallery1, se non c'è usiamo photo, se non c'è usiamo logo\nconst assets = item.HoneyPot?.assets || {};\nconst photoUrl = (assets.gallery1 && assets.gallery1.url) || \n                 (assets.photo && assets.photo.url) || \n                 (assets.logo && assets.logo.url);\n\n// Costruiamo il payload per INVIARE LA FOTO\nreturn [{ \n    json: { \n        ...item, \n        telegramApiPayload: {\n            method: \"sendDocument\", \n            chat_id: owner.chat_id, \n            photo: photoUrl\n            // Non mettiamo caption per evitare limiti di caratteri\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        -48
+      ],
+      "id": "478f8e1c-963d-468e-9ea9-70aaf3dfbbc9",
+      "name": "2. Set Send Photo"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        912,
+        160
+      ],
+      "id": "6a9929e1-3a86-4a3e-9c95-c8d065350f4f",
+      "name": "Merge44"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "=document",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "chat_id",
+              "value": "={{ $json.owner_data.chat_id }}"
+            },
+            {
+              "name": "caption",
+              "value": "=🛡️ <b>SiteBoS Video Generator</b>\n━━━━━━━━━━━━━━━━━━━━\n\n📌 <b>{{ $json.selected_service.name }}</b> \n\n⚙️ <b>DETTAGLI ESECUZIONE:</b>\n├ <b>Categoria:</b> <code>{{ $json.selected_service.category_name }}</code>\n├ └ <b>Nome:</b> <code>{{ $json.selected_service.short_name }}</code>\n├ └ <b>Identificativo:</b> <code>{{ $json.selected_service.callback_data }}</code>\n\n━━━━━━━━━━━━━━━━━━━━\n"
+            },
+            {
+              "name": "parse_mode",
+              "value": "HTML"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1088,
+        160
+      ],
+      "id": "8dbe654b-5dd0-48f1-8a87-20a50d79f07b",
+      "name": "📤 Telegram User Valut",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        912,
+        -288
+      ],
+      "id": "a553cc9a-a777-4613-815a-acc891cbb2b4",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst service = item.selected_service || {};\nconst svcId = service.callback_data; // Es: SVC_05S3EKTT\n\nconst msgText = `\n🚀 <b>HUB PUBBLICAZIONE MULTIMODALE</b>\n━━━━━━━━━━━━━━━━━━━━\nContenuti pronti per: <b>${service.name}</b>\n\n━━━━━━━━━━━━━━━━━━━━\nSeleziona una piattaforma per visualizzare il copy:\n`;\n\nconst buttons = [\n    [\n        { text: \"🔵 LinkedIn\", callback_data: `m_mkt_do_post_l_${svcId}` },\n        { text: \"🔵 Facebook\", callback_data: `m_mkt_do_post_f_${svcId}` }\n    ],\n    [\n        { text: \"🟣 Instagram\", callback_data: `m_mkt_do_post_i_${svcId}` },\n        { text: \"🔲 X (Twitter)\", callback_data: `m_mkt_do_post_x_${svcId}` }\n    ],\n    [\n        { text: \"🎵 TikTok\", callback_data: `m_mkt_do_post_t_${svcId}` },\n        { text: \"🎬 Video Script\", callback_data: `m_mkt_ask_vid_${svcId}` }\n    ],\n    [\n        { text: \"🔙 Indietro\", callback_data: `m_mkt_id_${svcId}` },\n        { text: \"🔄 Rigenera\", callback_data: `m_mkt_do_post_r_${svcId}` }\n    ],\n    // --- NUOVO PULSANTE HOME ---\n    [\n        { text: \"🏠 Home\", callback_data: \"agent_selection\" }\n    ]\n];\n\nreturn [{ json: { ...item, telegramApiPayload: {\n    method: \"sendMessage\", \n    chat_id: item.owner_data.chat_id, \n    text: msgText, \n    parse_mode: \"HTML\", \n    reply_markup: { inline_keyboard: buttons }\n}}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        -256
+      ],
+      "id": "67085f67-2de4-4110-bf6c-0f0fa55a53f4",
+      "name": "3. Set Send Text"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1648,
+        -256
+      ],
+      "id": "c8b54cb2-c442-4b9f-b8fa-206a8871a041",
+      "name": "📤 Telegram Text",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1120,
+        -272
+      ],
+      "id": "eb83542a-4238-47c3-8f50-838e0865a2cf",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1328,
+        -256
+      ],
+      "id": "75e0eedc-7a87-4aae-b35f-46d368fb6dec",
+      "name": "Merge48"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst service = item.selected_service || {};\n\nconst msgText = `\n❌ <b>ERRORE GENERAZIONE VIDEO</b>\n━━━━━━━━━━━━━━━━━━━━\nNon è stato possibile creare il video per:\n📦 <b>${service.name}</b>\n\n💰 <b>Info Crediti:</b>\nI crediti per questa operazione fallita <u>non</u> sono stati scalati.\n\n🔄 <i>Puoi riprovare tra qualche istante.</i>\n`;\n\nreturn [{ json: { \n    ...item, \n    telegramApiPayload: {\n        method: \"editMessageText\", \n        chat_id: item.owner_data.chat_id, \n        message_id: item.body.callback_query.message.message_id,\n        text: msgText, \n        parse_mode: \"HTML\", \n        reply_markup: { \n            inline_keyboard: [\n                [{ text: \"🔙 Torna al Servizio\", callback_data: `m_mkt_id_${service.callback_data}` }]\n            ] \n        }\n    }\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        464
+      ],
+      "id": "969be85b-b5d2-45d5-b508-c010db0e81fd",
+      "name": "Error"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        192,
+        464
+      ],
+      "id": "0fd4d545-b771-46d9-bc89-f384cf173ea4",
+      "name": "Merge50"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        576,
+        288
+      ],
+      "id": "652303ab-2755-4a5a-bd12-da696e9cb3c2",
+      "name": "📤 Telegram Text3",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "7d09d946-95e6-4efa-baee-00c458c82e9e",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1136,
+        1776
+      ],
+      "id": "7599d101-9d42-4851-a62a-9cef2103c936",
+      "name": "Webhook",
+      "webhookId": "7d09d946-95e6-4efa-baee-00c458c82e9e"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "da04c4f2-5349-4013-b1a2-b0d971334780",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "7d09d946-95e6-4efa-baee-00c458c82e9e",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "5314045f-cdcc-42bd-9f62-46c5a68e4873",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "f79bea1a-1ff0-4e08-8964-276b8feb4516",
+              "leftValue": "={{ $json.body.msg }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -832,
+        1776
+      ],
+      "id": "09388551-71fd-43a9-92ee-a8e3d7793023",
+      "name": "Autorize"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- 1. CONFIGURAZIONE ---\nconst BOT_TOKEN = \"8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ\";\nconst initData = $input.item.json.body._auth;\n\nif (!initData) return { isValid: false, error: \"Dato _auth mancante\" };\n\n// --- 2. LIBRERIA CRIPTOGRAFICA PURE JS (SHA-256 & HMAC) ---\nconst CryptoJS = (function() {\n    function sha256(m) {\n        var h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];\n        var k = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];\n        var b = Array.from(typeof m === 'string' ? new TextEncoder().encode(m) : m);\n        var l = b.length * 8; b.push(0x80);\n        while ((b.length * 8) % 512 !== 448) b.push(0);\n        for (var i = 7; i >= 0; i--) b.push((l / Math.pow(2, i * 8)) & 0xff);\n        for (var i = 0; i < b.length; i += 64) {\n            var w = new Int32Array(64);\n            for (var j = 0; j < 16; j++) w[j] = (b[i + j * 4] << 24) | (b[i + j * 4 + 1] << 16) | (b[i + j * 4 + 2] << 8) | (b[i + j * 4 + 3]);\n            for (var j = 16; j < 64; j++) {\n                var s0 = ((w[j - 15] >>> 7) | (w[j - 15] << 25)) ^ ((w[j - 15] >>> 18) | (w[j - 15] << 14)) ^ (w[j - 15] >>> 3);\n                var s1 = ((w[j - 2] >>> 17) | (w[j - 2] << 15)) ^ ((w[j - 2] >>> 19) | (w[j - 2] << 13)) ^ (w[j - 2] >>> 10);\n                w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;\n            }\n            var [a, c, d, e, f, g, i_h, j_h] = h;\n            var v = [...h];\n            for (var j = 0; j < 64; j++) {\n                var S1 = ((v[4] >>> 6) | (v[4] << 26)) ^ ((v[4] >>> 11) | (v[4] << 21)) ^ ((v[4] >>> 25) | (v[4] << 7));\n                var ch = (v[4] & v[5]) ^ (~v[4] & v[6]);\n                var t1 = (v[7] + S1 + ch + k[j] + w[j]) | 0;\n                var S0 = ((v[0] >>> 2) | (v[0] << 30)) ^ ((v[0] >>> 13) | (v[0] << 19)) ^ ((v[0] >>> 22) | (v[0] << 10));\n                var maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);\n                var t2 = (S0 + maj) | 0;\n                v.unshift((t1 + t2) | 0); v.splice(8); v[4] = (v[4] + t1) | 0;\n            }\n            for (var j = 0; j < 8; j++) h[j] = (h[j] + v[j]) | 0;\n        }\n        return h.reduce((acc, val) => acc.concat([(val >>> 24) & 0xff, (val >>> 16) & 0xff, (val >>> 8) & 0xff, val & 0xff]), []);\n    }\n\n    if (typeof TextEncoder === \"undefined\") {\n        window.TextEncoder = function() {};\n        TextEncoder.prototype.encode = function(s) {\n            return new Uint8Array(unescape(encodeURIComponent(s)).split(\"\").map(c => c.charCodeAt(0)));\n        };\n    }\n\n    return {\n        hmac: function(key, message) {\n            var k = typeof key === 'string' ? Array.from(new TextEncoder().encode(key)) : key;\n            var m = Array.from(new TextEncoder().encode(message));\n            var b = 64;\n            if (k.length > b) k = sha256(k);\n            while (k.length < b) k.push(0);\n            var ipad = k.map(x => x ^ 0x36);\n            var opad = k.map(x => x ^ 0x5c);\n            var inner = sha256(ipad.concat(m));\n            return sha256(opad.concat(inner));\n        }\n    };\n})();\n\n// --- 3. LOGICA PARSING ---\nconst data = {};\ninitData.split('&').forEach(pair => {\n    const [k, v] = pair.split('=');\n    data[k] = decodeURIComponent(v);\n});\n\nconst hashReceived = data.hash;\nconst checkString = Object.keys(data)\n    .filter(k => k !== 'hash')\n    .sort()\n    .map(k => k + '=' + data[k])\n    .join('\\n');\n\n// --- 4. CALCOLO HASH TELEGRAM ---\nconst secretKey = CryptoJS.hmac(\"WebAppData\", BOT_TOKEN);\nconst computedHashBytes = CryptoJS.hmac(secretKey, checkString);\nconst computedHash = computedHashBytes.map(b => b.toString(16).padStart(2, '0')).join('');\n\n// --- 5. CONTROLLO SCADENZA (MAX 1 ORA) ---\nconst now = Math.floor(Date.now() / 1000);\nconst authDate = parseInt(data.auth_date);\nconst isExpired = (now - authDate) > 3600; // Scade dopo 3600 secondi (1 ora)\n\n// --- 6. RISULTATO FINALE ---\nconst isHashValid = (computedHash === hashReceived);\n\nreturn {\n    isValid: isHashValid && !isExpired,\n    isExpired: isExpired,\n    isHashValid: isHashValid,\n    user: data.user ? JSON.parse(data.user) : null,\n    auth_date_human: new Date(authDate * 1000).toLocaleString('it-IT'),\n    debug: {\n        time_diff_seconds: now - authDate,\n        computed: computedHash,\n        received: hashReceived\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        1568
+      ],
+      "id": "1c21b602-60e1-4394-b42a-afff2af3bd5a",
+      "name": "telegram_validator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0c81033b-45d3-46ad-8449-cd854d0ee023",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -416,
+        1568
+      ],
+      "id": "e655be9e-fae0-44b3-b020-0c139f485a4a",
+      "name": "isValid"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -400,
+        1728
+      ],
+      "id": "8f4eb834-d4c5-4e23-9868-8b90e7110072",
+      "name": "Merge29"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a956421a-0dd8-4c3b-884d-4fe0e23bd4b7",
+              "leftValue": "={{ $json.body._auth }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -624,
+        1760
+      ],
+      "id": "526b1175-9d8c-4e30-9cfc-78ad0bfe3836",
+      "name": "MiniApp"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.chat_id\": {\n        \"$eq\": {{ $json.user.id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -416,
+        1392
+      ],
+      "id": "9a9b7cd8-377a-48b8-913a-5e9fdaa5b4fa",
+      "name": "owner1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -256,
+        1392
+      ],
+      "id": "8951ab69-42cc-4b03-8d17-e03e7b30d142",
+      "name": "OwnerExist1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -208,
+        1728
+      ],
+      "id": "1aca8b74-f8eb-47f0-8b3f-58d9a784c77b",
+      "name": "Merge23"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "honeypots",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"HoneyPot\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        1216
+      ],
+      "id": "0d0f4bc9-2b23-46f5-821e-69ed96ad4b9d",
+      "name": "HoneyPot1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d12c796a-4e17-4456-9a7d-022242576163",
+              "leftValue": "={{ $json.HoneyPot }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        1216
+      ],
+      "id": "34a2998f-25da-4d34-bcc6-ea9303c74ad9",
+      "name": "HoneyPot Exist2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -240,
+        1056
+      ],
+      "id": "defb0c60-1b92-4b42-89b1-db9f5b229e98",
+      "name": "Merge32"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d12c796a-4e17-4456-9a7d-022242576163",
+              "leftValue": "={{ $json.service_catalog_setup }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        912
+      ],
+      "id": "f175ef0f-4958-4063-8937-37ec74d5c874",
+      "name": "Service Catalog Exist"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "service_catalog",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}_setup_ik\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"service_catalog_setup\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        912
+      ],
+      "id": "7937aad2-352a-4916-a276-0ba6f7d97147",
+      "name": "Service Catalog",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -240,
+        736
+      ],
+      "id": "598f0d8e-720a-475b-b3c2-1128199e1aa0",
+      "name": "Merge33"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nfor (const item of items) {\n    const body = item.json.body || {};\n    \n    // Controlliamo se serve la conversione (cioè se NON esiste il callback_query di Telegram)\n    if (!body.callback_query) {\n        \n        // 1. Recuperiamo gli ID e il Message ID dal payload della MiniApp\n        const targetId = body.sop_id || body.blog_id || \"UNKNOWN\";\n        const messageId = body.msg ? parseInt(body.msg, 10) : 0;\n        \n        // 2. Iniettiamo la struttura ESATTA che Extract e i nodi successivi si aspettano\n        body.callback_query = {\n            data: \"m_mkt_do_vid_\" + targetId,       // Per far funzionare il tuo: callbackData.split('sap_')[1]\n            message: {\n                message_id: messageId      // Per far funzionare i nodi Telegram successivi (StartPipeMSG, ecc)\n            },\n            from: {\n                language_code: \"it\"        // Per i prompt Gemini che cercano la lingua dell'utente\n            }\n        };\n        \n        // Riapplichiamo il body aggiornato\n        item.json.body = body;\n    }\n}\n\n// Restituiamo il payload, ora perfettamente compatibile con Extract\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        720
+      ],
+      "id": "35c5c35a-8ec7-47ce-8728-07b1e18e07d7",
+      "name": "Conversion"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&'; // La tua chiave segreta\n\n// 1. Recupero del token\nconst rawAsh =\n  item.ash ||\n  item.query?.ash ||\n  item.body?.ash ||\n  item.body?.web_app_data?.data ||\n  item.body?.message?.web_app_data?.data;\n\nif (!rawAsh || typeof rawAsh !== \"string\") {\n  throw new Error(\"ASH non trovato nell'input.\");\n}\n\n// 2. Separazione Payload e Firma\nconst [encodedPayload, signatureReceived] = rawAsh.split(\".\");\n\nif (!encodedPayload || !signatureReceived) {\n  throw new Error(\"Formato ASH non valido.\");\n}\n\n// 3. Decodifica e verifica integrità\nlet decodedPayload;\ntry {\n    decodedPayload = Buffer.from(encodedPayload, \"base64\").toString(\"utf8\");\n} catch (e) {\n    throw new Error(\"Errore decodifica Base64.\");\n}\n\n// --- LOGICA DI VERIFICA FIRMA ---\nfunction verifySignature(payload, secret, receivedSig) {\n    let hash = 0;\n    const combined = payload + secret;\n    for (let i = 0; i < combined.length; i++) {\n        hash = ((hash << 5) - hash) + combined.charCodeAt(i);\n        hash = hash & hash; \n    }\n    const expectedSig = Math.abs(hash).toString(16);\n    return expectedSig === receivedSig;\n}\n\nif (!verifySignature(decodedPayload, SECRET_KEY, signatureReceived)) {\n    // Se la firma non corrisponde, blocchiamo tutto qui!\n    throw new Error(\"SICUREZZA: Firma ASH non valida o manomessa. Accesso negato.\");\n}\n// --------------------------------\n\n// 4. Estrazione ID (Solo se la firma è valida)\nconst parts = decodedPayload.split(\"|\");\n\nreturn [{\n    json: {\n        ...item,\n        ids: {\n            owner_id: parts[0],\n            timestamp: parts[1],\n            webhook: parts[2]\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        736
+      ],
+      "id": "4f38aa6c-bcf7-411d-847a-510d74d4f060",
+      "name": "Ash Decoder",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        592,
+        736
+      ],
+      "id": "5114ed64-e64f-42ec-9532-280f1fbf1e45",
+      "name": "Merge34"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "91c4ce69-ff65-4495-9c1e-36b2ca50c870",
+              "name": "billing_source.wh",
+              "value": "=https://prod.workflow.trinai.it/webhook/ef4aece4-9ec0-4026-a7a7-328562bcbdf6",
+              "type": "string"
+            },
+            {
+              "id": "358f9459-c678-4ef3-9ca3-e63cb0769f11",
+              "name": "billing_source.use",
+              "value": "=Video Production",
+              "type": "string"
+            },
+            {
+              "id": "8bd7e1fd-7edf-4559-ba30-092f61ad55e3",
+              "name": "owner_data.credits_balance",
+              "value": "={{ $json.owner_data.credits_balance }}",
+              "type": "number"
+            },
+            {
+              "id": "d441f543-c453-4a4e-a41f-11b877fda1dc",
+              "name": "user.id",
+              "value": "={{ $json.owner_data.chat_id }}",
+              "type": "number"
+            },
+            {
+              "id": "d49a4e17-5f11-4706-ae76-8d7058c65cc5",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            },
+            {
+              "id": "d46191d0-881e-4dbf-b592-46762fc18500",
+              "name": "modelVersion",
+              "value": "veo-3.1-fast-generate-preview",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        -448
+      ],
+      "id": "888e1eae-883e-4c92-86b8-fe4dafd460d7",
+      "name": "Billing_Set"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4O56BKsRFw321LD7",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4O56BKsRFw321LD7",
+          "cachedResultName": "Standard_AcCredit"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1328,
+        -448
+      ],
+      "id": "3e0fe38c-1128-494e-a73f-20f35c2bbb47",
+      "name": "Call 'Standard_AcCredit'"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0",
+            "content-length": "748",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "it,it-IT;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "content-type": "application/json",
+            "origin": "https://trinaibusinessoperatingsystem.github.io",
+            "priority": "u=1, i",
+            "referer": "https://trinaibusinessoperatingsystem.github.io/",
+            "sec-ch-ua": "\"Not.A/Brand\";v=\"8\", \"Microsoft Edge WebView2\";v=\"147\", \"Chromium\";v=\"147\", \"Microsoft Edge\";v=\"147\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "151.47.51.144",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "generate_video",
+            "sop_id": "SVC_PV04H9VD",
+            "ash": "MjA0MTQwODg3NXwxNzc3MzcyNzY2OTYxfGVmNGFlY2U0LTllYzAtNDAyNi1hN2E3LTMyODU2MmJjYmRmNg==.39298059",
+            "msg": "643",
+            "_auth": "query_id=AAFrba15AAAAAGttrXlHgwDP&user=%7B%22id%22%3A2041408875%2C%22first_name%22%3A%22Giuseppe%22%2C%22last_name%22%3A%22Garofalo%22%2C%22username%22%3A%22TrinAi_OperativeChief%22%2C%22language_code%22%3A%22it%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2FvPTjxONkQ6hvO3p2LwlkoZjewgAm1sVh8k7dFYDeczY.svg%22%7D&auth_date=1777373038&signature=o7dR6AX-ihxMpyQPtb86JrSB6fb2MbdZRJJUiMhI7z01p2LFF7zyS9g94eF1XTF3I6VbLM2hu6M9qfsjWu0sDg&hash=4d8dbcb6ed051d809e706a09d68223fadb9719db79e6125215aa0d81d05d5d07"
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/7d09d946-95e6-4efa-baee-00c458c82e9e",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "HoneyPot": {
+            "company_context_string": "Davide Amedeo Calè, operante con il marchio DCMake, è un Senior Full Stack Developer e Fractional CTO con oltre 14 anni di esperienza nella progettazione di architetture SaaS e sistemi enterprise. Specializzato nell'integrazione di tecnologie robuste come PHP Symfony e Python FastAPI con moderne interfacce in React e Next.js, Davide offre soluzioni end-to-end che vanno dal backend containerizzato su Docker all'infrastruttura Cloud. Il suo approccio unisce rigore ingegneristico, sviluppo AI-assisted e una visione strategica da CTO, rendendolo il partner ideale per PMI, startup e aziende che necessitano di trasformare flussi operativi complessi in ecosistemi digitali scalabili, sicuri ed efficienti.",
+            "offer_text": "🚀 <b>Trasforma la tua visione in una macchina da business scalabile.</b><br><br>Non cercare un semplice esecutore. Hai bisogno di un <b>Ingegnere di Prodotto</b> capace di tradurre le tue necessità di business in architetture software d'eccellenza.<br><br>Con oltre 10 anni di esperienza, offro soluzioni pensate per il mercato odierno:<br><br>🔸 <b>Architetture Robuste:</b> Sistemi progettati per evolversi, non per rompersi.<br>🔸 <b>Stack Moderno:</b> Integrazioni API, Symfony, Python, React e infrastrutture Cloud scalabili.<br>🔸 <b>Visione Strategica:</b> Non vendo codice, vendo <b>fondamenta tecnologiche</b> che fanno crescere il tuo fatturato.<br><br>💎 <b>Hai un progetto complesso?</b> Smettila di improvvisare e costruiamo insieme il tuo futuro digitale. \n\n👉 <a href=\"https://simonaiit.github.io/SiteBoS-MiniApp/SiteBos.html?vat=CLADDM85E03G273A\"><b>CLICCA QUI PER ACCEDERE</b></a>",
+            "knowledge_fragments": [
+              {
+                "fragment_id": "COMPANY_OVERVIEW_V1",
+                "user_utterances": [
+                  "Chi è Davide Amedeo Calè?",
+                  "Cosa fa DCMake?",
+                  "Che tipo di azienda siete?",
+                  "Di cosa vi occupate?"
+                ],
+                "answer_fragment": "DCMake è il brand professionale di Davide Amedeo Calè, Senior Full Stack Developer e consulente tecnologico con base a Menfi (AG). Con una carriera quattordicennale, Davide si distingue come architetto software e Fractional CTO. Il suo lavoro si concentra sulla creazione di piattaforme digitali complesse, spaziando dallo sviluppo di applicazioni SaaS multi-tenant alla gestione di infrastrutture cloud containerizzate. Non si limita alla scrittura di codice, ma progetta sistemi integrati che ottimizzano i flussi di lavoro aziendali. DCMake è sinonimo di ingegneria del software robusta, moderna e orientata ai risultati di business.",
+                "summary": "Pensa a DCMake come a un 'architetto di grattacieli digitali' che, invece di costruire con mattoni e cemento, edifica infrastrutture SaaS solide e scalabili, progettando ogni giuntura del sistema per resistere al tempo e alle pressioni del mercato.",
+                "sections": [
+                  {
+                    "question": "Come si è evoluta l'attività?",
+                    "answer": "La storia di DCMake è un percorso di costante evoluzione tecnologica. Partito come freelance full-stack nel 2012, Davide ha integrato competenze crescenti: dall'iniziale gestione di CMS e siti e-commerce, è passato alla complessità delle architetture PHP Symfony e Python, abbracciando poi il paradigma dei microservizi e del cloud computing. Oggi, la sua evoluzione lo porta a operare come **Fractional CTO**, guidando la direzione tecnica di piattaforme complesse e modernizzando i sistemi legacy delle imprese."
+                  },
+                  {
+                    "question": "Qual è la filosofia dietro il marchio DCMake?",
+                    "answer": "Il nome 'DCMake' unisce le iniziali del titolare con il verbo 'to make', riflettendo una mentalità da 'maker'. La filosofia si riassume nel motto: **Pensa > Disegna > Realizza > Migliora**. È un ciclo iterativo che applica la precisione della stampa 3D (campo in cui Davide è un designer riconosciuto) alla logica del codice: eliminare gli sprechi, ottimizzare le risorse e creare prodotti che funzionano perfettamente al primo colpo."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "MISSION_PURPOSE_V1",
+                "user_utterances": [
+                  "Qual è la vostra missione?",
+                  "Perché esistete come consulenti?",
+                  "Qual è il vostro scopo?",
+                  "Cosa volete ottenere con i vostri progetti?"
+                ],
+                "answer_fragment": "La missione di DCMake è democratizzare l'accesso ad architetture software di livello enterprise. Davide Calè si propone di eliminare la complessità infrastrutturale per PMI e startup, traducendo flussi di lavoro caotici o manuali in sistemi digitali fluidi, stabili e scalabili. L'obiettivo è fornire alle aziende strumenti tecnologici che non siano solo 'funzionanti', ma che rappresentino asset strategici capaci di generare valore, automatizzare processi e supportare la crescita, rimuovendo il debito tecnico che spesso frena l'innovazione nelle realtà di medie dimensioni.",
+                "summary": "Immagina la missione come il lavoro di un 'traduttore universale' che trasforma le complesse esigenze di business in linguaggi di programmazione, abbattendo le barriere tra l'idea imprenditoriale e la sua esecuzione tecnica perfetta.",
+                "sections": [
+                  {
+                    "question": "Quali sono i vostri valori fondanti?",
+                    "answer": "I nostri valori si basano su tre pilastri: 1. **Trasparenza:** Documentazione rigorosa di ogni riga di codice. 2. **Scalabilità:** Progettiamo oggi pensando a domani, utilizzando infrastrutture come Docker che crescono con te. 3. **Concretezza:** Niente 'fuffa' tecnologica; solo soluzioni che portano ROI tangibile."
+                  },
+                  {
+                    "question": "Qual è l'obiettivo a lungo termine?",
+                    "answer": "L'obiettivo è diventare il partner tecnologico di riferimento per aziende che vogliono scalare. Non vogliamo solo consegnare un software, ma instaurare collaborazioni durature in cui la nostra **visione architettonica** diventi la spina dorsale della loro crescita, trasformando la tecnologia da centro di costo a motore di ricavo."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "PRODUCTS_SERVICES_V1",
+                "user_utterances": [
+                  "Cosa offrite esattamente?",
+                  "Quali servizi di sviluppo software fornite?",
+                  "Potete creare un SaaS per me?",
+                  "Che tipo di applicazioni sviluppate?"
+                ],
+                "answer_fragment": "DCMake offre un pacchetto di consulenza tecnologica di alta specializzazione suddiviso in quattro aree principali: 1. Progettazione e sviluppo di applicazioni SaaS multi-tenant chiavi in mano. 2. Sviluppo di CRM enterprise personalizzati con integrazione di database distribuiti. 3. Consulenza DevOps e Cloud Infrastructure per ottimizzare i costi e la resilienza. 4. Consulenza IT, formazione tecnica e prototipazione elettronica. Ogni servizio è personalizzato per rispondere a esigenze specifiche, utilizzando uno stack tecnologico d'avanguardia basato su PHP Symfony, Python, React e Next.js, garantendo velocità, sicurezza e manutenibilità a lungo termine.",
+                "summary": "Pensa ai servizi come a una 'cassetta degli attrezzi di precisione' che contiene tutto il necessario per costruire un'infrastruttura digitale: dal motore del backend alle finiture del frontend, tutto su misura per il tuo progetto.",
+                "sections": [
+                  {
+                    "question": "Come gestite lo sviluppo SaaS?",
+                    "answer": "Utilizziamo un approccio **modulare e containerizzato**. Ogni SaaS che sviluppiamo include pannelli amministrativi avanzati, sistemi di gestione crediti integrati (Stripe/PayPal) e architetture pronte per il cloud, garantendo che la piattaforma sia pronta per scalare da 1 a 10.000 utenti sin dal primo giorno."
+                  },
+                  {
+                    "question": "Offrite anche supporto per i CRM?",
+                    "answer": "Certamente. Progettiamo CRM su misura che non si limitano a memorizzare dati, ma li fanno parlare. Ci occupiamo della **sincronizzazione bidirezionale** tra i tuoi portali e-commerce, siti didattici (come Moodle) e database interni, automatizzando compiti che normalmente richiederebbero ore di inserimento dati manuale."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "USP_DIFFERENTIATORS_V1",
+                "user_utterances": [
+                  "Perché dovrei scegliere voi?",
+                  "Cosa vi rende unici?",
+                  "In cosa siete diversi dagli altri sviluppatori?",
+                  "Qual è il vostro vantaggio competitivo?"
+                ],
+                "answer_fragment": "La vera differenza di DCMake non risiede solo nel codice che scriviamo, ma nella visione architettonica che portiamo nei progetti. A differenza di un freelance standard, Davide Calè agisce come un 'Fractional CTO', analizzando i processi di business prima ancora di scrivere una riga di codice. Integriamo DevOps nativi, containerizzazione Docker e metodologie di sviluppo assistite dall'AI per offrire la velocità di un team intero con la precisione di un singolo architetto senior. La nostra capacità di unire il design di prodotti fisici (stampa 3D) con lo sviluppo software enterprise crea un approccio all'ottimizzazione unico sul mercato.",
+                "summary": "Non siamo semplici 'esecutori di codice', siamo 'ingegneri di prodotto'. Mentre gli altri vendono ore di lavoro, noi vendiamo architetture che durano, si evolvono e risolvono problemi reali di business.",
+                "sections": [
+                  {
+                    "question": "Cosa significa 'AI-assisted development'?",
+                    "answer": "Utilizziamo strumenti all'avanguardia come Claude, GitHub Copilot e Cursor per automatizzare le parti ripetitive del coding. Questo ci permette di **concentrare l'ingegno umano** sulla logica di business e sull'architettura complessa, riducendo drasticamente i tempi di rilascio e garantendo una qualità del codice superiore allo standard di mercato."
+                  },
+                  {
+                    "question": "Perché la 'visione CTO' è importante?",
+                    "answer": "Molti sviluppatori scrivono codice senza capire il mercato. Noi facciamo il contrario: analizziamo il tuo modello di business, identifichiamo i colli di bottiglia e progettiamo un'infrastruttura tecnologica che **supporta la tua crescita finanziaria**, non solo quella tecnica."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "TARGET_CUSTOMERS_V1",
+                "user_utterances": [
+                  "A chi vi rivolgete?",
+                  "Chi sono i vostri clienti ideali?",
+                  "Lavorate con le startup?",
+                  "Aiutate le PMI?"
+                ],
+                "answer_fragment": "DCMake si rivolge principalmente a un target B2B composto da due categorie chiave. In primo luogo, le PMI e le agenzie di servizi strutturate (10-50 dipendenti) che gestiscono processi complessi e hanno bisogno di un partner tecnologico per CRM o ERP proprietari. In secondo luogo, SaaS Founder e startup tecnologiche in fase di lancio (early stage) che necessitano di un CTO a tempo parziale per costruire un MVP solido e pronto per gli investitori. Il cliente ideale è chiunque percepisca la tecnologia come un leva strategica e cerchi un professionista esperto per eliminare l'inefficienza operativa.",
+                "summary": "Il nostro cliente ideale è come un 'imprenditore illuminato' che ha capito che, per scalare la propria azienda, non basta lavorare di più, ma serve un'infrastruttura digitale che lavori meglio al posto suo.",
+                "sections": [
+                  {
+                    "question": "Lavorate anche con aziende di formazione?",
+                    "answer": "Assolutamente sì. Abbiamo una profonda esperienza nel settore **EdTech e Formazione**, grazie al lavoro continuativo con realtà come Agatos Service S.r.l. Sappiamo come integrare portali e-learning (Moodle), gestire scadenze di certificazioni e sincronizzare database complessi per enti accreditati."
+                  },
+                  {
+                    "question": "Supportate anche progetti piccoli?",
+                    "answer": "Valutiamo ogni progetto basandoci sul potenziale di impatto. Anche se il nostro focus è su architetture strutturate, siamo sempre aperti a collaborare con visionari che hanno bisogno di una solida base tecnologica per trasformare un'idea innovativa in un prodotto concreto."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "CONTACT_HOURS_V1",
+                "user_utterances": [
+                  "Come posso contattarvi?",
+                  "Quali sono i vostri orari di disponibilità?",
+                  "Dove vi trovate?",
+                  "Come posso fissare una riunione conoscitiva?",
+                  "Siete aperti anche il venerdì?"
+                ],
+                "answer_fragment": "Puoi contattare DCMake tramite e-mail all'indirizzo cale.davide@gmail.com o telefonicamente al 3296635437. Il nostro orario operativo è dal lunedì al giovedì, dalle 09:00 alle 13:00 e dalle 15:00 alle 17:00 (CET/CEST). Il venerdì siamo indisponibili. Nonostante la base operativa sia a Menfi (AG), operiamo digitalmente su tutto il territorio nazionale ed estero. Per consulenze o urgenze, ti invitiamo a inviare un'email dettagliata: ti risponderemo negli orari indicati per definire i prossimi passi.",
+                "summary": "Massima attenzione alla produttività: siamo disponibili per le vostre richieste dal lunedì al giovedì, con fasce orarie ottimizzate per il supporto e lo sviluppo.",
+                "sections": [
+                  {
+                    "question": "Quali sono i vostri orari di lavoro?",
+                    "answer": "Siamo operativi dal lunedì al giovedì, suddivisi in due fasce orarie: la mattina dalle 09:00 alle 13:00 e il pomeriggio dalle 15:00 alle 17:00. Il venerdì non effettuiamo attività lavorativa."
+                  },
+                  {
+                    "question": "Che canali preferite per la comunicazione?",
+                    "answer": "Prediligiamo la comunicazione asincrona (E-mail, ticket, documentazione) per mantenere la tracciabilità tecnica. Per riunioni strategiche, pianifichiamo call esclusivamente nei nostri orari di apertura (lunedì-giovedì, 09:00-13:00 e 15:00-17:00), per garantire la massima concentrazione sui flussi di sviluppo."
+                  },
+                  {
+                    "question": "È possibile incontrarsi di persona?",
+                    "answer": "Il nostro modello di lavoro è prevalentemente remoto e digitale per massimizzare l'efficienza. Siamo tuttavia disponibili a pianificare incontri di persona per progetti strategici a lungo termine, previo appuntamento da concordare all'interno dei nostri orari operativi (lunedì-giovedì)."
+                  },
+                  {
+                    "question": "Siete aperti anche il venerdì?",
+                    "answer": "No, il venerdì siamo indisponibili. Le nostre attività di consulenza e sviluppo sono concentrate esclusivamente dal lunedì al giovedì, dalle 09:00 alle 13:00 e dalle 15:00 alle 17:00."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "PROCESS_HOW_IT_WORKS_V1",
+                "user_utterances": [
+                  "Come funziona il vostro processo?",
+                  "Quali sono gli step di lavoro?",
+                  "Come gestite un nuovo progetto?",
+                  "Qual è la metodologia di DCMake?"
+                ],
+                "answer_fragment": "Il nostro processo di lavoro segue un metodo rigoroso e ripetibile: Pensa, Disegna, Realizza, Migliora. Si parte da una fase di analisi (Pensa) per comprendere i bisogni di business. Si passa alla progettazione architetturale (Disegna), dove definiamo lo stack e l'infrastruttura. Segue lo sviluppo (Realizza) con metodologie AI-assisted per massimizzare la velocità, e infine l'ottimizzazione continua (Migliora) tramite monitoraggio e feedback. Questo approccio garantisce che ogni linea di codice scritta sia funzionale allo scopo e facilmente manutenibile nel tempo, riducendo sprechi e debito tecnico fin dall'inizio.",
+                "summary": "Il nostro processo è come un 'percorso tracciato' in montagna: sappiamo esattamente dove stiamo andando, abbiamo l'attrezzatura giusta per ogni terreno e controlliamo costantemente la bussola per assicurarci di arrivare alla vetta senza perdite di tempo.",
+                "sections": [
+                  {
+                    "question": "Cosa serve per iniziare?",
+                    "answer": "Per iniziare, abbiamo bisogno di 1. **Una visione chiara:** Qual è il problema che vuoi risolvere? 2. **Documentazione esistente:** Se hai già un codice o un sistema, vogliamo analizzarlo. 3. **Obiettivi misurabili:** Cosa definisce il successo di questo progetto per te?"
+                  },
+                  {
+                    "question": "Quanto dura il ciclo di sviluppo?",
+                    "answer": "Dipende dalla complessità. Tuttavia, grazie all'uso di **boilerplate pre-configurati** e automazione, siamo in grado di consegnare MVP (Minimum Viable Products) in tempi molto più brevi rispetto alla media di mercato, senza mai sacrificare la solidità dell'architettura."
+                  }
+                ]
+              },
+              {
+                "fragment_id": "PRICING_VALUE_V1",
+                "user_utterances": [
+                  "Quanto costano i vostri servizi?",
+                  "Avete dei listini?",
+                  "Come funziona il pricing?",
+                  "È costoso lavorare con voi?"
+                ],
+                "answer_fragment": "DCMake non adotta listini preconfezionati che svalutano il valore dell'ingegneria software. Il nostro modello di pricing si basa sul valore e sull'impatto del progetto. Offriamo opzioni flessibili: dai progetti 'chiavi in mano' a prezzo chiuso per piccoli MVP, fino a contratti di consulenza mensile (retainer) come Fractional CTO per aziende che necessitano di una direzione tecnica continuativa. L'investimento è sempre parametrato alla complessità e al ROI atteso, garantendo che ogni euro speso si trasformi in efficienza operativa, risparmio di tempo e asset tecnologici durevoli.",
+                "summary": "Il nostro pricing non è un costo, è un 'investimento in longevità'. Non paghi solo per le ore lavorate, ma per la tranquillità di avere un'architettura costruita per durare e crescere insieme alla tua azienda.",
+                "sections": [
+                  {
+                    "question": "Perché preferite i modelli 'retainer'?",
+                    "answer": "Il modello retainer (abbonamento mensile) ci permette di agire come partner integrati. Invece di 'colpire e scappare', possiamo monitorare l'infrastruttura, prevenire problemi prima che accadano e **ottimizzare i costi cloud** mese dopo mese, offrendo un valore molto superiore rispetto a una consulenza singola."
+                  },
+                  {
+                    "question": "Offrite garanzie?",
+                    "answer": "La nostra garanzia è la qualità del codice e la trasparenza. Forniamo sempre documentazione tecnica completa e, ove richiesto, formazione per il tuo team interno. Non ti lasciamo mai con un software 'scatola nera' che non sai come gestire; ti lasciamo con una soluzione documentata e professionale."
+                  }
+                ]
+              }
+            ],
+            "offers": [
+              "Architettura SaaS Multi-tenant",
+              "Sviluppo CRM Enterprise & Integrazioni",
+              "DevOps, Docker & Cloud Infrastructure",
+              "Consulenza Fractional CTO"
+            ],
+            "availability_schedule": {
+              "hours": {
+                "monday": {
+                  "morning": {
+                    "from": "09:00",
+                    "to": "13:00"
+                  },
+                  "afternoon": {
+                    "from": "15:00",
+                    "to": "17:00"
+                  }
+                },
+                "tuesday": {
+                  "morning": {
+                    "from": "09:00",
+                    "to": "13:00"
+                  },
+                  "afternoon": {
+                    "from": "15:00",
+                    "to": "17:00"
+                  }
+                },
+                "wednesday": {
+                  "morning": {
+                    "from": "09:00",
+                    "to": "13:00"
+                  },
+                  "afternoon": {
+                    "from": "15:00",
+                    "to": "17:00"
+                  }
+                },
+                "thursday": {
+                  "morning": {
+                    "from": "09:00",
+                    "to": "13:00"
+                  },
+                  "afternoon": {
+                    "from": "15:00",
+                    "to": "17:00"
+                  }
+                },
+                "friday": {
+                  "morning": {
+                    "from": null,
+                    "to": null
+                  },
+                  "afternoon": {
+                    "from": null,
+                    "to": null
+                  }
+                }
+              }
+            },
+            "config": {
+              "onboarding_completed": true,
+              "bot_token": "8427099881:AAEUegPGAGnKx-ZeK0I2z5DJoHUTxB0gwqQ",
+              "bot_linked": true,
+              "completed_at": "2026-05-20T15:20:16.205Z"
+            },
+            "additional_kwargs": [],
+            "response_metadata": [],
+            "assets": {
+              "logo": {
+                "description": "👁️ ANALISI: Il logo utilizza il simbolo universale del prompt di comando (CLI), comunicando immediatamente competenza tecnica, precisione algoritmica e orientamento al problem-solving. La scelta di un design essenziale si sposa perfettamente con il settore della consulenza informatica. \n\n🎨 PALETTE: #171B1E, #F0F4F8 \n\n💡 TIP: Dato l'uso del colore scuro come base, consiglio di creare una variante monocromatica del logo (line-art) per l'applicazione su documenti cartacei o contesti dove uno sfondo pieno e scuro potrebbe risultare troppo pesante o difficile da stampare.",
+                "mime": "image/png",
+                "url": "/images/minisite/CLADDM85E03G273A/logo.png",
+                "base64": null
+              },
+              "photo": {
+                "description": "🖥️ ANALYSIS: L'immagine comunica un alto livello di competenza tecnica e precisione ingegneristica. La combinazione di diagrammi architetturali software, codice e strumenti di misura meccanici (calibro) posiziona efficacemente il brand come consulenza tecnica di alto profilo. L'illuminazione naturale e l'ordine dello spazio di lavoro trasmettono professionalità e affidabilità, elementi cruciali nel settore della consulenza. \n\n🎨 PALETTE: [#1A1A1A, #8B5A2B, #F0F0F0, #C0C0C0] \n\n💡 TIP: Per potenziare l'impatto visivo, si consiglia di focalizzare l'inquadratura su un solo elemento chiave (es. il componente meccanico o il monitor) per ridurre il carico cognitivo, oppure personalizzare i diagrammi sullo schermo per renderli distintivi del marchio.",
+                "mime": "image/jpeg",
+                "url": "/images/minisite/CLADDM85E03G273A/photo.jpg",
+                "base64": null
+              },
+              "gallery1": {
+                "url": "https://dashboard.trinai.it/api/n8n/minisite/minisite/CLADDM85E03G273A/images/gallery1.jpg",
+                "description": "A photorealistic 1:1 square composition featuring a Senior Developer sitting at a minimalist, modern desk. They are focused on a high-end monitor displaying complex SaaS architecture diagrams. The lighting is soft and professional, utilizing a dark charcoal #171B1E color palette with accents of #F0F4F8 from the monitor glow, conveying deep concentration and technical expertise.",
+                "rationale": "This hero shot highlights the human element of service, positioning the subject as a focused, professional expert using high-end tools to manage complex architectures.",
+                "updated_at": "2026-05-20T15:32:36.454Z"
+              },
+              "gallery2": {
+                "url": "https://dashboard.trinai.it/api/n8n/minisite/minisite/CLADDM85E03G273A/images/gallery2.jpg",
+                "description": "A photorealistic 1:1 square composition focusing on an abstract technological scene: a close-up, macro shot of a command-line interface terminal on a dark monitor. The cursor pulses, capturing the essence of coding precision. The aesthetic is sleek, using deep #171B1E backgrounds contrasted with sharp #F0F4F8 white text elements, emphasizing architectural software rigor.",
+                "rationale": "This abstract shot reinforces the CLI/Command Prompt branding and the precision of the developer's work, providing visual variety from the human-focused hero shot.",
+                "updated_at": "2026-05-20T15:32:36.455Z"
+              },
+              "gallery3": {
+                "url": "https://dashboard.trinai.it/api/n8n/minisite/minisite/CLADDM85E03G273A/images/gallery3.jpg",
+                "description": "A photorealistic 1:1 square composition of a professional workstation environment. A metallic stylus rests on a tablet next to a printed schematic, highlighting DevOps infrastructure planning. The scene utilizes a sophisticated palette of #1A1A1A and #C0C0C0, set within a bright, high-end corporate office, capturing a sense of strategic workspace organization and environment.",
+                "rationale": "This environment shot provides context, showing a clean, high-level operational space that builds trust and demonstrates the infrastructure and planning side of the business.",
+                "updated_at": "2026-05-20T15:32:36.455Z"
+              }
+            }
+          },
+          "owner_data": {
+            "user_id": "CLADDM85E03G273A",
+            "chat_id": 7278789809,
+            "access_token": "79998162-ec47-4233-a7ed-d312faf3cae7",
+            "group_id": null,
+            "user_name": "",
+            "vat_number": "CLADDM85E03G273A",
+            "gemini_key": "AIzaSyAbDReRpDWAg93RXoOxuOmNtCGzIfZmF4Q",
+            "bot_key": "8427099881:AAEUegPGAGnKx-ZeK0I2z5DJoHUTxB0gwqQ",
+            "path": "",
+            "name": "Davide Amedeo",
+            "surname": "Calè",
+            "email": "cale.davide@gmail.com",
+            "phone": "3296635437",
+            "ragione_sociale": "Davide Amedeo Calè",
+            "indirizzo": "Via Giuseppe Mazzini, 25 , 92013 Menfi (AG)",
+            "fiscal_code": "",
+            "sdi_pec": "",
+            "site": "https://github.com/DCMake",
+            "linkedin_page": "https://www.linkedin.com/in/dcmake/",
+            "facebook_page": "",
+            "instagram_page": "",
+            "twitter_page": "",
+            "sector": "services_consulting",
+            "business_description": "Senior Full Stack Developer con oltre 10 anni di esperienza, specializzato nella progettazione e nel deployment di applicazioni SaaS e API scalabili, integrando tecnologie robuste come PHP Symfony e Python con interfacce moderne in React e Next.js all'interno di ecosistemi containerizzati su Docker e infrastrutture Cloud",
+            "kyc_details": {
+              "professional_questionnaire": {
+                "role": "freelance_solo",
+                "team_size": "solo",
+                "years_experience": "15-20",
+                "hard_skills": [
+                  "PHP Symfony e Laravel",
+                  "Python FastAPI",
+                  "React & Next.js",
+                  "Docker",
+                  "Cloud Infrastructure (GCP/DigitalOcean)",
+                  "API Design & Development",
+                  "SaaS Architecture",
+                  "Database Management (SQL)",
+                  "Git & GitHub Workflow",
+                  "System Management"
+                ],
+                "certifications": "",
+                "recent_training": "self_taught",
+                "specialization_level": "versatile",
+                "digital_tools": [
+                  "email",
+                  "whatsapp",
+                  "excel",
+                  "word",
+                  "calendar",
+                  "code"
+                ],
+                "client_workflow": "physical_dominant",
+                "document_management": "gestionale",
+                "pain_points": [
+                  "bureaucracy",
+                  "find_clients",
+                  "time_management",
+                  "scaling",
+                  "pricing"
+                ],
+                "main_goal": "grow_revenue"
+              }
+            },
+            "subscription_plan": "pioneer_free_trial",
+            "subscription_status": "Pending_Activation",
+            "credits_balance": 1658,
+            "model_choice": "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+            "lenguage": "Italiano",
+            "owner_unavailable_time": "21-7",
+            "operator_unavailable_time": "19-9",
+            "operators": [
+              {
+                "OperatorName": "Davide Amedeo Calè",
+                "OperatorChatID": 7278789809,
+                "OperatorLenguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Owner",
+                "GeminiKey": "AIzaSyAbDReRpDWAg93RXoOxuOmNtCGzIfZmF4Q"
+              }
+            ],
+            "payment_preference": "wire",
+            "terms_accepted": true,
+            "operator_owner": "",
+            "operator_credit": "1",
+            "created_at": "2026-05-20T13:30:14.977Z",
+            "additional_kwargs": {},
+            "response_metadata": {},
+            "last_update": "2026-05-22T10:08:57.942Z"
+          },
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "content-length": "1473",
+            "accept-encoding": "gzip, deflate",
+            "content-type": "application/json",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "91.108.5.103",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {
+            "user_id": "8253543870"
+          },
+          "body": {
+            "update_id": 195234015,
+            "callback_query": {
+              "id": "3592048073984278259",
+              "from": {
+                "id": 7278789809,
+                "is_bot": false,
+                "first_name": "Davide",
+                "last_name": "Calè",
+                "language_code": "it"
+              },
+              "message": {
+                "message_id": 674,
+                "from": {
+                  "id": 8378810625,
+                  "is_bot": true,
+                  "first_name": "SiteBoS Assistant",
+                  "username": "TrinAi_SiteBoS_bot"
+                },
+                "chat": {
+                  "id": 7278789809,
+                  "first_name": "Davide",
+                  "last_name": "Calè",
+                  "type": "private"
+                },
+                "date": 1779447407,
+                "edit_date": 1779447469,
+                "text": "⚠️ CONFERMA OPERAZIONE AI\n━━━━━━━━━━━━━━━━━━━━\nAzione: Video AI\nTarget: SVC_LJ22I812\n\n💰 Costo: 15 crediti \n📊 Saldo Attuale: 1658 cr.\n━━━━━━━━━━━━━━━━━━━━\nL'AI avvierà la generazione basandosi sui dati certificati. Procedere?",
+                "entities": [
+                  {
+                    "offset": 3,
+                    "length": 22,
+                    "type": "bold"
+                  },
+                  {
+                    "offset": 47,
+                    "length": 7,
+                    "type": "bold"
+                  },
+                  {
+                    "offset": 64,
+                    "length": 7,
+                    "type": "bold"
+                  },
+                  {
+                    "offset": 72,
+                    "length": 12,
+                    "type": "code"
+                  },
+                  {
+                    "offset": 89,
+                    "length": 6,
+                    "type": "bold"
+                  },
+                  {
+                    "offset": 111,
+                    "length": 14,
+                    "type": "bold"
+                  },
+                  {
+                    "offset": 156,
+                    "length": 70,
+                    "type": "italic"
+                  }
+                ],
+                "reply_markup": {
+                  "inline_keyboard": [
+                    [
+                      {
+                        "text": "✅ Conferma ed Esegui",
+                        "callback_data": "m_mkt_do_vid_SVC_LJ22I812"
+                      }
+                    ],
+                    [
+                      {
+                        "text": "❌ Annulla",
+                        "callback_data": "m_mkt_id_SVC_LJ22I812"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "chat_instance": "-7355419387888081533",
+              "data": "m_mkt_do_vid_SVC_LJ22I812"
+            }
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/ef4aece4-9ec0-4026-a7a7-328562bcbdf6",
+          "executionMode": "production",
+          "urlMiniApp": "https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/telegram_control/",
+          "service_catalog_setup": {
+            "categories": [
+              {
+                "name": "[SOP] Amministrazione Quotidiana e Cassa",
+                "short_name": "📊 Amministrazione",
+                "callback_data": "CAT_ONL73MR0",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Come fare la fattura elettronica a fine giornata",
+                    "short_name": "🧾 Fattura Elettronica",
+                    "callback_data": "SVC_ER1N0YBN",
+                    "original_slug": "FATTURA_ELETTRONICA"
+                  },
+                  {
+                    "name": "Cosa fare se un cliente ritarda il pagamento mensile",
+                    "short_name": "⏳ Ritardo Pagamento",
+                    "callback_data": "SVC_9F1MHUVO",
+                    "original_slug": "RITARDO_PAGAMENTO"
+                  },
+                  {
+                    "name": "Controllo delle entrate e uscite sul conto corrente ogni lunedì",
+                    "short_name": "💰 Controllo Entrate",
+                    "callback_data": "SVC_1Q5RAH19",
+                    "original_slug": "CONTROLLO_ENTRATE"
+                  },
+                  {
+                    "name": "Come archiviare le ricevute e le note spesa per il commercialista",
+                    "short_name": "📎 Archivio Ricevute",
+                    "callback_data": "SVC_ZGF64CQC",
+                    "original_slug": "ARCHIVIO_RICEVUTE"
+                  },
+                  {
+                    "name": "Gestione del pagamento delle tasse e dell'F24",
+                    "short_name": "🏦 Gestione Tasse",
+                    "callback_data": "SVC_KLMHXIF6",
+                    "original_slug": "GESTIONE_TASSE"
+                  },
+                  {
+                    "name": "Come emettere una nota di credito in caso di errore",
+                    "short_name": "📝 Nota Credito",
+                    "callback_data": "SVC_KC2HHGR7",
+                    "original_slug": "NOTA_CREDITO"
+                  },
+                  {
+                    "name": "Registrazione rapida dei pagamenti ricevuti tramite Stripe e PayPal",
+                    "short_name": "💳 Pagamenti Stripe",
+                    "callback_data": "SVC_LCPXRZ8H",
+                    "original_slug": "PAGAMENTI_STRIPE"
+                  },
+                  {
+                    "name": "Verifica settimanale delle fatture passive dei provider cloud",
+                    "short_name": "🧾 Fatture Passive",
+                    "callback_data": "SVC_K79HKH41",
+                    "original_slug": "FATTURE_PASSIVE"
+                  },
+                  {
+                    "name": "Come rimborsare un cliente in sicurezza",
+                    "short_name": "💸 Rimborso Cliente",
+                    "callback_data": "SVC_LGGFF709",
+                    "original_slug": "RIMBORSO_CLIENTE"
+                  },
+                  {
+                    "name": "Gestione della cassa contanti per le micro-spese dell'ufficio",
+                    "short_name": "💵 Cassa Contanti",
+                    "callback_data": "SVC_KIIYTX26",
+                    "original_slug": "CASSA_CONTANTI"
+                  },
+                  {
+                    "name": "Controllo dei preventivi firmati in attesa di acconto",
+                    "short_name": "📋 Controllo Preventivi",
+                    "callback_data": "SVC_UDPMH1BE",
+                    "original_slug": "CONTROLLO_PREVENTIVI"
+                  },
+                  {
+                    "name": "Procedura di chiusura amministrativa di fine mese",
+                    "short_name": "📁 Chiusura Mese",
+                    "callback_data": "SVC_G3RYIT15",
+                    "original_slug": "CHIUSURA_MESE"
+                  }
+                ],
+                "original_slug": "SOP_AMMINISTRAZIONE"
+              },
+              {
+                "name": "[SOP] Accoglienza Clienti e Trattative",
+                "short_name": "🤝 Accoglienza",
+                "callback_data": "CAT_R1S5OSB8",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Come rispondere alla prima email di richiesta di un potenziale cliente",
+                    "short_name": "📧 Email Cliente",
+                    "callback_data": "SVC_5Q2OQUJY",
+                    "original_slug": "EMAIL_CLIENTE"
+                  },
+                  {
+                    "name": "Regole per fissare una videochiamata conoscitiva",
+                    "short_name": "📹 Videochiamata",
+                    "callback_data": "SVC_UZQO5FVJ",
+                    "original_slug": "VIDEOCHIAMATA"
+                  },
+                  {
+                    "name": "Cosa dire al telefono quando un cliente chiede uno sconto immediato",
+                    "short_name": "📉 Richiesta Sconto",
+                    "callback_data": "SVC_GU72SPIM",
+                    "original_slug": "RICHIESTA_SCONTO"
+                  },
+                  {
+                    "name": "Come presentare un preventivo complesso senza spaventare il cliente",
+                    "short_name": "📑 Presenta Preventivo",
+                    "callback_data": "SVC_IX3S0XIJ",
+                    "original_slug": "PRESENTA_PREVENTIVO"
+                  },
+                  {
+                    "name": "Raccolta delle informazioni iniziali prima di scrivere il codice",
+                    "short_name": "ℹ️ Info Iniziali",
+                    "callback_data": "SVC_COY6O4IF",
+                    "original_slug": "INFO_INIZIALI"
+                  },
+                  {
+                    "name": "Come gestire un cliente che telefona fuori orario o di venerdì",
+                    "short_name": "🚫 Orari Lavoro",
+                    "callback_data": "SVC_8SLNYNKS",
+                    "original_slug": "ORARI_LAVORO"
+                  },
+                  {
+                    "name": "Cosa fare se un cliente non si presenta alla videochiamata concordata",
+                    "short_name": "❌ Mancato Appuntamento",
+                    "callback_data": "SVC_5XVQHXYQ",
+                    "original_slug": "MANCATO_APPUNTAMENTO"
+                  },
+                  {
+                    "name": "Invio del modulo di benvenuto e raccolta delle credenziali di accesso",
+                    "short_name": "📩 Modulo Benvenuto",
+                    "callback_data": "SVC_AQU4X4N7",
+                    "original_slug": "MODULO_BENVENUTO"
+                  },
+                  {
+                    "name": "Come comunicare un ritardo nella consegna del lavoro senza creare panico",
+                    "short_name": "⏳ Comunicazione Ritardo",
+                    "callback_data": "SVC_50GSG3YR",
+                    "original_slug": "COMUNICAZIONE_RITARDO"
+                  },
+                  {
+                    "name": "Gestione delle critiche e dei reclami per bug nel software",
+                    "short_name": "⚠️ Reclami Bug",
+                    "callback_data": "SVC_XNFZ3OCM",
+                    "original_slug": "RECLAMI_BUG"
+                  },
+                  {
+                    "name": "Richiesta della recensione di fine progetto e autorizzazione al caso studio",
+                    "short_name": "⭐ Richiesta Recensione",
+                    "callback_data": "SVC_ISOI6I37",
+                    "original_slug": "RICHIESTA_RECENSIONE"
+                  },
+                  {
+                    "name": "Come salutare e congedare un cliente a lavoro ultimato",
+                    "short_name": "👋 Congedo Cliente",
+                    "callback_data": "SVC_UTITRD4E",
+                    "original_slug": "CONGEDO_CLIENTE"
+                  }
+                ],
+                "original_slug": "SOP_ACCOGLIENZA"
+              },
+              {
+                "name": "[SOP] Sicurezza sul Lavoro e Gestione Studio",
+                "short_name": "🏢 Gestione Studio",
+                "callback_data": "CAT_FN8R5B1G",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Checklist mensile dello stato dell'estintore e della cassetta medica",
+                    "short_name": "🧯 Sicurezza Mensile",
+                    "callback_data": "SVC_3IVQ7986",
+                    "original_slug": "SICUREZZA_MENSILE"
+                  },
+                  {
+                    "name": "Come tenere in ordine la scrivania per evitare dolori posturali",
+                    "short_name": "🪑 Postura Scrivania",
+                    "callback_data": "SVC_0MPW3JOO",
+                    "original_slug": "POSTURA_SCRIVANIA"
+                  },
+                  {
+                    "name": "Standard di pulizia e aerazione dello studio a fine giornata",
+                    "short_name": "🧹 Pulizia Studio",
+                    "callback_data": "SVC_6LKAAKFW",
+                    "original_slug": "PULIZIA_STUDIO"
+                  },
+                  {
+                    "name": "Cosa fare in caso di piccolo infortunio o bruciatura con la stampante 3D",
+                    "short_name": "🩹 Primo Soccorso",
+                    "callback_data": "SVC_E1V8AQML",
+                    "original_slug": "PRIMO_SOCCORSO"
+                  },
+                  {
+                    "name": "Controllo periodico dei cavi elettrici e delle multiprese sotto la scrivania",
+                    "short_name": "🔌 Controllo Cavi",
+                    "callback_data": "SVC_BYO858TF",
+                    "original_slug": "CONTROLLO_CAVI"
+                  },
+                  {
+                    "name": "Regole per l'uso sicuro dei solventi e delle plastiche per la stampa 3D",
+                    "short_name": "🧪 Solventi Stampa",
+                    "callback_data": "SVC_XF3WE03H",
+                    "original_slug": "SOLVENTI_STAMPA"
+                  },
+                  {
+                    "name": "Cosa fare in caso di blackout elettrico improvviso nello studio",
+                    "short_name": "🌑 Gestione Blackout",
+                    "callback_data": "SVC_762XCP8D",
+                    "original_slug": "GESTIONE_BLACKOUT"
+                  },
+                  {
+                    "name": "Gestione dello smaltimento sicuro dei rifiuti plastici di scarto",
+                    "short_name": "♻️ Rifiuti Plastica",
+                    "callback_data": "SVC_41PDJ7SH",
+                    "original_slug": "RIFIUTI_PLASTICA"
+                  },
+                  {
+                    "name": "Piano di evacuazione rapida dallo studio di Menfi in caso di emergenza",
+                    "short_name": "🏃 Piano Evacuazione",
+                    "callback_data": "SVC_B3CHM1P0",
+                    "original_slug": "PIANO_EVACUAZIONE"
+                  },
+                  {
+                    "name": "Controllo termico periodico della stanza dei server locali",
+                    "short_name": "🌡️ Controllo Termico",
+                    "callback_data": "SVC_9D5N8T8G",
+                    "original_slug": "CONTROLLO_TERMICO"
+                  },
+                  {
+                    "name": "Manutenzione del climatizzatore per mantenere la temperatura di lavoro ideale",
+                    "short_name": "❄️ Climatizzatore",
+                    "callback_data": "SVC_9RHATQT0",
+                    "original_slug": "CLIMATIZZATORE"
+                  },
+                  {
+                    "name": "Come segnalare problemi strutturali al proprietario delle mura",
+                    "short_name": "🏠 Problemi Stabili",
+                    "callback_data": "SVC_KCE6VO15",
+                    "original_slug": "PROBLEMI_STABILI"
+                  }
+                ],
+                "original_slug": "SOP_SICUREZZA_STUDIO"
+              },
+              {
+                "name": "[SOP] Sicurezza Informatica e Protezione Dati",
+                "short_name": "🔒 Sicurezza Dati",
+                "callback_data": "CAT_8ZZU6CN2",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Cosa fare immediatamente se si perde il telefono o il portatile aziendale",
+                    "short_name": "📱 Furto Dispositivo",
+                    "callback_data": "SVC_TUPLMR14",
+                    "original_slug": "FURTO_DISPOSITIVO"
+                  },
+                  {
+                    "name": "Regole per la creazione e la rotazione delle password principali",
+                    "short_name": "🔑 Gestione Password",
+                    "callback_data": "SVC_OQINCK3Q",
+                    "original_slug": "GESTIONE_PASSWORD"
+                  },
+                  {
+                    "name": "Come far firmare il foglio della privacy a ogni nuovo cliente",
+                    "short_name": "📄 Privacy Cliente",
+                    "callback_data": "SVC_24P6SZHS",
+                    "original_slug": "PRIVACY_CLIENTE"
+                  },
+                  {
+                    "name": "Autenticazione a due fattori obbligatoria su tutti i servizi cloud",
+                    "short_name": "🛡️ 2FA Obbligatoria",
+                    "callback_data": "SVC_R0THO8E8",
+                    "original_slug": "2FA_OBBLIGATORIA"
+                  },
+                  {
+                    "name": "Come ripulire in sicurezza un computer prima di venderlo o sostituirlo",
+                    "short_name": "💻 Pulizia Computer",
+                    "callback_data": "SVC_Z4POPKTW",
+                    "original_slug": "PULIZIA_COMPUTER"
+                  },
+                  {
+                    "name": "Verifica mensile degli accessi ai server e rimozione delle vecchie chiavi SSH",
+                    "short_name": "🗝️ Accessi SSH",
+                    "callback_data": "SVC_UP7A3022",
+                    "original_slug": "ACCESSI_SSH"
+                  },
+                  {
+                    "name": "Come gestire in sicurezza le password dei database dei clienti",
+                    "short_name": "🗄️ Password Database",
+                    "callback_data": "SVC_BA3SI7UD",
+                    "original_slug": "PASSWORD_DATABASE"
+                  },
+                  {
+                    "name": "Cosa fare in caso di sospetto attacco informatico o phishing via email",
+                    "short_name": "🎣 Attacco Phishing",
+                    "callback_data": "SVC_B1LN4ZW8",
+                    "original_slug": "ATTACCO_PHISHING"
+                  },
+                  {
+                    "name": "Regole per l'uso sicuro delle reti Wi-Fi pubbliche quando si viaggia",
+                    "short_name": "📶 Wi-Fi Pubblico",
+                    "callback_data": "SVC_F9EUS4JX",
+                    "original_slug": "WIFI_PUBBLICO"
+                  },
+                  {
+                    "name": "Come cifrare i dischi rigidi del computer di lavoro principale",
+                    "short_name": "💽 Cifratura Dischi",
+                    "callback_data": "SVC_UBLI7L4C",
+                    "original_slug": "CIFRATURA_DISCHI"
+                  },
+                  {
+                    "name": "Controllo periodico dei permessi di accesso dei collaboratori esterni su GitHub",
+                    "short_name": "🐙 Permessi GitHub",
+                    "callback_data": "SVC_30ES03VH",
+                    "original_slug": "PERMESSI_GITHUB"
+                  },
+                  {
+                    "name": "Procedura di cancellazione sicura dei dati sensibili a fine contratto",
+                    "short_name": "🗑️ Cancellazione Dati",
+                    "callback_data": "SVC_DXU3VHSC",
+                    "original_slug": "CANCELLAZIONE_DATI"
+                  }
+                ],
+                "original_slug": "SOP_SICUREZZA_IT"
+              },
+              {
+                "name": "[SOP] Manutenzione Hardware e Ambienti di Sviluppo",
+                "short_name": "🛠️ Manutenzione HW",
+                "callback_data": "CAT_ZLZW1G72",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Pulizia fisica mensile dei computer e delle ventole di raffreddamento",
+                    "short_name": "🧹 Pulizia Hardware",
+                    "callback_data": "SVC_U26XQBGJ",
+                    "original_slug": "PULIZIA_HARDWARE"
+                  },
+                  {
+                    "name": "Aggiornamento settimanale del sistema operativo di lavoro",
+                    "short_name": "🆙 Update Sistema",
+                    "callback_data": "SVC_8Y7UTAN2",
+                    "original_slug": "UPDATE_SISTEMA"
+                  },
+                  {
+                    "name": "Pulizia e calibrazione dei piatti delle stampanti 3D per i prototipi",
+                    "short_name": "🖨️ Calibrazione 3D",
+                    "callback_data": "SVC_IZGUJ2XA",
+                    "original_slug": "CALIBRAZIONE_3D"
+                  },
+                  {
+                    "name": "Verifica dello spazio libero sui dischi dei server locali di sviluppo",
+                    "short_name": "💾 Spazio Server",
+                    "callback_data": "SVC_ZY0XRQ9T",
+                    "original_slug": "SPAZIO_SERVER"
+                  },
+                  {
+                    "name": "Pulizia dei container Docker inutilizzati per liberare memoria sul PC",
+                    "short_name": "🐳 Pulizia Docker",
+                    "callback_data": "SVC_LU8X23Z2",
+                    "original_slug": "PULIZIA_DOCKER"
+                  },
+                  {
+                    "name": "Controllo del corretto funzionamento dei gruppi di continuità",
+                    "short_name": "🔋 Controllo UPS",
+                    "callback_data": "SVC_I6V20DU3",
+                    "original_slug": "CONTROLLO_UPS"
+                  },
+                  {
+                    "name": "Come aggiornare i pacchetti globali di sviluppo nel computer di lavoro",
+                    "short_name": "📦 Update Pacchetti",
+                    "callback_data": "SVC_MKU6ALLP",
+                    "original_slug": "UPDATE_PACCHETTI"
+                  },
+                  {
+                    "name": "Sostituzione periodica degli ugelli della stampante 3D usurati",
+                    "short_name": "🔧 Sostituzione Ugelli",
+                    "callback_data": "SVC_K019FLC9",
+                    "original_slug": "SOSTITUZIONE_UGELLI"
+                  },
+                  {
+                    "name": "Verifica della velocità della connessione internet dello studio",
+                    "short_name": "🌐 Test Connessione",
+                    "callback_data": "SVC_U1CNFS1G",
+                    "original_slug": "TEST_CONNESSIONE"
+                  },
+                  {
+                    "name": "Cosa fare se la macchina di sviluppo principale si blocca e non si avvia",
+                    "short_name": "🚨 Crash Macchina",
+                    "callback_data": "SVC_6QSZ7EO4",
+                    "original_slug": "CRASH_MACCHINA"
+                  },
+                  {
+                    "name": "Conservazione sicura delle bobine di filamento sensibili all'umidità",
+                    "short_name": "💧 Filamento 3D",
+                    "callback_data": "SVC_3TQRIPDH",
+                    "original_slug": "FILAMENTO_3D"
+                  },
+                  {
+                    "name": "Checklist di controllo dell'hardware prima di partire per un viaggio di lavoro",
+                    "short_name": "🧳 Checklist Viaggio",
+                    "callback_data": "SVC_EVPNY0ZG",
+                    "original_slug": "CHECKLIST_VIAGGIO"
+                  }
+                ],
+                "original_slug": "SOP_MANUTENZIONE_HW"
+              },
+              {
+                "name": "[SOP] Controllo Qualità del Software e Test",
+                "short_name": "✅ Controllo Qualità",
+                "callback_data": "CAT_LW4LHO4N",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Controllo automatico del codice prima di ogni salvataggio su Git",
+                    "short_name": "🤖 Linting Automatico",
+                    "callback_data": "SVC_1E2WEFCE",
+                    "original_slug": "LINTING_AUTOMATICO"
+                  },
+                  {
+                    "name": "Come scrivere un test di base per verificare che l'applicazione funzioni",
+                    "short_name": "🧪 Unit Testing",
+                    "callback_data": "SVC_LQUBB511",
+                    "original_slug": "UNIT_TESTING"
+                  },
+                  {
+                    "name": "Verifica manuale dei moduli di pagamento prima di mandarli online",
+                    "short_name": "💳 Test Pagamenti",
+                    "callback_data": "SVC_BBJ821TM",
+                    "original_slug": "TEST_PAGAMENTI"
+                  },
+                  {
+                    "name": "Controllo della velocità di caricamento delle pagine web su cellulare",
+                    "short_name": "📱 Test Mobile",
+                    "callback_data": "SVC_14D9YVW4",
+                    "original_slug": "TEST_MOBILE"
+                  },
+                  {
+                    "name": "Verifica della compatibilità del sito su tutti i browser principali",
+                    "short_name": "🌐 Cross Browser",
+                    "callback_data": "SVC_0T2DR1Y4",
+                    "original_slug": "CROSS_BROWSER"
+                  },
+                  {
+                    "name": "Come documentare un bug trovato per poterlo correggere rapidamente",
+                    "short_name": "📝 Bug Report",
+                    "callback_data": "SVC_MTXGRGRF",
+                    "original_slug": "BUG_REPORT"
+                  },
+                  {
+                    "name": "Regole di formattazione del codice per mantenerlo pulito e leggibile",
+                    "short_name": "✍️ Codice Pulito",
+                    "callback_data": "SVC_A4P2H2WM",
+                    "original_slug": "CODICE_PULITO"
+                  },
+                  {
+                    "name": "Verifica dei link interrotti e dei moduli di contatto sul sito del cliente",
+                    "short_name": "🔗 Verifica Link",
+                    "callback_data": "SVC_5YI33E65",
+                    "original_slug": "VERIFICA_LINK"
+                  },
+                  {
+                    "name": "Come fare un test di carico per vedere se il server regge molti utenti",
+                    "short_name": "⚖️ Load Testing",
+                    "callback_data": "SVC_4BD37386",
+                    "original_slug": "LOAD_TESTING"
+                  },
+                  {
+                    "name": "Controllo di sicurezza sulle librerie esterne prima di installarle",
+                    "short_name": "🛡️ Audit Librerie",
+                    "callback_data": "SVC_S7TS26HN",
+                    "original_slug": "AUDIT_LIBRERIE"
+                  },
+                  {
+                    "name": "Procedura di verifica della conformità grafica rispetto ai bozzetti iniziali",
+                    "short_name": "🎨 UI Audit",
+                    "callback_data": "SVC_DZVYOT12",
+                    "original_slug": "UI_AUDIT"
+                  },
+                  {
+                    "name": "Come chiedere a una persona esterna di testare il software prima del lancio",
+                    "short_name": "👥 User Testing",
+                    "callback_data": "SVC_9QSKCMYP",
+                    "original_slug": "USER_TESTING"
+                  }
+                ],
+                "original_slug": "SOP_QUALITA_SOFTWARE"
+              },
+              {
+                "name": "[SOP] Gestione Emergenze Tecniche e Down dei Server",
+                "short_name": "🆘 Gestione Emergenze",
+                "callback_data": "CAT_RB9W9CL4",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Cosa fare se il server di un cliente smette improvvisamente di funzionare",
+                    "short_name": "🔌 Down Server",
+                    "callback_data": "SVC_SSMP4Q9Y",
+                    "original_slug": "DOWN_SERVER"
+                  },
+                  {
+                    "name": "Come ripristinare un database dall'ultimo backup sicuro",
+                    "short_name": "🔙 Ripristino DB",
+                    "callback_data": "SVC_GWLUWSX9",
+                    "original_slug": "RIPRISTINO_DB"
+                  },
+                  {
+                    "name": "Procedura per deviare il traffico web su una pagina di manutenzione temporanea",
+                    "short_name": "🚧 Pagina Manutenzione",
+                    "callback_data": "SVC_5SXWJEZ9",
+                    "original_slug": "PAGINA_MANUTENZIONE"
+                  },
+                  {
+                    "name": "Come bloccare un utente malintenzionato che sta attaccando il sito",
+                    "short_name": "🚫 Ban Attaccante",
+                    "callback_data": "SVC_B83FP9FD",
+                    "original_slug": "BAN_ATTACCANTE"
+                  },
+                  {
+                    "name": "Cosa fare se scade improvvisamente il certificato di sicurezza SSL",
+                    "short_name": "🔐 Rinnovo SSL",
+                    "callback_data": "SVC_KNU6VPUT",
+                    "original_slug": "RINNOVO_SSL"
+                  },
+                  {
+                    "name": "Contatto rapido con l'assistenza del provider cloud in caso di guasto hardware",
+                    "short_name": "📞 Supporto Cloud",
+                    "callback_data": "SVC_9QS09EKL",
+                    "original_slug": "SUPPORTO_CLOUD"
+                  },
+                  {
+                    "name": "Come recuperare i dati persi da un server cloud bloccato",
+                    "short_name": "💾 Recupero Dati",
+                    "callback_data": "SVC_GO82W2TM",
+                    "original_slug": "RECUPERO_DATI"
+                  },
+                  {
+                    "name": "Cosa fare se l'integrazione di Stripe o PayPal smette di ricevere i pagamenti",
+                    "short_name": "💸 Stop Pagamenti",
+                    "callback_data": "SVC_R45YVND7",
+                    "original_slug": "STOP_PAGAMENTI"
+                  },
+                  {
+                    "name": "Procedura di emergenza in caso di saturazione improvvisa del disco del server",
+                    "short_name": "💾 Disco Pieno",
+                    "callback_data": "SVC_O2SIMYHP",
+                    "original_slug": "DISCO_PIENO"
+                  },
+                  {
+                    "name": "Come avvisare i clienti di un malfunzionamento in corso con totale trasparenza",
+                    "short_name": "📢 Status Page",
+                    "callback_data": "SVC_SXRY4GJ7",
+                    "original_slug": "STATUS_PAGE"
+                  },
+                  {
+                    "name": "Ripristino dei servizi minimi essenziali dopo un blackout prolungato",
+                    "short_name": "🚀 Ripristino Minimo",
+                    "callback_data": "SVC_AU6AYPU6",
+                    "original_slug": "RIPRISTINO_MINIMO"
+                  },
+                  {
+                    "name": "Analisi post-emergenza per evitare che lo stesso problema si ripeta",
+                    "short_name": "🧐 Post Mortem",
+                    "callback_data": "SVC_HAWLBCFM",
+                    "original_slug": "POST_MORTEM"
+                  }
+                ],
+                "original_slug": "SOP_EMERGENZE_TECNICHE"
+              },
+              {
+                "name": "[SOP] Organizzazione del Lavoro e Produttività",
+                "short_name": "⏱️ Produttività",
+                "callback_data": "CAT_F7SBSAR4",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Pianificazione delle attività della settimana ogni lunedì mattina",
+                    "short_name": "🗓️ Pianificazione",
+                    "callback_data": "SVC_8L3U29BY",
+                    "original_slug": "PIANIFICAZIONE"
+                  },
+                  {
+                    "name": "Come bloccare il tempo sul calendario per scrivere codice senza distrazioni",
+                    "short_name": "🧘 Focus Time",
+                    "callback_data": "SVC_I53C7G56",
+                    "original_slug": "FOCUS_TIME"
+                  },
+                  {
+                    "name": "Gestione della bacheca di lavoro per vedere lo stato di ogni progetto",
+                    "short_name": "📋 Task Management",
+                    "callback_data": "SVC_YJ1288Q2",
+                    "original_slug": "TASK_MANAGEMENT"
+                  },
+                  {
+                    "name": "Regole per l'uso dell'intelligenza artificiale per scrivere codice più in fretta",
+                    "short_name": "🤖 Uso AI",
+                    "callback_data": "SVC_MEILOXMS",
+                    "original_slug": "USO_AI"
+                  },
+                  {
+                    "name": "Come documentare i progressi giornalieri da inviare al cliente",
+                    "short_name": "📝 Report Giornaliero",
+                    "callback_data": "SVC_8DWNRPV6",
+                    "original_slug": "REPORT_GIORNALIERO"
+                  },
+                  {
+                    "name": "Procedura per staccare dal lavoro e riposare durante il weekend",
+                    "short_name": "🛑 Stacco Weekend",
+                    "callback_data": "SVC_LB1FN6RJ",
+                    "original_slug": "STACCO_WEEKEND"
+                  },
+                  {
+                    "name": "Come archiviare i file di un progetto completato per liberare spazio",
+                    "short_name": "📦 Archiviazione",
+                    "callback_data": "SVC_LJASPWA5",
+                    "original_slug": "ARCHIVIAZIONE"
+                  },
+                  {
+                    "name": "Gestione delle pause per evitare l'affaticamento degli occhi davanti allo schermo",
+                    "short_name": "👁️ Pausa Occhi",
+                    "callback_data": "SVC_TLEIWIC6",
+                    "original_slug": "PAUSA_OCCHI"
+                  },
+                  {
+                    "name": "Cosa fare se ci si accorge di non riuscire a rispettare una scadenza importante",
+                    "short_name": "⚠️ Gestione Deadline",
+                    "callback_data": "SVC_Q18PKZ21",
+                    "original_slug": "GESTIONE_DEADLINE"
+                  },
+                  {
+                    "name": "Come organizzare i file e le cartelle sul desktop del computer di lavoro",
+                    "short_name": "📁 Desktop Pulito",
+                    "callback_data": "SVC_YXK8BUHD",
+                    "original_slug": "DESKTOP_PULITO"
+                  },
+                  {
+                    "name": "Pulizia settimanale della casella di posta elettronica per non perdere messaggi",
+                    "short_name": "📧 Inbox Zero",
+                    "callback_data": "SVC_NFCABEX4",
+                    "original_slug": "INBOX_ZERO"
+                  },
+                  {
+                    "name": "Preparazione del piano di lavoro settimanale prima della chiusura del giovedì",
+                    "short_name": "📅 Piano Settimanale",
+                    "callback_data": "SVC_42GUY5AL",
+                    "original_slug": "PIANO_SETTIMANALE"
+                  }
+                ],
+                "original_slug": "SOP_PRODUTTIVITA"
+              },
+              {
+                "name": "[SOP] Gestione della Proprietà Intellettuale e Contratti",
+                "short_name": "⚖️ Legal & Contratti",
+                "callback_data": "CAT_HB3BQQVT",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Come redigere un contratto di sviluppo software sicuro per entrambe le parti",
+                    "short_name": "📝 Contratto Sviluppo",
+                    "callback_data": "SVC_9GSVZM3Y",
+                    "original_slug": "CONTRATTO_SVILUPPO"
+                  },
+                  {
+                    "name": "Clausole standard per la protezione del codice sorgente proprietario",
+                    "short_name": "🛡️ Protezione Codice",
+                    "callback_data": "SVC_YY1NO77E",
+                    "original_slug": "PROTEZIONE_CODICE"
+                  },
+                  {
+                    "name": "Come far firmare un accordo di riservatezza prima di vedere un'idea",
+                    "short_name": "🤫 NDA Riservatezza",
+                    "callback_data": "SVC_XGRGAWOC",
+                    "original_slug": "NDA_RISERVATEZZA"
+                  },
+                  {
+                    "name": "Registrazione del marchio DCMake e tutela del logo aziendale",
+                    "short_name": "🏷️ Marchio DCMake",
+                    "callback_data": "SVC_U03MKAZ7",
+                    "original_slug": "MARCHIO_DCCMAKE"
+                  },
+                  {
+                    "name": "Come gestire la cessione dei diritti del software al cliente dopo il saldo",
+                    "short_name": "💰 Cessione Diritti",
+                    "callback_data": "SVC_4WKGBCH1",
+                    "original_slug": "CESSIONE_DIRITTI"
+                  },
+                  {
+                    "name": "Protezione legale dei propri modelli 3D e delle licenze di stampa",
+                    "short_name": "🖨️ Licenze Modelli",
+                    "callback_data": "SVC_O5JJB2GX",
+                    "original_slug": "LICENZE_MODELLI"
+                  },
+                  {
+                    "name": "Cosa fare se si scopre che qualcuno ha copiato o rivenduto il proprio codice",
+                    "short_name": "🚫 Violazione Copy",
+                    "callback_data": "SVC_LRNY4D60",
+                    "original_slug": "VIOLAZIONE_COPY"
+                  },
+                  {
+                    "name": "Gestione dei contratti di manutenzione e dei livelli di servizio garantiti",
+                    "short_name": "📋 Service Level",
+                    "callback_data": "SVC_FYBEJN0C",
+                    "original_slug": "SERVICE_LEVEL"
+                  },
+                  {
+                    "name": "Come inserire le clausole di esclusione di responsabilità nel software",
+                    "short_name": "⚠️ Disclaimer",
+                    "callback_data": "SVC_C2KZ6V2T",
+                    "original_slug": "DISCLAIMER"
+                  },
+                  {
+                    "name": "Archiviazione digitale sicura di tutti i contratti firmati dai clienti",
+                    "short_name": "💾 Archivio Contratti",
+                    "callback_data": "SVC_3419EJXG",
+                    "original_slug": "ARCHIVIO_CONTRATTI"
+                  },
+                  {
+                    "name": "Come gestire le licenze d'uso delle librerie software a pagamento",
+                    "short_name": "📜 Licenze SW",
+                    "callback_data": "SVC_7JH4BDKT",
+                    "original_slug": "LICENZE_SW"
+                  },
+                  {
+                    "name": "Procedura legale in caso di recesso anticipato dal contratto da parte del cliente",
+                    "short_name": "❌ Recesso Anticipato",
+                    "callback_data": "SVC_7J0NRT8L",
+                    "original_slug": "RECESSO_ANTICIPATO"
+                  }
+                ],
+                "original_slug": "SOP_LEGAL"
+              },
+              {
+                "name": "[SOP] Gestione Fornitori e Abbonamenti Software",
+                "short_name": "🛒 Fornitori",
+                "callback_data": "CAT_C4M0H380",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Registro degli abbonamenti software attivi con scadenze e prezzi",
+                    "short_name": "📅 Registro Abbonamenti",
+                    "callback_data": "SVC_XV147GWN",
+                    "original_slug": "REGISTRO_ABBONAMENTI"
+                  },
+                  {
+                    "name": "Come scegliere un nuovo fornitore di hosting o server cloud",
+                    "short_name": "☁️ Scelta Provider",
+                    "callback_data": "SVC_6V6H86JH",
+                    "original_slug": "SCELTA_PROVIDER"
+                  },
+                  {
+                    "name": "Procedura per disdire un abbonamento software inutile o inutilizzato",
+                    "short_name": "⛔ Disdetta Abbonamento",
+                    "callback_data": "SVC_ODF7FSGJ",
+                    "original_slug": "DISDETTA_ABBONAMENTO"
+                  },
+                  {
+                    "name": "Come acquistare filamenti e ricambi per la stampante 3D a prezzi vantaggiosi",
+                    "short_name": "🖨️ Acquisti Stampa 3D",
+                    "callback_data": "SVC_KBMD8PFN",
+                    "original_slug": "ACQUISTI_STAMPA3D"
+                  },
+                  {
+                    "name": "Gestione delle credenziali di accesso ai portali dei fornitori",
+                    "short_name": "🔐 Credenziali Portali",
+                    "callback_data": "SVC_YWTLOQLS",
+                    "original_slug": "CREDENZIALI_PORTALI"
+                  },
+                  {
+                    "name": "Come richiedere assistenza tecnica avanzata a un fornitore di servizi cloud",
+                    "short_name": "📞 Supporto Fornitori",
+                    "callback_data": "SVC_LB07CQ0P",
+                    "original_slug": "SUPPORTO_FORNITORI"
+                  },
+                  {
+                    "name": "Verifica periodica delle tariffe dei fornitori per trovare opzioni più economiche",
+                    "short_name": "📉 Risparmio Tariffe",
+                    "callback_data": "SVC_J6IFPZXE",
+                    "original_slug": "RISPARMIO_TARIFFE"
+                  },
+                  {
+                    "name": "Gestione dei rapporti con i programmatori esterni per piccoli lavori di supporto",
+                    "short_name": "👨‍💻 Collaboratori Esterni",
+                    "callback_data": "SVC_166K2S9Q",
+                    "original_slug": "COLLABORATORI_ESTERNI"
+                  },
+                  {
+                    "name": "Come pagare le fatture dei fornitori esteri per non avere interruzioni di servizio",
+                    "short_name": "🌍 Pagamenti Esteri",
+                    "callback_data": "SVC_XI9J48L7",
+                    "original_slug": "PAGAMENTI_ESTERI"
+                  },
+                  {
+                    "name": "Controllo delle licenze d'uso dei programmi di progettazione 3D",
+                    "short_name": "🎨 Licenze 3D",
+                    "callback_data": "SVC_6JV0X7NR",
+                    "original_slug": "LICENZE_3D"
+                  },
+                  {
+                    "name": "Come impostare gli avvisi di spesa sui server di test per evitare sorprese",
+                    "short_name": "⚠️ Alert Spesa",
+                    "callback_data": "SVC_IMEQQHY0",
+                    "original_slug": "ALERT_SPESA"
+                  },
+                  {
+                    "name": "Valutazione annuale dei fornitori di servizi internet e telefonici",
+                    "short_name": "📊 Valutazione Fornitori",
+                    "callback_data": "SVC_8H1NWGD6",
+                    "original_slug": "VALUTAZIONE_FORNITORI"
+                  }
+                ],
+                "original_slug": "SOP_FORNITORI"
+              },
+              {
+                "name": "[SER] Architettura SaaS e Sviluppo Web Custom",
+                "short_name": "🚀 SaaS & Web Custom",
+                "callback_data": "CAT_Q31OMRK8",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Analisi iniziale e studio di fattibilità per nuove idee di business SaaS",
+                    "short_name": "💡 Analisi SaaS",
+                    "callback_data": "SVC_6WCIYHMJ",
+                    "original_slug": "ANALISI_SAAS"
+                  },
+                  {
+                    "name": "Disegno dello schema del database e dell'architettura di base della piattaforma",
+                    "short_name": "🏗️ Architettura DB",
+                    "callback_data": "SVC_8HKDE818",
+                    "original_slug": "ARCHITETTURA_DB"
+                  },
+                  {
+                    "name": "Sviluppo del motore di backend robusto con PHP Symfony o Python FastAPI",
+                    "short_name": "⚙️ Backend Robust",
+                    "callback_data": "SVC_5PO7V82F",
+                    "original_slug": "BACKEND_ROBUST"
+                  },
+                  {
+                    "name": "Creazione di interfacce web reattive e veloci con React e Next.js",
+                    "short_name": "⚛️ Frontend Reattivo",
+                    "callback_data": "SVC_D8BSBII4",
+                    "original_slug": "FRONTEND_REATTIVO"
+                  },
+                  {
+                    "name": "Integrazione di pannelli di controllo per gli amministratori del sistema",
+                    "short_name": "🖥️ Pannello Admin",
+                    "callback_data": "SVC_HN23HPH2",
+                    "original_slug": "PANNELLO_ADMIN"
+                  },
+                  {
+                    "name": "Sviluppo di dashboard per gli utenti finali con grafici e statistiche",
+                    "short_name": "📊 Dashboard Utente",
+                    "callback_data": "SVC_9145WPC7",
+                    "original_slug": "DASHBOARD_UTENTE"
+                  },
+                  {
+                    "name": "Collegamento sicuro dei sistemi di pagamento Stripe e PayPal",
+                    "short_name": "💳 Integrazione Pay",
+                    "callback_data": "SVC_6BOMFC0V",
+                    "original_slug": "INTEGRAZIONE_PAY"
+                  },
+                  {
+                    "name": "Sviluppo di sistemi di iscrizione, login e gestione dei permessi utente",
+                    "short_name": "🔐 Login & Permessi",
+                    "callback_data": "SVC_8XD87TOF",
+                    "original_slug": "LOGIN_PERMESSI"
+                  },
+                  {
+                    "name": "Creazione di sistemi di fatturazione automatica e gestione degli abbonamenti",
+                    "short_name": "🧾 Fatturazione Auto",
+                    "callback_data": "SVC_RNUKFG15",
+                    "original_slug": "FATTURAZIONE_AUTO"
+                  },
+                  {
+                    "name": "Ottimizzazione delle prestazioni per rendere l'applicazione velocissima",
+                    "short_name": "⚡ Ottimizzazione",
+                    "callback_data": "SVC_YZ3KGOW9",
+                    "original_slug": "OTTIMIZZAZIONE"
+                  },
+                  {
+                    "name": "Test completi prima della pubblicazione online del software",
+                    "short_name": "✅ Test Finale",
+                    "callback_data": "SVC_05XJ48SS",
+                    "original_slug": "TEST_FINALE"
+                  },
+                  {
+                    "name": "Consegna finale del codice sorgente pronto e documentato per il cliente",
+                    "short_name": "📦 Consegna Progetto",
+                    "callback_data": "SVC_GZP88OWN",
+                    "original_slug": "CONSEGNA_PROGETTO"
+                  }
+                ],
+                "original_slug": "SER_SAAS_WEB"
+              },
+              {
+                "name": "[SER] Integrazione CRM Enterprise e Sincronizzazione Dati",
+                "short_name": "📊 Integrazione CRM",
+                "callback_data": "CAT_FNM8VGT9",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Sviluppo di CRM su misura in PHP Symfony per la gestione dei clienti aziendali",
+                    "short_name": "🛠️ CRM Custom",
+                    "callback_data": "SVC_9YOVZ0U9",
+                    "original_slug": "CRM_CUSTOM"
+                  },
+                  {
+                    "name": "Collegamento automatico tra il sito e-commerce e il CRM interno",
+                    "short_name": "🔗 Sync E-commerce",
+                    "callback_data": "SVC_MAE8TTGJ",
+                    "original_slug": "SYNC_ECOMMERCE"
+                  },
+                  {
+                    "name": "Sincronizzazione in tempo reale degli acquisti con la piattaforma Moodle",
+                    "short_name": "🔄 Sync Moodle",
+                    "callback_data": "SVC_T2AWTTBC",
+                    "original_slug": "SYNC_MOODLE"
+                  },
+                  {
+                    "name": "Sviluppo di moduli per tracciare le vendite e il lavoro dei commerciali",
+                    "short_name": "📈 Tracking Vendite",
+                    "callback_data": "SVC_0NXDFV99",
+                    "original_slug": "TRACKING_VENDITE"
+                  },
+                  {
+                    "name": "Creazione di calendari condivisi complessi per gestire appuntamenti ed eventi",
+                    "short_name": "🗓️ Calendario Condiviso",
+                    "callback_data": "SVC_W4B4UGZX",
+                    "original_slug": "CALENDARIO_CONDIVISO"
+                  },
+                  {
+                    "name": "Automazione dell'invio di email e promemoria per scadenze di corsi formativi",
+                    "short_name": "📩 Automazione Email",
+                    "callback_data": "SVC_3OTTCRTF",
+                    "original_slug": "AUTOMAZIONE_EMAIL"
+                  },
+                  {
+                    "name": "Creazione di dashboard con statistiche sull'andamento del fatturato aziendale",
+                    "short_name": "📊 Dashboard Fatturato",
+                    "callback_data": "SVC_8X6HMNGQ",
+                    "original_slug": "DASHBOARD_FATTURATO"
+                  },
+                  {
+                    "name": "Migrazione sicura di vecchi dati da fogli Excel al nuovo CRM proprietario",
+                    "short_name": "💾 Migrazione Excel",
+                    "callback_data": "SVC_5ZC4DJFE",
+                    "original_slug": "MIGRAZIONE_EXCEL"
+                  },
+                  {
+                    "name": "Integrazione di sistemi di assistenza clienti e gestione dei ticket di supporto",
+                    "short_name": "🎧 Ticketing System",
+                    "callback_data": "SVC_60ZCM8Y9",
+                    "original_slug": "TICKETING_SYSTEM"
+                  },
+                  {
+                    "name": "Sviluppo di API personalizzate per far parlare software diversi tra loro",
+                    "short_name": "🔌 Sviluppo API",
+                    "callback_data": "SVC_TWXKCK9V",
+                    "original_slug": "SVILUPPO_API"
+                  },
+                  {
+                    "name": "Collegamento del CRM con i sistemi di invio di messaggi ed SMS automatici",
+                    "short_name": "📱 Integrazione SMS",
+                    "callback_data": "SVC_IKZ5K2HM",
+                    "original_slug": "INTEGRAZIONE_SMS"
+                  },
+                  {
+                    "name": "Formazione del personale aziendale all'utilizzo sicuro del nuovo CRM",
+                    "short_name": "🎓 Formazione CRM",
+                    "callback_data": "SVC_I2PYJFXO",
+                    "original_slug": "FORMAZIONE_CRM"
+                  }
+                ],
+                "original_slug": "SER_CRM_INTEGRATION"
+              },
+              {
+                "name": "[SER] Direzione Tecnica e Fractional CTO",
+                "short_name": "👨‍💼 Fractional CTO",
+                "callback_data": "CAT_3DAPBH7X",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Consulenza strategica mensile per la crescita tecnologica aziendale",
+                    "short_name": "📈 Strategia Tech",
+                    "callback_data": "SVC_XCCTAFTB",
+                    "original_slug": "STRATEGIA_TECH"
+                  },
+                  {
+                    "name": "Valutazione dei sistemi informatici esistenti e riduzione del debito tecnico",
+                    "short_name": "🧹 Debito Tecnico",
+                    "callback_data": "SVC_PRW96XKK",
+                    "original_slug": "DEBITO_TECNICO"
+                  },
+                  {
+                    "name": "Coordinamento e supporto tecnico ai programmatori interni o esterni dell'azienda",
+                    "short_name": "👥 Coordinamento Team",
+                    "callback_data": "SVC_DXIXC7IG",
+                    "original_slug": "COORDINAMENTO_TEAM"
+                  },
+                  {
+                    "name": "Aiuto nella selezione e nel colloquio tecnico di nuovi programmatori da assumere",
+                    "short_name": "🔍 Colloquio Tecnico",
+                    "callback_data": "SVC_Q1OS4PZW",
+                    "original_slug": "COLLOQUIO_TECNICO"
+                  },
+                  {
+                    "name": "Definizione dello stack tecnologico più adatto per i nuovi progetti",
+                    "short_name": "🛠️ Stack Tecnologico",
+                    "callback_data": "SVC_5SZTVUAA",
+                    "original_slug": "STACK_TECNOLOGICO"
+                  },
+                  {
+                    "name": "Pianificazione della roadmap di sviluppo del prodotto digitale passo dopo passo",
+                    "short_name": "🗺️ Roadmap Sviluppo",
+                    "callback_data": "SVC_UC1Z569I",
+                    "original_slug": "ROADMAP_SVILUPPO"
+                  },
+                  {
+                    "name": "Analisi e ottimizzazione dei costi dei server cloud e dei servizi esterni",
+                    "short_name": "💰 Ottimizzazione Costi",
+                    "callback_data": "SVC_NJRV32HP",
+                    "original_slug": "OTTIMIZZAZIONE_COSTI"
+                  },
+                  {
+                    "name": "Gestione delle scelte tecnologiche difficili per evitare sprechi di budget",
+                    "short_name": "⚖️ Scelte Tecniche",
+                    "callback_data": "SVC_23WX2C2A",
+                    "original_slug": "SCELTE_TECNICHE"
+                  },
+                  {
+                    "name": "Riunioni periodiche con la direzione aziendale per allineare tecnologia e business",
+                    "short_name": "🤝 Allineamento Biz",
+                    "callback_data": "SVC_QUIM7C4Q",
+                    "original_slug": "ALLINEAMENTO_BIZ"
+                  },
+                  {
+                    "name": "Creazione di informazioni e linee guida per lo sviluppo interne all'azienda",
+                    "short_name": "📝 Linee Guida Dev",
+                    "callback_data": "SVC_V5CU7CYT",
+                    "original_slug": "LINEE_GUIDA_DEV"
+                  },
+                  {
+                    "name": "Valutazione della sicurezza informatica generale dell'infrastruttura aziendale",
+                    "short_name": "🛡️ Audit Sicurezza",
+                    "callback_data": "SVC_0FSRKHS6",
+                    "original_slug": "AUDIT_SICUREZZA"
+                  },
+                  {
+                    "name": "Supporto tecnico durante le trattative con investitori o partner importanti",
+                    "short_name": "🏢 Supporto Investitori",
+                    "callback_data": "SVC_YT8H4DZS",
+                    "original_slug": "SUPPORTO_INVESTITORI"
+                  }
+                ],
+                "original_slug": "SER_CTO_SERVICES"
+              },
+              {
+                "name": "[SER] DevOps, Cloud e Ottimizzazione Infrastruttura",
+                "short_name": "☁️ DevOps & Cloud",
+                "callback_data": "CAT_R6X9D2AN",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Isolamento delle applicazioni tramite container Docker per semplificare la gestione",
+                    "short_name": "🐳 Container Docker",
+                    "callback_data": "SVC_ASYU9DQJ",
+                    "original_slug": "CONTAINER_DOCKER"
+                  },
+                  {
+                    "name": "Configurazione di server cloud sicuri su Google Cloud, DigitalOcean o VPS",
+                    "short_name": "🌐 Server Cloud",
+                    "callback_data": "SVC_JQWTK7G1",
+                    "original_slug": "SERVER_CLOUD"
+                  },
+                  {
+                    "name": "Setup di sistemi per il salvataggio automatico e quotidiano dei dati aziendali",
+                    "short_name": "💾 Backup Automatico",
+                    "callback_data": "SVC_GS5OUWVR",
+                    "original_slug": "BACKUP_AUTOMATICO"
+                  },
+                  {
+                    "name": "Automazione della pubblicazione del codice online senza interruzioni di servizio",
+                    "short_name": "🚀 Deploy Automatico",
+                    "callback_data": "SVC_UATBB46P",
+                    "original_slug": "DEPLOY_AUTOMATICO"
+                  },
+                  {
+                    "name": "Migrazione di vecchie applicazioni web verso infrastrutture cloud moderne",
+                    "short_name": "☁️ Migrazione Cloud",
+                    "callback_data": "SVC_4I1Z6HTR",
+                    "original_slug": "MIGRAZIONE_CLOUD"
+                  },
+                  {
+                    "name": "Configurazione di server di database veloci e pronti a sopportare grandi carichi",
+                    "short_name": "🗄️ Database Scalabile",
+                    "callback_data": "SVC_2JM6HW8J",
+                    "original_slug": "DATABASE_SCALABILE"
+                  },
+                  {
+                    "name": "Setup di sistemi di cache per velocizzare i siti web molto frequentati",
+                    "short_name": "⚡ Cache System",
+                    "callback_data": "SVC_GJK377D0",
+                    "original_slug": "CACHE_SYSTEM"
+                  },
+                  {
+                    "name": "Configurazione di certificati di sicurezza SSL per la navigazione protetta",
+                    "short_name": "🔐 SSL Security",
+                    "callback_data": "SVC_67VGP9RG",
+                    "original_slug": "SSL_SECURITY"
+                  },
+                  {
+                    "name": "Monitoraggio continuo dei server con avvisi automatici in caso di problemi",
+                    "short_name": "📊 Server Monitoring",
+                    "callback_data": "SVC_BGW6Y1FW",
+                    "original_slug": "SERVER_MONITORING"
+                  },
+                  {
+                    "name": "Ottimizzazione delle spese server riducendo le risorse inutilizzate",
+                    "short_name": "💸 Risparmio Cloud",
+                    "callback_data": "SVC_0CPTOSJR",
+                    "original_slug": "RISPARMIO_CLOUD"
+                  },
+                  {
+                    "name": "Setup di reti private virtuali per proteggere le comunicazioni aziendali",
+                    "short_name": "🛡️ VPN Setup",
+                    "callback_data": "SVC_NOIE4W0N",
+                    "original_slug": "VPN_SETUP"
+                  },
+                  {
+                    "name": "Analisi e risoluzione di colli di bottiglia che rallentano le applicazioni",
+                    "short_name": "🧐 Analisi Performance",
+                    "callback_data": "SVC_BRKL53RN",
+                    "original_slug": "ANALISI_PERFORMANCE"
+                  }
+                ],
+                "original_slug": "SER_DEVOPS_CLOUD"
+              },
+              {
+                "name": "[SER] Consulenza IT Specialistica e Formazione Tecnica",
+                "short_name": "🎓 Formazione IT",
+                "callback_data": "CAT_CSBLE3NZ",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Corso pratico di programmazione in PHP Symfony per programmatori aziendali",
+                    "short_name": "🐘 PHP Symfony",
+                    "callback_data": "SVC_G3EB0N5S",
+                    "original_slug": "PHP_SYMFONY"
+                  },
+                  {
+                    "name": "Lezioni sull'utilizzo corretto di Docker per sviluppare software localmente",
+                    "short_name": "🐳 Corso Docker",
+                    "callback_data": "SVC_L7OFU8CB",
+                    "original_slug": "CORSO_DOCKER"
+                  },
+                  {
+                    "name": "Formazione all'uso di Next.js e React per creare siti web moderni",
+                    "short_name": "⚛️ Corso React",
+                    "callback_data": "SVC_9IA9GI5L",
+                    "original_slug": "CORSO_REACT"
+                  },
+                  {
+                    "name": "Consulenza per la transizione di vecchi siti web verso sistemi moderni",
+                    "short_name": "🔄 Modernizzazione Web",
+                    "callback_data": "SVC_MKCZCBDZ",
+                    "original_slug": "MODERNIZZAZIONE_WEB"
+                  },
+                  {
+                    "name": "Supporto tecnico per la configurazione e l'uso di Moodle nell'e-learning",
+                    "short_name": "🎓 Supporto Moodle",
+                    "callback_data": "SVC_E4YRVIZB",
+                    "original_slug": "SUPPORTO_MOODLE"
+                  },
+                  {
+                    "name": "Insegnamento di tecniche di sviluppo assistito tramite intelligenza artificiale",
+                    "short_name": "🤖 Dev con AI",
+                    "callback_data": "SVC_ODPZO91I",
+                    "original_slug": "DEV_CON_AI"
+                  },
+                  {
+                    "name": "Corso pratico sulla sicurezza delle applicazioni web per evitare intrusioni",
+                    "short_name": "🛡️ Sicurezza Web",
+                    "callback_data": "SVC_Z2T3PYA9",
+                    "original_slug": "SICUREZZA_WEB"
+                  },
+                  {
+                    "name": "Formazione sulla gestione dei database SQL e ottimizzazione delle query",
+                    "short_name": "🗄️ SQL & Query",
+                    "callback_data": "SVC_OSNKSPFA",
+                    "original_slug": "SQL_QUERY"
+                  },
+                  {
+                    "name": "Consulenza per l'integrazione di sistemi di pagamento digitali complessi",
+                    "short_name": "💳 Payment Integration",
+                    "callback_data": "SVC_QP77EKUA",
+                    "original_slug": "PAYMENT_INTEGRATION"
+                  },
+                  {
+                    "name": "Supporto sistemistico per reti locali e aule informatiche scolastiche o aziendali",
+                    "short_name": "🖥️ Supporto Reti",
+                    "callback_data": "SVC_10H3YNLC",
+                    "original_slug": "SUPPORTO_RETI"
+                  },
+                  {
+                    "name": "Insegnamento dell'uso di Git e GitHub per il lavoro di squadra sul codice",
+                    "short_name": "🐙 Git Training",
+                    "callback_data": "SVC_0CSGWLJ4",
+                    "original_slug": "GIT_TRAINING"
+                  },
+                  {
+                    "name": "Sessioni di revisione del codice per correggere errori di sviluppo",
+                    "short_name": "👀 Code Review",
+                    "callback_data": "SVC_MYOXBVXO",
+                    "original_slug": "CODE_REVIEW"
+                  }
+                ],
+                "original_slug": "SER_FORMAZIONE_IT"
+              },
+              {
+                "name": "[SER] Progettazione e Ottimizzazione Modelli 3D per Stampa",
+                "short_name": "🖨️ Progettazione 3D",
+                "callback_data": "CAT_PN02LHAC",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Disegno tridimensionale di pezzi di ricambio o componenti industriali",
+                    "short_name": "🛠️ Design Ricambi",
+                    "callback_data": "SVC_QRHJ38QH",
+                    "original_slug": "DESIGN_RICAMBI"
+                  },
+                  {
+                    "name": "Ottimizzazione di modelli 3D per stamparli in modo economico e senza sprechi",
+                    "short_name": "💰 Stampa Economica",
+                    "callback_data": "SVC_Z6XZIMJ8",
+                    "original_slug": "STAMPA_ECONOMICA"
+                  },
+                  {
+                    "name": "Progettazione di accessori per la casa e l'ufficio su misura",
+                    "short_name": "🏠 Accessori Su Misura",
+                    "callback_data": "SVC_JHM04JRR",
+                    "original_slug": "ACCESSORI_MISURA"
+                  },
+                  {
+                    "name": "Creazione di prototipi fisici funzionanti per startup e inventori",
+                    "short_name": "🖨️ Prototipazione",
+                    "callback_data": "SVC_LJ22I812",
+                    "blueprint_ready": true
+                  },
+                  {
+                    "name": "Consulenza sulla scelta dei materiali plastici più adatti per ogni uso",
+                    "short_name": "🧪 Scelta Materiali",
+                    "callback_data": "SVC_8S71MM3B",
+                    "original_slug": "SCELTA_MATERIALI"
+                  },
+                  {
+                    "name": "Adattamento di file di stampa 3D esistenti per migliorarne la resistenza",
+                    "short_name": "💪 Ottimizzazione Resistenza",
+                    "callback_data": "SVC_6PO9D9JY",
+                    "original_slug": "OTTIMIZZAZIONE_RESISTENZA"
+                  },
+                  {
+                    "name": "Modellazione 3D di giochi da tavolo personalizzati e accessori collegati",
+                    "short_name": "🎲 Game Design 3D",
+                    "callback_data": "SVC_30E68UIX",
+                    "original_slug": "GAME_DESIGN_3D"
+                  },
+                  {
+                    "name": "Consulenza tecnica per l'acquisto e la calibrazione di stampanti 3D professionali",
+                    "short_name": "⚙️ Setup Stampanti",
+                    "callback_data": "SVC_AWZD4KBG",
+                    "original_slug": "SETUP_STAMPANTI"
+                  },
+                  {
+                    "name": "Risoluzione di problemi di stampa su modelli complessi forniti dal cliente",
+                    "short_name": "🔧 Problem Solving 3D",
+                    "callback_data": "SVC_5RXQFPNO",
+                    "original_slug": "PROBLEM_SOLVING_3D"
+                  },
+                  {
+                    "name": "Creazione di file pronti per la stampa in grandi quantità su macchine diverse",
+                    "short_name": "📦 Produzione Seriale",
+                    "callback_data": "SVC_ZAVAL9AR",
+                    "original_slug": "PRODUZIONE_SERIALE"
+                  },
+                  {
+                    "name": "Progettazione di incastri e meccanismi fisici complessi in plastica",
+                    "short_name": "🧩 Meccanica Plastica",
+                    "callback_data": "SVC_RT29AT6L",
+                    "original_slug": "MECCANICA_PLASTICA"
+                  },
+                  {
+                    "name": "Preparazione di file STL pronti all'uso per la vendita online",
+                    "short_name": "🌐 Export STL",
+                    "callback_data": "SVC_Y7AHZ2Z7",
+                    "original_slug": "EXPORT_STL"
+                  }
+                ],
+                "original_slug": "SER_3D_DESIGN"
+              },
+              {
+                "name": "[PRO] Kit di Codice Pronto e SaaS Boilerplates",
+                "short_name": "📦 Kit Codice",
+                "callback_data": "CAT_6QFNZSJ8",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "Pacchetto iniziale Next.js con login e pagamenti Stripe pre-configurati",
+                    "short_name": "🚀 Starter Next.js",
+                    "callback_data": "SVC_QMEM06T9",
+                    "original_slug": "STARTER_NEXTJS"
+                  },
+                  {
+                    "name": "Template di base in PHP Symfony pronto per essere installato su Docker",
+                    "short_name": "🐘 Starter Symfony",
+                    "callback_data": "SVC_F8DGDEVZ",
+                    "original_slug": "STARTER_SYMFONY"
+                  },
+                  {
+                    "name": "Script pronti per la sincronizzazione automatica tra Prestashop e Moodle",
+                    "short_name": "🔄 Sync PS/Moodle",
+                    "callback_data": "SVC_KH0LKGXD",
+                    "original_slug": "SYNC_PS_MOODLE"
+                  },
+                  {
+                    "name": "Modulo CRM di base pronto per essere integrato in applicazioni esistenti",
+                    "short_name": "🛠️ Starter CRM",
+                    "callback_data": "SVC_RWX4RLX7",
+                    "original_slug": "STARTER_CRM"
+                  },
+                  {
+                    "name": "Kit di icone e componenti grafici ottimizzati per applicazioni web aziendali",
+                    "short_name": "🎨 UI Kit",
+                    "callback_data": "SVC_HPTQRFT3",
+                    "original_slug": "UI_KIT"
+                  },
+                  {
+                    "name": "Script per il backup automatico del database inviato direttamente su cloud",
+                    "short_name": "☁️ Script Backup",
+                    "callback_data": "SVC_RZX5SY60",
+                    "original_slug": "SCRIPT_BACKUP"
+                  },
+                  {
+                    "name": "Struttura di base pronta per creare blog super veloci con Next.js",
+                    "short_name": "📝 Starter Blog",
+                    "callback_data": "SVC_Y2PRZD9Z",
+                    "original_slug": "STARTER_BLOG"
+                  },
+                  {
+                    "name": "Pacchetto per la gestione automatica dei cookie e della privacy sul sito",
+                    "short_name": "🍪 Cookie Kit",
+                    "callback_data": "SVC_4OCAA96N",
+                    "original_slug": "COOKIE_KIT"
+                  },
+                  {
+                    "name": "Codice Di Partenza Per API FastAPI",
+                    "short_name": "🚀 FastAPI Boiler",
+                    "callback_data": "SVC_29NVISF4",
+                    "blueprint_ready": true
+                  },
+                  {
+                    "name": "Modulo pre-configurato per l'invio automatico di email e newsletter dal server",
+                    "short_name": "📩 Starter Email",
+                    "callback_data": "SVC_ANB7SK7J",
+                    "original_slug": "STARTER_EMAIL"
+                  },
+                  {
+                    "name": "Kit di configurazione Docker universale per sviluppatori web",
+                    "short_name": "🐳 Docker Kit",
+                    "callback_data": "SVC_RJ6H5KON",
+                    "original_slug": "DOCKER_KIT"
+                  },
+                  {
+                    "name": "Template per dashboard amministrative con grafici pronti all'uso",
+                    "short_name": "📊 Dashboard Admin",
+                    "callback_data": "SVC_7OL91RJG",
+                    "original_slug": "DASHBOARD_ADMIN"
+                  }
+                ],
+                "original_slug": "PRO_KIT_CODICE"
+              },
+              {
+                "name": "[PRO] Abbonamenti di Monitoraggio e Assistenza Preventiva",
+                "short_name": "📈 Abbonamenti IT",
+                "callback_data": "CAT_SO4GJ7KZ",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "Abbonamento mensile per il controllo continuo della salute del server",
+                    "short_name": "🩺 Server Health",
+                    "callback_data": "SVC_6F87YFCK",
+                    "original_slug": "SERVER_HEALTH"
+                  },
+                  {
+                    "name": "Pacchetto di ore mensili prepagate per piccole modifiche al sito web",
+                    "short_name": "⏰ Ore Prepagate",
+                    "callback_data": "SVC_9KJM5OHY",
+                    "original_slug": "ORE_PREPAGATE"
+                  },
+                  {
+                    "name": "Assistenza tecnica prioritaria entro poche ore dal guasto o malfunzionamento",
+                    "short_name": "🚨 Assistenza Priority",
+                    "callback_data": "SVC_I7R2PNTZ",
+                    "original_slug": "ASSISTENZA_PRIORITY"
+                  },
+                  {
+                    "name": "Servizio di aggiornamento mensile delle librerie di sicurezza del software",
+                    "short_name": "🛡️ Update Security",
+                    "callback_data": "SVC_8OAQW0UE",
+                    "original_slug": "UPDATE_SECURITY"
+                  },
+                  {
+                    "name": "Monitoraggio continuo dei tentativi di intrusione informatica sul sito",
+                    "short_name": "👀 Intrusion Monitor",
+                    "callback_data": "SVC_J959TZRO",
+                    "original_slug": "INTRUSION_MONITOR"
+                  },
+                  {
+                    "name": "Abbonamento per il controllo e l'ottimizzazione mensile della velocità delle pagine",
+                    "short_name": "⚡ Speed Optimization",
+                    "callback_data": "SVC_EGRLL1PP",
+                    "original_slug": "SPEED_OPTIMIZATION"
+                  },
+                  {
+                    "name": "Servizio di backup quotidiano protetto e verificato periodicamente",
+                    "short_name": "💾 Backup Protetto",
+                    "callback_data": "SVC_FC30AR60",
+                    "original_slug": "BACKUP_PROTETTO"
+                  },
+                  {
+                    "name": "Report mensile sull'uso delle risorse server e consigli per risparmiare",
+                    "short_name": "📊 Report Risorse",
+                    "callback_data": "SVC_728MOAD8",
+                    "original_slug": "REPORT_RISORSE"
+                  },
+                  {
+                    "name": "Abbonamento per la pulizia periodica del database per mantenerlo veloce",
+                    "short_name": "🧹 DB Cleaning",
+                    "callback_data": "SVC_RR2QHXXM",
+                    "original_slug": "DB_CLEANING"
+                  },
+                  {
+                    "name": "Assistenza dedicata per la risoluzione immediata dei problemi con i pagamenti online",
+                    "short_name": "💳 Pay Support",
+                    "callback_data": "SVC_WJ4THQ09",
+                    "original_slug": "PAY_SUPPORT"
+                  },
+                  {
+                    "name": "Controllo periodico del corretto funzionamento delle email inviate dal sito",
+                    "short_name": "📧 Email Health",
+                    "callback_data": "SVC_B2DZTK5C",
+                    "original_slug": "EMAIL_HEALTH"
+                  },
+                  {
+                    "name": "Servizio di rinnovo automatico e gestione di tutti i domini web del cliente",
+                    "short_name": "🌐 Gestione Domini",
+                    "callback_data": "SVC_C5YNS5PO",
+                    "original_slug": "GESTIONE_DOMINI"
+                  }
+                ],
+                "original_slug": "PRO_ABBONAMENTI"
+              },
+              {
+                "name": "[PRO] Guide Pratiche, Video-Corsi e Risorse Digitali",
+                "short_name": "📚 Guide & Corsi",
+                "callback_data": "CAT_SVTL3QHY",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "Manuale in PDF per imparare a usare Docker da zero nei propri progetti",
+                    "short_name": "🐳 PDF Docker",
+                    "callback_data": "SVC_T5LF37AD",
+                    "original_slug": "PDF_DOCKER"
+                  },
+                  {
+                    "name": "Video-corso pratico sullo sviluppo di applicazioni web con PHP Symfony",
+                    "short_name": "🎬 Video Symfony",
+                    "callback_data": "SVC_NBRSULPM",
+                    "original_slug": "VIDEO_SYMFONY"
+                  },
+                  {
+                    "name": "Guida passo-passo per integrare Stripe e ricevere pagamenti in sicurezza",
+                    "short_name": "💳 Guida Stripe",
+                    "callback_data": "SVC_J6KBSMKM",
+                    "original_slug": "GUIDA_STRIPE"
+                  },
+                  {
+                    "name": "E-book sulla sicurezza informatica di base per dipendenti di micro-imprese",
+                    "short_name": "🛡️ Ebook Sicurezza",
+                    "callback_data": "SVC_VXCX7MP7",
+                    "original_slug": "EBOOK_SICUREZZA"
+                  },
+                  {
+                    "name": "Corso pratico sull'uso corretto dell'intelligenza artificiale per programmatori",
+                    "short_name": "🤖 AI per Dev",
+                    "callback_data": "SVC_F0YEQCG1",
+                    "original_slug": "AI_PER_DEV"
+                  },
+                  {
+                    "name": "Guida pratica all'ottimizzazione della velocità dei siti creati con React",
+                    "short_name": "⚡ Guida React",
+                    "callback_data": "SVC_J86WSPWJ",
+                    "original_slug": "GUIDA_REACT"
+                  },
+                  {
+                    "name": "Manuale di sopravvivenza tecnica per fondatori di startup e SaaS",
+                    "short_name": "🚀 Startup Guide",
+                    "callback_data": "SVC_H0F8IMBB",
+                    "original_slug": "STARTUP_GUIDE"
+                  },
+                  {
+                    "name": "Video-lezioni sulla gestione e ottimizzazione di database MySQL complessi",
+                    "short_name": "🗄️ Video MySQL",
+                    "callback_data": "SVC_LVA19SDS",
+                    "original_slug": "VIDEO_MYSQL"
+                  },
+                  {
+                    "name": "Raccolta di fogli di calcolo pronti per calcolare i costi dei server cloud",
+                    "short_name": "💰 Foglio Costi",
+                    "callback_data": "SVC_M0TB6FV4",
+                    "original_slug": "FOGLIO_COSTI"
+                  },
+                  {
+                    "name": "Guida per iniziare a vendere i propri modelli 3D sulle piattaforme online",
+                    "short_name": "🖨️ Guida Vendita 3D",
+                    "callback_data": "SVC_7QEWEK7D",
+                    "original_slug": "GUIDA_VENDITA_3D"
+                  },
+                  {
+                    "name": "Corso base per configurare e personalizzare in autonomia la piattaforma Moodle",
+                    "short_name": "🎓 Corso Moodle",
+                    "callback_data": "SVC_D9VGB8L6",
+                    "original_slug": "CORSO_MOODLE"
+                  },
+                  {
+                    "name": "Raccolta di contratti tipo pronti all'uso per sviluppatori web freelance",
+                    "short_name": "📝 Contratti Freelance",
+                    "callback_data": "SVC_HVOEP8GO",
+                    "original_slug": "CONTRATTI_FREELANCE"
+                  }
+                ],
+                "original_slug": "PRO_RISORSE_DIGITALI"
+              },
+              {
+                "name": "[PRO] File di Stampa 3D e Giochi da Tavolo Licenziati",
+                "short_name": "🎲 File 3D & Giochi",
+                "callback_data": "CAT_GEW9LHS6",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "File di stampa 3D (STL) per il gioco da tavolo geometrico di gravità",
+                    "short_name": "🎲 Gioco Gravità",
+                    "callback_data": "SVC_H27PI52S",
+                    "original_slug": "GIOCO_GRAVITA"
+                  },
+                  {
+                    "name": "Licenza commerciale per stampare e vendere i propri modelli 3D brevettati",
+                    "short_name": "📜 Licenza Vendita",
+                    "callback_data": "SVC_LG50RWCD",
+                    "original_slug": "LICENZA_VENDITA"
+                  },
+                  {
+                    "name": "Kit di accessori per giochi da tavolo stampabili comodamente a casa",
+                    "short_name": "🧩 Accessori Gioco",
+                    "callback_data": "SVC_NNSKJQRS",
+                    "original_slug": "ACCESSORI_GIOCO"
+                  },
+                  {
+                    "name": "File 3D di ricambi pronti all'uso per macchine da ufficio e stampanti",
+                    "short_name": "🛠️ Ricambi 3D",
+                    "callback_data": "SVC_BNKLRZNC",
+                    "original_slug": "RICAMBI_3D"
+                  },
+                  {
+                    "name": "Pacchetto di modelli tridimensionali decorativi per appassionati di fai da te",
+                    "short_name": "🎨 Deco Fai Da Te",
+                    "callback_data": "SVC_1DPO99HS",
+                    "original_slug": "DECO_FAI_DA_TE"
+                  },
+                  {
+                    "name": "Istruzioni fotografiche passo-passo per montare i giochi fisici stampati",
+                    "short_name": "📸 Istruzioni Montaggio",
+                    "callback_data": "SVC_TAO6COK3",
+                    "original_slug": "ISTRUZIONI_MONTAGGIO"
+                  },
+                  {
+                    "name": "File STL di accessori salvaspazio per organizzare i cavi sulla scrivania",
+                    "short_name": "🔌 Salva Spazio",
+                    "callback_data": "SVC_TFWWWW6F",
+                    "original_slug": "SALVA_SPAZIO"
+                  },
+                  {
+                    "name": "Progetti 3D pronti per supporti di cellulari e tablet da tavolo",
+                    "short_name": "📱 Supporto Device",
+                    "callback_data": "SVC_OU4NB96B",
+                    "original_slug": "SUPPORTO_DEVICE"
+                  },
+                  {
+                    "name": "Kit di strumenti per calibrare e testare la propria stampante 3D a casa",
+                    "short_name": "📏 Kit Calibrazione",
+                    "callback_data": "SVC_KH4ZG8AZ",
+                    "original_slug": "KIT_CALIBRAZIONE"
+                  },
+                  {
+                    "name": "File pronti per la stampa di scatole e contenitori impilabili modulari",
+                    "short_name": "📦 Modulari 3D",
+                    "callback_data": "SVC_SP4MICVW",
+                    "original_slug": "MODULARI_3D"
+                  },
+                  {
+                    "name": "Modelli 3D di ganci e supporti da muro ultra resistenti pronti da stampare",
+                    "short_name": "🪝 Supporti Muro",
+                    "callback_data": "SVC_2IS0YBDF",
+                    "original_slug": "SUPPORTI_MURO"
+                  },
+                  {
+                    "name": "Pacchetto di file per la stampa 3D di giocattoli educativi per bambini",
+                    "short_name": "🧸 Giochi Educativi",
+                    "callback_data": "SVC_OU1IQD5Y",
+                    "original_slug": "GIOCHI_EDUCATIVI"
+                  }
+                ],
+                "original_slug": "PRO_STAMPA_3D"
+              },
+              {
+                "name": "[PRO] Pacchetti di Sicurezza e Backup Cloud per PMI",
+                "short_name": "🛡️ Pacchetti Sicurezza",
+                "callback_data": "CAT_PATTLJCT",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "Kit chiavi in mano per il salvataggio dei dati aziendali fuori dall'ufficio",
+                    "short_name": "💾 Backup Remoto",
+                    "callback_data": "SVC_XI6I3DJF",
+                    "original_slug": "BACKUP_REMOTO"
+                  },
+                  {
+                    "name": "Pacchetto di installazione di una VPN privata per lavorare sicuri da casa",
+                    "short_name": "🔒 VPN Aziendale",
+                    "callback_data": "SVC_Q12JBK8J",
+                    "original_slug": "VPN_AZIENDALE"
+                  },
+                  {
+                    "name": "Setup iniziale per bloccare i siti pericolosi sulla rete dell'ufficio",
+                    "short_name": "🚫 Web Filter",
+                    "callback_data": "SVC_A3K78NS0",
+                    "original_slug": "WEB_FILTER"
+                  },
+                  {
+                    "name": "Configurazione pronta di un sistema di password manager sicuro per i dipendenti",
+                    "short_name": "🔑 Password Manager",
+                    "callback_data": "SVC_RFN5PQ3T",
+                    "original_slug": "PASSWORD_MANAGER"
+                  },
+                  {
+                    "name": "Kit per la crittografia dei dati sensibili del computer aziendale principale",
+                    "short_name": "🔏 Crittografia PC",
+                    "callback_data": "SVC_V4IG5KPD",
+                    "original_slug": "CRITTOGRAFIA_PC"
+                  },
+                  {
+                    "name": "Pacchetto per l'archiviazione sicura dei dati personali in regola col GDPR",
+                    "short_name": "📋 GDPR Archive",
+                    "callback_data": "SVC_DWH6UXZE",
+                    "original_slug": "GDPR_ARCHIVE"
+                  },
+                  {
+                    "name": "Sistema automatico di allarme via SMS in caso di blackout del server aziendale",
+                    "short_name": "🚨 SMS Alert",
+                    "callback_data": "SVC_ZD6ZX22B",
+                    "original_slug": "SMS_ALERT"
+                  },
+                  {
+                    "name": "Kit di chiavette USB cifrate pronte all'uso per il trasporto sicuro dei file",
+                    "short_name": "🔑 USB Cifrata",
+                    "callback_data": "SVC_EWX5MFGZ",
+                    "original_slug": "USB_CIFRATA"
+                  },
+                  {
+                    "name": "Configurazione di un archivio protetto per i documenti fiscali e contabili",
+                    "short_name": "📂 Archivio Fiscale",
+                    "callback_data": "SVC_QEQ64YTH",
+                    "original_slug": "ARCHIVIO_FISCALE"
+                  },
+                  {
+                    "name": "Installazione assistita di antivirus e firewall professionali sui PC dell'ufficio",
+                    "short_name": "🛡️ AV & Firewall",
+                    "callback_data": "SVC_XD2IHH7T",
+                    "original_slug": "AV_FIREWALL"
+                  },
+                  {
+                    "name": "Pacchetto per il controllo degli accessi alla rete Wi-Fi dell'azienda",
+                    "short_name": "📶 Wi-Fi Security",
+                    "callback_data": "SVC_6LS5GSK5",
+                    "original_slug": "WIFI_SECURITY"
+                  },
+                  {
+                    "name": "Kit di ripristino rapido dei dati in caso di virus informatico bloccante",
+                    "short_name": "🆘 Recovery Kit",
+                    "callback_data": "SVC_5DIIN84E",
+                    "original_slug": "RECOVERY_KIT"
+                  }
+                ],
+                "original_slug": "PRO_SECURITY_PMI"
+              },
+              {
+                "name": "[PRO] Gift Card Tecniche e Consulenze Pre-Pagate",
+                "short_name": "🎁 Gift Card Tech",
+                "callback_data": "CAT_ORAD5Y6O",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "Carta regalo valida per un controllo completo della sicurezza del sito web",
+                    "short_name": "🛡️ Voucher Sicurezza",
+                    "callback_data": "SVC_CRMD79C5",
+                    "original_slug": "VOUCHER_SICUREZZA"
+                  },
+                  {
+                    "name": "Buono pre-pagato per tre ore di consulenza tecnica con un programmatore senior",
+                    "short_name": "👨‍💻 Voucher Consulenza",
+                    "callback_data": "SVC_Y4OS87CA",
+                    "original_slug": "VOUCHER_CONSULENZA"
+                  },
+                  {
+                    "name": "Gift card per la progettazione e modellazione 3D di un pezzo su misura",
+                    "short_name": "🖨️ Voucher Design 3D",
+                    "callback_data": "SVC_TSZYQ9N0",
+                    "original_slug": "VOUCHER_DESIGN_3D"
+                  },
+                  {
+                    "name": "Pacchetto pre-pagato per l'ottimizzazione della velocità di una pagina web",
+                    "short_name": "⚡ Voucher Speed",
+                    "callback_data": "SVC_J7QPO6IP",
+                    "original_slug": "VOUCHER_SPEED"
+                  },
+                  {
+                    "name": "Buono regalo per un corso individuale sull'uso di Docker o PHP Symfony",
+                    "short_name": "🎓 Voucher Formazione",
+                    "callback_data": "SVC_MIG7URUP",
+                    "original_slug": "VOUCHER_FORMAZIONE"
+                  },
+                  {
+                    "name": "Voucher valido per una revisione completa del codice di un'applicazione esistente",
+                    "short_name": "👀 Voucher Code Rev",
+                    "callback_data": "SVC_O5GQTO8Q",
+                    "original_slug": "VOUCHER_CODE_REV"
+                  },
+                  {
+                    "name": "Buono per lo studio di fattibilità tecnica di un'idea per una nuova startup",
+                    "short_name": "💡 Voucher StartUp",
+                    "callback_data": "SVC_60N2W9Y5",
+                    "original_slug": "VOUCHER_STARTUP"
+                  },
+                  {
+                    "name": "Gift card per una sessione di consulenza sulla riduzione dei costi del cloud",
+                    "short_name": "💰 Voucher Cloud",
+                    "callback_data": "SVC_UHK3LOK0",
+                    "original_slug": "VOUCHER_CLOUD"
+                  },
+                  {
+                    "name": "Voucher per l'installazione e configurazione di un server di prova protetto",
+                    "short_name": "☁️ Voucher Setup",
+                    "callback_data": "SVC_1KI3SBFN",
+                    "original_slug": "VOUCHER_SETUP"
+                  },
+                  {
+                    "name": "Pacchetto pre-pagato per la pulizia del codice e rimozione di bug bloccanti",
+                    "short_name": "🧹 Voucher Bugfix",
+                    "callback_data": "SVC_POUJK10J",
+                    "original_slug": "VOUCHER_BUGFIX"
+                  },
+                  {
+                    "name": "Carta regalo per la progettazione e stampa 3D di un prototipo fisico di prova",
+                    "short_name": "🖨️ Voucher Prototipo",
+                    "callback_data": "SVC_ZJHAI4RW",
+                    "original_slug": "VOUCHER_PROTOTIPO"
+                  },
+                  {
+                    "name": "Buono valido per la configurazione di un sistema di backup automatico del sito",
+                    "short_name": "💾 Voucher Backup",
+                    "callback_data": "SVC_I67K1AJJ",
+                    "original_slug": "VOUCHER_BACKUP"
+                  }
+                ],
+                "original_slug": "PRO_GIFT_CARDS"
+              }
+            ],
+            "additional_kwargs": {},
+            "response_metadata": {},
+            "metadata": {
+              "last_updated_at": "2026-05-22T10:53:54.792Z",
+              "updated_by": "SYSTEM_AUTO_PROVISIONING"
+            }
+          }
+        },
+        "binary": {},
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Extract": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "social_post1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "StartPipeMSG",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Text2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "StartPipeMSG": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Text2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "social_post1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. Set simil Delete Msg": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Text1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Text1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge45": {
+      "main": [
+        [
+          {
+            "node": "1. Set simil Delete Msg",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Merge45",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge50",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "Generate a video",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge45",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge50",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate a video": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Set Send Photo": {
+      "main": [
+        [
+          {
+            "node": "Merge44",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge44": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram User Valut",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "2. Set Send Photo",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge44",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Set Send Text": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Text": {
+      "main": [
+        []
+      ]
+    },
+    "📤 Telegram User Valut": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Billing_Set",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge48",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge48": {
+      "main": [
+        [
+          {
+            "node": "3. Set Send Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Text3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge50": {
+      "main": [
+        [
+          {
+            "node": "Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "MiniApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge34",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "telegram_validator": {
+      "main": [
+        [
+          {
+            "node": "isValid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isValid": {
+      "main": [
+        [
+          {
+            "node": "Merge29",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Merge29": {
+      "main": [
+        [
+          {
+            "node": "owner1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge23",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MiniApp": {
+      "main": [
+        [
+          {
+            "node": "telegram_validator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge29",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge34",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "owner1": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerExist1": {
+      "main": [
+        [
+          {
+            "node": "Merge23",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge34",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge23": {
+      "main": [
+        [
+          {
+            "node": "HoneyPot1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge32",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HoneyPot1": {
+      "main": [
+        [
+          {
+            "node": "HoneyPot Exist2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HoneyPot Exist2": {
+      "main": [
+        [
+          {
+            "node": "Merge32",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge34",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge32": {
+      "main": [
+        [
+          {
+            "node": "Service Catalog",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge33",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Service Catalog Exist": {
+      "main": [
+        [
+          {
+            "node": "Merge33",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge34",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Service Catalog": {
+      "main": [
+        [
+          {
+            "node": "Service Catalog Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge33": {
+      "main": [
+        [
+          {
+            "node": "Ash Decoder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ash Decoder": {
+      "main": [
+        [
+          {
+            "node": "Conversion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversion": {
+      "main": [
+        [
+          {
+            "node": "Extract",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge34",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge34": {
+      "main": [
+        [
+          {
+            "node": "Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Billing_Set": {
+      "main": [
+        [
+          {
+            "node": "Call 'Standard_AcCredit'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Standard_AcCredit'": {
+      "main": [
+        [
+          {
+            "node": "Merge48",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4d879cfa-8ea6-4aa3-a5ff-a8d55508aee8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "o1ZVxgbMsq7uAVuA",
+  "tags": []
+}

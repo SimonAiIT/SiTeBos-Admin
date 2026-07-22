@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Product Blueprint Designer | SiteBoS</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #fafafa !important; color: #000000 !important; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .card, .section-card, .dark-card, .upload-box { background: white !important; border: 1px solid #eeeeee !important; box-shadow: none !important; }
+        input:focus, textarea:focus, select:focus { border-color: #000000 !important; box-shadow: none !important; outline: none !important; }
+        .text-primary, .text-black, .text-blue-600 { color: #000000 !important; }
+        .bg-primary, .bg-black { background-color: #000000 !important; color: #ffffff !important; }
+        .border-primary, .border-black { border-color: #000000 !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .spinner { border: 3px solid rgba(0,0,0,0.1); border-top-color: #000; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .sortable-ghost { opacity: 0.1; background: #000 !important; }
+        
+        input[type="checkbox"] { appearance: none; width: 16px; height: 16px; border: 2px solid #000; border-radius: 4px; position: relative; cursor: pointer; }
+        input[type="checkbox"]:checked { background-color: #000; }
+        input[type="checkbox"]:checked::after { content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900; color: white; font-size: 8px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        
+        .fade-in-up { animation: fadeInUp 0.3s ease-out forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-bg text-black pb-24 overflow-x-hidden">
+
+    <!-- CARICAMENTO -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center space-y-4">
+        <div class="spinner"></div>
+        <p class="text-[8px] font-black uppercase tracking-widest text-gray-500">Inizializzazione Blueprint Engine...</p>
+    </div>
+
+    <div class="hidden max-w-md mx-auto p-5 space-y-6" id="mainContent">
+
+        <!-- INTESTAZIONE -->
+        <header class="flex justify-between items-start pt-2 fade-in-up">
+            <div>
+                <div id="typeBadge" class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1 italic">Product Blueprint</div>
+                <h1 id="blueprintNameDisplay" class="text-lg font-black tracking-tighter uppercase leading-none max-w-[220px]">Caricamento...</h1>
+                <p id="serviceSkuDisplay" class="text-[8px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">SKU: ...</p>
+            </div>
+            <div class="text-right">
+                <div id="totalTimeDisplay" class="text-xl font-black leading-none tracking-tighter">0</div>
+                <div class="text-[7px] font-black text-gray-300 uppercase tracking-widest">Minuti Lavoro</div>
+            </div>
+        </header>
+
+        <!-- BOM ASSOCIAZIONE (SOLO PER PRODUCT_FLOW) -->
+        <section id="bomSection" class="bg-white rounded-3xl p-5 border border-border shadow-sm space-y-4 fade-in-up hidden">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                <div>
+                    <span class="text-[8px] font-black uppercase text-gray-300 italic tracking-widest">Distinta Componenti (BOM)</span>
+                    <p class="text-[8px] text-gray-400 font-bold uppercase mt-0.5">Definisci materiali, semilavorati e fornitore</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[8px] font-black uppercase px-2 py-0.5 bg-gray-100 rounded-full text-gray-500" id="bomCountText">0 Componenti</span>
+                    <button onclick="addNewBomCard()" class="text-[8px] font-black uppercase bg-black text-white px-2.5 py-1 rounded-md active:scale-95 transition">+ Aggiungi</button>
+                </div>
+            </div>
+            <div id="bomComponentsList" class="space-y-3">
+                <!-- Injected via JS: list of BOM items as editable cards -->
+            </div>
+        </section>
+
+        <!-- CONTESTO GENERALE -->
+        <section class="bg-white rounded-3xl p-5 border border-border shadow-sm space-y-5 fade-in-up">
+            <div class="flex justify-between items-center border-b border-gray-50 pb-3">
+                <span class="text-[8px] font-black uppercase text-gray-300 italic tracking-widest">Protocollo Industriale</span>
+                <select id="blueprintType" onchange="updateGlobalData('blueprint_type', this.value)" class="bg-gray-50 text-[9px] font-black uppercase outline-none px-3 py-1.5 rounded-full">
+                    <option value="PRODUCT_FLOW">Assemblaggio Prodotto (PRO)</option>
+                    <option value="SOP_SEMILAVORATO">Lavorazione Semilavorato (SOP)</option>
+                </select>
+            </div>
+
+            <div class="space-y-1">
+                <label class="text-[8px] font-black uppercase text-gray-500 ml-1">Descrizione Processo Produttivo</label>
+                <textarea id="blueprintDesc" rows="2" oninput="updateGlobalData('blueprint_description', this.value)" class="w-full bg-white p-4 rounded-2xl text-xs font-medium border border-gray-100 focus:border-black outline-none resize-none leading-relaxed transition-all"></textarea>
+            </div>
+        </section>
+
+        <!-- FASI DEL BLUEPRINT -->
+        <div id="stagesContainer" class="space-y-4"></div>
+
+        <!-- AGGIUNGI FASE -->
+        <button id="btnAddStageBtn" class="w-full border-2 border-dashed border-gray-200 py-6 rounded-3xl flex flex-col items-center justify-center gap-2 hover:border-black transition-all active:scale-95 group">
+            <i class="fas fa-plus text-gray-300 group-hover:text-black"></i>
+            <span class="text-[8px] font-black uppercase tracking-widest text-gray-500 group-hover:text-black">Aggiungi Fase</span>
+        </button>
+    </div>
+
+    <!-- FUNZIONI DI CONTROLLO SALVATAGGIO -->
+    <div class="fixed bottom-0 left-0 w-full p-4 bg-white/90 backdrop-blur-lg border-t border-gray-100 z-[100]">
+        <div class="flex items-center gap-3 max-w-md mx-auto">
+            <button onclick="tg.close()" class="w-10 h-10 bg-white text-black rounded-xl shadow-md flex items-center justify-center text-lg border border-gray-100 active:scale-90 transition">
+                <i class="fas fa-times"></i>
+            </button>
+            <button id="saveBtn" disabled class="flex-1 h-10 bg-black text-white rounded-xl shadow-sm font-black uppercase tracking-widest text-[9px] active:scale-95 transition-all disabled:opacity-20 flex items-center justify-center gap-2">
+                <i class="fas fa-rocket text-xs"></i> <span id="saveBtnText">Salva Blueprint</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+        const WEBHOOK_URL = "https://prod.workflow.trinai.it/webhook/6ef3b000-c902-4ab8-912a-89a0123f1144"; // editBlueprintProduct endpoint
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.ready(); tg.expand();
+        const urlParams = new URLSearchParams(window.location.search);
+        let ash = urlParams.get('ash');
+        const sopId = urlParams.get('sop_id');
+        let msg = urlParams.get('msg') || urlParams.get('message_id');
+
+        if (ash && ash.includes('?msg=')) {
+            const parts = ash.split('?msg=');
+            ash = parts[0];
+            if (!msg) msg = parts[1];
+        }
+
+        let currentData = null, initialDataString = "", stageSortable = null;
+        let bomItems = [];
+
+        async function init() {
+            if (!sopId) { alert("SKU Mancante"); return; }
+            await loadBlueprint();
+            document.getElementById('btnAddStageBtn').onclick = addStage;
+            document.getElementById('saveBtn').onclick = handleSave;
+        }
+
+        async function loadBlueprint() {
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'GET', type: 'BLUEPRINT', sop_id: sopId, msg: msg, ash: ash, _auth: tg.initData })
+                });
+                const rD = await res.json();
+                const bp = (Array.isArray(rD) ? rD[0] : rD).blueprint || (Array.isArray(rD) ? rD[0] : rD);
+                currentData = bp;
+                
+                // Get BOM from current data if it is populated
+                bomItems = currentData.summary?.bill_of_materials_summary || currentData.bom || [];
+                
+                document.getElementById('blueprintNameDisplay').innerText = bp.blueprint_name || 'Product Blueprint';
+                document.getElementById('serviceSkuDisplay').innerText = `SKU: ${bp.service_sku}`;
+                document.getElementById('blueprintDesc').value = bp.blueprint_description || '';
+                
+                const bpType = bp.blueprint_type || 'PRODUCT_FLOW';
+                document.getElementById('blueprintType').value = bpType;
+
+                renderBOMSection(bpType);
+                renderStages();
+                initialDataString = JSON.stringify(currentData);
+                
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+            } catch (e) {
+                console.error("Error loading product blueprint:", e);
+                document.getElementById('loadingOverlay').querySelector('p').innerText = "Errore durante il caricamento.";
+            }
+        }
+
+        function renderBOMSection(type) {
+            const sect = document.getElementById('bomSection');
+            const list = document.getElementById('bomComponentsList');
+            if (type !== 'PRODUCT_FLOW') {
+                sect.classList.add('hidden');
+                return;
+            }
+
+            sect.classList.remove('hidden');
+            list.innerHTML = "";
+            
+            if (bomItems.length === 0) {
+                list.innerHTML = `<p class="text-[9px] text-gray-400 italic text-center py-4">Nessun componente in distinta base. Clicca su "+ Aggiungi" per iniziare.</p>`;
+                document.getElementById('bomCountText').innerText = "0 Componenti";
+                return;
+            }
+
+            document.getElementById('bomCountText').innerText = `${bomItems.length} Componenti`;
+
+            // Prepare catalog options from parent window
+            let catalogOptions = [];
+            if (window.parent && window.parent.fullCatalog) {
+                window.parent.fullCatalog.forEach(cat => {
+                    const subcategories = cat.subcategories || [];
+                    subcategories.forEach(sub => {
+                        if (sub.callback_data === sopId) return; // avoid self
+                        let macro = (cat.macrocategories || "").toUpperCase().trim();
+                        if (!macro) {
+                            const catName = (cat.name || "").toUpperCase();
+                            if (catName.includes("[SOP]")) macro = "SOP";
+                            else if (catName.includes("[SER]")) macro = "SER";
+                            else if (catName.includes("[PRO]")) macro = "PRO";
+                        }
+                        catalogOptions.push({
+                            sku: sub.callback_data,
+                            name: sub.name,
+                            macro: macro || 'SOP'
+                        });
+                    });
+                });
+            }
+
+            bomItems.forEach((item, index) => {
+                const sku = item.material_sku || item.item_sku || 'N/D';
+                const qty = item.quantity || item.qty || item.usage || 1;
+                const um = item.unit_of_measure || 'pz';
+                const unitCost = item.unit_cost || item.cost || 0;
+                
+                const isSemi = item.relation_type === 'semilavorato' || item.is_semilavorato || sku.startsWith('SVC_') || false;
+                
+                const card = document.createElement('div');
+                card.className = "p-4 space-y-3 rounded-2xl border border-gray-100 bg-white shadow-sm flex flex-col fade-in-up";
+                
+                let selectorHTML = "";
+                if (isSemi) {
+                    let optionsHTML = `
+                        <option value="">-- Seleziona Semilavorato da Catalogo --</option>
+                        <option value="CREATE_NEW" style="font-weight:bold; color: #2563eb;">+ Crea Nuovo Semilavorato...</option>
+                    `;
+                    catalogOptions.forEach(opt => {
+                        optionsHTML += `<option value="${opt.sku}" ${sku === opt.sku ? 'selected' : ''}>[${opt.macro}] ${opt.name}</option>`;
+                    });
+                    
+                    selectorHTML = `
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 space-y-1">
+                                <label class="text-[7px] font-black uppercase text-gray-400 block">Semilavorato Collegato</label>
+                                <select onchange="bindCardToCatalog(${index}, this.value)" class="w-full bg-gray-50 border border-gray-100 p-2 rounded-xl text-xs font-bold text-black focus:outline-none">
+                                    ${optionsHTML}
+                                </select>
+                            </div>
+                            ${sku && sku !== 'N/D' ? `
+                                <button onclick="openSemilavoratoBlueprint('${sku}')" class="bg-black text-white text-[7px] font-black uppercase px-2 py-2 rounded-xl mt-3.5 hover:bg-neutral-800 transition active:scale-95">
+                                    Vedi SOP <i class="fas fa-chevron-right ml-0.5"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                } else {
+                    let friendlyName = item.name || sku;
+                    if (friendlyName.startsWith('MAT_')) {
+                        friendlyName = friendlyName.replace('MAT_', '').replace(/_/g, ' ');
+                    }
+                    
+                    selectorHTML = `
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="space-y-1">
+                                <label class="text-[7px] font-black uppercase text-gray-400 block">Nome Componente</label>
+                                <input type="text" value="${friendlyName}" placeholder="Nome..." onchange="updateBomItem(${index}, 'name', this.value)" class="w-full bg-gray-50 border border-gray-100 p-2 rounded-xl text-xs font-bold text-black focus:outline-none">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[7px] font-black uppercase text-gray-400 block">SKU</label>
+                                <input type="text" value="${sku}" placeholder="SKU..." onchange="updateBomItem(${index}, 'item_sku', this.value)" class="w-full bg-gray-50 border border-gray-100 p-2 rounded-xl text-xs font-mono text-gray-600 focus:outline-none">
+                            </div>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-gray-50 pb-1.5">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="semi-chk-${index}" ${isSemi ? 'checked' : ''} onchange="toggleSemiState(${index}, this.checked)">
+                            <label for="semi-chk-${index}" class="text-[8px] font-black uppercase tracking-wider text-black select-none cursor-pointer">È Semilavorato</label>
+                        </div>
+                        <button onclick="removeBomRow(${index})" class="text-gray-300 hover:text-red-500 active:scale-90 transition"><i class="fas fa-trash-alt text-[10px]"></i></button>
+                    </div>
+
+                    ${selectorHTML}
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="space-y-1">
+                            <label class="text-[7px] font-black uppercase text-gray-400 block">Quantità</label>
+                            <input type="number" step="0.01" value="${qty}" onchange="updateBomItem(${index}, 'qty', this.value)" class="w-full bg-gray-50 border border-gray-100 p-2 rounded-xl text-[10px] font-black text-center focus:outline-none">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[7px] font-black uppercase text-gray-400 block">U.M.</label>
+                            <input type="text" value="${um}" onchange="updateBomItem(${index}, 'unit_of_measure', this.value)" class="w-full bg-gray-50 border border-gray-100 p-2 rounded-xl text-[10px] text-center focus:outline-none">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[7px] font-black uppercase text-gray-400 block">Costo Unit.</label>
+                            <input type="number" step="0.01" value="${unitCost}" onchange="updateBomItem(${index}, 'unit_cost', this.value)" class="w-full bg-gray-50 border border-gray-100 p-2 rounded-xl text-[10px] font-black text-right focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="space-y-1 pt-1.5 border-t border-gray-50">
+                        <label class="text-[7px] font-black uppercase text-gray-400 block">Fornitore / Dove lo acquisti</label>
+                        <input type="text" value="${item.supplier_name || ''}" placeholder="Nome fornitore..." onchange="updateBomItem(${index}, 'supplier_name', this.value)" class="w-full bg-gray-50 border border-gray-100 p-2 rounded-xl text-xs font-medium text-black focus:outline-none">
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        window.openSemilavoratoBlueprint = (sku) => {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            location.href = `edit-blueprint-product.html?sop_id=${sku}&ash=${ash}&msg=${msg || ''}&from_product=${sopId}`;
+        };
+
+        window.addNewBomCard = () => {
+            const tempSku = "RAW-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+            bomItems.push({
+                item_sku: tempSku,
+                material_sku: tempSku,
+                name: "Nuovo Componente",
+                qty: 1,
+                usage: 1,
+                quantity: 1,
+                unit_of_measure: "pz",
+                unit_cost: 0.00,
+                cost: 0.00,
+                relation_type: "materiale",
+                is_semilavorato: false,
+                supplier_name: ""
+            });
+            renderBOMSection(currentData.blueprint_type);
+            renderStages(); // Refresh step checkboxes
+            checkDirty();
+        };
+
+        window.toggleSemiState = (index, isChecked) => {
+            const item = bomItems[index];
+            item.is_semilavorato = isChecked;
+            item.relation_type = isChecked ? "semilavorato" : "materiale";
+            
+            if (isChecked) {
+                item.item_sku = "";
+                item.material_sku = "";
+                item.name = "";
+            } else {
+                const tempSku = "RAW-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+                item.item_sku = tempSku;
+                item.material_sku = tempSku;
+                item.name = "Nuovo Componente";
+            }
+            renderBOMSection(currentData.blueprint_type);
+            renderStages();
+            checkDirty();
+        };
+
+        window.bindCardToCatalog = async (index, selectedSku) => {
+            const item = bomItems[index];
+            if (selectedSku === 'CREATE_NEW') {
+                const newName = prompt("Inserisci il nome del nuovo Semilavorato (SOP):");
+                if (!newName || !newName.trim()) {
+                    item.item_sku = "";
+                    item.material_sku = "";
+                    item.name = "";
+                    renderBOMSection(currentData.blueprint_type);
+                    return;
+                }
+                
+                document.getElementById('loadingOverlay').classList.remove('hidden');
+                document.getElementById('loadingOverlay').querySelector('p').innerText = "Creazione semilavorato in corso...";
+                
+                try {
+                    const res = await fetch(WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'CREATE_SEMILAVORATO',
+                            name: newName.trim(),
+                            sop_id: sopId,
+                            ash: ash,
+                            msg: msg,
+                            _auth: tg.initData
+                        })
+                    });
+                    
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.sku) {
+                            if (window.parent && window.parent.fullCatalog) {
+                                let sopCat = window.parent.fullCatalog.find(c => {
+                                    let macro = (c.macrocategories || "").toUpperCase().trim();
+                                    return macro === "SOP" || c.name.toUpperCase().includes("[SOP]");
+                                });
+                                if (!sopCat) {
+                                    sopCat = { name: "[SOP] Semilavorati", macrocategories: "SOP", subcategories: [] };
+                                    window.parent.fullCatalog.push(sopCat);
+                                }
+                                sopCat.subcategories.push({
+                                    callback_data: data.sku,
+                                    name: data.name
+                                });
+                            }
+                            
+                            item.item_sku = data.sku;
+                            item.material_sku = data.sku;
+                            item.name = data.name;
+                            
+                            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                        } else {
+                            throw new Error("Dati di risposta non validi.");
+                        }
+                    } else {
+                        throw new Error("Risposta webhook non corretta.");
+                    }
+                } catch (e) {
+                    console.error(e);
+                    tg.showAlert("Errore durante la creazione del semilavorato.");
+                    item.item_sku = "";
+                    item.material_sku = "";
+                    item.name = "";
+                } finally {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                }
+                
+                renderBOMSection(currentData.blueprint_type);
+                renderStages();
+                checkDirty();
+                return;
+            }
+            
+            if (!selectedSku) {
+                item.item_sku = "";
+                item.material_sku = "";
+                item.name = "";
+                renderBOMSection(currentData.blueprint_type);
+                return;
+            }
+            
+            let catalog = [];
+            if (window.parent && window.parent.fullCatalog) {
+                catalog = window.parent.fullCatalog;
+            }
+            
+            let found = null;
+            catalog.forEach(cat => {
+                const sub = (cat.subcategories || []).find(s => s.callback_data === selectedSku);
+                if (sub) found = sub;
+            });
+            
+            if (found) {
+                item.item_sku = selectedSku;
+                item.material_sku = selectedSku;
+                item.name = found.name;
+            }
+            renderBOMSection(currentData.blueprint_type);
+            renderStages();
+            checkDirty();
+        };
+
+        window.updateBomItem = (index, field, value) => {
+            const item = bomItems[index];
+            if (field === 'qty') {
+                const qtyVal = parseFloat(value) || 0;
+                item.qty = qtyVal;
+                item.usage = qtyVal;
+                item.quantity = qtyVal;
+            } else if (field === 'unit_cost') {
+                const costVal = parseFloat(value) || 0;
+                item.unit_cost = costVal;
+                item.cost = costVal;
+            } else if (field === 'item_sku') {
+                item.item_sku = value;
+                item.material_sku = value;
+            } else {
+                item[field] = value;
+            }
+            renderStages(); // Refresh checkbox label
+            checkDirty();
+        };
+
+        window.removeBomRow = (index) => {
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+            const removedSku = bomItems[index].material_sku || bomItems[index].item_sku;
+            
+            // Clean up resources_needed references
+            (currentData.stages || []).forEach(stage => {
+                (stage.steps || []).forEach(step => {
+                    if (step.resources_needed && Array.isArray(step.resources_needed.materials)) {
+                        step.resources_needed.materials = step.resources_needed.materials.filter(m => {
+                            const mSku = (typeof m === 'object' && m !== null) ? m.material_sku : m;
+                            return mSku !== removedSku;
+                        });
+                    }
+                });
+            });
+            
+            bomItems.splice(index, 1);
+            renderBOMSection(currentData.blueprint_type);
+            renderStages();
+            checkDirty();
+        };
+
+        function renderStages() {
+            const container = document.getElementById('stagesContainer'); container.innerHTML = '';
+            let totalMins = 0;
+            (currentData.stages || []).forEach((stage, sIdx) => {
+                const stageMins = (stage.steps || []).reduce((acc, st) => acc + (parseInt(st.estimated_time_minutes) || 0), 0);
+                totalMins += stageMins;
+                const isOpen = stage._ui_open === true;
+                const stageEl = document.createElement('div');
+                stageEl.className = "bg-white rounded-3xl border border-border shadow-sm overflow-hidden fade-in-up";
+                stageEl.dataset.sidx = sIdx;
+                stageEl.innerHTML = `
+                    <div class="flex items-center p-4 gap-4 bg-gray-50 border-b border-gray-100">
+                        <div class="drag-handle-stage text-gray-200"><i class="fas fa-grip-vertical"></i></div>
+                        <div class="flex-1 cursor-pointer" onclick="toggleStage(${sIdx})">
+                            <h3 class="text-xs font-black uppercase tracking-tight truncate max-w-[150px]">${stage.stage_name || 'Stage'}</h3>
+                            <p class="text-[8px] font-bold text-gray-500 uppercase tracking-widest">${stage.steps?.length || 0} Step • ${stageMins} min</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                             <button onclick="deleteStage(${sIdx})" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash-alt text-[10px]"></i></button>
+                             <button onclick="toggleStage(${sIdx})" class="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-black shadow-sm"><i class="fas fa-chevron-${isOpen ? 'up' : 'down'} text-[8px]"></i></button>
+                        </div>
+                    </div>
+                    <div class="${isOpen ? 'block' : 'hidden'} p-5 space-y-5">
+                        <input type="text" value="${stage.stage_name}" oninput="updateStage(${sIdx}, 'stage_name', this.value)" 
+                            class="w-full bg-white p-3 rounded-xl text-xs font-bold border border-gray-100 focus:border-black outline-none">
+                        <div class="step-container space-y-3" id="steps-list-${sIdx}">${renderSteps(stage.steps || [], sIdx)}</div>
+                        <button onclick="addStep(${sIdx})" class="w-full py-3 rounded-xl border border-dashed border-gray-100 text-[8px] font-black uppercase tracking-widest text-gray-300">+ Aggiungi Step</button>
+                    </div>`;
+                container.appendChild(stageEl);
+                new Sortable(stageEl.querySelector('.step-container'), { group: 'steps', handle: '.drag-handle-step', animation: 150, onEnd: (evt) => syncStepOrder(evt, sIdx) });
+            });
+            document.getElementById('totalTimeDisplay').innerText = totalMins;
+            if (stageSortable) stageSortable.destroy();
+            stageSortable = new Sortable(container, { handle: '.drag-handle-stage', animation: 200, onEnd: syncStageOrder });
+        }
+
+        function renderSteps(steps, sIdx) {
+            return steps.map((step, stIdx) => {
+                const isOpen = step._ui_open === true;
+                const evType = step.quality_check?.evidence_type || 'NONE';
+                
+                // Render list of checkbox for material consumption inside this step (if PRODUCT_FLOW)
+                let materialsConsumptionHTML = "";
+                if (currentData.blueprint_type === 'PRODUCT_FLOW' && bomItems.length > 0) {
+                    let checkboxList = bomItems.map(item => {
+                        const sku = item.material_sku || item.item_sku;
+                        const friendlyName = item.name || (sku.startsWith('MAT_') ? sku.replace('MAT_', '').replace(/_/g, ' ') : sku);
+                        
+                        let isChecked = false;
+                        if (step.resources_needed && Array.isArray(step.resources_needed.materials)) {
+                            isChecked = step.resources_needed.materials.some(m => {
+                                const stepMaterialSku = (typeof m === 'object' && m !== null) ? m.material_sku : m;
+                                return stepMaterialSku === sku;
+                            });
+                        }
+                        
+                        return `
+                            <label class="flex items-center gap-2 text-[9px] text-neutral-300 select-none cursor-pointer">
+                                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleStepMaterial(${sIdx}, ${stIdx}, '${sku}', this.checked)">
+                                <span>${friendlyName}</span>
+                            </label>
+                        `;
+                    }).join('');
+                    
+                    materialsConsumptionHTML = `
+                        <div class="bg-neutral-900 border border-neutral-800 p-4 rounded-xl space-y-2 mt-2">
+                            <span class="text-[7px] font-black uppercase text-neutral-500 italic block">Materiali / Semilavorati Consumati in questo step</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                ${checkboxList}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                        <div class="flex items-center p-3 gap-3">
+                            <div class="drag-handle-step text-gray-200 text-xs"><i class="fas fa-grip-vertical"></i></div>
+                            <div class="flex-1 cursor-pointer" onclick="toggleStep(${sIdx}, ${stIdx})">
+                                <h4 class="text-[10px] font-black uppercase tracking-tight truncate max-w-[150px]">${step.step_name || 'Step'}</h4>
+                            </div>
+                            <div class="flex items-center bg-gray-50 rounded-lg px-2 py-1 border border-gray-100">
+                                <input type="number" value="${step.estimated_time_minutes || 0}" oninput="updateStepData(${sIdx}, ${stIdx}, 'estimated_time_minutes', this.value)" class="w-5 bg-transparent text-[9px] font-black outline-none text-center">
+                                <span class="text-[7px] font-black text-gray-300 uppercase">m</span>
+                            </div>
+                            <button onclick="deleteStep(${sIdx}, ${stIdx})" class="text-gray-200 hover:text-red-500"><i class="fas fa-times-circle text-xs"></i></button>
+                        </div>
+                        <div class="${isOpen ? 'block' : 'hidden'} p-4 pt-0 space-y-4">
+                            <input type="text" value="${step.step_name || ''}" oninput="updateStepData(${sIdx}, ${stIdx}, 'step_name', this.value)" class="w-full bg-gray-50 p-3 rounded-xl text-[10px] font-bold outline-none" placeholder="Titolo Step">
+                            <textarea rows="2" oninput="updateStepData(${sIdx}, ${stIdx}, 'instructions', this.value)" class="w-full bg-gray-50 p-3 rounded-xl text-[10px] font-medium outline-none resize-none leading-relaxed" placeholder="Istruzioni operative...">${step.instructions || ''}</textarea>
+                            
+                            ${materialsConsumptionHTML}
+
+                            <div class="bg-black text-white p-4 rounded-xl space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[7px] font-black uppercase text-neutral-500 italic">Quality Protocol</span>
+                                    <select onchange="updateStepQC(${sIdx}, ${stIdx}, 'evidence_type', this.value)" class="bg-neutral-900 text-[8px] font-black uppercase py-1 px-2 rounded-full outline-none border border-neutral-800">
+                                        <option value="NONE" ${evType === 'NONE' ? 'selected' : ''}>Nessuno</option>
+                                        <option value="TEXT" ${evType === 'TEXT' ? 'selected' : ''}>Note Testo</option>
+                                        <option value="VISION" ${evType === 'VISION' ? 'selected' : ''}>Vision (Foto)</option>
+                                        <option value="FILE" ${evType === 'FILE' ? 'selected' : ''}>Allegato File</option>
+                                        <option value="SIGNATURE" ${evType === 'SIGNATURE' ? 'selected' : ''}>Firma Operatore</option>
+                                    </select>
+                                </div>
+                                <div class="${evType === 'NONE' ? 'hidden' : 'space-y-2'}">
+                                    <textarea oninput="updateStepQC(${sIdx}, ${stIdx}, 'check_description', this.value)" class="w-full bg-neutral-900 p-2 rounded-lg text-[9px] outline-none border border-transparent focus:border-neutral-700 h-12 text-neutral-300" placeholder="Cosa verificare...">${step.quality_check?.check_description || ''}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        function updateGlobalData(k, v) { 
+            currentData[k] = v; 
+            if (k === 'blueprint_type') {
+                renderBOMSection(v);
+                renderStages();
+            }
+            checkDirty(); 
+        }
+        function toggleStage(i) { currentData.stages[i]._ui_open = !currentData.stages[i]._ui_open; renderStages(); }
+        function toggleStep(si, sti) { currentData.stages[si].steps[sti]._ui_open = !currentData.stages[si].steps[sti]._ui_open; renderStages(); }
+        function updateStage(i, k, v) { currentData.stages[i][k] = v; checkDirty(); }
+        
+        function updateStepData(si, sti, k, v) { 
+            if (k === 'estimated_time_minutes') { 
+                const mins = parseInt(v || 0); 
+                currentData.stages[si].steps[sti][k] = mins; 
+                if (currentData.stages[si].steps[sti].resources_needed?.labor) {
+                    currentData.stages[si].steps[sti].resources_needed.labor.estimated_work_minutes = mins; 
+                }
+                updateLiveTime(); 
+            } else { 
+                currentData.stages[si].steps[sti][k] = v; 
+            } 
+            checkDirty(); 
+        }
+        
+        function updateStepQC(si, sti, k, v) { 
+            if (!currentData.stages[si].steps[sti].quality_check) currentData.stages[si].steps[sti].quality_check = { is_required: true }; 
+            currentData.stages[si].steps[sti].quality_check[k] = v; 
+            currentData.stages[si].steps[sti].quality_check.is_required = (v !== 'NONE'); 
+            if (k === 'evidence_type') renderStages(); 
+            checkDirty(); 
+        }
+
+        function toggleStepMaterial(si, sti, materialSku, isChecked) {
+            const step = currentData.stages[si].steps[sti];
+            if (!step.resources_needed) step.resources_needed = { labor: {}, materials: [], assets: [] };
+            if (!Array.isArray(step.resources_needed.materials)) step.resources_needed.materials = [];
+            
+            if (isChecked) {
+                const alreadyExists = step.resources_needed.materials.some(m => {
+                    const stepMaterialSku = (typeof m === 'object' && m !== null) ? m.material_sku : m;
+                    return stepMaterialSku === materialSku;
+                });
+                
+                if (!alreadyExists) {
+                    const bomMatch = bomItems.find(item => (item.material_sku || item.item_sku) === materialSku);
+                    const quantity = bomMatch ? (bomMatch.quantity || bomMatch.qty || 1) : 1;
+                    const um = bomMatch ? (bomMatch.unit_of_measure || 'unit') : 'unit';
+                    
+                    step.resources_needed.materials.push({
+                        material_sku: materialSku,
+                        quantity: quantity,
+                        unit_of_measure: um
+                    });
+                }
+            } else {
+                step.resources_needed.materials = step.resources_needed.materials.filter(m => {
+                    const stepMaterialSku = (typeof m === 'object' && m !== null) ? m.material_sku : m;
+                    return stepMaterialSku !== materialSku;
+                });
+            }
+            checkDirty();
+        }
+
+        function updateLiveTime() { 
+            let total = 0; 
+            currentData.stages.forEach(s => total += s.steps.reduce((acc, st) => acc + (parseInt(st.estimated_time_minutes) || 0), 0)); 
+            document.getElementById('totalTimeDisplay').innerText = total; 
+        }
+        
+        function addStage() { 
+            currentData.stages.push({ stage_id: '', stage_order: 0, stage_name: 'Nuova Fase', description: '', steps: [], _ui_open: true }); 
+            reindexAndRender(); 
+        }
+        
+        function addStep(si) { 
+            currentData.stages[si].steps.push({ 
+                step_id: '', 
+                step_order: 0, 
+                step_name: 'Nuovo Step', 
+                instructions: '', 
+                estimated_time_minutes: 10, 
+                _ui_open: true, 
+                resources_needed: { labor: { required_skill_tags: ["Operatore_Produzione"], estimated_work_minutes: 10 }, materials: [], assets: [] }, 
+                quality_check: { is_required: false, evidence_type: 'NONE' }, 
+                logistics_flags: { requires_wip: false, requires_finished: false } 
+            }); 
+            reindexAndRender(); 
+        }
+        
+        function deleteStage(i) { 
+            tg.showConfirm("Sei sicuro di voler eliminare questa fase?", (ok) => {
+                if (ok) {
+                    currentData.stages.splice(i, 1); 
+                    reindexAndRender(); 
+                }
+            });
+        }
+        
+        function deleteStep(si, sti) { 
+            currentData.stages[si].steps.splice(sti, 1); 
+            reindexAndRender(); 
+        }
+        
+        function reindexAndRender() { 
+            currentData.stages.forEach((s, i) => { 
+                s.stage_order = i; 
+                s.stage_id = `STAGE_${String(i + 1).padStart(2, '0')}`; 
+                s.steps.forEach((st, j) => { 
+                    st.step_order = j + 1; 
+                    st.step_id = `STEP_${String(i + 1).padStart(2, '0')}_${String(j + 1).padStart(2, '0')}`; 
+                }); 
+            }); 
+            renderStages(); 
+            checkDirty(); 
+        }
+        
+        function syncStageOrder(evt) { 
+            const moved = currentData.stages.splice(evt.oldIndex, 1)[0]; 
+            currentData.stages.splice(evt.newIndex, 0, moved); 
+            reindexAndRender(); 
+        }
+        
+        function syncStepOrder(evt, si) { 
+            const fromS = parseInt(evt.from.closest('.bg-white').dataset.sidx); 
+            const moved = currentData.stages[fromS].steps.splice(evt.oldIndex, 1)[0]; 
+            currentData.stages[si].steps.splice(evt.newIndex, 0, moved); 
+            reindexAndRender(); 
+        }
+        
+        function checkDirty() { 
+            document.getElementById('saveBtn').disabled = (JSON.stringify(currentData) === initialDataString); 
+        }
+
+        async function handleSave() {
+            const btn = document.getElementById('saveBtn'); 
+            btn.disabled = true; 
+            document.getElementById('saveBtnText').innerText = "SALVATAGGIO...";
+            
+            // Sync BOM items back to payload before serializing
+            if (!currentData.summary) currentData.summary = {};
+            currentData.summary.bill_of_materials_summary = bomItems;
+            currentData.bom = bomItems;
+            
+            const payload = JSON.parse(JSON.stringify(currentData));
+            
+            try {
+                const res = await fetch(WEBHOOK_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ _auth: tg.initData, action: 'SAVE', type: 'BLUEPRINT', sop_id: sopId, msg: msg, payload: payload }) 
+                });
+                
+                if (res.ok) { 
+                    btn.className = "flex-1 h-10 bg-green-600 text-black rounded-xl shadow-sm font-black uppercase text-[9px] flex items-center justify-center gap-2"; 
+                    document.getElementById('saveBtnText').innerText = "COMPLETATO"; 
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); 
+                    
+                    setTimeout(() => {
+                        // Check if we came from another product and want to go back
+                        const fromProd = urlParams.get('from_product');
+                        if (fromProd) {
+                            location.href = `edit-blueprint-product.html?sop_id=${fromProd}&ash=${ash}&msg=${msg || ''}`;
+                        } else {
+                            tg.close();
+                        }
+                    }, 1200); 
+                } else {
+                    throw new Error("Salvataggio fallito.");
+                }
+            } catch (e) { 
+                btn.disabled = false; 
+                document.getElementById('saveBtnText').innerText = "RIPROVA"; 
+                tg.showAlert("Errore durante il salvataggio."); 
+            }
+        }
+
+        init();
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

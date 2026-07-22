@@ -1,0 +1,498 @@
+{
+  "name": "Agenda-Radar",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "8f148592-cbb9-4c72-96e8-73c08fccee43",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -656,
+        512
+      ],
+      "id": "1dbebda2-0d03-474b-ad41-095de2eea1a6",
+      "name": "Webhook",
+      "webhookId": "8f148592-cbb9-4c72-96e8-73c08fccee43"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst ash = item.ash || (item.body ? item.body.ash : null);\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\n\nif (!ash || !ash.includes('.')) {\n    return [{ json: { isValid: false, error: \"Ash mancante\" } }];\n}\n\ntry {\n    const [encodedPayload, sigReceived] = ash.split('.');\n    const decodedPayload = Buffer.from(encodedPayload, 'base64').toString('utf-8');\n    const parts = decodedPayload.split('|');\n    if (parts.length !== 3) return [{ json: { isValid: false, error: \"Ash malformato\" } }];\n\n    const [chatId, timestamp, webhookId] = parts;\n\n    function generateSignature(str, key) {\n        let hash = 0; const combined = str + key;\n        for (let i = 0; i < combined.length; i++) {\n            const char = combined.charCodeAt(i);\n            hash = ((hash << 5) - hash) + char; hash = hash & hash; \n        }\n        return Math.abs(hash).toString(16);\n    }\n\n    const calculatedSig = generateSignature(decodedPayload, SECRET_KEY);\n    if (sigReceived !== calculatedSig) return [{ json: { isValid: false, error: \"Firma non valida\" } }];\n\n    return [{ json: { isValid: true, chatId } }];\n} catch (e) {\n    return [{ json: { isValid: false, error: \"Errore decodifica\" } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -432,
+        512
+      ],
+      "id": "f0c75667-4a11-4170-8989-9d44579d33ac",
+      "name": "Validate ASH"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        512
+      ],
+      "id": "0091ab03-cea3-4161-9d86-0098194507b9",
+      "name": "Is Authorized?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"message\": \"Access Denied\"\n}",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        784
+      ],
+      "id": "54bea6ba-f50a-471c-aa36-2a7fccc53fce",
+      "name": "403 Forbidden"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $node.Webhook.json.body.action }}",
+                    "rightValue": "agenda_get",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "GET"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $node.Webhook.json.body.action }}",
+                    "rightValue": "agenda_analyze_image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "ANALYZE_IMG"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $node.Webhook.json.body.action }}",
+                    "rightValue": "agenda_analyze_text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "ANALYZE_TXT"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $node.Webhook.json.body.action }}",
+                    "rightValue": "agenda_save",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "SAVE"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $node.Webhook.json.body.action }}",
+                    "rightValue": "agenda_config_save",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "CONFIG"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        16,
+        512
+      ],
+      "id": "fd3ca00b-5c03-4cf0-9f65-f09b68b98463",
+      "name": "Action Switch"
+    },
+    {
+      "parameters": {
+        "collection": "agenda_events",
+        "options": {},
+        "query": "={\"chatId\": \"{{ $node[\"Validate ASH\"].json.chatId }}\"}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [
+        352,
+        304
+      ],
+      "id": "2cb20311-425c-49ff-9907-f202cc622918",
+      "name": "Fetch Events",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"events\": {{ JSON.stringify($input.all().map(i => i.json)) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        576,
+        304
+      ],
+      "id": "bcdd7dca-bccf-4cd1-baec-735f6e19a9d1",
+      "name": "Resp Get"
+    },
+    {
+      "parameters": {
+        "workflowId": "Gllwt1kRS2qIgtg-USUnD",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        352,
+        512
+      ],
+      "id": "de8f0339-58ed-44b7-a210-8f8d347a9c03",
+      "name": "Gemini Vision"
+    },
+    {
+      "parameters": {
+        "workflowId": "Gllwt1kRS2qIgtg-USUnD",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        352,
+        704
+      ],
+      "id": "8f1b497a-bbeb-4726-8721-2beb962f5a96",
+      "name": "Gemini NLP"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        576,
+        608
+      ],
+      "id": "c03b6fab-f336-45e9-8117-409531b95097",
+      "name": "Resp AI"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $node.Webhook.json.body.events || [];\nconst chatId = $node[\"Validate ASH\"].json.chatId;\nreturn items.map(ev => ({\n    json: {\n        ...ev,\n        chatId,\n        status: 'CONFIRMED',\n        created_at: new Date().toISOString()\n    }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        912
+      ],
+      "id": "35633efd-f8eb-4c5a-9d00-5c7058534a6b",
+      "name": "Prepare Save"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "agenda_events",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [
+        576,
+        912
+      ],
+      "id": "d25b3d97-ca6f-4103-ba72-b177a9b1e9f1",
+      "name": "Save Events",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"success\": true}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        800,
+        912
+      ],
+      "id": "f0c0f49c-8635-436f-bc7f-8e671d97e36b",
+      "name": "Resp Save"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "stakeholders",
+        "updateKey": "sessionId",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [
+        352,
+        1104
+      ],
+      "id": "a34535b2-a3f7-4a5a-a4f5-db2f8ab78a80",
+      "name": "Save Config",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"success\": true}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        576,
+        1104
+      ],
+      "id": "4bed75fd-9428-4f64-81a3-dc38f0ec04fb",
+      "name": "Resp Config"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate ASH",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate ASH": {
+      "main": [
+        [
+          {
+            "node": "Is Authorized?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Authorized?": {
+      "main": [
+        [
+          {
+            "node": "Action Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Action Switch": {
+      "main": [
+        [
+          {
+            "node": "Fetch Events",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gemini Vision",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gemini NLP",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Save",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Events": {
+      "main": [
+        [
+          {
+            "node": "Resp Get",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Vision": {
+      "main": [
+        [
+          {
+            "node": "Resp AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini NLP": {
+      "main": [
+        [
+          {
+            "node": "Resp AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Save": {
+      "main": [
+        [
+          {
+            "node": "Save Events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Events": {
+      "main": [
+        [
+          {
+            "node": "Resp Save",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Config": {
+      "main": [
+        [
+          {
+            "node": "Resp Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d51a9368-3ff1-4d18-bc91-b10baf1be40f",
+  "meta": {
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "xDAtBt8bCLGCfCpE",
+  "tags": []
+}

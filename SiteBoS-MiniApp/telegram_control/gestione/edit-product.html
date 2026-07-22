@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title data-i18n="page_title">Product Editor</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* SiteBoS Architect Alignment */
+        body { background-color: #fafafa !important; color: #000000 !important; }
+        .card, .section-card, .dark-card, .upload-box { 
+            background: white !important; 
+            border: 1px solid #eeeeee !important; 
+            box-shadow: none !important; 
+        }
+        input:focus, textarea:focus, select:focus { 
+            border-color: #000000 !important; 
+            box-shadow: none !important; 
+            outline: none !important;
+        }
+        .text-primary, .text-black, .text-blue-600, .text-black { color: #000000 !important; }
+        .bg-primary, .bg-black, .bg-black, .bg-black { background-color: #000000 !important; color: #ffffff !important; }
+        .border-primary, .border-black, .border-blue-600, .border-black { border-color: #000000 !important; }
+        .spinner { border-top-color: #000 !important; }
+        input[type="checkbox"]:checked { background-color: #000 !important; border-color: #000 !important; }
+        /* Forza icone pesanti */
+        .fas, .far, .fal { font-weight: 900 !important; font-family: "Font Awesome 6 Free" !important; }
+
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        input[type="checkbox"] {
+            appearance: none; width: 18px; height: 18px; border: 2px solid #000; border-radius: 4px;
+            position: relative; cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+        }
+        input[type="checkbox"]:checked { background-color: #000; }
+        input[type="checkbox"]:checked::after {
+            content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900;
+            color: white; font-size: 9px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spinner { border: 3px solid rgba(0,0,0,0.1); border-top-color: #000; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        .tag-anim { animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    </style>
+
+    <script>
+        (function() {
+            if (!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)) {
+                document.documentElement.innerHTML = `
+                <body class="bg-black text-white flex items-center justify-center h-screen text-center p-10 font-sans">
+                    <div>
+                        <h1 class="text-6xl mb-4">🚫</h1>
+                        <h2 class="text-xl font-bold uppercase tracking-widest">Accesso Proibito</h2>
+                    </div>
+                </body>`;
+                window.stop();
+            }
+        })();
+    </script>
+</head>
+<body class="bg-bg text-black pb-10">
+
+    <!-- LOADER SCREEN WITH FALLBACK CLOSE BUTTON -->
+    <div id="loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center space-y-4">
+        <div class="spinner"></div>
+        <div id="loaderText" data-i18n="loading" class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">Caricamento...</div>
+        <button type="button" id="manualCloseBtn" onclick="forceCloseApp()" class="hidden px-5 py-3 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-xl active:scale-95 transition">
+            Chiudi Finestra
+        </button>
+    </div>
+
+    <div class="hidden max-w-md mx-auto p-5" id="app-content">
+        
+        <header class="mb-6">
+            <h1 id="pageTitle" data-i18n="title" class="text-lg font-black tracking-tighter uppercase leading-tight">✏️ Modifica</h1>
+            <p id="pageSubtitle" data-i18n="subtitle" class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1 italic">Setup Prodotto / Servizio</p>
+        </header>
+
+        <form id="productForm" class="space-y-4">
+            
+            <!-- 1. IDENTITÀ -->
+            <div class="bg-white rounded-3xl p-5 border border-border shadow-sm space-y-4">
+                <span class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-300 block" data-i18n="secIdentity">📋 Identità</span>
+                
+                <div class="space-y-1">
+                    <label class="text-[9px] font-black text-gray-500 uppercase ml-1" data-i18n="lblName">Nome Prodotto *</label>
+                    <input type="text" id="itemName" required class="w-full bg-gray-50 p-3.5 rounded-xl text-sm font-bold border border-transparent focus:border-black outline-none transition">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-black text-gray-500 uppercase ml-1">SKU</label>
+                        <div class="relative">
+                            <input type="text" id="itemSku" readonly class="w-full bg-gray-100 text-gray-400 p-3.5 rounded-xl text-[10px] font-bold outline-none pr-10">
+                            <button type="button" onclick="copyValue('itemSku')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black active:scale-90 transition">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-black text-gray-500 uppercase ml-1" data-i18n="lblType">Tipo</label>
+                        <select id="itemType" class="w-full bg-gray-50 p-3.5 rounded-xl text-[10px] font-bold border border-transparent focus:border-black outline-none appearance-none">
+                            <option value="SERVICE" data-i18n="optService">Servizio</option>
+                            <option value="PRODUCT" data-i18n="optProduct">Prodotto</option>
+                            <option value="SEMI_FINISHED">Semilavorato (Interno)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[9px] font-black text-gray-500 uppercase ml-1" data-i18n="lblShort">Descrizione Breve *</label>
+                    <input type="text" id="descShort" maxlength="100" required class="w-full bg-gray-50 p-3.5 rounded-xl text-sm border border-transparent focus:border-black outline-none">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[9px] font-black text-gray-500 uppercase ml-1" data-i18n="lblLong">Descrizione Completa</label>
+                    <textarea id="descLong" rows="3" class="w-full bg-gray-50 p-3.5 rounded-xl text-sm border border-transparent focus:border-black outline-none resize-none"></textarea>
+                </div>
+            </div>
+
+            <!-- 2. PRICING -->
+            <div class="bg-white rounded-3xl p-5 border border-border shadow-sm space-y-4">
+                <span class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-300 block" data-i18n="secPricing">💰 Pricing</span>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-black text-gray-500 uppercase ml-1" data-i18n="lblPrice">Prezzo Base *</label>
+                        <input type="number" id="basePrice" step="0.01" class="w-full bg-gray-50 p-3.5 rounded-xl text-lg font-black border border-transparent focus:border-black outline-none text-right">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-black text-gray-500 uppercase ml-1" data-i18n="lblCurrency">Valuta</label>
+                        <select id="currency" class="w-full bg-gray-50 p-3.5 rounded-xl text-sm font-bold border border-transparent focus:border-black outline-none appearance-none">
+                            <option value="EUR">EUR (€)</option>
+                            <option value="USD">USD ($)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-black text-gray-500 uppercase ml-1" data-i18n="lblUnit">Unità</label>
+                        <select id="unitOfMeasure" class="w-full bg-gray-50 p-3.5 rounded-xl text-[10px] font-bold border border-transparent focus:border-black outline-none appearance-none">
+                            <option value="item" data-i18n="optItem">Pezzo</option>
+                            <option value="hour" data-i18n="optHour">Ora</option>
+                            <option value="day" data-i18n="optDay">Giorno</option>
+                            <option value="project" data-i18n="optProject">Progetto</option>
+                            <option value="month" data-i18n="optMonth">Mese</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-black text-gray-500 uppercase ml-1" data-i18n="lblTax">IVA (%)</label>
+                        <input type="number" id="taxRate" class="w-full bg-gray-50 p-3.5 rounded-xl text-sm font-bold border border-transparent focus:border-black outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. OPERATIVITÀ -->
+            <div class="bg-white rounded-3xl p-5 border border-border shadow-sm space-y-4">
+                <span class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-300 block" data-i18n="secOps">⚙️ Operatività</span>
+                
+                <div class="flex gap-3">
+                    <div class="flex-1 flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <input type="checkbox" id="requiresBooking">
+                        <label for="requiresBooking" class="text-[10px] font-black uppercase" data-i18n="chkBooking">Prenotazione</label>
+                    </div>
+                    <div class="flex-1 flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <input type="checkbox" id="requiresInventory">
+                        <label for="requiresInventory" class="text-[10px] font-black uppercase" data-i18n="chkInventory">Inventario</label>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[9px] font-black text-gray-500 uppercase ml-1" data-i18n="lblSkills">Skill Richieste</label>
+                    <div class="w-full bg-gray-50 p-2 rounded-xl flex flex-wrap gap-2 items-center min-h-[44px]" id="skillTagsContainer">
+                        <input type="text" id="skillTagInput" class="flex-1 bg-transparent outline-none text-[10px] p-1 font-bold">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. OPZIONI & PERSONALIZZAZIONI -->
+            <div class="bg-white rounded-3xl p-5 border border-border shadow-sm space-y-4">
+                <span class="text-[9px] font-black uppercase tracking-[0.2em] text-gray-300 block" data-i18n="secOptions">➕ Opzioni & Personalizzazioni</span>
+                
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[9px] font-black text-gray-500 uppercase ml-1" data-i18n="lblAddons">Aggiunte Programmate</label>
+                        <button type="button" onclick="addAddon()" class="text-[9px] font-black uppercase text-blue-600 hover:text-blue-800 transition">
+                            <i class="fas fa-plus-circle mr-1"></i> <span data-i18n="btnAddAddon">Aggiungi</span>
+                        </button>
+                    </div>
+                    <div id="addonsContainer" class="space-y-2">
+                        <!-- Add-on rows will be injected here -->
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-gray-50">
+                    <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <input type="checkbox" id="allowCustomerNotes">
+                        <label for="allowCustomerNotes" class="text-[10px] font-black uppercase" data-i18n="chkAllowNotes">Abilita Note Cliente</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2 space-y-3">
+                <button id="saveBtn" type="submit" disabled class="w-full h-12 bg-black text-white rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all disabled:opacity-20 flex items-center justify-center gap-2 shadow-xl">
+                    <i class="fas fa-save text-[10px]"></i> <span id="saveBtnText" data-i18n="btnSave">Salva Modifiche</span>
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- ADVANCED DRAWER -->
+    <div id="advanced-drawer" class="fixed inset-0 bg-white z-[100] transition-transform duration-300 translate-y-full flex flex-col">
+        <header class="flex justify-between items-center p-5 border-b border-gray-100 bg-white">
+            <div>
+                <h2 class="text-sm font-black uppercase tracking-tighter">Gestione Avanzata</h2>
+                <p class="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Supply Chain & Logistica</p>
+            </div>
+            <button type="button" onclick="closeAdvancedDrawer()" class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg active:scale-95 transition">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </header>
+
+        <div id="draft-assistant-view" class="hidden flex-1 overflow-y-auto p-5 space-y-6 no-scrollbar pb-24">
+            <div class="card rounded-3xl p-5 space-y-4">
+                <span class="text-[8px] font-black uppercase tracking-[0.2em] text-amber-500 block">✨ AI Draft Assistant</span>
+                <h3 class="text-xs font-black uppercase tracking-tight leading-tight">Configura i parametri di progettazione prima di avviare l'AI</h3>
+                
+                <!-- PROMPT / ISTRUZIONI OPERATIVE -->
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black uppercase tracking-widest text-gray-400">Linee Guiva / Vincoli per l'AI</label>
+                    <textarea id="draftInstructions" rows="3" class="w-full bg-gray-50 border border-border rounded-xl p-3 text-xs outline-none focus:border-black resize-none" placeholder="Es: 'Usa solo ingredienti biologici', 'Disponiamo già di un'impastatrice a spirale Testo', 'Includi la firma del GDPR obbligatoria'"></textarea>
+                </div>
+
+                <!-- GRIGLIA CARICAMENTO FILE SUDDIVISA PER CATEGORIA -->
+                <div class="space-y-2">
+                    <label class="text-[8px] font-black uppercase tracking-widest text-gray-400">Documenti di Supporto (Max 1 per categoria)</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        
+                        <!-- FORNITORI -->
+                        <div id="zone-suppliers" onclick="triggerZoneFileSelect('suppliers')" class="upload-box rounded-xl p-4 text-center border border-gray-100 bg-gray-50/40 cursor-pointer hover:border-black/10 transition-all flex flex-col items-center justify-center min-h-[96px] relative">
+                            <div class="zone-prompt space-y-1">
+                                <i class="fas fa-file-invoice text-base text-gray-300"></i>
+                                <p class="text-[7px] font-black uppercase tracking-wider text-gray-400">Fornitori / Fattura</p>
+                            </div>
+                            <div class="zone-preview hidden w-full h-full flex flex-col items-center justify-center"></div>
+                            <input type="file" id="file-suppliers" class="hidden" accept="image/*,application/pdf" onchange="handleZoneFile(this, 'suppliers')">
+                        </div>
+
+                        <!-- SEMILAVORATI -->
+                        <div id="zone-bom" onclick="triggerZoneFileSelect('bom')" class="upload-box rounded-xl p-4 text-center border border-gray-100 bg-gray-50/40 cursor-pointer hover:border-black/10 transition-all flex flex-col items-center justify-center min-h-[96px] relative">
+                            <div class="zone-prompt space-y-1">
+                                <i class="fas fa-receipt text-base text-gray-300"></i>
+                                <p class="text-[7px] font-black uppercase tracking-wider text-gray-400">Semilavorati / Ricetta</p>
+                            </div>
+                            <div class="zone-preview hidden w-full h-full flex flex-col items-center justify-center"></div>
+                            <input type="file" id="file-bom" class="hidden" accept="image/*,application/pdf" onchange="handleZoneFile(this, 'bom')">
+                        </div>
+
+                        <!-- LOGISTICA -->
+                        <div id="zone-locations" onclick="triggerZoneFileSelect('locations')" class="upload-box rounded-xl p-4 text-center border border-gray-100 bg-gray-50/40 cursor-pointer hover:border-black/10 transition-all flex flex-col items-center justify-center min-h-[96px] relative">
+                            <div class="zone-prompt space-y-1">
+                                <i class="fas fa-map-marked-alt text-base text-gray-300"></i>
+                                <p class="text-[7px] font-black uppercase tracking-wider text-gray-400">Logistica / Aree</p>
+                            </div>
+                            <div class="zone-preview hidden w-full h-full flex flex-col items-center justify-center"></div>
+                            <input type="file" id="file-locations" class="hidden" accept="image/*,application/pdf" onchange="handleZoneFile(this, 'locations')">
+                        </div>
+
+                        <!-- ATTREZZATURE -->
+                        <div id="zone-assets" onclick="triggerZoneFileSelect('assets')" class="upload-box rounded-xl p-4 text-center border border-gray-100 bg-gray-50/40 cursor-pointer hover:border-black/10 transition-all flex flex-col items-center justify-center min-h-[96px] relative">
+                            <div class="zone-prompt space-y-1">
+                                <i class="fas fa-tools text-base text-gray-300"></i>
+                                <p class="text-[7px] font-black uppercase tracking-wider text-gray-400">Asset / Macchinari</p>
+                            </div>
+                            <div class="zone-preview hidden w-full h-full flex flex-col items-center justify-center"></div>
+                            <input type="file" id="file-assets" class="hidden" accept="image/*,application/pdf" onchange="handleZoneFile(this, 'assets')">
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pulsante di Esecuzione -->
+            <button type="button" onclick="runAdvancedDraftingProcess()" class="w-full py-5 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all">
+                <i class="fas fa-wand-magic-sparkles"></i> Genera Infrastruttura
+            </button>
+        </div>
+        
+        <div class="absolute bottom-0 left-0 right-0 p-5 bg-white border-t border-border">
+            <button type="button" onclick="closeAdvancedDrawer()" class="w-full h-12 bg-black text-white rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all shadow-xl">
+                Chiudi Avanzate
+            </button>
+        </div>
+    </div>
+
+    <!-- CUSTOM CONFIRMATION MODAL -->
+    <div id="custom-confirm-modal" class="fixed inset-0 bg-black/40 z-[9999] flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 border border-border shadow-2xl scale-95 transition-transform duration-200" id="confirm-modal-box">
+            <div class="text-center space-y-2">
+                <span class="text-2xl">⚡</span>
+                <h3 id="confirm-modal-title" class="text-xs font-black uppercase tracking-tight leading-tight">Conferma</h3>
+                <p id="confirm-modal-desc" class="text-[10px] text-gray-500 font-bold uppercase tracking-wide leading-relaxed">Sei sicuro di voler procedere?</p>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" id="confirm-cancel-btn" class="flex-1 py-3 bg-gray-50 text-black border border-border rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition">
+                    Annulla
+                </button>
+                <button type="button" id="confirm-ok-btn" class="flex-1 py-3 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition">
+                    Conferma
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+        const WEBHOOK_URL = "https://prod.workflow.trinai.it/webhook/2c6416b1-32c6-4661-bd8f-b175d24fd035";
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.ready(); tg.expand();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const sopId = urlParams.get('sop_id');
+        const messageId = urlParams.get('message_id');
+        const langParam = tg.initDataUnsafe?.user?.language_code || 'it';
+
+        let currentData = null, initialDataString = "", skillTags = [], keywords = [], extraOptions = [], bomItems = [], assetItems = [], supplierItems = [], locationItems = [];
+
+        const i18n = {
+            it: { 
+                page_title: "Modifica Prodotto", title: "✏️ Modifica", subtitle: "Gestione dettagli e prezzi", 
+                loading: "Caricamento...", saving: "Salvataggio...", saved: "✅ Salvato!", error: "❌ Errore", 
+                secIdentity: "📋 Identità", secPricing: "💰 Pricing", secOps: "⚙️ Operatività", 
+                secOptions: "➕ Opzioni & Personalizzazioni", lblName: "Nome Prodotto/Servizio", lblType: "Tipo", 
+                lblShort: "Descrizione Breve", lblLong: "Descrizione Completa", lblPrice: "Prezzo Base", 
+                lblCurrency: "Valuta", lblUnit: "Unità", lblTax: "IVA (%)", chkBooking: "Prenotazione", 
+                chkInventory: "Inventario", lblSkills: "Skill Richieste", btnSave: "Salva Modifiche", 
+                optService: "Servizio", optProduct: "Prodotto", optItem: "Pezzo", optHour: "Ora", 
+                optDay: "Giorno", optProject: "Progetto", optMonth: "Mese", phSkill: "Premi Invio...",
+                lblAddons: "Aggiunte Programmate", lblAddonName: "Nome Add-on", lblAddonPrice: "Prezzo", 
+                btnAddAddon: "Aggiungi Opzione", chkAllowNotes: "Abilita Note Cliente"
+            },
+            en: { 
+                page_title: "Edit Product", title: "✏️ Edit", subtitle: "Details and pricing", 
+                loading: "Loading...", saving: "Saving...", saved: "✅ Saved!", error: "❌ Error", 
+                secIdentity: "📋 Identity", secPricing: "💰 Pricing", secOps: "⚙️ Operations", 
+                secOptions: "➕ Options & Customizations", lblName: "Product Name", lblType: "Type", 
+                lblShort: "Short Desc", lblLong: "Full Desc", lblPrice: "Base Price", 
+                lblCurrency: "Currency", lblUnit: "Unit", lblTax: "Tax (%)", chkBooking: "Booking", 
+                chkInventory: "Inventory", lblSkills: "Skills", btnSave: "Save Changes", 
+                optService: "Service", optProduct: "Product", optItem: "Item", optHour: "Hour", 
+                optDay: "Day", optProject: "Project", optMonth: "Month", phSkill: "Enter to add...",
+                lblAddons: "Scheduled Add-ons", lblAddonName: "Add-on Name", lblAddonPrice: "Price", 
+                btnAddAddon: "Add Option", chkAllowNotes: "Allow Customer Notes"
+            }
+        };
+        const t = i18n[langParam.slice(0,2)] || i18n.it;
+
+        const dom = {
+            loader: document.getElementById('loader'),
+            content: document.getElementById('app-content'),
+            form: document.getElementById('productForm'),
+            saveBtn: document.getElementById('saveBtn'),
+            skillInput: document.getElementById('skillTagInput'),
+            skillContainer: document.getElementById('skillTagsContainer')
+        };
+
+        function applyTranslations() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerText = t[key];
+            });
+            dom.skillInput.placeholder = t.phSkill;
+        }
+
+        async function init() {
+            applyTranslations();
+            if (!sopId) { alert("SOP ID Missing"); return; }
+            await loadProduct();
+        }
+
+        async function loadProduct() {
+            try {
+                const res = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ _auth: tg.initData, action: 'GET', type: 'PRODUCT', sop_id: sopId, message_id: messageId })
+                });
+                const rawData = await res.json();
+                const d = Array.isArray(rawData) ? rawData[0] : rawData;
+                const productData = d.catalog_item || d.catalog_item_draft || d;
+                currentData = JSON.parse(JSON.stringify(productData));
+                populateForm(productData);
+                initialDataString = JSON.stringify(collectDataFromForm());
+                setupTagInput(dom.skillInput, dom.skillContainer, skillTags);
+                dom.form.addEventListener('input', checkDirty);
+                dom.loader.classList.add('hidden');
+                dom.content.classList.remove('hidden');
+
+                if (urlParams.get('open_advanced') === 'true') {
+                    openAdvancedDrawer();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function populateForm(data) {
+            const val = (id, v) => { if (document.getElementById(id)) document.getElementById(id).value = v || ''; };
+            const chk = (id, v) => { if (document.getElementById(id)) document.getElementById(id).checked = !!v; };
+            val('itemName', data.identity?.item_name);
+            val('itemSku', data.identity?.item_sku);
+            val('itemType', data.identity?.item_type);
+            val('descShort', data.identity?.description?.short);
+            val('descLong', data.identity?.description?.long);
+            val('basePrice', data.pricing?.base_price);
+            val('currency', data.pricing?.currency);
+            val('unitOfMeasure', data.pricing?.unit_of_measure);
+            val('taxRate', data.pricing?.tax_info?.tax_rate_percentage);
+            chk('requiresBooking', data.operations?.requires_booking);
+            chk('requiresInventory', data.operations?.requires_inventory_check);
+            chk('allowCustomerNotes', data.commercial_setup?.allow_customer_notes);
+            skillTags = data.operations?.provider_info?.required_skill_tags || [];
+            extraOptions = data.commercial_setup?.extra_options || [];
+            
+            // Drawer fields
+            supplierItems = (data.procurement?.suppliers || []).map(s => ({ ...s, usage: s.usage || 1 }));
+            locationItems = data.logistics?.locations || [];
+            bomItems = (data.bom || []).map(b => ({ ...b, usage: b.usage || b.qty || 1 }));
+            assetItems = data.assets || [];
+
+            renderTags(dom.skillContainer, skillTags);
+            renderAddons();
+        }
+
+        function renderAddons() {
+            const container = document.getElementById('addonsContainer');
+            container.innerHTML = '';
+            if (extraOptions.length === 0) {
+                container.innerHTML = `<div class="text-[8px] text-gray-300 italic text-center py-4 border-2 border-dashed border-gray-50 rounded-2xl uppercase tracking-widest font-black">Nessun extra attivo</div>`;
+                return;
+            }
+            extraOptions.forEach((opt, index) => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-3 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm tag-anim transition-all hover:border-black/10';
+                row.innerHTML = `
+                    <div class="flex-1 space-y-1">
+                        <label class="text-[7px] font-black uppercase text-gray-300 ml-1">Nome Opzione</label>
+                        <input type="text" placeholder="${t.lblAddonName}" value="${opt.name}" oninput="updateAddon(${index}, 'name', this.value)" class="w-full bg-gray-50 border border-transparent rounded-lg p-2 text-[10px] font-bold outline-none focus:border-black transition-colors">
+                    </div>
+                    <div class="w-24 space-y-1">
+                        <label class="text-[7px] font-black uppercase text-gray-300 ml-1">Prezzo</label>
+                        <div class="relative">
+                            <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[8px] font-black text-gray-300">€</span>
+                            <input type="number" step="0.01" placeholder="0.00" value="${opt.price}" oninput="updateAddon(${index}, 'price', this.value)" class="w-full bg-gray-50 border border-transparent rounded-lg p-2 pl-5 text-[10px] font-black outline-none focus:border-black text-right transition-colors">
+                        </div>
+                    </div>
+                    <button type="button" onclick="removeAddon(${index})" class="mt-4 w-8 h-8 flex items-center justify-center bg-red-50 text-red-400 rounded-lg hover:bg-red-100 transition-colors">
+                        <i class="fas fa-trash-alt text-[10px]"></i>
+                    </button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function addAddon() {
+            extraOptions.push({ name: '', price: 0 });
+            renderAddons();
+            checkDirty();
+        }
+
+        function updateAddon(index, field, value) {
+            if (field === 'price') value = parseFloat(value) || 0;
+            extraOptions[index][field] = value;
+            checkDirty();
+        }
+
+        function removeAddon(index) {
+            extraOptions.splice(index, 1);
+            renderAddons();
+            checkDirty();
+        }
+
+        // --- IN-PAGE DB & WIDGET LOGIC ---
+
+        async function openAdvancedDrawer() {
+            const isAdvancedReady = currentData?.ui_node_draft?.advanced_ready === true;
+
+            if (!isAdvancedReady) {
+                document.getElementById('draft-assistant-view').classList.remove('hidden');
+                
+                document.getElementById('advanced-drawer').classList.remove('translate-y-full');
+                document.body.style.overflow = 'hidden';
+                if (tg.BackButton) {
+                    tg.BackButton.show();
+                    tg.BackButton.onClick(closeAdvancedDrawer);
+                }
+            } else {
+                const targetUrl = `edit-advanced.html?sop_id=${sopId}&ash=${urlParams.get('ash') || ''}&message_id=${messageId || ''}`;
+                checkUnsavedAndRedirect(targetUrl);
+            }
+        }
+
+        function checkUnsavedAndRedirect(url) {
+            const isDirty = !dom.saveBtn.disabled;
+            if (isDirty) {
+                showCustomConfirm(
+                    "Dati non salvati",
+                    "Hai delle modifiche non salvate. Vuoi abbandonare la pagina e perdere le modifiche?",
+                    (confirm) => {
+                        if (confirm) {
+                            window.location.href = url;
+                        }
+                    }
+                );
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        function closeAdvancedDrawer() {
+            document.getElementById('advanced-drawer').classList.add('translate-y-full');
+            document.body.style.overflow = '';
+            if(tg.BackButton) tg.BackButton.hide();
+        }
+
+        // --- ASYNC AI DRAFTING ---
+        let uploadedDraftFilesByZone = {
+            suppliers: null,
+            bom: null,
+            locations: null,
+            assets: null
+        };
+
+        const ASYNC_AI_WEBHOOK = "https://prod.workflow.trinai.it/webhook/6333dff0-d886-499c-8000-f3e0266845ed";
+
+        // GESTIONE DIALOGO DI CONFERMA CROSS-PLATFORM
+        function showCustomConfirm(title, message, onConfirm) {
+            const modal = document.getElementById('custom-confirm-modal');
+            const box = document.getElementById('confirm-modal-box');
+            const titleEl = document.getElementById('confirm-modal-title');
+            const descEl = document.getElementById('confirm-modal-desc');
+            const okBtn = document.getElementById('confirm-ok-btn');
+            const cancelBtn = document.getElementById('confirm-cancel-btn');
+            
+            if (titleEl) titleEl.innerText = title;
+            if (descEl) descEl.innerText = message;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+            }, 10);
+            
+            const handleOk = () => {
+                closeModal();
+                onConfirm(true);
+            };
+            
+            const handleCancel = () => {
+                closeModal();
+                onConfirm(false);
+            };
+            
+            const closeModal = () => {
+                modal.classList.add('opacity-0');
+                box.classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 200);
+                okBtn.removeEventListener('click', handleOk);
+                cancelBtn.removeEventListener('click', handleCancel);
+            };
+            
+            okBtn.addEventListener('click', handleOk);
+            cancelBtn.addEventListener('click', handleCancel);
+        }
+
+        function runAdvancedDraftingProcess() {
+            showCustomConfirm(
+                "Conferma Generazione",
+                "Confermi l'avvio della generazione? Riceverai una notifica su Telegram appena la proposta è pronta.",
+                (confirm) => {
+                    if (!confirm) return;
+
+                    // Mostriamo un feedback visivo di caricamento durante l'invio
+                    dom.loader.classList.remove('hidden');
+                    document.getElementById('loaderText').innerText = "Invio richiesta all'AI...";
+
+                    try {
+                        const currentFormState = collectDataFromForm();
+                        const promptText = document.getElementById('draftInstructions').value.trim();
+                        const ash = urlParams.get('ash');
+                        const activeMessageId = urlParams.get('msg') || urlParams.get('msg_id') || urlParams.get('message_id') || messageId;
+
+                        const payload = {
+                            _auth: tg.initData,
+                            ash: ash,
+                            message_id: activeMessageId,
+                            action: 'GENERATE_ADVANCED_DRAFT',
+                            sop_id: sopId,
+                            product_state: currentFormState,
+                            user_instructions: promptText,
+                            grounded_files: uploadedDraftFilesByZone
+                        };
+
+                        // Chiamata HTTP asincrona non bloccante (fire-and-forget)
+                        fetch(ASYNC_AI_WEBHOOK, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        }).catch(err => console.error("Errore durante l'invio della richiesta:", err));
+
+                    } catch (err) {
+                        console.error("Errore durante la preparazione dei dati:", err);
+                    }
+
+                    // Chiusura o visualizzazione pulsante di chiusura manuale dopo 2 secondi
+                    setTimeout(() => {
+                        // Tenta la chiusura automatica nativa
+                        if (tg && typeof tg.close === 'function') {
+                            tg.close();
+                        }
+                        window.close();
+
+                        // Se l'app è ancora aperta (es. Telegram Desktop che ignora la chiusura), aggiorna il loader
+                        const spinner = document.querySelector('#loader .spinner');
+                        if (spinner) spinner.classList.add('hidden');
+                        
+                        const loaderText = document.getElementById('loaderText');
+                        if (loaderText) loaderText.innerText = "Richiesta inviata con successo!";
+                        
+                        const closeBtn = document.getElementById('manualCloseBtn');
+                        if (closeBtn) closeBtn.classList.remove('hidden');
+                    }, 2000);
+                }
+            );
+        }
+
+        // Chiusura manuale forzata per desktop/ambienti in cui tg.close() viene ignorato
+        function forceCloseApp() {
+            if (tg && typeof tg.close === 'function') {
+                tg.close();
+            }
+            window.close();
+            
+            // In caso estremo in cui la finestra persista, avvisa l'utente di poter chiudere manualmente
+            const loaderText = document.getElementById('loaderText');
+            if (loaderText) loaderText.innerText = "Puoi chiudere questa scheda premendo la 'X' in alto a destra.";
+            
+            const closeBtn = document.getElementById('manualCloseBtn');
+            if (closeBtn) closeBtn.classList.add('hidden');
+        }
+
+        function triggerZoneFileSelect(zone) {
+            if (uploadedDraftFilesByZone[zone]) return;
+            document.getElementById(`file-${zone}`).click();
+        }
+
+        async function handleZoneFile(input, zone) {
+            const file = input.files[0];
+            if (!file) return;
+
+            try {
+                const base64Data = await convertFileToBase64(file);
+                uploadedDraftFilesByZone[zone] = {
+                    name: file.name,
+                    type: file.type,
+                    data: base64Data.split(',')[1]
+                };
+
+                const zoneEl = document.getElementById(`zone-${zone}`);
+                const promptEl = zoneEl.querySelector('.zone-prompt');
+                const previewEl = zoneEl.querySelector('.zone-preview');
+
+                promptEl.classList.add('hidden');
+                previewEl.classList.remove('hidden');
+
+                previewEl.innerHTML = `
+                    <div class="w-full h-12 rounded-lg overflow-hidden flex items-center justify-center bg-white border border-gray-100">
+                        ${file.type.startsWith('image/') ? `<img src="${base64Data}" class="w-full h-full object-cover">` : '<i class="fas fa-file-pdf text-base text-red-500"></i>'}
+                    </div>
+                    <button type="button" onclick="removeZoneFile(event, '${zone}')" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-black text-white flex items-center justify-center text-[7px] border border-white active:scale-90 transition">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+            } catch (err) {
+                console.error(err);
+                tg.showAlert("Errore durante la lettura del file.");
+            }
+            input.value = '';
+        }
+
+        function removeZoneFile(event, zone) {
+            event.stopPropagation();
+            uploadedDraftFilesByZone[zone] = null;
+
+            const zoneEl = document.getElementById(`zone-${zone}`);
+            const promptEl = zoneEl.querySelector('.zone-prompt');
+            const previewEl = zoneEl.querySelector('.zone-preview');
+
+            previewEl.innerHTML = '';
+            previewEl.classList.add('hidden');
+            promptEl.classList.remove('hidden');
+        }
+
+        function convertFileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // --- (Obsolete parent-child communication listener removed) ---
+
+        // --------------------------
+
+        function collectDataFromForm() {
+            return {
+                name: document.getElementById('itemName').value,
+                type: document.getElementById('itemType').value,
+                short: document.getElementById('descShort').value,
+                long: document.getElementById('descLong').value,
+                price: document.getElementById('basePrice').value,
+                cur: document.getElementById('currency').value,
+                uom: document.getElementById('unitOfMeasure').value,
+                tax: document.getElementById('taxRate').value,
+                booking: document.getElementById('requiresBooking').checked,
+                inv: document.getElementById('requiresInventory').checked,
+                notes_enabled: document.getElementById('allowCustomerNotes').checked,
+                st: skillTags.join(','),
+                ex: JSON.stringify(extraOptions),
+                suppliers: JSON.stringify(supplierItems),
+                locations: JSON.stringify(locationItems),
+                bom: JSON.stringify(bomItems),
+                assets: JSON.stringify(assetItems)
+            };
+        }
+
+        function checkDirty() {
+            const current = JSON.stringify(collectDataFromForm());
+            dom.saveBtn.disabled = current === initialDataString;
+        }
+
+        function setupTagInput(input, container, tags) {
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    const val = input.value.trim();
+                    if (val && !tags.includes(val)) {
+                        tags.push(val); input.value = '';
+                        renderTags(container, tags); checkDirty();
+                    }
+                } else if (e.key === 'Backspace' && !input.value && tags.length) {
+                    tags.pop(); renderTags(container, tags); checkDirty();
+                }
+            };
+        }
+
+        function renderTags(container, tags) {
+            container.querySelectorAll('.custom-tag').forEach(t => t.remove());
+            tags.forEach((t, i) => {
+                const el = document.createElement('div');
+                el.className = 'custom-tag tag-anim bg-black text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase flex items-center gap-1.5';
+                el.innerHTML = `${t} <i class="fas fa-times opacity-40"></i>`;
+                el.onclick = () => { tags.splice(i, 1); renderTags(container, tags); checkDirty(); };
+                container.insertBefore(el, container.lastElementChild);
+            });
+        }
+
+        dom.form.onsubmit = async (e) => {
+            e.preventDefault();
+            dom.saveBtn.disabled = true;
+            document.getElementById('saveBtnText').innerText = t.saving;
+            const form = collectDataFromForm();
+            const payload = currentData;
+            payload.identity.item_name = form.name;
+            payload.identity.item_type = form.type;
+            payload.identity.description.short = form.short;
+            payload.identity.description.long = form.long;
+            payload.pricing.base_price = parseFloat(form.price);
+            payload.pricing.currency = form.cur;
+            payload.pricing.unit_of_measure = form.uom;
+            payload.pricing.tax_info.tax_rate_percentage = parseInt(form.tax);
+            payload.operations.requires_booking = form.booking;
+            payload.operations.requires_inventory_check = form.inv;
+            payload.operations.provider_info.required_skill_tags = skillTags;
+            
+            // Add HORECA specific fields
+            if (!payload.commercial_setup) payload.commercial_setup = {};
+            payload.commercial_setup.extra_options = extraOptions;
+            payload.commercial_setup.allow_customer_notes = form.notes_enabled;
+            
+            // Toggle Dynamic Price if extra options exist
+            if (!payload.pricing.pricing_rules_engine) payload.pricing.pricing_rules_engine = { rules_ids: [], notes: null };
+            payload.pricing.pricing_rules_engine.is_dynamic_price = extraOptions.length > 0;
+
+            // Update Drawer specific nodes
+            if (!payload.procurement) payload.procurement = {};
+            payload.procurement.suppliers = supplierItems;
+
+            if (!payload.logistics) payload.logistics = {};
+            payload.logistics.locations = locationItems;
+
+            payload.bom = bomItems;
+            payload.assets = assetItems;
+
+            try {
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ _auth: tg.initData, action: 'SAVE', type: 'PRODUCT', sop_id: sopId, message_id: messageId, payload: payload })
+                });
+                dom.saveBtn.classList.replace('bg-black', 'bg-green-600');
+                document.getElementById('saveBtnText').innerText = t.saved;
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                setTimeout(() => tg.close(), 1200);
+            } catch (err) { dom.saveBtn.disabled = false; document.getElementById('saveBtnText').innerText = t.btnSave; }
+        };
+        init();
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

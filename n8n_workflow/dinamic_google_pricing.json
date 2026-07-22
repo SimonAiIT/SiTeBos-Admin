@@ -1,0 +1,187 @@
+{
+  "name": "dinamic_google_pricing",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 4
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -560,
+        0
+      ],
+      "id": "e5dea31c-f5c2-4533-a513-08c7d6fb51cd",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.1-flash-lite",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.1-flash-lite"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Effettua una ricerca web approfondita per trovare il listino prezzi ufficiale e\naggiornato delle API di Google Gemini (Google AI Studio e Vertex AI). Voglio\nottenere il costo per milione di token (1M tokens) sia per l'input che per\nl'output, espresso in USD, per tutte le famiglie di modelli attivi.\n\nRestituisci ESCLUSIVAMENTE un array JSON valido, senza introduzioni, senza\nspiegazioni e senza racchiuderlo in blocchi di codice markdown (niente tag code\no triple virgolette). L'output deve essere direttamente parsabile come JSON.\n\nUsa esattamente questa struttura per ciascun modello identificato:\n\nSe il modello ha una tariffa flat (es. modelli Flash o Lite): { \"model_pattern\":\n\"string (es. '2.5-flash', '2.5-flash-lite', '3.5-flash', '2.0-flash')\", \"rates\":\n{ \"in\": numero_costo_input_per_1M_tokens, \"out\":\nnumero_costo_output_per_1M_tokens }, \"has_threshold\": false }\n\nSe il modello ha una tariffa con soglia di contesto (es. modelli Pro con tariffa\nmaggiorata sopra i 200k token): { \"model_pattern\": \"string (es. 'pro',\n'3.1-pro', '2.5-pro')\", \"rates\": { \"base\": { \"in\":\nnumero_costo_input_fino_a_200k_per_1M_tokens, \"out\":\nnumero_costo_output_fino_a_200k_per_1M_tokens }, \"long\": { \"in\":\nnumero_costo_input_oltre_200k_per_1M_tokens, \"out\":\nnumero_costo_output_oltre_200k_per_1M_tokens } }, \"has_threshold\": true,\n\"threshold_tokens\": 200000 }\n\nFai attenzione a mappare correttamente i pattern dei modelli in modo che\ncorrispondano alle stringhe reali restituite dalle API (es. 'flash', 'pro',\n'lite'). Non aggiungere altre chiavi o spiegazioni di testo al di fuori\ndell'array JSON richiesto."
+            }
+          ]
+        },
+        "simplify": false,
+        "builtInTools": {
+          "googleSearch": true
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -368,
+        0
+      ],
+      "id": "a6f9bddf-fb5c-481a-89d8-c96445268f82",
+      "name": "Message a model",
+      "alwaysOutputData": false,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "LR3Q6cuz4wPaBeGk",
+          "name": "TrinAi PayKey"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Parse & Clean - Gemini Prices (Single Document Edition)\n// VERSIONE: 1.3 - Restituisce un unico documento con l'array inserito dentro\n\nconst item = $input.first().json;\nlet rawText = \"\";\n\nif (item.candidates && Array.isArray(item.candidates) && item.candidates.length > 0) {\n    rawText = item.candidates[0].content?.parts?.[0]?.text || \"\";\n} else if (item.content?.parts?.[0]?.text) {\n    rawText = item.content.parts[0].text;\n} else if (item.parts?.[0]?.text) {\n    rawText = item.parts[0].text;\n} else {\n    rawText = typeof item === 'string' ? item : (item.text || \"\");\n}\n\nif (!rawText || rawText.trim() === \"\") {\n    throw new Error(\"Errore Parser: Impossibile individuare il testo generato da Gemini.\");\n}\n\nlet cleaned = rawText.replace(/^```(?:json)?\\s*/i, \"\").replace(/\\s*```$/, \"\").trim();\n\nlet parsedArray = [];\ntry {\n    parsedArray = JSON.parse(cleaned);\n} catch (e) {\n    throw new Error(`Errore Parser: Impossibile convertire il testo in JSON. Errore: ${e.message}`);\n}\n\nif (!Array.isArray(parsedArray)) {\n    throw new Error(\"Errore Parser: Il payload convertito non è un array.\");\n}\n\n// RESTITUISCE UN UNICO ITEM N8N (Un solo documento MongoDB)\nreturn [{\n    json: {\n        updated_at: new Date().toISOString(),\n        listino_prezzi: parsedArray // L'array di 9 modelli è qui dentro\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        -16
+      ],
+      "id": "133de93d-8cd9-4032-9032-a5232a758b24",
+      "name": "Parser",
+      "alwaysOutputData": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=Listino_Prezzi",
+        "collectionName": "billing_buffers",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        384,
+        96
+      ],
+      "id": "b968482f-5e14-4d6a-a6ad-d0979f731443",
+      "name": "MongoDB Chat Memory6",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        384,
+        -32
+      ],
+      "id": "164ab8fe-2683-4cce-9e8a-664a134cfe51",
+      "name": "SaveBillingManager",
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Parser",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "MongoDB Chat Memory6": {
+      "ai_memory": [
+        [
+          {
+            "node": "SaveBillingManager",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser": {
+      "main": [
+        [
+          {
+            "node": "SaveBillingManager",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "SaveBillingManager": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c10c4a2f-68f7-45c6-b29b-a4ea2a30f87c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "vgBwLk5GzsmWtlVX",
+  "tags": []
+}

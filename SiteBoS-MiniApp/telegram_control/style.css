@@ -1,0 +1,121 @@
+/* =========================================
+   1. VARIABILI GLOBALI E RESET BASE (B&W Aesthetic)
+   ========================================= */
+:root { 
+    --primary: #000000; 
+    --accent: #000000; 
+    --bg: #fafafa; 
+    --surface: #ffffff; 
+    --border: #eeeeee; 
+    --text: #000000; 
+    --text-muted: #94a3b8; 
+    --danger: #ef4444; 
+    --success: #22c55e; 
+    --radius: 1.5rem; /* 24px per rounded-3xl */
+    --trans: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --chat-user: #000000; 
+    --chat-ai: #ffffff;
+}
+
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, sans-serif; 
+    -webkit-tap-highlight-color: transparent;
+}
+
+body { 
+    background: var(--bg); 
+    color: var(--text); 
+    font-size: 14px; 
+    line-height: 1.5; 
+    -webkit-font-smoothing: antialiased;
+}
+
+.hidden { display: none !important; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* =========================================
+   2. COMPONENTI UNIFICATI (Mobile Only)
+   ========================================= */
+
+/* Action Bar Bottom Standard */
+.bottom-action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    z-index: 100;
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* Button Standard h-12 */
+.btn-noir {
+    height: 3rem; /* 48px - h-12 */
+    border-radius: 0.75rem; /* rounded-xl */
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: var(--trans);
+    cursor: pointer;
+    border: none;
+    padding: 0 1.25rem;
+    flex: 1;
+}
+
+.btn-noir-primary { background: #000; color: #fff; }
+.btn-noir-primary:active { transform: scale(0.96); opacity: 0.9; }
+.btn-noir-primary:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
+
+.btn-noir-secondary { background: #fff; color: #000; border: 1px solid #000; }
+.btn-noir-secondary:active { transform: scale(0.96); background: #f8fafc; }
+
+/* Cards */
+.card-noir {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+/* Inputs */
+input, select, textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 0.875rem 1rem;
+    font-size: 14px;
+    outline: none;
+    background: #f9fafb;
+    transition: var(--trans);
+}
+
+input:focus, textarea:focus {
+    border-color: #000;
+    background: #fff;
+}
+
+/* Typography */
+.title-xl { font-size: 1.25rem; font-weight: 900; tracking: -0.025em; text-transform: uppercase; }
+.label-micro { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; }
+
+/* =========================================
+   3. SPECIFIC PAGE OVERRIDES (Support)
+   ========================================= */
+.safe-bottom { padding-bottom: calc(5rem + env(safe-area-inset-bottom)); }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }

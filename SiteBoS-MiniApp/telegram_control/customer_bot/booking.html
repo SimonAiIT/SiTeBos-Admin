@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Prenotazione Appuntamento | SiteBoS</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        (function () {
+            if (!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)) {
+                document.documentElement.innerHTML = `
+                    <body class="bg-black text-white flex items-center justify-center h-screen text-center p-10 font-sans">
+                        <div>
+                            <h1 class="text-6xl mb-4">🚫</h1>
+                            <h2 class="text-xl font-bold uppercase tracking-widest">Accesso Proibito</h2>
+                            <p class="text-xs text-gray-500 mt-2 uppercase tracking-wider">Usa la miniapp all'interno di Telegram</p>
+                        </div>
+                    </body>`;
+                window.stop();
+            }
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { primary: '#000000', bg: '#fafafa', surface: '#ffffff', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #fafafa !important; color: #000000 !important; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .card, .section-card, .dark-card { 
+            background: white !important; 
+            border: 1px solid #eeeeee !important; 
+            box-shadow: none !important; 
+        }
+        input:focus, textarea:focus, select:focus { 
+            border-color: #000000 !important; 
+            box-shadow: none !important; 
+            outline: none !important;
+        }
+        .text-primary, .text-black { color: #000000 !important; }
+        .bg-primary, .bg-black { background-color: #000000 !important; color: #ffffff !important; }
+        .border-primary, .border-black { border-color: #000000 !important; }
+        .spinner { border-top-color: #000 !important; }
+        .fas, .far, .fal { font-weight: 900 !important; font-family: "Font Awesome 6 Free" !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="safe-area-inset h-screen flex flex-col overflow-hidden text-sm">
+
+    <!-- HEADER -->
+    <header class="p-5 bg-white border-b border-gray-100 sticky top-0 z-50 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center text-white shadow-md">
+                <i class="fas fa-calendar-alt text-sm"></i>
+            </div>
+            <div>
+                <h1 class="text-[9px] font-black uppercase tracking-widest text-gray-500 leading-none mb-1">Modulo Prenotazione</h1>
+                <p class="text-sm font-black tracking-tight">Proposta Appuntamento</p>
+            </div>
+        </div>
+        <button onclick="tg.close()" class="w-8 h-8 rounded-full flex items-center justify-center text-gray-300">
+            <i class="fas fa-times text-lg"></i>
+        </button>
+    </header>
+
+    <!-- CONTENT -->
+    <main id="main-container" class="flex-1 overflow-y-auto p-5 space-y-6 no-scrollbar pb-32">
+        
+        <!-- INFORMATIVA REGOLA DELLE SCELTE -->
+        <div class="bg-black/5 border border-black/5 p-4 rounded-3xl space-y-2">
+            <div class="flex items-center gap-2 text-black">
+                <i class="fas fa-info-circle text-xs"></i>
+                <span class="font-black uppercase tracking-wider text-[8px]">Regole di Prenotazione</span>
+            </div>
+            <p class="text-[10px] text-gray-600 font-semibold leading-relaxed">
+                Indica quali servizi desideri effettuare e seleziona le tue preferenze di disponibilità generiche.<br>
+                📌 **Regola**: Seleziona <b>almeno 2 disponibilità</b>. Se ne inserisci <b>solo 1</b>, è obbligatorio inserire una motivazione/dettaglio nel campo note in basso.
+            </p>
+        </div>
+
+        <!-- STEP 1: SCELTA SERVIZIO (MULTI-SELECT) -->
+        <section class="space-y-3">
+            <div class="space-y-1">
+                <span class="text-black font-black uppercase text-[9px] tracking-widest opacity-30">Fase 1 di 3</span>
+                <h2 class="text-lg font-black tracking-tight uppercase">Seleziona i Servizi</h2>
+                <p class="text-gray-500 text-[10px]">Puoi selezionare anche più di un servizio per il tuo appuntamento.</p>
+            </div>
+            <div id="services-grid" class="grid gap-3">
+                <!-- Iniettato da JS -->
+                <div class="py-6 text-center text-gray-300"><i class="fas fa-spinner animate-spin"></i> Caricamento servizi...</div>
+            </div>
+        </section>
+
+        <!-- STEP 2: DISPONIBILITA SETTIMANALE -->
+        <section class="space-y-3">
+            <div class="space-y-1">
+                <span class="text-black font-black uppercase text-[9px] tracking-widest opacity-30">Fase 2 di 3</span>
+                <h2 class="text-lg font-black tracking-tight uppercase">Indica la tua Disponibilità</h2>
+                <p class="text-gray-500 text-[10px]">Seleziona i giorni e le fasce (Mattino/Pomeriggio) in cui saresti disponibile.</p>
+            </div>
+            <div id="availability-grid" class="bg-white border border-gray-100 rounded-3xl p-4 space-y-3 shadow-sm">
+                <!-- Generato da JS -->
+                <div class="py-4 text-center text-gray-300"><i class="fas fa-spinner animate-spin"></i> Caricamento disponibilità...</div>
+            </div>
+        </section>
+
+        <!-- STEP 3: NOTE / DETTAGLI -->
+        <section class="space-y-3">
+            <div class="space-y-1">
+                <span class="text-black font-black uppercase text-[9px] tracking-widest opacity-30">Fase 3 di 3</span>
+                <h2 class="text-lg font-black tracking-tight uppercase">Note e Motivazione</h2>
+                <p class="text-gray-500 text-[10px]">Aggiungi dettagli o specifica motivi particolari se hai indicato una sola preferenza.</p>
+            </div>
+            <textarea id="booking-notes" rows="4" class="w-full bg-white border border-gray-100 rounded-3xl p-4 text-xs font-semibold focus:border-black transition-all resize-none shadow-sm" placeholder="Es: Preferirei Lunedì se possibile per urgenza, altrimenti vanno bene le altre opzioni..."></textarea>
+        </section>
+
+    </main>
+
+    <!-- FOOTER NAV -->
+    <footer id="footer-nav" class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-lg border-t border-gray-100 z-[100]">
+        <div class="max-w-md mx-auto">
+            <button id="submit-btn" onclick="submitBooking()" class="w-full bg-black text-white h-12 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md active:scale-95 transition flex items-center justify-center gap-2">
+                <span>Invia Proposta</span><i class="fas fa-paper-plane text-[9px]"></i>
+            </button>
+        </div>
+    </footer>
+
+    <!-- GLOBAL LOADER -->
+    <div id="global-loader" class="fixed inset-0 bg-white z-[600] flex flex-col items-center justify-center p-10 text-center transition-opacity duration-300">
+        <div class="w-10 h-10 border-2 border-gray-100 border-t-black rounded-full animate-spin mb-4"></div>
+        <p class="text-[8px] font-black uppercase tracking-[0.3em] text-gray-300">Inizializzazione Booking...</p>
+    </div>
+
+    <script>
+        'use strict';
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.expand();
+        tg.ready();
+
+        const WH_URL = "https://prod.workflow.trinai.it/webhook/0a62e876-7bb1-4d74-a8bc-a8828606a0e7";
+        const params = new URLSearchParams(window.location.search);
+        const ashToken = params.get('ash');
+
+        // Configurazione e Stato
+        let activeServices = [];
+        let businessHours = {};
+        
+        let selectedServices = []; // array di oggetti servizi selezionati
+        let selectedAvailabilities = []; // array di oggetti { day: "Lunedì", period: "Mattina" }
+
+        // Giorni della settimana in Italiano
+        const daysMap = {
+            1: "Lunedì",
+            2: "Martedì",
+            3: "Mercoledì",
+            4: "Giovedì",
+            5: "Venerdì",
+            6: "Sabato",
+            0: "Domenica"
+        };
+
+        // Fallback statici in caso di assenza o errore del backend
+        const fallbackServices = [
+            { id: "ser_cons_30", name: "Consulenza Breve", duration_min: 30, description: "Incontro conoscitivo di allineamento" },
+            { id: "ser_cons_60", name: "Consulenza Standard", duration_min: 60, description: "Analisi tecnica approfondita del progetto" },
+            { id: "ser_supp_45", name: "Supporto Dedicato", duration_min: 45, description: "Risoluzione problematiche o affiancamento" }
+        ];
+
+        const fallbackBusinessHours = {
+            work_days: [1, 2, 3, 4, 5], // Lunedì - Venerdì
+            start_hour: "09:00",
+            end_hour: "18:00"
+        };
+
+        window.onload = async () => {
+            if (!ashToken) {
+                tg.showAlert("Accesso Negato: Token ASH mancante.");
+                hideLoader();
+                return;
+            }
+            await loadConfig();
+        };
+
+        async function loadConfig() {
+            try {
+                const response = await fetch(WH_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        _auth: tg.initData,
+                        ash: ashToken,
+                        action: "get_booking_config"
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        activeServices = data.services || fallbackServices;
+                        businessHours = data.business_hours || fallbackBusinessHours;
+                    } else {
+                        useFallback("Risposta fallita dal server.");
+                    }
+                } else {
+                    useFallback("Errore di rete.");
+                }
+            } catch (err) {
+                useFallback("Errore di connessione.");
+            } finally {
+                renderServices();
+                renderAvailabilityGrid();
+                hideLoader();
+            }
+        }
+
+        function useFallback(reason) {
+            console.warn("Utilizzo configurazione di fallback:", reason);
+            activeServices = fallbackServices;
+            businessHours = fallbackBusinessHours;
+        }
+
+        function hideLoader() {
+            const loader = document.getElementById('global-loader');
+            loader.classList.add('opacity-0');
+            setTimeout(() => loader.classList.add('hidden'), 300);
+        }
+
+        function showLoader() {
+            const loader = document.getElementById('global-loader');
+            loader.classList.remove('hidden', 'opacity-0');
+        }
+
+        // --- RENDERING ---
+
+        function renderServices() {
+            const container = document.getElementById('services-grid');
+            if (activeServices.length === 0) {
+                container.innerHTML = `<div class="py-6 text-center text-gray-400 font-bold uppercase text-[10px]">Nessun servizio disponibile</div>`;
+                return;
+            }
+
+            container.innerHTML = activeServices.map(ser => `
+                <div onclick="toggleService('${ser.id}')" id="ser-card-${ser.id}" class="bg-white p-4 rounded-3xl border border-gray-100 flex items-center justify-between active:scale-[0.98] transition cursor-pointer shadow-sm relative overflow-hidden border-l-4 border-l-transparent">
+                    <div class="flex items-center gap-4 overflow-hidden pr-2">
+                        <div class="w-9 h-9 bg-gray-50 rounded-xl flex-shrink-0 flex items-center justify-center text-black">
+                            <i class="fas fa-handshake text-xs"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <h3 class="font-bold text-[11px] uppercase tracking-tighter leading-tight mb-1">${ser.name}</h3>
+                            <span class="text-[8px] font-black uppercase tracking-widest text-gray-400">${ser.duration_min} minuti</span>
+                        </div>
+                    </div>
+                    <div class="w-6 h-6 rounded-lg border border-gray-200 flex items-center justify-center check-box transition-all">
+                        <i class="fas fa-check text-[9px] text-white scale-0 transition-transform"></i>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleService(id) {
+            const ser = activeServices.find(s => s.id === id);
+            if (!ser) return;
+
+            const index = selectedServices.findIndex(s => s.id === id);
+            const card = document.getElementById(`ser-card-${id}`);
+            const check = card.querySelector('.check-box');
+            const icon = check.querySelector('i');
+
+            if (index > -1) {
+                selectedServices.splice(index, 1);
+                card.classList.remove('border-l-black', 'bg-gray-50/50');
+                card.classList.add('border-l-transparent');
+                check.classList.remove('bg-black', 'border-black');
+                icon.classList.add('scale-0');
+            } else {
+                selectedServices.push(ser);
+                card.classList.remove('border-l-transparent');
+                card.classList.add('border-l-black', 'bg-gray-50/50');
+                check.classList.add('bg-black', 'border-black');
+                icon.classList.remove('scale-0');
+            }
+
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function renderAvailabilityGrid() {
+            const container = document.getElementById('availability-grid');
+            const activeDays = businessHours.work_days || [1, 2, 3, 4, 5];
+            const startHour = businessHours.start_hour || "09:00";
+            const endHour = businessHours.end_hour || "18:00";
+
+            // Controllo contestuale delle fasce orarie in base agli orari dell'attività
+            const isMorningActive = parseInt(startHour.split(':')[0]) < 13;
+            const isAfternoonActive = parseInt(endHour.split(':')[0]) >= 13;
+
+            if (activeDays.length === 0) {
+                container.innerHTML = `<div class="py-4 text-center text-gray-400 font-bold uppercase text-[10px]">L'attività non ha giorni lavorativi configurati</div>`;
+                return;
+            }
+
+            let html = '';
+            // Ordina i giorni (Lunedì = 1 ... Domenica = 0)
+            const sortedDays = [...activeDays].sort((a, b) => {
+                const map = { 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 0:7 };
+                return map[a] - map[b];
+            });
+
+            sortedDays.forEach(dayNum => {
+                const dayName = daysMap[dayNum];
+                
+                html += `
+                    <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-b-0">
+                        <span class="font-bold text-[11px] uppercase tracking-tight text-black w-24">${dayName}</span>
+                        <div class="flex gap-2 flex-1 justify-end">
+                            ${isMorningActive ? `
+                                <button onclick="toggleAvailability('${dayName}', 'Mattina')" id="btn-${dayName}-Mattina" 
+                                    class="py-2 px-3 bg-gray-50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all text-gray-500">
+                                    Mattina
+                                </button>` : `
+                                <button disabled class="py-2 px-3 bg-gray-100/50 border border-gray-100/50 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-300 cursor-not-allowed">
+                                    Mattina
+                                </button>`}
+
+                            ${isAfternoonActive ? `
+                                <button onclick="toggleAvailability('${dayName}', 'Pomeriggio')" id="btn-${dayName}-Pomeriggio" 
+                                    class="py-2 px-3 bg-gray-50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all text-gray-500">
+                                    Pomeriggio
+                                </button>` : `
+                                <button disabled class="py-2 px-3 bg-gray-100/50 border border-gray-100/50 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-300 cursor-not-allowed">
+                                    Pomeriggio
+                                </button>`}
+                        </div>
+                    </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function toggleAvailability(day, period) {
+            const index = selectedAvailabilities.findIndex(a => a.day === day && a.period === period);
+            const btn = document.getElementById(`btn-${day}-${period}`);
+
+            if (index > -1) {
+                selectedAvailabilities.splice(index, 1);
+                btn.className = "py-2 px-3 bg-gray-50 border border-gray-100 rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all text-gray-500";
+            } else {
+                selectedAvailabilities.push({ day, period });
+                btn.className = "py-2 px-3 bg-black text-white rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition-all";
+            }
+
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
+
+        // --- VALIDATION & SUBMIT ---
+
+        async function submitBooking() {
+            const notesVal = document.getElementById('booking-notes').value.trim();
+
+            // 1. Controllo Selezione Servizi
+            if (selectedServices.length === 0) {
+                tg.showAlert("Per favore, seleziona almeno un servizio per procedere.");
+                return;
+            }
+
+            // 2. Controllo Selezione Disponibilità
+            if (selectedAvailabilities.length === 0) {
+                tg.showAlert("Per favore, seleziona almeno una preferenza di disponibilità nella griglia (Mattina/Pomeriggio).");
+                return;
+            }
+
+            // 3. Regola delle Scelte (Validazione Condizionale con popup d'aiuto)
+            if (selectedAvailabilities.length === 1 && !notesVal) {
+                tg.showAlert("⚠️ Regola delle Scelte:\n\nPer proporre una sola preferenza di disponibilità, inserisci una motivazione o un dettaglio nel campo note (es. motivo dell'urgenza).\n\nAltrimenti, seleziona almeno 2 preferenze di disponibilità nella griglia.");
+                return;
+            }
+
+            // Calcola la durata totale
+            const totalDuration = selectedServices.reduce((acc, curr) => acc + parseInt(curr.duration_min || 30), 0);
+
+            // Genera stringa descrittiva delle preferenze
+            const availabilitiesStr = selectedAvailabilities.map(a => `${a.day} ${a.period}`).join(', ');
+
+            const payload = {
+                _auth: tg.initData,
+                ash: ashToken,
+                action: "submit_booking_proposal",
+                booking_data: {
+                    services: selectedServices.map(s => ({ id: s.id, name: s.name, duration_min: s.duration_min })),
+                    availabilities: selectedAvailabilities,
+                    notes: notesVal,
+                    total_duration_min: totalDuration
+                }
+            };
+
+            tg.showConfirm(`Inviare la proposta di appuntamento per i servizi selezionati con disponibilità indicata: [${availabilitiesStr}]?`, async ok => {
+                if (ok) {
+                    showLoader();
+                    try {
+                        const r = await fetch(WH_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (r.ok) {
+                            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                            tg.showAlert("Richiesta di prenotazione inviata con successo! L'operatore verificherà l'agenda e ti contatterà per confermare la data esatta.", () => {
+                                tg.close();
+                            });
+                        } else {
+                            throw new Error("Errore risposta");
+                        }
+                    } catch (e) {
+                        tg.showAlert("Impossibile inviare la proposta. Riprova più tardi.");
+                    } finally {
+                        hideLoader();
+                    }
+                }
+            });
+        }
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

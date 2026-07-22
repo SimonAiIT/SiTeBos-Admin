@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onboarding - Mappatura Competenze</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            background-color: #fafafa;
+            color: #000;
+            font-family: 'Inter', sans-serif;
+            padding: 20px;
+        }
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-radius: 1.5rem;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        h2 {
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 18px;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #a3a3a3;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 0.75rem;
+            border: 1px solid #eeeeee;
+            font-size: 14px;
+            background: #fafafa;
+            color: #000;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #000;
+            background: #ffffff;
+        }
+        .btn-submit {
+            width: 100%;
+            height: 3rem;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .dynamic-container {
+            display: none;
+            margin-top: 10px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>📋 Configurazione Iniziale</h2>
+        <form id="onboardingForm">
+            <!-- CAMPO NOME -->
+            <div class="input-group">
+                <label for="name">Nome *</label>
+                <input type="text" id="name" required placeholder="Inserisci il tuo nome">
+            </div>
+
+            <!-- CAMPO SETTORE ATTIVITÀ (PRIMA SCELTA) -->
+            <div class="input-group">
+                <label for="sector_select">Di cosa si occupa l'attività per cui vuoi specializzare le tue competenze? *</label>
+                <select id="sector_select" required>
+                    <!-- "Altro" è rigorosamente la prima opzione della lista -->
+                    <option value="custom">Altro... (Descrivi la tua attività)</option>
+                    
+                    <!-- Macro-Settori Clinici / Ambulatoriali Scissi in testa -->
+                    <option value="Odontoiatria">Odontoiatria (Studio Dentistico) 🦷</option>
+                    <option value="Medicina Estetica, Cosmetica e Benessere">Medicina Estetica, Cosmetica e Benessere 💅✨</option>
+                    <option value="Fisioterapia, Osteopatia e Riabilitazione">Fisioterapia, Osteopatia e Riabilitazione 🏃‍♂️</option>
+                    <option value="Studio Medico e Poliambulatorio Specialistico">Studio Medico e Poliambulatorio Specialistico 🩺</option>
+                    <option value="Studio di Psicologia, Psicoterapia e Logopedia">Studio di Psicologia, Psicoterapia e Logopedia 🧠</option>
+                    
+                    <!-- Altri Settori standard -->
+                    <option value="Consulenza aziendale e professionale">Consulenza aziendale e professionale</option>
+                    <option value="Sviluppo software e servizi informatici (IT)">Sviluppo software e servizi informatici (IT)</option>
+                    <option value="E-commerce e commercio elettronico">E-commerce e commercio elettronico</option>
+                    <option value="Agenzia di marketing, comunicazione e pubblicità">Agenzia di marketing, comunicazione e pubblicità</option>
+                    <option value="Studio professionale (legale, fiscale, contabile)">Studio professionale (legale, fiscale, contabile)</option>
+                    <option value="Commercio al dettaglio (negozio fisico)">Commercio al dettaglio (negozio fisico)</option>
+                    <option value="Ristorazione, bar e servizi di ristorazione">Ristorazione, bar e servizi di ristorazione</option>
+                    <option value="Strutture ricettive e servizi per il turismo">Strutture ricettive e servizi per il turismo</option>
+                    <option value="Formazione, scuola e servizi educativi">Formazione, scuola e servizi educativi</option>
+                    <option value="Produzione artigianale e manifatturiera">Produzione artigianale e manifatturiera</option>
+                    <option value="Servizi immobiliari e intermediazione">Servizi immobiliari e intermediazione</option>
+                    <option value="Edilizia, costruzioni e impiantistica">Edilizia, costruzioni e impiantistica</option>
+                    <option value="Logistica, trasporti e spedizioni">Logistica, trasporti e spedizioni</option>
+                    <option value="Servizi finanziari, assicurativi e bancari">Servizi finanziari, assicurativi e bancari</option>
+                    <option value="Settore creativo (design, arte, fotografia, musica)">Settore creativo (design, arte, fotografia, musica)</option>
+                    <option value="Agricoltura, allevamento e cura del verde">Agricoltura, allevamento e cura del verde</option>
+                    <option value="Servizi alla persona (estetica, acconciatura, fitness)">Servizi alla persona (estetica, acconciatura, fitness)</option>
+                    <option value="Commercio all'ingrosso e distribuzione">Commercio all'ingrosso e distribuzione</option>
+                </select>
+
+                <!-- INPUT MANUALE PER CONTESTO SETTORE -->
+                <div class="dynamic-container" id="custom_context_container">
+                    <textarea id="custom_context" rows="3" placeholder="Descrivi brevemente qui di cosa si occupa l'attività..."></textarea>
+                </div>
+            </div>
+
+            <!-- CAMPO RUOLO PROFESSIONALE (DIPENDENTE DAL SETTORE) -->
+            <div class="input-group">
+                <label for="role_select">Il tuo Ruolo Professionale *</label>
+                <select id="role_select" required>
+                    <!-- Sarà popolato dinamicamente tramite JS -->
+                </select>
+                
+                <!-- INPUT MANUALE PER RUOLO -->
+                <div class="dynamic-container" id="custom_role_container">
+                    <input type="text" id="custom_role" placeholder="Scrivi qui il tuo ruolo specifico...">
+                </div>
+            </div>
+
+            <!-- CAMPO DIMENSIONE TEAM -->
+            <div class="input-group">
+                <label for="team_size">Dimensione del Team *</label>
+                <select id="team_size" required>
+                    <option value="" disabled selected>Seleziona dimensione team...</option>
+                    <option value="Single Proprietor">Lavoro da Solo (Freelance)</option>
+                    <option value="1-5">Piccolo Team (1-5 persone)</option>
+                    <option value="5-20">Medio Team (5-20 persone)</option>
+                    <option value="20+">Grande Team (20+ persone)</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">
+                Completa e Inizia <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+    </div>
+
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const ash = urlParams.get('ash');
+        const msgId = urlParams.get('msg_id');
+        
+        if (tg?.initDataUnsafe?.user) {
+            document.getElementById('name').value = tg.initDataUnsafe.user.first_name || '';
+        }
+
+        // --- MAPPA DEI RUOLI SETTORIALIZZATI (CASCADING DROPDOWN) ---
+        const rolesBySector = {
+            'Odontoiatria': [
+                'Odontoiatra / Dentista',
+                'Igienista Dentale',
+                'Assistente alla Poltrona (ASO)',
+                'Odontotecnico',
+                'Direttore Sanitario di Studio Dentistico',
+                'Receptionist / Segreteria di Studio Dentistico',
+                'Titolare di Studio Odontoiatrico'
+            ],
+            'Medicina Estetica, Cosmetica e Benessere': [
+                'Medico Estetico / Chirurgo Plastico',
+                'Estetista Qualificata / Dermopigmentista',
+                'Operatore del Benessere / Massoterapista',
+                'Receptionist / Consulente di Bellezza',
+                'Direttore Tecnico di Centro Estetico',
+                'Titolare di Centro Estetico / Clinica'
+            ],
+            'Fisioterapia, Osteopatia e Riabilitazione': [
+                'Fisioterapista / Osteopata',
+                'Chinesiologo / Preparatore Atletico',
+                'Massofisioterapista',
+                'Terapista della Riabilitazione',
+                'Segretaria di Studio Fisioterapico',
+                'Titolare di Studio Fisioterapico'
+            ],
+            'Studio Medico e Poliambulatorio Specialistico': [
+                'Medico di Medicina Generale / Pediatra',
+                'Medico Specialista (Cardiologo, Dermatologo, ecc.)',
+                'Infermiere Professionale',
+                'Ostetrica / Ostetrico',
+                'Biologo Nutrizionista / Dietista',
+                'Tecnico Sanitario (Radiologia, Laboratorio, ecc.)',
+                'Segretaria / Receptionist di Studio Medico',
+                'Direttore Sanitario di Poliambulatorio'
+            ],
+            'Studio di Psicologia, Psicoterapia e Logopedia': [
+                'Psicologo / Psicoterapeuta',
+                'Logopedista',
+                'Neuropsicologo / Psicomotricista',
+                'Psichiatra',
+                'Segretaria / Gestione Appuntamenti di Studio'
+            ],
+            'Consulenza aziendale e professionale': [
+                'Consulente di Direzione / Strategico',
+                'Business Coach / Formatore',
+                'Project Manager',
+                'Business Analyst',
+                'Temporary Manager'
+            ],
+            'Sviluppo software e servizi informatici (IT)': [
+                'Sviluppatore Software (Frontend/Backend)',
+                'CTO / Responsabile Tecnico',
+                'Sistemista / Cloud Engineer',
+                'IT Support Specialist',
+                'Data Analyst'
+            ],
+            'E-commerce e commercio elettronico': [
+                'E-commerce Manager',
+                'Store Manager Online',
+                'Digital Marketer',
+                'Customer Care Specialist'
+            ],
+            'Agenzia di marketing, comunicazione e pubblicità': [
+                'Social Media Manager',
+                'Media Buyer / ADV Specialist',
+                'Copywriter / Content Creator',
+                'Art Director / Graphic Designer',
+                'Account Manager'
+            ],
+            'Studio professionale (legale, fiscale, contabile)': [
+                'Avvocato / Praticante',
+                'Commercialista / Contabile',
+                'Consulente del Lavoro',
+                'Segretaria di Studio Professionale'
+            ],
+            'Commercio al dettaglio (negozio fisico)': [
+                'Store Manager / Responsabile Negozio',
+                'Commesso / Addetto alle Vendite',
+                'Visual Merchandiser',
+                'Cassiere'
+            ],
+            'Ristorazione, bar e servizi di ristorazione': [
+                'Titolare / Gestore',
+                'Chef / Cuoco',
+                'Cameriere / Personale di Sala',
+                'Barman / Barista'
+            ],
+            'Strutture ricettive e servizi per il turismo': [
+                'Direttore d\'Albergo',
+                'Receptionist / Front Desk',
+                'Guida Turistica',
+                'Housekeeper'
+            ],
+            'Formazione, scuola e servizi educativi': [
+                'Docente / Insegnante',
+                'Formatore Professionale / Coach',
+                'Tutor Didattico',
+                'Coordinatore di Corsi'
+            ],
+            'Produzione artigianale e manifatturiera': [
+                'Artigiano / Capomastro',
+                'Operaio Specializzato',
+                'Responsabile di Production',
+                'Manutentore Meccanico/Elettrico'
+            ]
+        };
+
+        const sectorSelect = document.getElementById('sector_select');
+        const roleSelect = document.getElementById('role_select');
+        const customContextContainer = document.getElementById('custom_context_container');
+        const customContext = document.getElementById('custom_context');
+        const customRoleContainer = document.getElementById('custom_role_container');
+        const customRole = document.getElementById('custom_role');
+
+        // --- POPOLAMENTO DINAMICO DEI RUOLI ---
+        function updateRoles() {
+            const selectedSector = sectorSelect.value;
+            roleSelect.innerHTML = ''; // Svuota la selezione precedente
+
+            // L'opzione Altro è SEMPRE la prima opzione del menu Ruoli
+            const optAltro = document.createElement('option');
+            optAltro.value = 'custom';
+            optAltro.textContent = 'Altro... (Specifica manualmente)';
+            roleSelect.appendChild(optAltro);
+
+            // Popola se esiste un set di ruoli per il settore, altrimenti lascia solo "Altro"
+            if (selectedSector && rolesBySector[selectedSector]) {
+                rolesBySector[selectedSector].forEach(role => {
+                    const opt = document.createElement('option');
+                    opt.value = role;
+                    opt.textContent = role;
+                    roleSelect.appendChild(opt);
+                });
+            }
+
+            // Forza il trigger per mostrare/nascondere il campo input manuale del ruolo
+            roleSelect.dispatchEvent(new Event('change'));
+        }
+
+        // Ascolta il cambio del Settore
+        sectorSelect.addEventListener('change', () => {
+            if (sectorSelect.value === 'custom') {
+                customContextContainer.style.display = 'block';
+                customContext.required = true;
+            } else {
+                customContextContainer.style.display = 'none';
+                customContext.required = false;
+                customContext.value = '';
+            }
+            updateRoles();
+        });
+
+        // Ascolta il cambio del Ruolo
+        roleSelect.addEventListener('change', () => {
+            if (roleSelect.value === 'custom') {
+                customRoleContainer.style.display = 'block';
+                customRole.required = true;
+            } else {
+                customRoleContainer.style.display = 'none';
+                customRole.required = false;
+                customRole.value = '';
+            }
+        });
+
+        // Esegui popolamento iniziale dei ruoli (all'avvio di default punta a custom)
+        updateRoles();
+
+        // --- INVIO FORM ---
+        document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const teamSize = document.getElementById('team_size').value;
+            
+            // Determina il Ruolo (scelta tendina o specificato a mano)
+            let finalRole = roleSelect.value;
+            if (finalRole === 'custom') {
+                finalRole = customRole.value.trim();
+            }
+
+            // Determina l'Attività (scelta tendina o specificato a mano)
+            let finalContext = sectorSelect.value;
+            if (finalContext === 'custom') {
+                finalContext = customContext.value.trim();
+            }
+
+            // Validazione finale di sicurezza
+            if (!name || !finalRole || !teamSize || !finalContext) {
+                alert('Tutti i campi sono obbligatori per completare la configurazione.');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvataggio...';
+
+            const payload = {
+                action: "save_stakeholder",
+                ash: ash,
+                msg_id: msgId,
+                _auth: tg?.initData || '',
+                onboarding_data: {
+                    name: name,
+                    role: finalRole,
+                    team_size: teamSize,
+                    company_context: finalContext
+                }
+            };
+
+            const webhookUrl = 'https://prod.workflow.trinai.it/webhook/e34e22de-0725-4410-a882-75e87e359376';
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error('Errore nel salvataggio dei dati');
+
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = `index.html?ash=${encodeURIComponent(ash)}&msg_id=${msgId}&alone=true`;
+                } else {
+                    alert('Errore: ' + (result.error || 'Impossibile completare la configurazione'));
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Completa e Inizia <i class="fas fa-arrow-right"></i>';
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Si è verificato un errore di rete. Riprova.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Completa e Inizia <i class="fas fa-arrow-right"></i>';
+            }
+        });
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

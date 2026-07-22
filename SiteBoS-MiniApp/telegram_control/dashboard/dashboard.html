@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="color-scheme" content="light">
+    <title>SiteBoS Console | TrinAi Platform Style</title>
+    
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="identity_logic.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #ffffff !important;
+            background: radial-gradient(circle at 50% 50%, #ffffff 0%, #f4f5f8 100%) !important;
+            color: #0f172a !important;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        /* 3D Stack Container (Rectangular Proportions aligned with catalog) */
+        .stack-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            perspective: 1200px;
+            transform-style: preserve-3d;
+            flex-shrink: 0;
+        }
+
+        /* TrinAi Platform Styled Cards - Shorter Rectangular Style aligned with catalog */
+        .platform-card-3d {
+            position: absolute;
+            top: 5%;
+            left: 14% !important;
+            width: 72% !important;
+            height: 90%;
+            background: #ffffff;
+            border: 1.5px solid transparent; /* Bordi invisibili sullo sfondo per evitare artefatti */
+            border-radius: 1.5rem;
+            color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            text-align: center;
+            padding: 1.2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.005);
+            transform-origin: center center;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+                        opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+                        filter 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                        box-shadow 0.6s ease;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            cursor: pointer;
+        }
+
+        /* Active card border and platform shadow */
+        .platform-card-3d.active {
+            border-color: #cbd5e1; /* Bordo pulito e continuo lungo tutti gli angoli */
+            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 
+                        0 10px 10px -5px rgba(15, 23, 42, 0.04);
+        }
+
+        .platform-card-3d:active {
+            transform: scale(0.98) !important;
+        }
+
+        /* Swipe hint animation */
+        @keyframes swipePrompt {
+            0% { transform: translateY(0); opacity: 0.3; }
+            50% { transform: translateY(-8px); opacity: 0.7; }
+            100% { transform: translateY(0); opacity: 0.3; }
+        }
+        .swipe-hint {
+            animation: swipePrompt 2.2s infinite ease-in-out;
+        }
+
+        /* Glassmorphic Minimal Buttons */
+        .btn-glass-minimal {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            color: #64748b; /* slate-500 */
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-glass-minimal:hover {
+            background: #ffffff;
+            color: #1e293b; /* slate-800 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+        }
+        .btn-glass-minimal:active {
+            transform: scale(0.90) !important;
+        }
+        #dot-indicators-wrapper {
+            max-height: 120px;
+            overflow-y: auto;
+            scrollbar-width: none; /* Hide scrollbar in Firefox */
+        }
+        #dot-indicators-wrapper::-webkit-scrollbar {
+            display: none; /* Safari and Chrome */
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-between p-6 safe-area-inset pb-10">
+
+    <!-- HEADER / TENANT BRANDING -->
+    <header class="flex justify-between items-center bg-white/85 backdrop-blur-md p-4 rounded-3xl border border-gray-200/50 shrink-0 shadow-sm select-none z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-black text-white rounded-2xl flex items-center justify-center font-black shadow-md overflow-hidden">
+                <span id="tenant-logo-fallback" class="text-sm">SB</span>
+                <img id="tenant-logo" class="hidden w-full h-full object-cover" alt="Logo">
+            </div>
+            <div>
+                <h1 id="tenant-name" class="text-xs font-black uppercase tracking-tight leading-none text-black">TRINAI SRL</h1>
+                <span id="user-role" class="text-[8px] font-bold uppercase tracking-widest text-gray-400 mt-1 block">Console Direzionale</span>
+            </div>
+        </div>
+        <div class="bg-gray-50 border border-gray-100 px-3.5 py-1.5 rounded-2xl flex items-center gap-2">
+            <i class="fas fa-bolt text-amber-500 text-[10px]"></i>
+            <span id="credits-count" class="text-[10px] font-black text-black">--- CR</span>
+        </div>
+    </header>
+
+    <!-- SUB-MENU HEADER (Hidden by default, shown when inside a sub-menu) -->
+    <div id="submenu-header" class="hidden bg-white/40 border border-slate-200/40 backdrop-blur-md p-3 rounded-2xl flex items-center justify-between shadow-sm shrink-0 select-none z-50 mt-2">
+        <div class="flex items-center gap-2">
+            <div class="w-5 h-5 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[9px] shadow-sm">
+                <i id="submenu-icon" class="fas fa-folder-open"></i>
+            </div>
+            <span id="submenu-title" class="text-[9px] font-black uppercase tracking-widest text-slate-700">NOME SOTTOMENU</span>
+        </div>
+        <button onclick="handleTelegramBack()" class="text-[8px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-800 transition flex items-center gap-1">
+            <i class="fas fa-arrow-left text-[7px]"></i> <span>Indietro</span>
+        </button>
+    </div>
+
+    <!-- CAROUSEL VIEWPORT CONTAINER (3D VIEW) -->
+    <main class="relative flex-1 flex flex-col items-center justify-center select-none z-10 w-full max-w-sm mx-auto py-12" style="max-height: calc(100vh - 160px); max-height: calc(100dvh - 160px);">
+        
+        <!-- Desktop/Mobile Nav Up -->
+        <button onclick="playMechanicalTick(); navigateStack(-1)" class="btn-glass-minimal absolute top-2 left-1/2 -translate-x-1/2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900">
+            <i class="fas fa-chevron-up text-[10px]"></i>
+        </button>
+
+        <!-- 3D Card Stack -->
+        <div id="stack-container" class="stack-container">
+            <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Mobile/Desktop Nav Back / Close (Left Side) -->
+        <button id="btn-nav-back" onclick="playMechanicalTick(); handleBackOrClose()" class="btn-glass-minimal absolute left-1 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900" style="top: calc(50% - 18px);">
+            <i id="btn-nav-back-icon" class="fas fa-times text-[10px]"></i>
+        </button>
+
+        <!-- Desktop/Mobile Nav Down -->
+        <button onclick="playMechanicalTick(); navigateStack(1)" class="btn-glass-minimal absolute bottom-2 left-1/2 -translate-x-1/2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900">
+            <i class="fas fa-chevron-down text-[10px]"></i>
+        </button>
+
+        <!-- Dynamic Side Dot Indicators with Scrubbing Area (Pill layout) -->
+        <div id="dot-indicators-wrapper" class="absolute -right-2 top-1/2 -translate-y-1/2 z-50 py-4 px-2.5 bg-slate-100/90 border border-slate-200 rounded-full shadow-md backdrop-blur-sm select-none touch-none">
+            <div id="dot-indicators" class="flex flex-col gap-2.5 items-center">
+                <!-- Rendered dynamically -->
+            </div>
+        </div>
+
+        <!-- Float User Guide Button -->
+        <button onclick="playMechanicalTick(); openUserGuide('../userguide/01_intro.html')" class="btn-glass-minimal absolute -right-2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900" style="top: calc(50% - 200px);" title="Manuale Utente">
+            <i class="fas fa-globe text-[10px]"></i>
+        </button>
+
+        <!-- Float Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="playMechanicalTick(); toggleDashboardAudio()" class="btn-glass-minimal absolute -right-2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900" style="top: calc(50% - 155px);">
+            <i class="fas fa-volume-high text-[10px]"></i>
+        </button>
+
+        <!-- Float Help Gesture Button -->
+        <button onclick="playMechanicalTick(); toggleHelpModal(true)" class="btn-glass-minimal absolute -right-2 z-50 w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900" style="top: calc(50% - 110px);">
+            <i class="fas fa-question text-[10px]"></i>
+        </button>
+
+    </main>
+
+    <!-- FOOTER / STATS -->
+    <footer class="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-gray-400 select-none px-2 shrink-0 z-50">
+        <span>SiteBoS V5.0</span>
+        <span>TrinAi © 2026</span>
+    </footer>
+
+    <!-- JS Logic -->
+    <script>
+        'use strict';
+        const tg = window.Telegram.WebApp;
+        tg.ready(); 
+        tg.expand();
+
+        // Color override to match platform light scheme
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+
+        // Logica Speech Audio Guide (Play / Stop)
+        let dashboardAudio = null;
+        let isAudioPlaying = false;
+
+        function getDashboardAudioFile() {
+            if (currentMenuLevel === 'main') {
+                return 'dashboard.wav';
+            }
+            const parentMod = mainModules[parentActiveIdx];
+            if (parentMod) {
+                if (parentMod.id === 'identity_hub') {
+                    return 'identity.wav';
+                }
+            }
+            return 'dashboard.wav';
+        }
+
+        window.stopDashboardAudio = function() {
+            if (isAudioPlaying && dashboardAudio) {
+                dashboardAudio.pause();
+                dashboardAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            dashboardAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-[10px]';
+            }
+            if (btn) {
+                btn.classList.remove('bg-slate-900/10', 'text-slate-900');
+            }
+        };
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopDashboardAudio();
+
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.toggleDashboardAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            
+            if (!dashboardAudio) {
+                const audioFile = getDashboardAudioFile();
+                dashboardAudio = new Audio(audioFile);
+                dashboardAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    dashboardAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-[10px]';
+                        btn.classList.remove('bg-slate-900/10', 'text-slate-900');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                dashboardAudio.pause();
+                dashboardAudio.currentTime = 0; // Ripristina all'inizio (Comportamento Stop)
+                isAudioPlaying = false;
+                if (icon) {
+                    icon.className = 'fas fa-volume-high text-[10px]';
+                    btn.classList.remove('bg-slate-900/10', 'text-slate-900');
+                }
+            } else {
+                dashboardAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-[10px]';
+                        btn.classList.add('bg-slate-900/10', 'text-slate-900');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+
+        // Admin allowlist logic
+        const ADMIN_IDS = ["2041408875", "8305126267"];
+        const userId = tg.initDataUnsafe?.user?.id ? tg.initDataUnsafe.user.id.toString() : "2041408875"; 
+        const isAdmin = ADMIN_IDS.includes(userId);
+
+        const adminBtn = document.getElementById('admin-panel-btn');
+        if (isAdmin) {
+            if (adminBtn) adminBtn.classList.remove('hidden');
+            document.getElementById('user-role').innerText = "Administrator Mode";
+        }
+
+        // Gestione Help Overlay Modal
+        window.switchHelpTab = function(tab) {
+            const btnMobile = document.getElementById('tab-btn-mobile');
+            const btnDesktop = document.getElementById('tab-btn-desktop');
+            const contentMobile = document.getElementById('tab-content-mobile');
+            const contentDesktop = document.getElementById('tab-content-desktop');
+            if (!btnMobile || !btnDesktop || !contentMobile || !contentDesktop) return;
+
+            if (tab === 'mobile') {
+                btnMobile.classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+                btnMobile.classList.remove('text-slate-400');
+                btnDesktop.classList.remove('bg-white', 'text-slate-900', 'shadow-sm');
+                btnDesktop.classList.add('text-slate-400');
+                contentMobile.classList.remove('hidden');
+                contentDesktop.classList.add('hidden');
+            } else {
+                btnDesktop.classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+                btnDesktop.classList.remove('text-slate-400');
+                btnMobile.classList.remove('bg-white', 'text-slate-900', 'shadow-sm');
+                btnMobile.classList.add('text-slate-400');
+                contentDesktop.classList.remove('hidden');
+                contentMobile.classList.add('hidden');
+            }
+        };
+
+        window.toggleHelpModal = function(show) {
+            const overlay = document.getElementById('help-overlay');
+            if (!overlay) return;
+            if (show) {
+                // Auto-rilevamento dispositivo all'apertura
+                const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (window.Telegram?.WebApp && window.Telegram.WebApp.platform !== 'unknown' && window.Telegram.WebApp.platform !== 'tdesktop' && window.Telegram.WebApp.platform !== 'weba');
+                window.switchHelpTab(isMobileDevice ? 'mobile' : 'desktop');
+
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                    overlay.querySelector('.modal-content').classList.remove('scale-95');
+                }, 10);
+            } else {
+                overlay.classList.add('opacity-0');
+                overlay.querySelector('.modal-content').classList.add('scale-95');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300);
+            }
+        };
+
+        // Keyboard navigation control for Desktop
+        window.addEventListener('keydown', e => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Escape'].includes(e.key)) {
+                if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+                    return;
+                }
+                e.preventDefault();
+                
+                if (e.key === 'ArrowUp') {
+                    playMechanicalTick();
+                    navigateStack(-1);
+                } else if (e.key === 'ArrowDown') {
+                    playMechanicalTick();
+                    navigateStack(1);
+                } else if (e.key === 'ArrowLeft' || e.key === 'Enter') {
+                    playMechanicalTick();
+                    // Entra nel sottomenu del modulo attivo
+                    if (typeof modules !== 'undefined' && modules[activeIdx]) {
+                        enterModule(modules[activeIdx]);
+                    }
+                } else if (e.key === 'ArrowRight' || e.key === 'Escape') {
+                    playMechanicalTick();
+                    // Torna indietro
+                    handleTelegramBack();
+                }
+            }
+        });
+
+        // Parse token and messages
+        const urlParams = new URLSearchParams(window.location.search);
+        const ash = urlParams.get('ash');
+        const msgId = urlParams.get('msg');
+
+        // Dynamic modules setup - 5 moduli attivi con relativi sottomenu
+        const mainModules = [
+            {
+                id: "identity_hub",
+                label: "Configurazione",
+                desc: "Gestisci l'anagrafica aziendale, la verticalizzazione del settore ed il setup dei conti finanziari.",
+                url: "#",
+                icon: "fa-id-card",
+                sub: window.identitySubMenu
+            },
+            {
+                id: "catalog",
+                label: "Gestione",
+                desc: "Il motore del business. Configura i prodotti, i servizi e la logica operativa delle SOP.",
+                url: "gestione/catalog.html",
+                icon: "fa-box-open"
+            },
+            {
+                id: "operativita",
+                label: "Operatività",
+                desc: "Evasione degli ordini e-commerce, pianificazione dell'agenda ed avvio delle commesse lavorative.",
+                url: "#", 
+                icon: "fa-clock",
+                sub: [
+                    { id: "orders", label: "Ordini Live", desc: "Gestisci in tempo reale gli ordini in entrata ed il tracking di spedizione.", url: "operativita/orders-manager.html", icon: "fa-shopping-cart" },
+                    { id: "jobs", label: "Piano Lavori", desc: "Organizza le code di lavoro e pianifica le priorità operative.", url: "operativita/job-create.html", icon: "fa-tasks" },
+                    { id: "solver", label: "Percorsi AI", desc: "Algoritmi predittivi di ottimizzazione percorsi e logistica consegne.", url: "operativita/pianificazione_itinerari.html", icon: "fa-route" }
+                ]
+            },
+            {
+                id: "intelligence_hub",
+                label: "Analisi",
+                desc: "Analisi di mercato territoriali, controllo di gestione CFO, risorse umane e conformità DVR.",
+                url: "#", 
+                icon: "fa-chart-line",
+                sub: [
+                    { id: "intel_gen", label: "Intelligence Gen.", desc: "Modulo di controllo direzionale e reportistica sintetica.", url: "agents/agent_intelligence.html", icon: "fa-brain" },
+                    { id: "intel_market", label: "Analisi Concorrenza", desc: "Benchmarking automatizzato dei competitor territoriali.", url: "agents/analisi-mercato.html", icon: "fa-search-dollar" },
+                    { id: "intel_safety", label: "Sicurezza & Compl.", desc: "Verifica DVR, sicurezza sul lavoro e adempimenti normativi.", url: "agents/assistente-sicurezza.html", icon: "fa-shield-halved" },
+                    { id: "intel_mgmt", label: "Controllo Gestione", desc: "Monitoraggio flussi di cassa, bilancio e marginalità di studio.", url: "agents/controllo_gestione.html", icon: "fa-coins" },
+                    { id: "intel_warehouse", label: "Magazzino AI", desc: "Gestione ed ottimizzazione automatizzata delle scorte di magazzino.", url: "agents/intelligent-warehouse.html", icon: "fa-warehouse" },
+                    { id: "intel_agenda", label: "Analisi Agenda", desc: "Pianificazione dell'agenda ed ottimizzazione dei tempi dello staff.", url: "agents/agenda.html", icon: "fa-calendar-alt" }
+                ]
+            },
+            {
+                id: "support_hub",
+                label: "Supporto",
+                desc: "Gestione dei ticket di supporto tecnico e deviazione della chat ad operatori umani.",
+                url: "supporto/support_hub.html",
+                icon: "fa-headset"
+            },
+            {
+                id: "fine_tuning",
+                label: "Addestramento",
+                desc: "Esporta i dati di SiteBoS in formato JSONL per addestrare modelli linguistici personalizzati.",
+                url: "fine-tuning/fine-tuning.html",
+                icon: "fa-brain"
+            }
+        ];
+
+        let modules = [...mainModules];
+        let currentMenuLevel = 'main';
+        let parentActiveIdx = 0;
+        let activeIdx = 0;
+        let audioCtx = null;
+        const container = document.getElementById('stack-container');
+        const dotContainer = document.getElementById('dot-indicators');
+        const dotWrapper = document.getElementById('dot-indicators-wrapper');
+
+        // Handle Telegram native back button behavior
+        function handleTelegramBack() {
+            if (currentMenuLevel === 'sub') {
+                window.stopDashboardAudio();
+                modules = mainModules;
+                currentMenuLevel = 'main';
+                activeIdx = parentActiveIdx;
+                
+                // Hide Submenu Header
+                const submenuHeader = document.getElementById('submenu-header');
+                if (submenuHeader) {
+                    submenuHeader.classList.add('hidden');
+                }
+                
+                tg.BackButton.hide();
+                tg.BackButton.offClick(handleTelegramBack);
+                buildStack();
+                playMechanicalTick();
+            }
+        }
+
+        window.handleBackOrClose = function() {
+            if (currentMenuLevel === 'main') {
+                tg.close();
+            } else {
+                handleTelegramBack();
+            }
+        };
+
+        // Play procedural mechanical tick tone using Web Audio API
+        function playMechanicalTick() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                
+                if (!audioCtx) {
+                    audioCtx = new AudioCtx();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc.type = 'triangle'; 
+                osc.frequency.setValueAtTime(1700, audioCtx.currentTime); 
+                osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.03); 
+                
+                gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime); 
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03); 
+                
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.03);
+            } catch (e) {
+                console.warn("Audio Context error:", e);
+            }
+        }
+
+        // Render Stack Cards and Dots
+        function buildStack() {
+            container.innerHTML = "";
+            dotContainer.innerHTML = "";
+
+            modules.forEach((mod, idx) => {
+                // Card Creation with Center Platform Theme Styling (White card + slate-900 icon box + centered text)
+                const card = document.createElement('div');
+                card.className = "platform-card-3d select-none";
+                card.id = `card-${idx}`;
+                card.innerHTML = `
+                    <div class="w-full text-left shrink-0">
+                        <span class="text-[8px] font-black uppercase tracking-widest text-slate-400 italic">
+                            ${currentMenuLevel === 'sub' ? 'Opzione Setup' : 'Modulo Console'}
+                        </span>
+                    </div>
+
+                    <div class="my-auto flex items-center gap-4 w-full px-2 text-left">
+                        <div class="w-12 h-12 bg-slate-950 text-white rounded-2xl flex items-center justify-center text-xl shadow-md shrink-0">
+                            <i class="fas ${mod.icon}"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <h3 class="text-xs font-black tracking-tight text-slate-900 leading-tight uppercase mb-0.5">${mod.label}</h3>
+                            <p class="text-[9px] text-slate-500 font-bold leading-normal mt-0.5 normal-case">${mod.desc}</p>
+                        </div>
+                    </div>
+
+                    <div class="w-full flex justify-between items-center shrink-0">
+                        <span class="px-2 py-0.5 bg-slate-900 text-white rounded-full text-[7.5px] font-black uppercase tracking-widest">
+                            Attivo
+                        </span>
+                        <span class="text-[7px] font-black uppercase tracking-wider text-blue-600 flex items-center gap-1 animate-pulse">
+                            Apri <i class="fas fa-chevron-right text-[6px]"></i>
+                        </span>
+                    </div>
+                `;
+                
+                // Swipe gesture isolation parameters
+                let touchStartX = 0;
+                let touchStartY = 0;
+                let isSwipeAction = false;
+
+                card.addEventListener('touchstart', e => {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    isSwipeAction = false;
+                }, { passive: true });
+
+                card.addEventListener('touchmove', e => {
+                    const diffX = Math.abs(e.touches[0].clientX - touchStartX);
+                    const diffY = Math.abs(e.touches[0].clientY - touchStartY);
+                    if (diffX > 10 || diffY > 10) {
+                        isSwipeAction = true;
+                    }
+                }, { passive: true });
+
+                card.addEventListener('click', () => {
+                    if (isSwipeAction) return;
+                    
+                    if (audioCtx && audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                    
+                    if (idx === activeIdx) {
+                        openModule(mod.id, mod.url);
+                    } else {
+                        selectIdx(idx);
+                    }
+                });
+
+                container.appendChild(card);
+
+                // Dot Indicator inside vertical pill wrapper
+                const dot = document.createElement('div');
+                dot.id = `dot-${idx}`;
+                dot.className = `w-2.5 h-2.5 rounded-full bg-slate-300 transition-all duration-300 cursor-pointer`;
+                dot.onclick = () => selectIdx(idx);
+                dotContainer.appendChild(dot);
+            });
+
+            updateStackLayout();
+
+            // Toggle 3D Back / Close Button state
+            const backBtn3d = document.getElementById('btn-nav-back');
+            const backIcon3d = document.getElementById('btn-nav-back-icon');
+            if (backBtn3d && backIcon3d) {
+                if (currentMenuLevel === 'main') {
+                    backIcon3d.className = "fas fa-times text-[10px]";
+                } else {
+                    backIcon3d.className = "fas fa-chevron-left text-[10px]";
+                }
+            }
+        }
+
+        // Apply true 3D cylinder vertical transformations
+        function updateStackLayout() {
+            modules.forEach((_, idx) => {
+                const card = document.getElementById(`card-${idx}`);
+                const dot = document.getElementById(`dot-${idx}`);
+                if (!card) return;
+
+                const diff = idx - activeIdx;
+                
+                let translateY = diff * 32; 
+                let translateZ = -Math.abs(diff) * 70; 
+                let rotateX = diff * -7; 
+                let scale = 1 - Math.abs(diff) * 0.04; 
+                let opacity = 0;
+                let zIndex = 100 - Math.abs(diff);
+
+                if (diff === 0) {
+                    opacity = 1;
+                    card.style.pointerEvents = 'auto';
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                    card.style.pointerEvents = 'none';
+                    if (Math.abs(diff) === 1) {
+                        opacity = 0.55;
+                    } else {
+                        opacity = 0;
+                    }
+                }
+
+                // Apply styles
+                card.style.transform = `translate3d(0, ${translateY}px, ${translateZ}px) rotateX(${rotateX}deg) scale(${scale})`;
+                card.style.opacity = opacity;
+                card.style.zIndex = zIndex;
+
+                // Update dots
+                if (dot) {
+                    if (idx === activeIdx) {
+                        dot.className = "w-2.5 h-6 rounded-full bg-slate-900 transition-all duration-300";
+                        setTimeout(() => {
+                            dot.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }, 50);
+                    } else {
+                        dot.className = "w-2.5 h-2.5 rounded-full bg-slate-300 transition-all duration-300";
+                    }
+                }
+            });
+        }
+
+        // Index Selection and Sensory execution
+        function selectIdx(idx) {
+            if (idx >= 0 && idx < modules.length && idx !== activeIdx) {
+                activeIdx = idx;
+                
+                playMechanicalTick();
+
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('light');
+                }
+                
+                updateStackLayout();
+            }
+        }
+
+        window.navigateStack = function(direction) {
+            const targetIdx = activeIdx + direction;
+            if (targetIdx >= 0 && targetIdx < modules.length) {
+                selectIdx(targetIdx);
+            }
+        };
+
+        // Touch scrubbing logic for Dot Indicator wrapper
+        function handleDotScrub(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = dotWrapper.getBoundingClientRect();
+            const relativeY = touch.clientY - rect.top;
+            
+            let ratio = relativeY / rect.height;
+            ratio = Math.max(0, Math.min(0.99, ratio));
+            
+            const targetIdx = Math.floor(ratio * modules.length);
+            if (targetIdx !== activeIdx) {
+                selectIdx(targetIdx);
+            }
+        }
+
+        dotWrapper.addEventListener('touchstart', handleDotScrub, { passive: false });
+        dotWrapper.addEventListener('touchmove', handleDotScrub, { passive: false });
+
+        // Mouse scrubbing logic for Desktop (Hold click & drag scroll)
+        let isScrubbingMouse = false;
+
+        function handleMouseScrub(e) {
+            if (!isScrubbingMouse) return;
+            const rect = dotWrapper.getBoundingClientRect();
+            const relativeY = e.clientY - rect.top;
+            
+            let ratio = relativeY / rect.height;
+            ratio = Math.max(0, Math.min(0.99, ratio));
+            
+            const targetIdx = Math.floor(ratio * modules.length);
+            if (targetIdx !== activeIdx) {
+                selectIdx(targetIdx);
+            }
+        }
+
+        dotWrapper.addEventListener('mousedown', e => {
+            isScrubbingMouse = true;
+            handleMouseScrub(e);
+        });
+
+        window.addEventListener('mousemove', handleMouseScrub);
+        window.addEventListener('mouseup', () => {
+            isScrubbingMouse = false;
+        });
+
+        // Swipe scroll logic (Vertical AND Horizontal support)
+        let swipeStartX = 0;
+        let swipeStartY = 0;
+        let swipeEndX = 0;
+        let swipeEndY = 0;
+
+        container.addEventListener('touchstart', e => {
+            swipeStartX = e.changedTouches[0].screenX;
+            swipeStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        container.addEventListener('touchend', e => {
+            swipeEndX = e.changedTouches[0].screenX;
+            swipeEndY = e.changedTouches[0].screenY;
+            
+            const diffX = swipeEndX - swipeStartX;
+            const diffY = swipeEndY - swipeStartY;
+            const threshold = 35;
+
+            // Determine dominant direction
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                // Horizontal Swipe
+                if (Math.abs(diffX) > threshold) {
+                    if (diffX < 0) {
+                        // Swipe left -> enter next menu (active module subpage)
+                        const activeMod = modules[activeIdx];
+                        openModule(activeMod.id, activeMod.url);
+                    } else {
+                        // Swipe right -> return to previous menu (close Telegram WebApp or exit sub-menu)
+                        if (currentMenuLevel === 'sub') {
+                            handleTelegramBack();
+                        } else {
+                            tg.close();
+                        }
+                    }
+                }
+            } else {
+                // Vertical Swipe
+                if (Math.abs(diffY) > threshold) {
+                    if (diffY < 0) {
+                        navigateStack(1); // Swipe up -> advance
+                    } else {
+                        navigateStack(-1); // Swipe down -> go back
+                    }
+                }
+            }
+        }, { passive: true });
+
+        // Wheel scroll
+        window.addEventListener('wheel', e => {
+            if (e.deltaY > 0) {
+                navigateStack(1);
+            } else {
+                navigateStack(-1);
+            }
+        }, { passive: true });
+
+        // Redirect URL logic or dynamic Sub-menu loading
+        window.openModule = function(id, url) {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            
+            const selectedMod = modules[activeIdx];
+            if (selectedMod && selectedMod.sub) {
+                window.stopDashboardAudio();
+                // Save current main menu activeIdx
+                parentActiveIdx = activeIdx;
+                // Switch to sub-menu
+                modules = selectedMod.sub;
+                currentMenuLevel = 'sub';
+                activeIdx = 0;
+                
+                // Update Submenu Header
+                const submenuHeader = document.getElementById('submenu-header');
+                const submenuTitle = document.getElementById('submenu-title');
+                const submenuIcon = document.getElementById('submenu-icon');
+                if (submenuHeader && submenuTitle && submenuIcon) {
+                    submenuTitle.innerText = selectedMod.label;
+                    submenuIcon.className = `fas ${selectedMod.icon || 'fa-folder-open'} text-sm`;
+                    submenuHeader.classList.remove('hidden');
+                }
+                
+                // Show Telegram Native Back Button
+                tg.BackButton.show();
+                tg.BackButton.onClick(handleTelegramBack);
+                
+                buildStack();
+                playMechanicalTick();
+                return;
+            }
+
+            // Check if this sub-module action is intercepted (e.g. external link confirmation)
+            if (window.handleIdentityAction && window.handleIdentityAction(selectedMod, ash, msgId)) {
+                return;
+            }
+
+            // Normal HTML page redirection
+            window.location.href = `../${url}?ash=${ash}&msg=${msgId}`;
+        };
+
+        // Check if a specific sub-menu is requested via URL parameter
+        const initialMenu = urlParams.get('menu');
+        if (initialMenu === 'identity_hub') {
+            const selectedMod = mainModules.find(m => m.id === 'identity_hub');
+            if (selectedMod && selectedMod.sub) {
+                parentActiveIdx = mainModules.indexOf(selectedMod);
+                modules = selectedMod.sub;
+                currentMenuLevel = 'sub';
+                activeIdx = 0;
+                
+                // Update Submenu Header
+                const submenuHeader = document.getElementById('submenu-header');
+                const submenuTitle = document.getElementById('submenu-title');
+                const submenuIcon = document.getElementById('submenu-icon');
+                if (submenuHeader && submenuTitle && submenuIcon) {
+                    submenuTitle.innerText = selectedMod.label;
+                    submenuIcon.className = `fas ${selectedMod.icon || 'fa-folder-open'} text-sm`;
+                    submenuHeader.classList.remove('hidden');
+                }
+                
+                tg.BackButton.show();
+                tg.BackButton.onClick(handleTelegramBack);
+            }
+        }
+
+        async function fetchDashboardData() {
+            if (!ash) return;
+            const WH_URL = "https://prod.workflow.trinai.it/webhook/83acc670-15ae-4da0-ae0e-3587c85bd5f4";
+            try {
+                const response = await fetch(WH_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        _auth: tg.initData,
+                        ash: ash,
+                        msg: msgId,
+                        action: 'get_owner_data'
+                    })
+                });
+                const result = await response.json();
+                if (result.status === 'success' && result.owner_data) {
+                    const data = result.owner_data;
+                    
+                    // Update company name
+                    const tenantNameEl = document.getElementById('tenant-name');
+                    if (tenantNameEl && data.ragione_sociale) {
+                        tenantNameEl.innerText = data.ragione_sociale.toUpperCase();
+                    }
+                    
+                    // Update credits
+                    const creditsEl = document.getElementById('credits-count');
+                    if (creditsEl && data.credits_balance !== undefined) {
+                        creditsEl.innerText = `${data.credits_balance} CR`;
+                    }
+                    
+                    // Update logo if available
+                    const vat = data.vat_number || data.fiscal_code;
+                    if (vat) {
+                        const logoUrl = data.logo_url || data.logo || `https://minisite.trinai.it/minisite/${vat}/images/logo.png`;
+                        const logoImg = document.getElementById('tenant-logo');
+                        const logoFallback = document.getElementById('tenant-logo-fallback');
+                        if (logoImg && logoFallback) {
+                            let attempts = 0;
+                            logoImg.src = logoUrl;
+                            logoImg.onload = () => {
+                                logoFallback.classList.add('hidden');
+                                logoImg.classList.remove('hidden');
+                            };
+                            logoImg.onerror = () => {
+                                attempts++;
+                                if (attempts === 1) {
+                                    logoImg.src = logoUrl.replace(/\.[a-zA-Z0-9]+$/, '.jpg');
+                                } else if (attempts === 2) {
+                                    logoImg.src = 'TrinAi_Logo.jpg';
+                                } else {
+                                    logoImg.classList.add('hidden');
+                                    logoFallback.classList.remove('hidden');
+                                }
+                            };
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Errore recupero dati dashboard:", error);
+            }
+        }
+
+        fetchDashboardData();
+        buildStack();
+    </script>
+    <!-- Help Gestures Modal Overlay -->
+    <div id="help-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-md z-[100] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="modal-content bg-white/90 border border-slate-200/50 p-6 rounded-3xl w-80 max-w-[90%] shadow-2xl backdrop-blur-xl scale-95 transition-transform duration-300 relative text-center">
+            
+            <!-- Close Button -->
+            <button onclick="toggleHelpModal(false)" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 transition">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+
+            <!-- Icon / Title -->
+            <div class="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
+                <i class="fas fa-arrows-up-down-left-right text-lg"></i>
+            </div>
+            <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 mb-4">Guida Interattiva Gestures</h3>
+
+            <!-- Tabs Navigation -->
+            <div class="flex bg-slate-100 p-1 rounded-xl mb-5 text-[9px] font-black uppercase tracking-wider select-none">
+                <button id="tab-btn-mobile" onclick="switchHelpTab('mobile')" class="flex-1 py-2 rounded-lg transition-all">Smartphone</button>
+                <button id="tab-btn-desktop" onclick="switchHelpTab('desktop')" class="flex-1 py-2 rounded-lg transition-all">PC Desktop</button>
+            </div>
+
+            <!-- Tab Content: Mobile -->
+            <div id="tab-content-mobile" class="space-y-4 text-left">
+                <!-- Swipe Up/Down -->
+                <div class="flex items-center gap-3.5 border-b border-slate-100 pb-3">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+                        <i class="fas fa-arrows-up-down text-xs"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Scorrimento Card</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Trascina il dito su/giù per sfogliare la pila 3D</div>
+                    </div>
+                </div>
+
+                <!-- Swipe Left -->
+                <div class="flex items-center gap-3.5 border-b border-slate-100 pb-3">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+                        <i class="fas fa-arrow-left text-xs"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Entra / Seleziona</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Trascina la card verso sinistra per aprire il menu</div>
+                    </div>
+                </div>
+
+                <!-- Swipe Right -->
+                <div class="flex items-center gap-3.5 border-b border-slate-100 pb-3">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+                        <i class="fas fa-arrow-right text-xs"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Torna Indietro</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Trascina la card verso destra per uscire o chiudere</div>
+                    </div>
+                </div>
+
+                <!-- Scrubbing -->
+                <div class="flex items-center gap-3.5 pb-1">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+                        <i class="fas fa-ellipsis-vertical text-xs"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Scorrimento Rapido</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Trascina il dito sulla barra dei dot laterale destra</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Desktop -->
+            <div id="tab-content-desktop" class="space-y-4 text-left hidden">
+                <!-- Keys Up/Down -->
+                <div class="flex items-center gap-3.5 border-b border-slate-100 pb-3">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0 font-black text-xs">
+                        ↑↓
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Frecce Tastiera</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Usa le frecce Su / Giù sulla tastiera per navigare</div>
+                    </div>
+                </div>
+
+                <!-- Enter / Arrow Left -->
+                <div class="flex items-center gap-3.5 border-b border-slate-100 pb-3">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0 font-black text-[9px]">
+                        Enter
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Apri / Seleziona</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Premi Invio o la freccia sinistra (←) per entrare</div>
+                    </div>
+                </div>
+
+                <!-- Esc / Arrow Right -->
+                <div class="flex items-center gap-3.5 border-b border-slate-100 pb-3">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0 font-black text-xs">
+                        Esc
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Esci / Chiudi</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Premi Esc o la freccia destra (→) per tornare indietro</div>
+                    </div>
+                </div>
+
+                <!-- Mouse Scrubbing -->
+                <div class="flex items-center gap-3.5 pb-1">
+                    <div class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+                        <i class="fas fa-mouse text-xs"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase text-slate-900 tracking-wider">Trascina Mouse</div>
+                        <div class="text-[8px] font-semibold text-slate-400">Tieni premuto e trascina il mouse sulla barra dot laterale</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <button onclick="toggleHelpModal(false)" class="w-full mt-6 bg-slate-900 hover:bg-black text-white font-black py-3.5 rounded-2xl text-[9px] uppercase tracking-widest shadow-md transition-all active:scale-[0.98]">
+                Ho Capito
+            </button>
+        </div>
+    </div>
+
+    <!-- User Guide Drawer -->
+    <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+        <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+            <!-- Drawer Header / Handle -->
+            <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                    <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                </div>
+                <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+            <!-- Drawer Iframe Content -->
+            <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

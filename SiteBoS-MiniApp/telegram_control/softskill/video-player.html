@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player - Soft Skill Training</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="twa_guard.js"></script>
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        window.TwaSoftskillGuard?.requireTelegramWebApp?.();
+        window.TwaSoftskillGuard?.requireAsh?.();
+        window.TwaSoftskillGuard?.requireMsgId?.();
+    </script>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        .video-container {
+            width: 100%;
+            min-height: 100vh;
+            background: transparent;
+        }
+
+        .video-header {
+            background: #000;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        .video-info {
+            flex: 1;
+        }
+
+        .video-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+        }
+
+        .video-meta {
+            font-size: 12px;
+            color: rgba(255,255,255,0.8);
+            margin-top: 4px;
+        }
+
+        .video-player {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            position: relative;
+        }
+
+        .video-player iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .error-screen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+            color: white;
+        }
+
+        .error-icon {
+            font-size: 64px;
+            color: var(--error);
+            margin-bottom: 20px;
+        }
+
+        .error-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .error-message {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .error-url {
+            background: rgba(255,255,255,0.1);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin-bottom: 20px;
+            max-width: 600px;
+        }
+
+        .content-section {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafafa, rgba(76, 217, 100, 0.1));
+        }
+
+        .card-header:hover {
+            background: #fafafa, rgba(76, 217, 100, 0.15));
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chevron {
+            transition: transform 0.3s;
+            color: var(--text-muted);
+        }
+
+        .knowledge-card.open .chevron {
+            transform: rotate(180deg);
+        }
+
+        .card-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .knowledge-card.open .card-content {
+            max-height: 2000px;
+        }
+
+        .card-body {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .takeaway-item {
+            background: rgba(91, 111, 237, 0.15);
+            border-left: 3px solid var(--primary);
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-main);
+        }
+
+        .reflection-prompt {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 3px solid var(--warning);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .prompt-question {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--warning);
+            margin-bottom: 10px;
+        }
+
+        .reflection-textarea {
+            width: 100%;
+            min-height: 100px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-main);
+            font-size: 14px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .reflection-textarea:focus {
+            outline: none;
+            border-color: var(--warning);
+            background: rgba(245, 158, 11, 0.08);
+        }
+
+        .reflection-textarea::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .btn-complete {
+            width: 100%;
+            background: var(--success);
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            margin-top: 15px;
+        }
+
+        .btn-complete:hover {
+            background: #3fb755;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(76, 217, 100, 0.4);
+        }
+
+        .btn-complete:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-info {
+            background: rgba(76, 217, 100, 0.1);
+            border: 1px solid var(--success);
+            padding: 12px 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        /* 🧠 ANALYSIS OVERLAY */
+        .analysis-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.98);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .analysis-overlay.active {
+            display: flex;
+        }
+
+        .analysis-content {
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .analysis-icon {
+            margin-bottom: 30px;
+        }
+
+        .analysis-icon i {
+            font-size: 64px;
+            color: var(--primary);
+            animation: analysisPulse 2s ease-in-out infinite;
+        }
+
+        .analysis-title {
+            color: #fff;
+            font-size: 28px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .analysis-subtitle {
+            color: var(--text-muted);
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .analysis-progress {
+            background: rgba(255,255,255,0.1);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .analysis-progress-bar {
+            background: #000;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        @keyframes analysisPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.15); opacity: 0.8; }
+        }
+
+        /* COMPLETION OVERLAY */
+        .completion-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .completion-overlay.active {
+            display: flex;
+        }
+
+        .completion-card {
+            background: var(--card-bg);
+            border: 2px solid var(--success);
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .completion-icon {
+            font-size: 64px;
+            color: var(--success);
+            margin-bottom: 20px;
+            animation: celebrationPulse 0.6s ease-out;
+        }
+
+        @keyframes celebrationPulse {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .completion-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .completion-message {
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .next-video-btn, .back-profile-btn {
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            margin: 5px;
+        }
+
+        .next-video-btn {
+            background: var(--primary);
+            color: white;
+        }
+
+        .next-video-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .back-profile-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--glass-border);
+            color: white;
+        }
+
+        .back-profile-btn:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        @media (max-width: 768px) {
+            .video-header {
+                padding: 12px 15px;
+            }
+
+            .video-title {
+                font-size: 14px;
+            }
+
+            .content-section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="video-container">
+        <!-- HEADER -->
+        <div class="video-header">
+            <button class="back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="video-info">
+                <h1 class="video-title" id="videoTitle">Caricamento...</h1>
+                <div class="video-meta" id="videoMeta"></div>
+            </div>
+        </div>
+
+        <!-- VIDEO PLAYER -->
+        <div class="video-player" id="videoPlayer">
+            <!-- YouTube iframe or error screen will be injected here -->
+        </div>
+
+        <!-- CONTENT SECTION -->
+        <div class="content-section">
+            <!-- KEY TAKEAWAYS (CHIUSA) -->
+            <div class="knowledge-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-lightbulb"></i> Key Takeaways</h3>
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+                <div class="card-content">
+                    <div class="card-body">
+                        <div id="takeawaysList">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIFLESSIONE PERSONALE (CHIUSA) -->
+            <div class="knowledge-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-brain"></i> Riflessione Personale</h3>
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+                <div class="card-content">
+                    <div class="card-body">
+                        <div class="reflection-prompt">
+                            <div class="prompt-question" id="reflectionQuestion">Caricamento...</div>
+                            <textarea 
+                                class="reflection-textarea" 
+                                id="reflectionText" 
+                                placeholder="Scrivi qui la tua riflessione personale..."
+                            ></textarea>
+                        </div>
+
+                        <button class="btn-complete" onclick="completeVideo()" id="completeBtn">
+                            <i class="fas fa-check-circle"></i> Ho Completato il Video
+                        </button>
+
+                        <div class="progress-info">
+                            <div class="progress-text" id="progressText">Video 1 di 3</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANALYSIS OVERLAY -->
+    <div class="analysis-overlay" id="analysisOverlay">
+        <div class="analysis-content">
+            <div class="analysis-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h2 class="analysis-title">🧠 Analisi in Corso...</h2>
+            <p class="analysis-subtitle">
+                La nostra AI sta analizzando la tua riflessione e aggiornando il tuo profilo comportamentale.
+                <br><strong style="color: var(--primary);">Ci vogliono circa 10-15 secondi.</strong>
+            </p>
+            <div class="analysis-progress">
+                <div class="analysis-progress-bar" id="analysisProgressBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMPLETION OVERLAY -->
+    <div class="completion-overlay" id="completionOverlay">
+        <div class="completion-card">
+            <div class="completion-icon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <h2 class="completion-title">🎉 Ottimo Lavoro!</h2>
+            <p class="completion-message">
+                Hai completato questo video e riflettuto sul contenuto. 
+                Continua così per sbloccare tutto il tuo potenziale!
+            </p>
+            <button class="next-video-btn" onclick="loadNextVideo()">Prossimo Video</button>
+            <button class="back-profile-btn" onclick="backToProfile()">Torna al Profilo</button>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="modules-mapping.js"></script>
+    <script src="webhook-handler.js"></script>
+    
+    <script>
+        const webhook = new WebhookHandler();
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoUrl = urlParams.get('url');
+        const priority = urlParams.get('priority') || '1';
+        const title = urlParams.get('title') || 'Video di Formazione';
+        const duration = urlParams.get('duration') || '';
+        const improvement = urlParams.get('improvement') || '';
+
+        // 🎬 INIZIALIZZA VIDEO PLAYER
+        function initPlayer() {
+            console.log('📹 Init video player');
+            console.log('URL ricevuto:', videoUrl);
+            
+            if (!videoUrl) {
+                showError('URL video mancante', 'Nessun URL fornito per il video.');
+                return;
+            }
+
+            const videoId = extractYouTubeID(videoUrl);
+            console.log('Video ID estratto:', videoId);
+            
+            if (!videoId) {
+                showError(
+                    'URL YouTube non valido', 
+                    'L\'URL fornito non è un link YouTube valido. Verifica il formato.',
+                    videoUrl
+                );
+                return;
+            }
+
+            // Header info
+            document.getElementById('videoTitle').textContent = decodeURIComponent(title);
+            document.getElementById('videoMeta').textContent = `${duration} • Priorità ${priority}`;
+
+            // Inject YouTube iframe
+            const iframe = `
+                <iframe 
+                    src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowfullscreen
+                    referrerpolicy="strict-origin-when-cross-origin"
+                ></iframe>
+            `;
+            document.getElementById('videoPlayer').innerHTML = iframe;
+            console.log('✅ Iframe YouTube iniettato');
+
+            // Key takeaways
+            const takeaways = [
+                "Applica le strategie discusse nel video alla tua routine quotidiana",
+                "Identifica una situazione recente dove avresti potuto usare questa soft skill",
+                "Pratica costantemente per trasformare la conoscenza in competenza"
+            ];
+
+            document.getElementById('takeawaysList').innerHTML = takeaways.map(t => `
+                <div class="takeaway-item">${t}</div>
+            `).join('');
+
+            // Reflection question
+            document.getElementById('reflectionQuestion').textContent = 
+                `Come puoi applicare ciò che hai imparato per migliorare: ${decodeURIComponent(improvement)}?`;
+
+            // Progress
+            document.getElementById('progressText').textContent = `Video ${priority} di 3 • Continua così!`;
+        }
+
+        function extractYouTubeID(url) {
+            if (!url) return null;
+            
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
+                /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+                /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+                /(?:youtube\.com\/v\/)([a-zA-Z0-9_-]{11})/,
+                /(?:youtube-nocookie\.com\/embed\/)([a-zA-Z0-9_-]{11})/
+            ];
+            
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match && match[1]) {
+                    console.log('✅ Match trovato con pattern:', pattern);
+                    return match[1];
+                }
+            }
+            
+            console.log('❌ Nessun pattern matched per URL:', url);
+            return null;
+        }
+
+        function showError(errorTitle, errorMessage, url = null) {
+            const errorHtml = `
+                <div class="error-screen">
+                    <div class="error-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="error-title">${errorTitle}</div>
+                    <div class="error-message">${errorMessage}</div>
+                    ${url ? `<div class="error-url">URL: ${url}</div>` : ''}
+                    <button class="back-profile-btn" onclick="goBack()">
+                        <i class="fas fa-arrow-left"></i> Torna al Profilo
+                    </button>
+                </div>
+            `;
+            document.getElementById('videoPlayer').innerHTML = errorHtml;
+        }
+
+        async function completeVideo() {
+            const reflection = document.getElementById('reflectionText').value.trim();
+            
+            if (!reflection) {
+                alert('✍️ Scrivi una breve riflessione prima di completare!');
+                return;
+            }
+
+            const btn = document.getElementById('completeBtn');
+            btn.disabled = true;
+
+            // 💡 MOSTRA OVERLAY ANALISI
+            showAnalysisOverlay();
+
+            try {
+                const response = await fetch(webhook.webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: "track_video_completion",
+                        ash: webhook.ash,
+                        msg_id: webhook.msgId,
+                        _auth: webhook._auth,
+                        video_url: videoUrl,
+                        priority: priority,
+                        riflessione_personale: reflection,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                if (response.ok) {
+                    console.log('✅ Video completion tracked');
+                    closeAnalysisOverlay();
+                    setTimeout(() => showCompletionOverlay(), 600);
+                } else {
+                    throw new Error('Tracking failed');
+                }
+
+            } catch (error) {
+                console.error('❌ Errore tracking:', error);
+                closeAnalysisOverlay();
+                alert('Errore nel salvare il progresso. Riprova.');
+                btn.disabled = false;
+            }
+        }
+
+        function showAnalysisOverlay() {
+            const overlay = document.getElementById('analysisOverlay');
+            overlay.classList.add('active');
+
+            const progressBar = document.getElementById('analysisProgressBar');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 90) progress = 90;
+                progressBar.style.width = `${progress}%`;
+            }, 600);
+
+            overlay.dataset.progressInterval = interval;
+        }
+
+        function closeAnalysisOverlay() {
+            const overlay = document.getElementById('analysisOverlay');
+            const progressBar = document.getElementById('analysisProgressBar');
+            
+            if (progressBar) progressBar.style.width = '100%';
+            
+            const intervalId = overlay.dataset.progressInterval;
+            if (intervalId) clearInterval(parseInt(intervalId));
+            
+            setTimeout(() => {
+                overlay.classList.remove('active');
+            }, 500);
+        }
+
+        function showCompletionOverlay() {
+            document.getElementById('completionOverlay').classList.add('active');
+        }
+
+        function loadNextVideo() {
+            backToProfile();
+        }
+
+        function backToProfile() {
+            const params = new URLSearchParams();
+            if (urlParams.get('ash')) params.set('ash', urlParams.get('ash'));
+            if (urlParams.get('msg_id')) params.set('msg_id', urlParams.get('msg_id'));
+            
+            // AGGIUNTA FONDAMENTALE: Propaga lo stato standalone tornando indietro al profilo completo
+            if (urlParams.get('alone')) params.set('alone', urlParams.get('alone'));
+            
+            window.location.href = `complete-profile.html?${params.toString()}`;
+        }
+
+        function goBack() {
+            backToProfile();
+        }
+
+        // ACCORDION TOGGLE
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.card-header')) {
+                e.target.closest('.card-header').parentElement.classList.toggle('open');
+            }
+        });
+
+        // 🚀 INIT
+        window.addEventListener('DOMContentLoaded', initPlayer);
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

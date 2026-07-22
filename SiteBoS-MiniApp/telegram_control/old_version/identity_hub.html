@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Identity Hub | SiteBoS</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fafafa;
+            color: #000000;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .card-noir {
+            background: white;
+            border: 1px solid #eeeeee;
+            border-radius: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .card-noir:active {
+            transform: scale(0.98);
+            background-color: #f9f9f9;
+        }
+
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            background-color: #000000;
+            color: #ffffff;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .label-micro {
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #a3a3a3;
+        }
+
+        .loader-spin {
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #000;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="p-6 pb-24">
+
+    <div class="max-w-md mx-auto space-y-8 fade-in-up">
+        
+        <!-- HEADER -->
+        <header class="flex flex-col gap-1 border-b border-black pb-6">
+            <h1 class="text-2xl font-black tracking-tighter uppercase">Identity Hub</h1>
+            <p class="text-[10px] font-medium text-gray-400 uppercase tracking-widest">Gestione Identità e Brand</p>
+        </header>
+
+        <!-- NAVIGATION GRID -->
+        <div class="grid gap-4">
+            
+            <!-- BOT CONFIG -->
+            <div class="card-noir p-5 flex items-center gap-4 cursor-pointer" onclick="navigate('bot_config.html')">
+                <div class="icon-box">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="flex-1">
+                    <span class="label-micro">Automazione</span>
+                    <h3 class="font-black text-sm uppercase tracking-tight">Configurazione Bot</h3>
+                </div>
+                <i class="fas fa-chevron-right text-gray-200 text-xs"></i>
+            </div>
+
+            <!-- OWNER DATA -->
+            <div class="card-noir p-5 flex items-center gap-4 cursor-pointer" onclick="navigate('edit_owner.html')">
+                <div class="icon-box">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="flex-1">
+                    <span class="label-micro">Profilo</span>
+                    <h3 class="font-black text-sm uppercase tracking-tight">Dati Titolare</h3>
+                </div>
+                <i class="fas fa-chevron-right text-gray-200 text-xs"></i>
+            </div>
+
+            <!-- MINISITE -->
+            <div class="card-noir p-5 flex items-center gap-4 cursor-pointer" onclick="navigate('minisite.html')">
+                <div class="icon-box">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <div class="flex-1">
+                    <span class="label-micro">Web Presence</span>
+                    <h3 class="font-black text-sm uppercase tracking-tight">Configurazione MiniSite</h3>
+                </div>
+                <i class="fas fa-chevron-right text-gray-200 text-xs"></i>
+            </div>
+
+            <!-- DASHBOARD EXTERNAL -->
+            <div class="card-noir p-5 flex items-center gap-4 cursor-pointer border-blue-100 bg-blue-50/10" onclick="openExternal('https://dashboard.trinai.it/sitebos/minisite')">
+                <div class="icon-box bg-blue-600">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="flex-1">
+                    <span class="label-micro text-blue-600">SiteBoS Cloud</span>
+                    <h3 class="font-black text-sm uppercase tracking-tight">Identità Aziendale</h3>
+                </div>
+                <i class="fas fa-external-link-alt text-blue-200 text-xs"></i>
+            </div>
+
+            <!-- SETUP AVANZATO -->
+            <div class="card-noir p-5 flex items-center gap-4 cursor-pointer" onclick="handleSetupAvanzatoClick()">
+                <div class="icon-box">
+                    <i class="fas fa-sliders-h"></i>
+                </div>
+                <div class="flex-1">
+                    <span class="label-micro">Setup Avanzato</span>
+                    <h3 class="font-black text-sm uppercase tracking-tight">Parametri Avanzati</h3>
+                </div>
+                <i class="fas fa-chevron-right text-gray-200 text-xs"></i>
+            </div>
+
+        </div>
+
+        <!-- FOOTER INFO -->
+        <footer class="pt-8 text-center">
+            <p class="text-[8px] font-black uppercase tracking-[0.2em] text-gray-300">SiteBoS Ecosystem &copy; 2026</p>
+        </footer>
+
+    </div>
+
+    <!-- LOADER SCREEN OVERLAY -->
+    <div id="loader-overlay" class="fixed inset-0 bg-white/95 z-[100] hidden flex flex-col items-center justify-center p-10 text-center transition-opacity">
+        <div class="loader-spin mb-4"></div>
+        <h3 class="text-sm font-black uppercase tracking-tighter mb-1">Verifica Verticale...</h3>
+        <p class="text-[10px] text-gray-500 font-medium italic">Interrogazione dei sistemi centrali in corso</p>
+    </div>
+
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.ready();
+        tg.expand();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let ash = urlParams.get('ash');
+        let msg = urlParams.get('msg');
+
+        // Robust parsing for dirty ash: TOKEN?msg=ID
+        if (ash && ash.includes('?msg=')) {
+            const parts = ash.split('?msg=');
+            ash = parts[0];
+            if (!msg) msg = parts[1];
+        }
+
+        function navigate(page) {
+            const url = `${page}?ash=${ash}&msg=${msg || ''}`;
+            location.href = url;
+        }
+
+        function openExternal(url) {
+            tg.showConfirm("Stai per uscire dalla MiniApp per andare alla Dashboard Cloud. Continuare?", (ok) => {
+                if (ok) {
+                    tg.openLink(url);
+                }
+            });
+        }
+
+        function handleSetupAvanzatoClick() {
+            navigate('advanced-setup.html');
+        }
+    </script>
+</body>
+</html>

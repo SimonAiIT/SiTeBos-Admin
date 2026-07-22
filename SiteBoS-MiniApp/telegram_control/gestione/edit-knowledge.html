@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Knowledge Editor | SiteBoS</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: { extend: { colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' }, borderRadius: { '3xl': '1.5rem' } } }
+        }
+    </script>
+    <style>
+
+/* SiteBoS Architect Alignment */
+body { background-color: #fafafa !important; color: #000000 !important; }
+.card, .section-card, .dark-card, .upload-box { 
+    background: white !important; 
+    border: 1px solid #eeeeee !important; 
+    box-shadow: none !important; 
+}
+input:focus, textarea:focus, select:focus { 
+    border-color: #000000 !important; 
+    box-shadow: none !important; 
+    outline: none !important;
+}
+.text-primary, .text-black, .text-blue-600, .text-black { color: #000000 !important; }
+.bg-primary, .bg-black, .bg-black, .bg-black { background-color: #000000 !important; color: #ffffff !important; }
+.border-primary, .border-black, .border-blue-600, .border-black { border-color: #000000 !important; }
+.spinner { border-top-color: #000 !important; }
+input[type="checkbox"]:checked { background-color: #000 !important; border-color: #000 !important; }
+/* Forza icone pesanti */
+.fas, .far, .fal { font-weight: 900 !important; font-family: "Font Awesome 6 Free" !important; }
+
+
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #fafafa; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .spinner { border: 2px solid rgba(0,0,0,0.1); border-top-color: #000; border-radius: 50%; width: 25px; height: 25px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-bg text-black min-h-screen flex flex-col pb-24 overflow-x-hidden">
+
+    <div id="loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center space-y-3">
+        <div class="spinner"></div>
+        <p class="text-[8px] font-black uppercase tracking-widest text-gray-500 italic">Syncing Knowledge...</p>
+    </div>
+
+    <!-- HEADER -->
+    <header class="bg-white border-b border-border p-5 sticky top-0 z-50 shadow-sm flex items-center gap-4">
+        <div class="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center text-xl shadow-sm">
+            <i class="fas fa-brain text-sm"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <div class="inline-block px-2 py-0.5 bg-black text-white text-[6px] font-black uppercase tracking-widest rounded-full mb-1">Knowledge</div>
+            <h1 id="headerTitle" class="text-base font-black tracking-tighter uppercase leading-tight truncate">Editor</h1>
+            <p id="fragmentIdDisplay" class="text-[7px] font-bold text-gray-500 uppercase tracking-widest italic">ID: ...</p>
+        </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div id="app-content" class="hidden flex-1 p-4 space-y-6 fade-in">
+        
+        <!-- CARD 1: CORE -->
+        <section class="bg-white rounded-3xl p-5 border border-border shadow-sm space-y-5">
+            <span class="text-[8px] font-black uppercase tracking-widest text-gray-300 block italic">Core Information</span>
+            <div class="space-y-1">
+                <label class="text-[8px] font-black uppercase text-gray-500 ml-1">Title</label>
+                <input type="text" id="field-title" class="w-full bg-gray-50 p-3 rounded-xl text-xs font-bold border border-transparent focus:border-black outline-none transition-all" oninput="updateField('title', this.value)">
+            </div>
+            <div class="space-y-1">
+                <label class="text-[8px] font-black uppercase text-gray-500 ml-1">Summary</label>
+                <textarea id="field-summary" rows="2" class="w-full bg-gray-50 p-3 rounded-xl text-xs font-medium border border-transparent focus:border-black outline-none resize-none leading-relaxed" oninput="updateField('summary', this.value)"></textarea>
+            </div>
+            <div class="space-y-1">
+                <label class="text-[8px] font-black uppercase text-gray-500 ml-1">AI Answer Fragment</label>
+                <textarea id="field-answer" rows="4" class="w-full bg-gray-50 p-3 rounded-xl text-xs font-medium border border-transparent focus:border-black outline-none resize-none leading-relaxed" oninput="updateField('answer_fragment', this.value)"></textarea>
+            </div>
+            <div class="space-y-1">
+                <label class="text-[8px] font-black uppercase text-gray-500 ml-1">Triggers (Lines)</label>
+                <textarea id="field-utterances" rows="2" class="w-full bg-gray-50 p-3 rounded-xl text-[10px] font-mono border border-transparent focus:border-black outline-none resize-none leading-tight" oninput="updateUtterances(this.value)"></textarea>
+            </div>
+        </section>
+
+        <!-- SECTIONS -->
+        <div id="sections-container" class="space-y-4"></div>
+    </div>
+
+    <footer class="fixed bottom-0 left-0 w-full p-4 bg-white/90 backdrop-blur-lg border-t border-gray-100 z-[100]">
+        <div class="flex items-center gap-3 max-w-md mx-auto">
+            <button onclick="tg.close()" class="w-10 h-10 bg-white text-black rounded-xl shadow-md flex items-center justify-center text-lg border border-gray-100 active:scale-90 transition">
+                <i class="fas fa-times"></i>
+            </button>
+            <button id="save-fab" disabled onclick="handleSave()" class="flex-1 h-10 bg-black text-white rounded-xl shadow-sm font-black uppercase tracking-widest text-[9px] active:scale-95 transition-all disabled:opacity-20 flex items-center justify-center gap-2">
+                <i class="fas fa-save text-xs"></i> <span id="saveBtnText">Update Knowledge</span>
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        'use strict';
+        const WEBHOOK_URL = "https://prod.workflow.trinai.it/webhook/0ca76af1-8c02-47f4-a3a4-fd19ad495afe";
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.ready(); tg.expand();
+        const urlParams = new URLSearchParams(window.location.search);
+        const ash = urlParams.get('ash'), sopId = urlParams.get('sop_id');
+        let currentFragment = null, initialDataString = "";
+
+        async function init() { if (!ash || !sopId) return; await loadFragment(); }
+
+        async function loadFragment() {
+            try {
+                const res = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'get_kb_details', ash: ash, fragment_id: sopId, _auth: tg.initData }) });
+                const d = await res.json(); const raw = Array.isArray(d) ? d[0] : d;
+                currentFragment = raw.Fragment || raw.fragment || raw;
+                document.getElementById('headerTitle').innerText = currentFragment.title || "Untitled";
+                document.getElementById('fragmentIdDisplay').innerText = `ID: ${currentFragment.fragment_id || currentFragment._id}`;
+                document.getElementById('field-title').value = currentFragment.title || "";
+                document.getElementById('field-summary').value = currentFragment.summary || "";
+                document.getElementById('field-answer').value = currentFragment.answer_fragment || "";
+                document.getElementById('field-utterances').value = (currentFragment.user_utterances || []).join('\n');
+                renderSections();
+                initialDataString = JSON.stringify(currentFragment);
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+            } catch (e) { console.error(e); }
+        }
+
+        function renderSections() {
+            const container = document.getElementById('sections-container'); container.innerHTML = '';
+            (currentFragment.sections || []).forEach((s, i) => {
+                const div = document.createElement('div');
+                div.className = "bg-white rounded-3xl border border-gray-100 p-5 space-y-4 shadow-sm fade-in";
+                div.innerHTML = `
+                    <div class="space-y-1">
+                        <label class="text-[8px] font-black uppercase text-gray-500 ml-1">Question ${i+1}</label>
+                        <input type="text" value="${s.question||''}" oninput="updateSection(${i}, 'question', this.value)" class="w-full bg-gray-50 p-3 rounded-xl text-[10px] font-black border border-transparent focus:border-black outline-none transition-all uppercase">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[8px] font-black uppercase text-gray-500 ml-1">Detailed Answer</label>
+                        <textarea rows="3" oninput="updateSection(${i}, 'answer', this.value)" class="w-full bg-gray-50 p-3 rounded-xl text-[11px] font-medium border border-transparent focus:border-black outline-none resize-none leading-relaxed shadow-inner">${s.answer||''}</textarea>
+                    </div>`;
+                container.appendChild(div);
+            });
+        }
+
+        window.updateField = (k, v) => { currentFragment[k] = v; checkDirty(); };
+        window.updateUtterances = (v) => { currentFragment.user_utterances = v.split('\n').filter(l => l.trim() !== ""); checkDirty(); };
+        window.updateSection = (idx, k, v) => { currentFragment.sections[idx][k] = v; checkDirty(); };
+        function checkDirty() { document.getElementById('save-fab').disabled = JSON.stringify(currentFragment) === initialDataString; }
+
+        window.handleSave = async function() {
+            const btn = document.getElementById('save-fab'); const txt = document.getElementById('saveBtnText');
+            btn.disabled = true; txt.innerText = "SAVING...";
+            try {
+                const res = await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'save_kb', fragments: [currentFragment], ash: ash, _auth: tg.initData }) });
+                if (res.ok) { btn.className = "flex-1 h-12 bg-green-600 text-black rounded-xl shadow-sm font-black uppercase text-[10px] flex items-center justify-center gap-2"; txt.innerText = "SUCCESS"; if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); setTimeout(() => tg.close(), 1200); }
+                else throw 0;
+            } catch (e) { btn.disabled = false; txt.innerText = "RETRY"; }
+        }
+        init();
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

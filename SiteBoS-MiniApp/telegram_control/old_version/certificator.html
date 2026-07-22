@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Certificator | SiteBoS</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+
+/* SiteBoS Architect Alignment */
+body { background-color: #fafafa !important; color: #000000 !important; }
+.card, .section-card, .dark-card, .upload-box { 
+    background: white !important; 
+    border: 1px solid #eeeeee !important; 
+    box-shadow: none !important; 
+}
+input:focus, textarea:focus, select:focus { 
+    border-color: #000000 !important; 
+    box-shadow: none !important; 
+    outline: none !important;
+}
+.text-primary, .text-black, .text-blue-600, .text-black { color: #000000 !important; }
+.bg-primary, .bg-black, .bg-black, .bg-black { background-color: #000000 !important; color: #ffffff !important; }
+.border-primary, .border-black, .border-blue-600, .border-black { border-color: #000000 !important; }
+.spinner { border-top-color: #000 !important; }
+input[type="checkbox"]:checked { background-color: #000 !important; border-color: #000 !important; }
+/* Forza icone pesanti */
+.fas, .far, .fal { font-weight: 900 !important; font-family: "Font Awesome 6 Free" !important; }
+
+
+        body { font-family: 'Inter', sans-serif; background-color: #fafafa; color: #000; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { border: 2px solid rgba(0,0,0,0.1); border-top-color: #000; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        #signature-pad { touch-action: none; background-color: #ffffff; cursor: crosshair; }
+        #camera-feed { width: 100%; border-radius: 1.5rem; background-color: #000; object-fit: cover; }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+
+    <script>
+        // DEPRECATED: Funzionalità spostata in supervisor_hub.html
+        console.warn("Certificator.html is deprecated. Use supervisor_hub.html instead.");
+        
+        (function() {
+            if (!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)) {
+                document.documentElement.innerHTML = `<body class="bg-black text-white flex items-center justify-center h-screen text-center p-10 font-sans"><div><h1 class="text-6xl mb-4">🚫</h1><h2 class="text-xl font-bold uppercase tracking-widest">Accesso Proibito</h2></div></body>`;
+                window.stop();
+            }
+        })();
+    </script>
+</head>
+<body class="p-5 pb-24">
+
+    <div class="max-w-md mx-auto space-y-6 animate-fade-in text-center">
+        <!-- HEADER -->
+        <header class="space-y-1 py-4">
+            <div id="typeBadge" class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1">Certificator</div>
+            <h1 class="text-xl font-black tracking-tighter uppercase leading-none">Evidence Protocol</h1>
+            <div id="statusText" class="text-[9px] font-bold text-gray-500 uppercase tracking-widest italic">Caricamento...</div>
+        </header>
+
+        <div id="loader" class="flex justify-center hidden"><div class="spinner"></div></div>
+
+        <!-- VISION -->
+        <div id="section-vision" class="hidden space-y-4">
+            <div class="relative w-full shadow-sm rounded-3xl overflow-hidden bg-black aspect-[4/3]">
+                <video id="camera-feed" class="hidden h-full w-full" autoplay playsinline muted></video>
+                <canvas id="camera-canvas" class="hidden"></canvas>
+                <div id="camera-placeholder" class="absolute inset-0 flex items-center justify-center text-neutral-800">
+                    <i class="fas fa-camera text-4xl"></i>
+                </div>
+            </div>
+            <button id="startCamBtn" class="w-full h-12 bg-black text-white rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all shadow-md" onclick="startCamera()">
+                <i class="fas fa-video mr-2"></i> Attiva Fotocamera
+            </button>
+            <button id="snapBtn" class="hidden w-full h-12 bg-red-600 text-black rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all shadow-md" onclick="takePhoto()">
+                🔴 Cattura Evidenza
+            </button>
+        </div>
+
+        <!-- SIGNATURE -->
+        <div id="section-signature" class="hidden space-y-4">
+            <div class="bg-white border border-gray-100 rounded-3xl p-2 shadow-sm overflow-hidden">
+                <canvas id="signature-pad" class="w-full h-64 rounded-2xl"></canvas>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="clearSignature()" class="flex-1 h-12 bg-white border border-black text-black rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition">Cancella</button>
+                <button onclick="saveSignature()" class="flex-[2] h-12 bg-black text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm active:scale-95 transition">Conferma Firma</button>
+            </div>
+        </div>
+
+        <!-- FILE -->
+        <div id="section-file" class="hidden space-y-4">
+            <div class="border-2 border-dashed border-gray-100 bg-white rounded-3xl p-10 flex flex-col items-center justify-center cursor-pointer hover:border-black transition active:scale-95" onclick="document.getElementById('fileInput').click()">
+                <i class="fas fa-cloud-upload text-3xl text-gray-200 mb-3"></i>
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-500">Carica Allegato</span>
+            </div>
+            <input type="file" id="fileInput" class="hidden" onchange="handleFileSelect(event)">
+            <div id="fileNameDisplay" class="text-[9px] font-black uppercase tracking-widest text-neutral-400">PDF, JPG, PNG (Max 10MB)</div>
+            <button id="uploadFileBtn" class="w-full h-12 bg-black text-white rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all disabled:opacity-10" disabled onclick="processAndSendFile()">Invia Documento</button>
+        </div>
+
+        <!-- TEXT -->
+        <div id="section-text" class="hidden space-y-4">
+            <textarea id="textInput" placeholder="Inserisci qui la nota..." class="w-full bg-white border border-gray-100 rounded-3xl p-5 text-sm font-medium outline-none focus:border-black transition min-h-[180px] shadow-sm leading-relaxed" oninput="validateText()"></textarea>
+            <button id="sendTextBtn" class="w-full h-12 bg-black text-white rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all disabled:opacity-10" disabled onclick="sendTextData()">Trasmetti Nota</button>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.ready(); tg.expand();
+        const WEBHOOK_URL = "https://prod.workflow.trinai.it/webhook/ef4aece4-9ec0-4026-a7a7-328562bcbdf6";
+        const urlParams = new URLSearchParams(window.location.search);
+        const sopId = urlParams.get('sop_id');
+        const messageId = urlParams.get('message_id');
+        const evidenceType = (urlParams.get('evidence_type') || 'VISION').toUpperCase();
+        let videoStream = null, isDrawing = false, canvas, ctx;
+
+        function initApp() {
+            document.getElementById('typeBadge').innerText = evidenceType + " PROTOCOL";
+            if (evidenceType === 'VISION') document.getElementById('section-vision').classList.remove('hidden');
+            else if (evidenceType === 'SIGNATURE') { document.getElementById('section-signature').classList.remove('hidden'); initSignaturePad(); }
+            else if (evidenceType === 'FILE') document.getElementById('section-file').classList.remove('hidden');
+            else if (evidenceType === 'TEXT') document.getElementById('section-text').classList.remove('hidden');
+            document.getElementById('statusText').innerText = "In attesa di input...";
+        }
+
+        function initSignaturePad() {
+            canvas = document.getElementById('signature-pad'); ctx = canvas.getContext('2d');
+            const res = () => { const r = Math.max(window.devicePixelRatio||1,1); canvas.width = canvas.offsetWidth*r; canvas.height = canvas.offsetHeight*r; ctx.scale(r,r); ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.lineCap = "round"; };
+            window.addEventListener('resize', res); res();
+            const gC = (e) => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX||e.touches[0].clientX) - r.left, y: (e.clientY||e.touches[0].clientY) - r.top }; };
+            const st = (e) => { isDrawing = true; const {x,y} = gC(e); ctx.beginPath(); ctx.moveTo(x,y); };
+            const mv = (e) => { if(!isDrawing) return; const {x,y} = gC(e); ctx.lineTo(x,y); ctx.stroke(); };
+            const sp = () => isDrawing = false;
+            canvas.addEventListener('mousedown', st); canvas.addEventListener('mousemove', mv); window.addEventListener('mouseup', sp);
+            canvas.addEventListener('touchstart', (e) => { st(e); e.preventDefault(); }, {passive: false});
+            canvas.addEventListener('touchmove', (e) => { mv(e); e.preventDefault(); }, {passive: false});
+            canvas.addEventListener('touchend', sp);
+        }
+
+        function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+        function saveSignature() { 
+            const b = document.createElement('canvas'); b.width = canvas.width; b.height = canvas.height;
+            if (canvas.toDataURL() === b.toDataURL()) { tg.showAlert("Firma richiesta."); return; }
+            sendToServer(canvas.toDataURL('image/png').split(',')[1], "image/png", "signature.png");
+        }
+
+        async function startCamera() {
+            try {
+                const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: 1280, height: 720 } });
+                videoStream = s; const v = document.getElementById('camera-feed'); v.srcObject = s;
+                v.classList.remove('hidden'); document.getElementById('camera-placeholder').classList.add('hidden');
+                v.onloadedmetadata = () => { v.play(); document.getElementById('startCamBtn').classList.add('hidden'); document.getElementById('snapBtn').classList.remove('hidden'); };
+            } catch (e) { tg.showAlert("Accesso camera negato."); }
+        }
+
+        function takePhoto() {
+            const v = document.getElementById('camera-feed'); const c = document.getElementById('camera-canvas');
+            c.width = v.videoWidth; c.height = v.videoHeight; c.getContext('2d').drawImage(v, 0, 0);
+            if (videoStream) videoStream.getTracks().forEach(t => t.stop());
+            sendToServer(c.toDataURL('image/jpeg', 0.8).split(',')[1], "image/jpeg", `ev_${Date.now()}.jpg`);
+        }
+
+        function sendToServer(content, mime, name, isText = false) {
+            document.getElementById('loader').classList.remove('hidden'); document.getElementById('statusText').innerText = "INVIO IN CORSO...";
+            const p = { _auth: tg.initData, chat_id: tg.initDataUnsafe?.user?.id, action: "certificator", evidence_type: evidenceType, mime_type: mime, file_name: name, sop_id: sopId, message_id: messageId };
+            if (isText) p.text_content = content; else p.base64_content = content;
+            fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) })
+            .then(r => { if(r.ok){ if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); tg.close(); } else throw 0; })
+            .catch(() => { document.getElementById('loader').classList.add('hidden'); document.getElementById('statusText').innerText = "❌ ERRORE"; });
+        }
+
+        let sF; function handleFileSelect(e) {
+            const f = e.target.files[0]; if(!f) return;
+            const r = new FileReader(); r.onload = (x) => { sF = { b64: x.target.result.split(',')[1], m: f.type, n: f.name }; document.getElementById('uploadFileBtn').disabled = false; document.getElementById('fileNameDisplay').innerText = f.name.toUpperCase(); };
+            r.readAsDataURL(f);
+        }
+        function processAndSendFile() { sendToServer(sF.b64, sF.m, sF.n); }
+        function validateText() { document.getElementById('sendTextBtn').disabled = document.getElementById('textInput').value.trim().length < 5; }
+        function sendTextData() { sendToServer(document.getElementById('textInput').value.trim(), "text/plain", "note.txt", true); }
+        window.onload = initApp;
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_certificator.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

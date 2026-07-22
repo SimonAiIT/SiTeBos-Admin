@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>06. Gestione Operativa del Team | SiTeBoS Guide</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { primary: '#000000', bg: '#fafafa', surface: '#ffffff', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #ffffff; color: #000000; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .content-area { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .prose h1 { font-size: 2.5rem; font-weight: 900; tracking: -0.04em; line-height: 1.1; margin-bottom: 1.5rem; text-transform: uppercase; font-style: italic; }
+        .prose h2 { font-size: 1.25rem; font-weight: 800; tracking: -0.02em; margin-top: 3rem; margin-bottom: 1rem; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 0.5rem; display: inline-block; }
+        .prose p { font-size: 1rem; line-height: 1.7; color: #374151; margin-bottom: 1.5rem; }
+        .prose b { font-weight: 800; color: #000; }
+        .img-container { margin: 2rem 0; background: #fafafa; border: 1px solid #eeeeee; border-radius: 2rem; overflow: hidden; }
+        .info-card { background: #fafafa; border: 1px solid #eeeeee; padding: 1.5rem; border-radius: 1.5rem; margin-bottom: 1.5rem; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeIn 0.4s ease forwards; }
+    </style>
+</head>
+<body class="safe-area-inset min-h-screen pb-32">
+
+    <!-- TOP NAV -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-5 py-4 flex items-center justify-between">
+        <button onclick="location.href='index.html'" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
+            <i class="fas fa-arrow-left"></i> Index
+        </button>
+        <div class="text-[9px] font-black uppercase tracking-[0.2em] text-blue-600 italic">Capitolo 06</div>
+    </nav>
+
+    <main class="content-area animate-in">
+        <article class="prose">
+            <h1>Gestione Operativa del Team</h1>
+            
+            <p>
+                SiTeBoS permette di estendere l'intelligenza aziendale ai tuoi collaboratori, garantendo che ogni missione sia eseguita secondo i protocolli (SOP) e monitorata in tempo reale.
+            </p>
+
+            <!-- ═══════════════════════════════════════════════════════════════
+                 PREVIEW REALE SANIFICATO: operators/operator_dashboard.html
+                 Estratto automaticamente dall'HTML sorgente della MiniApp.
+                 ═══════════════════════════════════════════════════════════════ -->
+            <div class="my-10 rounded-3xl overflow-hidden border border-slate-200 shadow-xl" id="preview-06_team-0" style="background:#f8fafc;">
+
+                <!-- Header dell'anteprima -->
+                <div style="background:#0f172a; padding:0.6rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.4rem; min-width:0;">
+                        <span style="width:9px; height:9px; border-radius:50%; background:#ef4444; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#f59e0b; flex-shrink:0; display:block;"></span>
+                        <span style="width:9px; height:9px; border-radius:50%; background:#22c55e; flex-shrink:0; display:block;"></span>
+                        <span style="font-size:8px; font-family:ui-monospace,monospace; color:#64748b; margin-left:0.5rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">operators/operator_dashboard.html</span>
+                    </div>
+                    <span style="font-size:7px; font-family:ui-monospace,monospace; color:#3b82f6; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; flex-shrink:0; white-space:nowrap;">SiTeBoS Interface</span>
+                </div>
+
+                <!-- Viewport scalato con touch/scroll pass-through -->
+                <div style="position:relative; overflow:hidden; height:460px; background:#f8fafc;">
+
+                    <style>
+                        #preview-06_team-0 .preview-body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
+                        #preview-06_team-0 .no-scrollbar::-webkit-scrollbar { display:none; }
+                        
+                    </style>
+
+                    <div class="preview-body" style="
+                        transform: scale(0.5);
+                        transform-origin: top left;
+                        width: 200%;
+                        position: absolute;
+                        top: 0; left: 0;
+                        pointer-events: none;
+                        user-select: none;
+                        min-height: 920px;
+                        overflow: hidden;
+                    ">
+                        <!-- LOADER -->
+  <div id="loader">
+    <div class="spinner-ring"></div>
+    <div style="margin-top:10px; opacity:0.7; text-align:center;">Caricamento Dashboard...</div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="app-content" class="container hidden fade-in">
+    
+    <!-- HEADER OPERATOR -->
+    <div class="dashboard-header">
+      <div class="header-info">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div class="avatar-circle" id="operator-avatar" style="width:50px; height:50px; font-size:20px;">
+            👤
+          </div>
+          <div>
+            <h1 id="operatorName" style="font-size:18px; margin:0;">Operatore</h1>
+            <small id="operatorRole" style="color:var(--text-muted); font-size:12px;">Ruolo</small>
+            <small id="companyInfo" style="display:block; color:var(--text-secondary); font-size:11px; margin-top:2px;">
+              🏢 <span id="companyName">Company</span> • Attivo dal <span id="memberSince">...</span>
+            </small>
+          </div>
+        </div>
+      </div>
+      
+      <div class="header-actions" style="display:flex; align-items:center; gap:8px;">
+        <button class="btn-icon"  title="Impostazioni">
+          <i class="fas fa-cog"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- BIG FIVE PERSONALITY TRAITS -->
+    <div style="margin-bottom:20px;">
+      <h4 style="opacity:0.7; text-transform:uppercase; font-size:12px; letter-spacing:1px; margin-bottom:12px;">🧠 Profilo Personalità (Big Five)</h4>
+      
+      <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:8px;">
+        <!-- Openness -->
+        <div class="stat-box" style="text-align:center; background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; border:1px solid var(--glass-border);">
+          <div style="font-size:18px; margin-bottom:4px;">🌈</div>
+          <div id="big5-openness" style="font-size:18px; font-weight:700; color:#a78bfa;">-</div>
+          <div style="font-size:8px; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">Apertura</div>
+        </div>
+        
+        <!-- Conscientiousness -->
+        <div class="stat-box" style="text-align:center; background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; border:1px solid var(--glass-border);">
+          <div style="font-size:18px; margin-bottom:4px;">📋</div>
+          <div id="big5-conscientiousness" style="font-size:18px; font-weight:700; color:#34d399;">-</div>
+          <div style="font-size:8px; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">Coscienz.</div>
+        </div>
+        
+        <!-- Extraversion -->
+        <div class="stat-box" style="text-align:center; background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; border:1px solid var(--glass-border);">
+          <div style="font-size:18px; margin-bottom:4px;">🎉</div>
+          <div id="big5-extraversion" style="font-size:18px; font-weight:700; color:#fbbf24;">-</div>
+          <div style="font-size:8px; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">Estrovers.</div>
+        </div>
+        
+        <!-- Agreeableness -->
+        <div class="stat-box" style="text-align:center; background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; border:1px solid var(--glass-border);">
+          <div style="font-size:18px; margin-bottom:4px;">🤝</div>
+          <div id="big5-agreeableness" style="font-size:18px; font-weight:700; color:#60a5fa;">-</div>
+          <div style="font-size:8px; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">Amichez.</div>
+        </div>
+        
+        <!-- Neuroticism -->
+        <div class="stat-box" style="text-align:center; background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; border:1px solid var(--glass-border);">
+          <div style="font-size:18px; margin-bottom:4px;">⚡</div>
+          <div id="big5-neuroticism" style="font-size:18px; font-weight:700; color:#f87171;">-</div>
+          <div style="font-size:8px; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">Nevrotic.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:15px;">
+      <h4 style="opacity:0.7; text-transform:uppercase; font-size:12px; letter-spacing:1px;">Gestione Operativa</h4>
+    </div>
+
+    <!-- DASH GRID (Senza Crescita Personale) -->
+    <div class="dash-grid">
+
+      <!-- TASK ATTIVI -->
+      <div class="dash-card" >
+        <div class="dash-icon"><i class="fas fa-tasks"></i></div>
+        <div class="dash-label">Task Attivi</div>
+        <div class="dash-sub" id="sub-tasks">0 in corso</div>
+      </div>
+
+      <!-- CREA JOB -->
+      <div class="dash-card"  style="border: 1px solid var(--primary);">
+        <div class="dash-icon" style="background: rgba(0,0,0,0.1);"><i class="fas fa-briefcase"></i></div>
+        <div class="dash-label">Crea Job</div>
+        <div class="dash-sub">Nuova Missione</div>
+      </div>
+
+      <!-- BADGE -->
+      <div class="dash-card" >
+        <div class="dash-icon" style="background:rgba(245, 158, 11, 0.2);">
+          <i class="fas fa-trophy"></i>
+        </div>
+        <div class="dash-label">Badge</div>
+        <div class="dash-sub" id="sub-badges">0/12 sbloccati</div>
+      </div>
+
+      <!-- FORMAZIONE -->
+      <div class="dash-card" >
+        <div class="dash-icon" style="background:rgba(34, 197, 94, 0.2);">
+          <i class="fas fa-graduation-cap"></i>
+        </div>
+        <div class="dash-label">Formazione</div>
+        <div class="dash-sub" id="sub-training">0 moduli disponibili</div>
+      </div>
+
+      <!-- CALENDARIO -->
+      <div class="dash-card" >
+        <div class="dash-icon"><i class="fas fa-calendar-alt"></i></div>
+        <div class="dash-label">Calendario</div>
+        <div class="dash-sub" id="sub-calendar">Prossimi eventi</div>
+      </div>
+
+    </div>
+
+    <!-- SEZIONE CRESCITA DETTAGLIATA -->
+    <div class="form-section" style="margin-top:30px;">
+      <div class="form-section-title">🌱 Crescita Personale</div>
+      
+      <!-- PROFILO COMPETENZE TECNICHE -->
+      <div class="card"  style="cursor:pointer; margin-bottom:15px; padding:15px;">
+        <div style="display:flex; align-items:center; gap:15px;">
+          <div style="font-size:40px;">🧠</div>
+          <div style="flex:1;">
+            <div style="font-weight:600; margin-bottom:4px;">Profilo Competenze</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">Hard skills e specializzazioni tecniche</div>
+            <div class="progress-bar" style="height:8px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
+              <div id="progress-skills" class="progress-fill" style="width:0%; height:100%; background:var(--primary); transition:width 0.5s;"></div>
+            </div>
+          </div>
+          <div id="percent-skills" style="font-size:20px; font-weight:700; color:var(--primary);">0%</div>
+        </div>
+      </div>
+
+      <!-- PROFILO COMPORTAMENTALE (SOFT SKILLS) -->
+      <div class="card"  style="cursor:pointer; margin-bottom:15px; padding:15px;">
+        <div style="display:flex; align-items:center; gap:15px;">
+          <div style="font-size:40px;">🎯</div>
+          <div style="flex:1;">
+            <div style="font-weight:600; margin-bottom:4px;">Profilo Comportamentale</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">Soft skills e attitudini personali</div>
+            <div class="progress-bar" style="height:8px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
+              <div id="progress-softskills" class="progress-fill" style="width:0%; height:100%; background:var(--success); transition:width 0.5s;"></div>
+            </div>
+          </div>
+          <div id="percent-softskills" style="font-size:20px; font-weight:700; color:var(--success);">0%</div>
+        </div>
+      </div>
+
+      <!-- MODULI FORMATIVI CONSIGLIATI -->
+      <div class="card" style="padding:15px;">
+        <h4 style="margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+          <i class="fas fa-graduation-cap"></i> Moduli Consigliati
+        </h4>
+        <div id="recommended-modules">
+          <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">
+            <i class="fas fa-spinner fa-spin"></i> Caricamento moduli...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICHE RECENTI -->
+    <div class="card" style="margin-top:20px; padding:15px;">
+      <h4 style="margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+        <i class="fas fa-bell"></i> Notifiche Recenti
+      </h4>
+      <div id="notifications-list">
+        <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">
+          Nessuna notifica
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:30px; margin-bottom:30px; opacity:0.3; font-size:10px;">
+      <p>SiteBoS Operator v1.0</p>
+    </div>
+
+  </div>
+
+  
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+                    </div>
+
+                    <!-- Fade gradient inferiore -->
+                    <div style="position:absolute; bottom:0; left:0; right:0; height:100px; background:linear-gradient(to bottom, transparent 0%, #f8fafc 90%); pointer-events:none; z-index:10;"></div>
+                </div>
+
+                <!-- Didascalia -->
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig  Dashboard Personale Operatore
+                </div>
+            </div>
+
+            <h2>Onboarding Operatori</h2>
+            <p>
+                Puoi invitare nuovi membri del team semplicemente condividendo un link di attivazione. Il processo di registrazione è potenziato dall'IA.
+            </p>
+
+            <div class="space-y-4 my-8">
+                <div class="info-card">
+                    <p class="font-black text-[10px] uppercase text-blue-600 mb-1">Magic CV Analysis</p>
+                    <p class="text-sm text-gray-600 m-0">L'operatore carica il proprio CV: l'IA lo analizza istantaneamente per compilare il profilo professionale e mappare le esperienze precedenti.</p>
+                </div>
+                <div class="info-card">
+                    <p class="font-black text-[10px] uppercase text-blue-600 mb-1">Verifica Skill</p>
+                    <p class="text-sm text-gray-600 m-0">Estrazione automatica delle competenze tecniche certificate, utilizzate dal sistema per suggerire l'operatore più adatto a ogni Job.</p>
+                </div>
+            </div>
+
+            <!-- DEPENDENCY: Screen_Magic_CV -->
+            <div class="img-container shadow-sm">
+                <img src="../../images/userguide/Screen_Magic_CV.svg" alt="Magic CV Analysis" class="w-full h-auto">
+                <div class="p-4 bg-gray-50 border-t border-gray-100 text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center">
+                    Estrazione automatica delle competenze dal curriculum dell'operatore
+                </div>
+            </div>
+
+
+
+            <h2>Dashboard Operatore</h2>
+            <p>
+                Ogni collaboratore ha accesso a una console di comando mobile-first da cui gestisce l'intera giornata lavorativa.
+            </p>
+
+            <!-- DEPENDENCY: Esecuzione Guidata Placeholder -->
+            <div class="img-container shadow-sm">
+                <img src="../../images/userguide/Screen_Placeholder.svg" alt="Flusso Esecuzione Guidata" class="w-full h-auto">
+                <div class="p-4 bg-gray-50 border-t border-gray-100 text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center">
+                    Flusso: Esecuzione Guidata (Placeholder)
+                </div>
+            </div>
+
+            <ul class="list-none space-y-4 my-8 p-0">
+                <li class="flex gap-4 items-start">
+                    <div class="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center shrink-0"><i class="fas fa-person-running text-xs"></i></div>
+                    <div>
+                        <p class="font-black text-sm uppercase">Missioni (Tasks)</p>
+                        <p class="text-sm text-gray-500">Elenco dei lavori assegnati, filtrabili per urgenza e stato di avanzamento.</p>
+                    </div>
+                </li>
+                <li class="flex gap-4 items-start">
+                    <div class="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center shrink-0"><i class="fas fa-calendar-day text-xs"></i></div>
+                    <div>
+                        <p class="font-black text-sm uppercase">Agenda Intelligente</p>
+                        <p class="text-sm text-gray-500">Pianificazione degli impegni con supporto OCR per digitalizzare agende cartacee.</p>
+                    </div>
+                </li>
+                <li class="flex gap-4 items-start">
+                    <div class="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center shrink-0"><i class="fas fa-route text-xs"></i></div>
+                    <div>
+                        <p class="font-black text-sm uppercase">Ottimizzatore Percorsi</p>
+                        <p class="text-sm text-gray-500">Motore AI per calcolare il percorso logistico ottimale tra le diverse tappe della giornata.</p>
+                    </div>
+                </li>
+            </ul>
+
+            <!-- DEPENDENCY: Screen_Operator_Dashboard -->
+            <div class="img-container shadow-sm">
+                <img src="../../images/userguide/Screen_Operator_Dashboard.svg" alt="Dashboard Operatore" class="w-full h-auto">
+                <div class="p-4 bg-gray-50 border-t border-gray-100 text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center">
+                    Interfaccia operativa per i collaboratori 
+                </div>
+            </div>
+
+            <h2>Logistica & Operazioni</h2>
+            <p>
+                Il modulo di Logistica gestisce la pianificazione temporale e operativa delle missioni.
+            </p>
+
+            <!-- DEPENDENCY: Logistica Placeholder -->
+            <div class="img-container shadow-sm">
+                <img src="../../images/userguide/Screen_Placeholder.svg" alt="Flusso Logistica & Operazioni" class="w-full h-auto">
+                <div class="p-4 bg-gray-50 border-t border-gray-100 text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center">
+                    Flusso: Logistica & Operazioni (Placeholder)
+                </div>
+            </div>
+
+
+
+            <h2>Soft Skill Assessment</h2>
+            <p>
+                Un test psicometrico integrato (150 scenari) permette di mappare le attitudini comportamentali del team (Leadership, Problem Solving, Empatia).
+            </p>
+
+            <div class="bg-white border-2 border-black p-8 rounded-4xl my-10 space-y-4">
+                <p class="text-sm font-black uppercase tracking-[0.2em] text-blue-600 mb-2">Vantaggio Strategico</p>
+                <p class="text-lg leading-relaxed italic font-bold text-black m-0">
+                    "Permette al titolare di assegnare la missione giusta alla persona giusta, riducendo gli errori di gestione e aumentando la soddisfazione del cliente."
+                </p>
+            </div>
+
+            <!-- DEPENDENCY: Screen_SoftSkill_Report -->
+            
+
+  <!-- MAIN CONTENT -->
+  <div id="app-content" class="container hidden fade-in">
+    
+    <!-- HEADER OPERATOR -->
+    <div class="dashboard-header">
+      <div class="header-info">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div class="avatar-circle" id="operator-avatar" style="width:50px; height:50px; font-size:20px;">
+            👤
+          </div>
+          <div>
+            <h1 id="operatorName" style="font-size:18px; margin:0;">Operatore</h1>
+            <small id="operatorRole" style="color:var(--text-muted); font-size:12px;">Ruolo</small>
+            <small id="companyInfo" style="display:block; color:var(--text-secondary); font-size:11px; margin-top:2px;">
+              🏢 <span id="companyName">Company</span> • Attivo dal <span id="memberSince">...</span>
+            </small>
+          </div>
+        </div>
+      </div>
+      
+      <div class="header-actions" style="display:flex; align-items:center; gap:8px;">
+        <button class="btn-icon" onclick="return false;" title="Impostazioni">
+          <i class="fas fa-cog"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- BIG FIVE PERSONALITY TRAITS -->
+    <div style="margin-bottom:20px;">
+      <h4 style="opacity:0.7; text-transform:uppercase; font-size:12px; letter-spacing:1px; margin-bottom:12px;">🧠 Profilo Personalità (Big Five)</h4>
+      
+      <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:8px;">
+        <!-- Openness -->
+        <div class="stat-box" style="text-align:center; background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; border:1px solid var(--glass-border);">
+          <div style="font-size:18px; margin-bottom:4px;">🌈</div>
+          <div id="big5-openness" style="font-size:18px; font-weight:700; color:#a78bfa;">-</div>
+          <div style="font-size:8px; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">Apertura</div>
+        </div>
+        
+        <!-- Conscientiousness -->
+        <div class="stat-box" style="text-align:center; background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; border:1px solid var(--glass-border);">
+          <div style="font-size:18px; margin-bottom:4px;">📋</div>
+          <div id="big5-conscientiousness" style="font-size:18px; font-weight:700; color:#34d399;">-</div>
+          <div style="font-size:8px; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">Coscienz.</div>
+        </div>
+        
+        <!-- Extraversion -->
+        <div class="stat-box" style="text-align:center; background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; border:1px solid var(--glass-border);">
+          <div style="font-size:18px; margin-bottom:4px;">🎉</div>
+          <div id="big5-extraversion" style="font-size:18px; font-weight:700; color:#fbbf24;">-</div>
+          <div style="font-size:8px; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">Estrovers.</div>
+        </div>
+        
+        <!-- Agreeableness -->
+        <div class="stat-box" style="text-align:center; background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; border:1px solid var(--glass-border);">
+          <div style="font-size:18px; margin-bottom:4px;">🤝</div>
+          <div id="big5-agreeableness" style="font-size:18px; font-weight:700; color:#60a5fa;">-</div>
+          <div style="font-size:8px; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">Amichez.</div>
+        </div>
+        
+        <!-- Neuroticism -->
+        <div class="stat-box" style="text-align:center; background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; border:1px solid var(--glass-border);">
+          <div style="font-size:18px; margin-bottom:4px;">⚡</div>
+          <div id="big5-neuroticism" style="font-size:18px; font-weight:700; color:#f87171;">-</div>
+          <div style="font-size:8px; color:var(--text-muted); text-transform:uppercase; margin-top:2px;">Nevrotic.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:15px;">
+      <h4 style="opacity:0.7; text-transform:uppercase; font-size:12px; letter-spacing:1px;">Gestione Operativa</h4>
+    </div>
+
+    <!-- DASH GRID (Senza Crescita Personale) -->
+    <div class="dash-grid">
+
+      <!-- TASK ATTIVI -->
+      <div class="dash-card" onclick="return false;">
+        <div class="dash-icon"><i class="fas fa-tasks"></i></div>
+        <div class="dash-label">Task Attivi</div>
+        <div class="dash-sub" id="sub-tasks">0 in corso</div>
+      </div>
+
+      <!-- CREA JOB -->
+      <div class="dash-card" onclick="return false;" style="border: 1px solid var(--primary);">
+        <div class="dash-icon" style="background: rgba(0,0,0,0.1);"><i class="fas fa-briefcase"></i></div>
+        <div class="dash-label">Crea Job</div>
+        <div class="dash-sub">Nuova Missione</div>
+      </div>
+
+      <!-- BADGE -->
+      <div class="dash-card" onclick="return false;">
+        <div class="dash-icon" style="background:rgba(245, 158, 11, 0.2);">
+          <i class="fas fa-trophy"></i>
+        </div>
+        <div class="dash-label">Badge</div>
+        <div class="dash-sub" id="sub-badges">0/12 sbloccati</div>
+      </div>
+
+      <!-- FORMAZIONE -->
+      <div class="dash-card" onclick="return false;">
+        <div class="dash-icon" style="background:rgba(34, 197, 94, 0.2);">
+          <i class="fas fa-graduation-cap"></i>
+        </div>
+        <div class="dash-label">Formazione</div>
+        <div class="dash-sub" id="sub-training">0 moduli disponibili</div>
+      </div>
+
+      <!-- CALENDARIO -->
+      <div class="dash-card" onclick="return false;">
+        <div class="dash-icon"><i class="fas fa-calendar-alt"></i></div>
+        <div class="dash-label">Calendario</div>
+        <div class="dash-sub" id="sub-calendar">Prossimi eventi</div>
+      </div>
+
+    </div>
+
+    <!-- SEZIONE CRESCITA DETTAGLIATA -->
+    <div class="form-section" style="margin-top:30px;">
+      <div class="form-section-title">🌱 Crescita Personale</div>
+      
+      <!-- PROFILO COMPETENZE TECNICHE -->
+      <div class="card" onclick="return false;" style="cursor:pointer; margin-bottom:15px; padding:15px;">
+        <div style="display:flex; align-items:center; gap:15px;">
+          <div style="font-size:40px;">🧠</div>
+          <div style="flex:1;">
+            <div style="font-weight:600; margin-bottom:4px;">Profilo Competenze</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">Hard skills e specializzazioni tecniche</div>
+            <div class="progress-bar" style="height:8px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
+              <div id="progress-skills" class="progress-fill" style="width:0%; height:100%; background:var(--primary); transition:width 0.5s;"></div>
+            </div>
+          </div>
+          <div id="percent-skills" style="font-size:20px; font-weight:700; color:var(--primary);">0%</div>
+        </div>
+      </div>
+
+      <!-- PROFILO COMPORTAMENTALE (SOFT SKILLS) -->
+      <div class="card" onclick="return false;" style="cursor:pointer; margin-bottom:15px; padding:15px;">
+        <div style="display:flex; align-items:center; gap:15px;">
+          <div style="font-size:40px;">🎯</div>
+          <div style="flex:1;">
+            <div style="font-weight:600; margin-bottom:4px;">Profilo Comportamentale</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">Soft skills e attitudini personali</div>
+            <div class="progress-bar" style="height:8px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
+              <div id="progress-softskills" class="progress-fill" style="width:0%; height:100%; background:var(--success); transition:width 0.5s;"></div>
+            </div>
+          </div>
+          <div id="percent-softskills" style="font-size:20px; font-weight:700; color:var(--success);">0%</div>
+        </div>
+      </div>
+
+      <!-- MODULI FORMATIVI CONSIGLIATI -->
+      <div class="card" style="padding:15px;">
+        <h4 style="margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+          <i class="fas fa-graduation-cap"></i> Moduli Consigliati
+        </h4>
+        <div id="recommended-modules">
+          <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">
+            <i class="fas fa-spinner fa-spin"></i> Caricamento moduli...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICHE RECENTI -->
+    <div class="card" style="margin-top:20px; padding:15px;">
+      <h4 style="margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+        <i class="fas fa-bell"></i> Notifiche Recenti
+      </h4>
+      <div id="notifications-list">
+        <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">
+          Nessuna notifica
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:30px; margin-bottom:30px; opacity:0.3; font-size:10px;">
+      <p>SiteBoS Operator v1.0</p>
+    </div>
+
+  </div>
+
+  
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+                    </div>
+
+                    <!-- Fade gradient in fondo per nascondere il cutoff -->
+                    <div style="position:absolute; bottom:0; left:0; right:0; height:100px; background:linear-gradient(to bottom, transparent 0%, #f8fafc 90%); pointer-events:none; z-index:10;"></div>
+                </div>
+
+                <!-- Didascalia -->
+                <div style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig  Dashboard Personale Operatore
+                </div>
+            </div>
+
+        </article>
+
+        <!-- PAGINATION -->
+        <div class="flex items-center justify-between mt-20 pt-10 border-t border-gray-100">
+            <a href="05_customer.html" class="flex flex-col gap-1 items-start group text-left">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Precedente</span>
+                <span class="font-black text-xs uppercase group-hover:underline">05. Customer Exp</span>
+            </a>
+            <a href="07_magazzino_logistica.html" class="flex flex-col gap-1 items-end group text-right">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Successivo</span>
+                <span class="font-black text-xs uppercase group-hover:underline text-blue-600">07. Magazzino & Logistica <i class="fas fa-arrow-right ml-1"></i></span>
+            </a>
+        </div>
+    </main>
+
+    <script>
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            tg.BackButton.show();
+            tg.BackButton.onClick(() => location.href='index.html');
+        }
+    </script>
+</body>
+</html>

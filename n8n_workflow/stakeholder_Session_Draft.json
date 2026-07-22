@@ -1,0 +1,2036 @@
+{
+  "name": "stakeholder_Session_Draft",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "b9fa460d-6abd-4868-80ae-ba3985d249af",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1392,
+        336
+      ],
+      "id": "5efa5d3c-e08e-4a5d-aa7b-89527c55b066",
+      "name": "Webhook",
+      "webhookId": "b9fa460d-6abd-4868-80ae-ba3985d249af"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "11cd4405-fb21-42de-8855-c501eb92e6a0",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "b9fa460d-6abd-4868-80ae-ba3985d249af",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "5e0927ce-77c2-4b89-8467-8766f447b2bc",
+              "leftValue": "={{ $json.body.user }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "f36d5a96-5cbc-4794-b2ee-25f3533cdc41",
+              "leftValue": "={{ $json.headers[\"content-length\"].toNumber() }}",
+              "rightValue": 1000,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            },
+            {
+              "id": "32b62bd1-6642-4c95-954c-4bd4e9c318f2",
+              "leftValue": "={{ $json.headers['content-type'] }}",
+              "rightValue": "=application/json",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -944,
+        336
+      ],
+      "id": "265ca0bc-85ef-4065-94b6-d0f2702b8981",
+      "name": "Autorize"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"error\",\n  \"code\": 500,\n  \"message\": \"⛔️ ACCESS DENIED: Unauthorized User or Invalid Endpoint.\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1152,
+        608
+      ],
+      "id": "05113b85-5675-4b8e-82d9-aa5cbef9a393",
+      "name": "⛔️ 500 Forbidden"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.stakeholder }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -192,
+        -288
+      ],
+      "id": "12097c2d-7d4f-4642-b372-4d5350694963",
+      "name": "stakeholders",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.user_ref.email }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        -160
+      ],
+      "id": "f8961f5e-3555-4e2c-a943-cbb8d301df85",
+      "name": "MongoDB Chat Memory4",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"complete\",\n  \"code\": 200,\n  \"message\": \"stakeholders draft/edit complete\",\n  \"skateholder\": {{ JSON.stringify($json.stakeholder) }}\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -112,
+        -768
+      ],
+      "id": "04502d41-d2d0-4f2b-a931-594861f54daa",
+      "name": "Success"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Build_Stakeholder_Draft\n// VERSIONE: 2.4 - Sincronizzazione simmetrica esclusiva di chat_id\n\nconst item = $input.first().json;\nconst wh = item.webhookUrl || \"\";\n\n// 1. ESTRAZIONE E VALIDAZIONE REALE DEI DATI\nconst userData = item.body.user || {};\nconst billingArray = item.body.fatturazione || [];\n\n// Estrazione sicura del chat_id in ingresso\nconst chat_id = userData.chat_id || (item.body.user ? item.body.user.chat_id : null);\n\n// Supporto flessibile per vat_number o pIva in ingresso\nconst firstBilling = billingArray[0] || {};\nconst hasValidBilling = !!(billingArray.length > 0 && (firstBilling.vat_number || firstBilling.pIva || firstBilling.ragioneSociale));\n\n// Mappatura verso il database con replica del chat_id\nconst billingData = hasValidBilling ? {\n    ragioneSociale: firstBilling.ragioneSociale || null,\n    vat_number: firstBilling.vat_number || firstBilling.pIva || null,\n    codiceFiscale: firstBilling.codiceFiscale || null,\n    indirizzo: firstBilling.indirizzo || null,\n    comune: firstBilling.comune || null,\n    provincia: firstBilling.provincia || null,\n    cap: firstBilling.cap || null,\n    sdi: firstBilling.sdi || null,\n    pec: firstBilling.pec || null,\n    chat_id: chat_id || firstBilling.chat_id || null // Replica chat_id se disponibile\n} : null;\n\n// Template vuoto con chat_id popolato per coerenza\nconst emptyBilling = {\n    ragioneSociale: null,\n    vat_number: null,\n    codiceFiscale: null,\n    indirizzo: null,\n    comune: null,\n    provincia: null,\n    cap: null,\n    sdi: null,\n    pec: null,\n    chat_id: chat_id || null // Preserva il chat_id anche senza fatturazione\n};\n\n// 2. DETERMINAZIONE ID ISTANZA\nlet instanceId = \"GUEST\";\nif (hasValidBilling && billingData.vat_number) {\n    instanceId = billingData.vat_number.replace('IT', '');\n} else if (userData.codiceFiscale) {\n    instanceId = userData.codiceFiscale;\n} else if (userData.email) {\n    instanceId = userData.email.replace(/[@.]/g, '_');\n}\n\nconst timestampWelcome = new Date().toISOString();\n\n// 3. COSTRUZIONE DOCUMENTO STAKEHOLDER\nconst stakeholderDraft = {\n  document_type: \"STAKEHOLDER_PROFILE\",\n  version: \"2.4\",\n  owner_instance_id: instanceId,\n  \n  // ━━━ OWNER DATA REF (Sincronizzato) ━━━\n  owner_data_ref: hasValidBilling ? { ...billingData } : emptyBilling,\n\n  // ━━━ USER REF (Sincronizzato) ━━━\n  user_ref: { \n    ...userData,\n    chat_id: chat_id || null // Garantisce la presenza del chat_id in user_ref\n  },\n  \n  metadata: {\n    status: hasValidBilling ? \"ACTIVE\" : \"PENDING_BILLING\",\n    created_at: timestampWelcome,\n    last_updated: timestampWelcome,\n    stakeholder_type: \"USER\"\n  },\n\n  professional_profile: {\n    soft_skills_modules: {\n      modulo1: { completed: false, date: null, time: null, results: null, timestamp: null },\n      modulo2: { completed: false, date: null, time: null, results: null, timestamp: null },\n      modulo3: { completed: false, date: null, time: null, results: null, timestamp: null },\n      modulo4: { completed: false, date: null, time: null, results: null, timestamp: null }\n    }\n  },\n\n  commercial_profile: {\n    customer_since: timestampWelcome,\n    tags: hasValidBilling ? [\"primary_contact\", \"owner\"] : [\"incomplete_profile\"],\n    \n    credit_balance: {\n      available_credits: hasValidBilling ? 600 : 0,\n      last_transaction_id: hasValidBilling ? \"Pioneer_Welcome\" : null,\n      lifetime_value: 0,\n      last_update: timestampWelcome\n    }\n  },\n\n  booking_summary: {\n    total_bookings: 0,\n    active_booking_count: 0,\n    historical_booking_ids: []\n  }\n};\n\n// 4. GENERAZIONE CONDIZIONALE DEL TRANSACTION SUMMARY\nconst welcomeTransaction = hasValidBilling ? {\n    id: \"Pioneer_Welcome\",\n    action: \"add\",\n    amount: 600,\n    previous_balance: 0,\n    final_balance: 600,\n    timestamp: timestampWelcome,\n    billing_source: {\n        use: \"Pioneer Welcome Gift\",\n        wh: wh\n    }\n} : null;\n\nreturn [{\n    json: {\n        ...item,\n        stakeholder: stakeholderDraft,\n        ...(welcomeTransaction ? { transaction_summary: welcomeTransaction } : {})\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        -288
+      ],
+      "id": "8919712d-bed0-4481-9be6-7bb8afc2b9d8",
+      "name": "Stakeholder_Draft"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"code\": 501,\n  \"message\": \"save/edit gone wrong\"\n}",
+        "options": {
+          "responseCode": 501
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1424,
+        -416
+      ],
+      "id": "a603f33f-f6b9-4ea3-a5af-e149fcba690d",
+      "name": "501-SaveError"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "lookup",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0c0b3055-9a07-4211-a30d-e014da9ed6de"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Draft"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d31220dd-6ac4-4e0c-acc4-c3fd0d80db60",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "edit",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Edit"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "90caed5d-a496-4b83-8f43-4ff0ba9da5fc",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "delete",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Delete"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -352,
+        -48
+      ],
+      "id": "ce85a1ad-e9a7-49e2-b933-07150df652bf",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"complete\",\n  \"code\": 200,\n  \"message\": \"stakeholders deleted\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1360,
+        336
+      ],
+      "id": "2e90a916-3610-4992-8c9a-3777d6014df1",
+      "name": "Success_Delete"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.user.email }}\"\n      }\n    }  \n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        128,
+        -128
+      ],
+      "id": "bfb37e88-3752-4129-abf3-e58b25902399",
+      "name": "Stakeholder",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        480,
+        -48
+      ],
+      "id": "04e638eb-30ec-4df5-8ebf-64a6a4e8077b",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: stakeholder_Edit\n// DESCRIZIONE: Unisce i dati esistenti nel DB con i nuovi dati dal Webhook preservando e allineando solo il chat_id\n\nconst input = $input.first().json;\n\n// 1. Recupero i dati\nlet stakeholder = { ...input.stakeholder };\nconst newData = input.body || {};\nconst newUserRef = newData.user || {};\nconst newBillingArray = newData.fatturazione || [];\n\n// 2. AGGIORNAMENTO USER_REF (Dati Personali)\nstakeholder.user_ref = {\n    ...stakeholder.user_ref,\n    ...newUserRef\n};\n\n// Estrazione e allineamento del chat_id (senza toccare user_id)\nconst currentChatId = stakeholder.user_ref.chat_id || (stakeholder.owner_data_ref ? stakeholder.owner_data_ref.chat_id : null) || (newData.user ? newData.user.chat_id : null);\n\nif (currentChatId) {\n    stakeholder.user_ref.chat_id = currentChatId;\n}\n\n// 3. AGGIORNAMENTO OWNER_DATA_REF (Fatturazione)\nif (newBillingArray.length > 0 && newBillingArray[0]) {\n    stakeholder.owner_data_ref = {\n        ...stakeholder.owner_data_ref,\n        ...newBillingArray[0],\n        chat_id: currentChatId || newBillingArray[0].chat_id || (stakeholder.owner_data_ref ? stakeholder.owner_data_ref.chat_id : null)\n    };\n} else {\n    // Sincronizza il chat_id se presente, lasciando intatti gli altri campi di owner_data_ref\n    stakeholder.owner_data_ref = stakeholder.owner_data_ref || {};\n    if (currentChatId) {\n        stakeholder.owner_data_ref.chat_id = stakeholder.owner_data_ref.chat_id || currentChatId;\n    }\n}\n\n// 4. RICALCOLO OWNER_INSTANCE_ID\nlet instanceId = stakeholder.owner_instance_id;\nif (stakeholder.owner_data_ref.pIva) {\n    instanceId = stakeholder.owner_data_ref.pIva.replace('IT', '');\n} else if (stakeholder.owner_data_ref.vat_number) {\n    instanceId = stakeholder.owner_data_ref.vat_number.replace('IT', '');\n} else if (stakeholder.user_ref.codiceFiscale) {\n    instanceId = stakeholder.user_ref.codiceFiscale;\n}\nstakeholder.owner_instance_id = instanceId;\n\n// 5. AGGIORNAMENTO METADATA\nstakeholder.metadata = {\n    ...stakeholder.metadata,\n    last_updated: new Date().toISOString(),\n    status: (stakeholder.owner_data_ref.vat_number || stakeholder.owner_data_ref.pIva || stakeholder.owner_data_ref.ragioneSociale) ? \"ACTIVE\" : \"PENDING_BILLING\"\n};\n\n// 6. LOGICA TAGS\nif (stakeholder.metadata.status === \"ACTIVE\" && !stakeholder.commercial_profile.tags.includes(\"primary_contact\")) {\n    stakeholder.commercial_profile.tags.push(\"primary_contact\");\n    stakeholder.commercial_profile.tags = stakeholder.commercial_profile.tags.filter(t => t !== \"incomplete_profile\");\n}\n\nreturn [{\n    json: {\n        stakeholder: stakeholder\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        -48
+      ],
+      "id": "d8bcc7ba-7c39-46e5-8f44-a88b8dc1f962",
+      "name": "stakeholder_Edit"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.owner_data_ref.user_id }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        720
+      ],
+      "id": "abf6c499-e1aa-46f8-823f-8887bade7700",
+      "name": "MongoDB Chat Memory1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.stakeholder }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        288,
+        -128
+      ],
+      "id": "4c82d3e0-e401-4bf3-b443-62cd0133a5f9",
+      "name": "Exist"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.user.email }}\"\n      }\n    }  \n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -336,
+        304
+      ],
+      "id": "3e3583f2-294e-41b7-bb5e-b58259106ab3",
+      "name": "Stakeholder1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.stakeholder }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -176,
+        304
+      ],
+      "id": "24eb3cda-3adb-4683-932c-afed8ba9b3e2",
+      "name": "Exist1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.user_ref.email }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        1008
+      ],
+      "id": "5b4fb90e-7c35-4d60-96ac-f5249e751d7a",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "delete",
+        "deleteMode": "all"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -336,
+        880
+      ],
+      "id": "846c4a69-53f2-47dd-89d0-c9964e2325e3",
+      "name": "stakeholders_Delete",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "delete",
+        "deleteMode": "all"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -336,
+        592
+      ],
+      "id": "3d1810d9-3d68-4088-a02f-8d154f9d8f0e",
+      "name": "ownerdata_Delete",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"code\": 502,\n  \"message\": \"delete gone wrong\"\n}",
+        "options": {
+          "responseCode": 501
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -720,
+        592
+      ],
+      "id": "e83e1cfc-5341-4b05-92be-5f95eba64cd6",
+      "name": "502-DeleteError"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        144,
+        592
+      ],
+      "id": "9e957fa3-18bb-4ee8-ae9a-9eb233f61ee5",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        144,
+        304
+      ],
+      "id": "4714b3af-a3c3-4245-8f19-ad873a8cdebb",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.honeypot }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        304
+      ],
+      "id": "48b12b7a-488b-48c1-afda-9150f724f9d3",
+      "name": "Exist2"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "honeypots",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.user_id }}\"\n      }\n    }  \n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"honeypot\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        304
+      ],
+      "id": "654fa9c2-323e-42f2-8ed9-e406482ed69c",
+      "name": "GetHoneypot",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        544
+      ],
+      "id": "dc838ba7-0c6c-4d65-8a3c-09c68533af7d",
+      "name": "Call Sanified Honeypot"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=Sei un esperto Data Privacy Officer (DPO) e un ingegnere dei dati specializzato in conformità GDPR.\nIl tuo compito è analizzare un payload JSON contenente \"intelligence aziendale\" e sanificarlo rimuovendo qualsiasi informazione di identificazione personale (PII) o aziendale (Dati Sensibili).\n\nREGOLE TASSATIVE DI SANIFICAZIONE:\n1. Sostituzione con Placeholder: Non cancellare i nodi del JSON, ma sostituisci i dati sensibili all'interno dei testi con placeholder generici scritti in MAIUSCOLO tra parentesi quadre.\n2. Dati da offuscare obbligatoriamente:\n   - Nomi di persone -> [NOME_PERSONA]\n   - Nomi di aziende/brand -> [NOME_AZIENDA]\n   - Indirizzi email -> [EMAIL]\n   - Numeri di telefono -> [TELEFONO]\n   - Indirizzi fisici, città, CAP, province -> [LUOGO]\n   - Partite IVA o Codici Fiscali -> [P_IVA] / [CODICE_FISCALE]\n   - Link a siti web o social riconducibili all'azienda -> [SITO_WEB]\n3. Cosa NON devi toccare:\n   - La struttura delle chiavi JSON (devono rimanere identiche).\n   - I nomi delle tecnologie (es. n8n, MongoDB, Google Gemini, AI, LLM).\n   - I concetti di business generici (es. Tiny Enterprise, Assessment HR, Fatturazione Algoritmica).\n   - La grammatica e la fluidità del testo.\n4. Output: Devi restituire ESCLUSIVAMENTE un oggetto JSON valido. Non inserire testo prima o dopo il JSON. Non usare formattazione markdown (```json ... ```), restituisci solo il JSON puro pronto per essere parsato.\n",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=Applica la sanificazione GDPR al seguente oggetto JSON. \nSostituisci tutti i riferimenti specifici all'azienda, al fondatore, ai contatti e ai luoghi con i relativi placeholder (es: [NOME_AZIENDA], [NOME_PERSONA], [EMAIL], [TELEFONO], [LUOGO]).\nMantieni intatta la struttura delle chiavi e il senso del business. \n\nRestituisci solo ed esclusivamente il JSON sanificato.\n\nhoneypot: {{ JSON.stringify($json.honeypot) }}",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "=delete_{{ $json.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "oHONEYPOT",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        544
+      ],
+      "id": "3ee6e6d7-c0c2-4e54-838d-699f5649c88e",
+      "name": "HoneyPotSanitification"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        320,
+        544
+      ],
+      "id": "445663e5-0ce0-4660-9e39-0602ace13429",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ad63123e-464a-437e-beed-bb86b4381386",
+              "name": "user_id",
+              "value": "={{ $json.stakeholder.owner_data_ref.user_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        304,
+        304
+      ],
+      "id": "516ad8f1-8f6f-421d-b469-bd3be3903a3e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "53a949d2-5b7c-4a3c-9947-f973f14901f8",
+              "name": "user_id",
+              "value": "={{ $json.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "db891b05-0e67-422c-b34e-852b0533a43c",
+              "name": "honeypot",
+              "value": "={{ $json.oHONEYPOT.honeypot }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        944,
+        544
+      ],
+      "id": "763ad168-9677-4d13-bf85-b62f35b5015e",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.user_id_honeypot }}",
+        "collectionName": "delted_honeypots",
+        "databaseName": "TbosSystemMemory"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        656
+      ],
+      "id": "db27b146-d66a-4cf8-9bd5-f77cc4188b45",
+      "name": "MongoDB Chat Memory6",
+      "credentials": {
+        "mongoDb": {
+          "id": "tqCvpjxHNaiVTqxi",
+          "name": "TBoSSystem"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.user_id }}_reserch",
+        "collectionName": "website_board",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        336,
+        1008
+      ],
+      "id": "a201ec3d-7b1c-4a9b-a5c2-e832b9eacc1b",
+      "name": "MongoDB Chat Memory2",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.json.honeypot }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1248,
+        544
+      ],
+      "id": "0c86063e-3692-45c8-a2c3-073695c6cb88",
+      "name": "Deleted_HoneyPot"
+    },
+    {
+      "parameters": {
+        "mode": "delete",
+        "deleteMode": "all"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        336,
+        880
+      ],
+      "id": "2dfe50a2-8d48-40cf-8885-b56740bc1cab",
+      "name": "reserch_Delete",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.user_id }}",
+        "collectionName": "honeypots",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        336,
+        1312
+      ],
+      "id": "bd3d4883-0b51-452d-af9b-9498d28dc351",
+      "name": "MongoDB Chat Memory3",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "delete",
+        "deleteMode": "all"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        336,
+        1184
+      ],
+      "id": "ef11da85-5fad-43fd-a430-accef2441d23",
+      "name": "Honeypot_Delete",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        768,
+        880
+      ],
+      "id": "16fb8834-4bfb-4438-870e-04047022629d",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1040,
+        864
+      ],
+      "id": "699be74e-2372-4900-98d4-7eeb0fc4a617",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  const uid = item.json.user_id; \n\n  // --- CODIFICA (Offuscamento Dinamico) ---\n\n  const encoded = uid.split('').map((char, i) => {\n    const code = char.charCodeAt(0);\n\n    return String.fromCharCode(code + (i % 3) + 7);\n  }).join('');\n  \n  const finalID = Buffer.from(encoded).toString('base64');\n\n\n  return {\n    json: {\n      ...item,\n      user_id_honeypot: finalID\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        544
+      ],
+      "id": "c60a5894-2c5b-466f-9752-712d4a472914",
+      "name": "idOffuscator"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        960,
+        336
+      ],
+      "id": "deadb799-c732-4dd9-a89a-ab54b1e22158",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.user.email }}\"\n      }\n    }  \n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -944,
+        -320
+      ],
+      "id": "fc1f8c99-79c3-4202-889b-7ae3c4f8ba46",
+      "name": "Stakeholder2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.stakeholder }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -784,
+        -320
+      ],
+      "id": "5e98e52b-9559-46c9-a2f0-80f41376e7b0",
+      "name": "Exist3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1648,
+        -416
+      ],
+      "id": "29e0aa2d-b78f-4fba-8161-575196cb8f89",
+      "name": "Merge7"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -544,
+        -288
+      ],
+      "id": "06d136f0-bd6d-4eea-b132-260a9e775b8c",
+      "name": "Merge8"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst ash = item.ash || (item.body ? item.body.ash : null);\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\n\nif (!ash || !ash.includes('.')) {\n    return [{ json: { isValid: false, error: \"Ash mancante o malformato\" } }];\n}\n\ntry {\n    // 1. Separazione Payload e Firma\n    const [encodedPayload, sigReceived] = ash.split('.');\n    const decodedPayload = Buffer.from(encodedPayload, 'base64').toString('utf-8');\n\n    // 2. Estrazione parametri (Usiamo | come separatore)\n    const parts = decodedPayload.split('|');\n    if (parts.length !== 3) {\n        return [{ json: { isValid: false, error: \"Struttura dati interna ash non valida\" } }];\n    }\n\n    const [chatId, timestamp, webhookId] = parts;\n\n    // 3. Ricalcolo Firma per verifica\n    function generateSignature(str, key) {\n        let hash = 0;\n        const combined = str + key;\n        for (let i = 0; i < combined.length; i++) {\n            const char = combined.charCodeAt(i);\n            hash = ((hash << 5) - hash) + char;\n            hash = hash & hash; \n        }\n        return Math.abs(hash).toString(16);\n    }\n\n    const calculatedSig = generateSignature(decodedPayload, SECRET_KEY);\n\n    // 4. Verifica Integrità\n    if (sigReceived !== calculatedSig) {\n        return [{ json: { isValid: false, error: \"Firma non valida: link manomesso\" } }];\n    }\n\n    return [{\n        json: {\n            auth_result: {\n                isValid: true,\n                chatId: chatId,\n                timestamp: new Date(parseInt(timestamp)).toISOString(),\n                webhookId: webhookId\n            }\n        }\n    }];\n} catch (e) {\n    return [{ json: { isValid: false, error: \"Errore durante la decodifica\" } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1152,
+        0
+      ],
+      "id": "efa491b1-3b56-4cff-af19-5f6eefa62839",
+      "name": "Validate_Secure_Ash"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8116d1f6-78a7-4472-a5c2-6029f1dc1f07",
+              "name": "body.user.chat_id",
+              "value": "={{ $json.auth_result.chatId }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -752,
+        -16
+      ],
+      "id": "58b18996-9f36-40bf-876a-8a8e752a7e5c",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -944,
+        -160
+      ],
+      "id": "87f3a3b7-5ba3-4a43-b01a-73d1c2135a4b",
+      "name": "Merge9"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e05f2fca-61fb-47c9-a927-14006ae81e82",
+              "leftValue": "={{ $json.auth_result.webhookId }}",
+              "rightValue": "e353fd8a-62fb-4203-a2a7-20369d832e00",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -944,
+        0
+      ],
+      "id": "53721ae4-8f29-47f9-8950-8fc4b1552749",
+      "name": "WH_true?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7df1b60c-900e-40ce-b0ba-0122d7255e74",
+              "leftValue": "={{ $json.body.ash }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "15412266-4729-4d27-a339-e5c11ec9fbbc",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": " lookup",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -944,
+        192
+      ],
+      "id": "cbf65ee9-f487-4262-bda0-ba4902ef264a",
+      "name": "Ash?"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -304,
+        -768
+      ],
+      "id": "44f88093-e81f-48d7-9c52-1303c5e24ba9",
+      "name": "Merge10"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.transaction_summary }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -544,
+        -592
+      ],
+      "id": "b390e2fc-7ed7-4b2d-879b-0a2c9b8f1e15",
+      "name": "billing_buffers",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.owner_data_ref.vat_number }}",
+        "collectionName": "billing_buffers",
+        "databaseName": "MemoryManager",
+        "contextWindowLength": 150
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        -448
+      ],
+      "id": "88ff7e33-07ce-4d06-b375-075acbd3d490",
+      "name": "MongoDB Chat Memory5",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -112,
+        -592
+      ],
+      "id": "dc017bec-8452-4b2c-84e0-f73252cf5cf9",
+      "name": "Merge11"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.transaction_summary }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -544,
+        -768
+      ],
+      "id": "79a83fe8-f1e1-4a44-bf93-0ffc692f9d4f",
+      "name": "ValidBilling"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Symfony HttpClient (Curl)",
+            "content-length": "353",
+            "accept": "application/json",
+            "accept-encoding": "gzip",
+            "content-type": "application/json",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "80.181.88.76",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "lookup",
+            "timestamp": "2026-04-14 12:05:39",
+            "user": {
+              "email": "cale.davide@gmail.com",
+              "nome": "Davide Amedeo",
+              "cognome": "Calè",
+              "codiceFiscale": "CLADDM85E03G273A",
+              "dataNascita": "1985-05-03",
+              "indirizzo": "Via Giuseppe Mazzini, 25",
+              "comune": "Menfi",
+              "provincia": "AG",
+              "cap": "92013",
+              "telefono": "3296635437"
+            },
+            "fatturazione": [],
+            "count_fatturazione": 0
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/b9fa460d-6abd-4868-80ae-ba3985d249af",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "Ash?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 500 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory4": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholders",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "501-SaveError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stakeholder_Draft": {
+      "main": [
+        [
+          {
+            "node": "stakeholders",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ValidBilling",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Stakeholder2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Stakeholder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stakeholder1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stakeholder": {
+      "main": [
+        [
+          {
+            "node": "Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "stakeholder_Edit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholder_Edit": {
+      "main": [
+        [
+          {
+            "node": "stakeholders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "ownerdata_Delete",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exist": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "501-SaveError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stakeholder1": {
+      "main": [
+        [
+          {
+            "node": "Exist1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholders_Delete",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exist1": {
+      "main": [
+        [
+          {
+            "node": "ownerdata_Delete",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "stakeholders_Delete",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "502-DeleteError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ownerdata_Delete": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "502-DeleteError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders_Delete": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "502-DeleteError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "GetHoneypot": {
+      "main": [
+        [
+          {
+            "node": "Exist2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exist2": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HoneyPotSanitification": {
+      "main": [
+        [
+          {
+            "node": "Call Sanified Honeypot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "HoneyPotSanitification",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "reserch_Delete",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Honeypot_Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "GetHoneypot",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Sanified Honeypot": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "idOffuscator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory6": {
+      "ai_memory": [
+        [
+          {
+            "node": "Deleted_HoneyPot",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "reserch_Delete",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "reserch_Delete": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "502-DeleteError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "Honeypot_Delete",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Honeypot_Delete": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "502-DeleteError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Deleted_HoneyPot": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "idOffuscator": {
+      "main": [
+        [
+          {
+            "node": "Deleted_HoneyPot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success_Delete": {
+      "main": [
+        []
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "Success_Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Stakeholder2": {
+      "main": [
+        [
+          {
+            "node": "Exist3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exist3": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge7": {
+      "main": [
+        [
+          {
+            "node": "501-SaveError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge8": {
+      "main": [
+        [
+          {
+            "node": "Stakeholder_Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate_Secure_Ash": {
+      "main": [
+        [
+          {
+            "node": "WH_true?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge9": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WH_true?": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 500 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ash?": {
+      "main": [
+        [
+          {
+            "node": "Validate_Secure_Ash",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge10": {
+      "main": [
+        [
+          {
+            "node": "Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "billing_buffers": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "501-SaveError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory5": {
+      "ai_memory": [
+        [
+          {
+            "node": "billing_buffers",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge11": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "ValidBilling": {
+      "main": [
+        [
+          {
+            "node": "billing_buffers",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "1cf009b7-33c3-4614-be8a-5f144bd92659",
+  "meta": {
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "q_2W-egXUScuMJ_A3vs3t",
+  "tags": []
+}

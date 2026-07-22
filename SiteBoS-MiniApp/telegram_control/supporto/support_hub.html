@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Support Hub | SiteBoS</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: { extend: { colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' }, borderRadius: { '3xl': '1.5rem' } } }
+        }
+    </script>
+    <style>
+        /* SiteBoS Architect Alignment */
+        body { background-color: #fafafa !important; color: #000000 !important; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        input:focus, textarea:focus, select:focus { border-color: #000000 !important; box-shadow: none !important; outline: none !important; }
+        .spinner { border: 2px solid rgba(0,0,0,0.1); border-top-color: #000; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        input[type="checkbox"] { appearance: none; width: 18px; height: 18px; border: 2px solid #000; border-radius: 4px; position: relative; cursor: pointer; }
+        input[type="checkbox"]:checked { background-color: #000; }
+        input[type="checkbox"]:checked::after { content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900; color: white; font-size: 9px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .fade-in-up { animation: fadeInUp 0.3s ease-out forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Chat bubble styles */
+        .bubble-human { background-color: #000000; color: #ffffff; border-radius: 18px 18px 4px 18px; }
+        .bubble-ai { background-color: #ffffff; color: #000000; border: 1px solid #eeeeee; border-radius: 18px 18px 18px 4px; }
+    </style>
+</head>
+<body class="bg-bg text-black min-h-screen flex flex-col pb-6 overflow-x-hidden no-scrollbar">
+
+    <!-- LOADER -->
+    <div id="loader" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[999] hidden flex items-center justify-center">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="w-full max-w-md mx-auto flex flex-col flex-1 px-4 pt-4">
+
+        <!-- ==================== VISTA INBOX ==================== -->
+        <div id="inboxView" class="fade-in-up space-y-4">
+            <header class="bg-white border border-border rounded-3xl p-5 flex items-center gap-4 shadow-sm">
+                <div class="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center text-lg shadow-md">
+                    <i class="fas fa-inbox"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-black tracking-tighter uppercase leading-none">Centro Supporto</h1>
+                    <p class="text-[8px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Inbox Comunicazioni</p>
+                </div>
+            </header>
+
+            <div class="relative">
+                <input type="text" id="searchBar" oninput="filterInbox()" 
+                    class="w-full bg-white p-3 pl-10 rounded-2xl text-xs font-bold border border-border outline-none transition focus:border-black"
+                    placeholder="Cerca cliente per nome o ID...">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
+            </div>
+
+            <!-- Tabs Filtro Inbox -->
+            <div class="flex bg-white border border-border p-1 rounded-2xl gap-1 shadow-sm text-[8px] font-black uppercase tracking-widest">
+                <button onclick="setInboxFilter('ALL')" id="filterBtn-ALL" class="flex-1 py-1.5 rounded-xl bg-black text-white transition-all text-center">
+                    Tutti
+                </button>
+                <button onclick="setInboxFilter('PENDING')" id="filterBtn-PENDING" class="flex-1 py-1.5 rounded-xl text-gray-400 hover:text-black transition-all text-center">
+                    In Attesa
+                </button>
+                <button onclick="setInboxFilter('PREV')" id="filterBtn-PREV" class="flex-1 py-1.5 rounded-xl text-gray-400 hover:text-black transition-all text-center">
+                    Richieste
+                </button>
+                <button onclick="setInboxFilter('TICKET')" id="filterBtn-TICKET" class="flex-1 py-1.5 rounded-xl text-gray-400 hover:text-black transition-all text-center">
+                    Ticket
+                </button>
+            </div>
+
+            <!-- Elenco ticket/conversazioni -->
+            <div id="inboxList" class="space-y-2">
+                <!-- Popolato da JS -->
+                <div class="text-center py-12 text-gray-400 font-bold text-xs uppercase tracking-widest bg-white rounded-3xl border border-border">
+                    <i class="fas fa-spinner animate-spin mb-2 block text-lg"></i>
+                    Caricamento conversazioni...
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== VISTA DETTAGLIO ==================== -->
+        <div id="detailView" class="hidden fade-in-up flex flex-col flex-1 space-y-4 pb-48">
+            <header class="bg-white border border-border rounded-3xl p-4 flex items-center gap-3 shadow-sm sticky top-2 z-50">
+                <button onclick="showInbox()" class="w-8 h-8 bg-gray-50 text-black rounded-lg flex items-center justify-center active:scale-90 transition border border-border">
+                    <i class="fas fa-chevron-left text-xs"></i>
+                </button>
+                <div class="flex-1 overflow-hidden">
+                    <h1 id="clientName" class="text-xs font-black uppercase tracking-tight truncate">Nome Cliente</h1>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span id="clientStatus" class="inline-block px-1.5 py-0.5 mt-0.5 bg-black text-white text-[6px] font-black uppercase tracking-widest rounded-full">GUEST</span>
+                        <span id="ticketStatusBadge" class="inline-block px-1.5 py-0.5 mt-0.5 bg-amber-100 text-amber-800 text-[6px] font-black uppercase tracking-widest rounded">IN ATTESA</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Tab Navigation -->
+            <div class="flex bg-white border border-border p-1 rounded-2xl gap-1 shadow-sm">
+                <button onclick="switchTab('CHAT')" id="tabBtn-CHAT" 
+                    class="flex-1 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest bg-black text-white transition-all flex items-center justify-center gap-1.5">
+                    <i class="fas fa-comments"></i> Chat
+                </button>
+                <button onclick="switchTab('PREV')" id="tabBtn-PREV" 
+                    class="flex-1 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-all flex items-center justify-center gap-1.5">
+                    <i class="fas fa-file-invoice-dollar"></i> Richieste
+                </button>
+                <button onclick="switchTab('PROF')" id="tabBtn-PROF" 
+                    class="flex-1 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-all flex items-center justify-center gap-1.5">
+                    <i class="fas fa-user-tie"></i> Profilo
+                </button>
+            </div>
+
+            <!-- Tab Content: CHAT -->
+            <div id="tabContent-CHAT" class="flex flex-col flex-1 space-y-2">
+                <div id="chatLog" class="flex-1 min-h-[280px] max-h-[420px] overflow-y-auto no-scrollbar space-y-3 p-4 bg-white rounded-3xl border border-border shadow-inner">
+                    <!-- Bolle messaggi -->
+                </div>
+            </div>
+
+            <!-- Tab Content: PREVENTIVI -->
+            <div id="tabContent-PREV" class="hidden space-y-2">
+                <div id="proposalsList" class="space-y-2">
+                    <!-- Popolato da JS -->
+                </div>
+            </div>
+
+            <!-- Tab Content: PROFILO / GPCTBA -->
+            <div id="tabContent-PROF" class="hidden space-y-4">
+                <!-- Contatti -->
+                <div class="bg-white border border-border rounded-3xl p-4 shadow-sm space-y-2 text-[10px]">
+                    <h3 class="font-black text-xs uppercase tracking-tight pb-2 border-b border-border text-black">Contatti</h3>
+                    <div class="flex justify-between border-b border-gray-50 pb-1">
+                        <span class="font-bold text-gray-400 uppercase tracking-widest text-[7px]">E-mail</span>
+                        <span id="clientEmail" class="font-bold text-black">N/D</span>
+                    </div>
+                    <div class="flex justify-between border-b border-gray-50 pb-1">
+                        <span class="font-bold text-gray-400 uppercase tracking-widest text-[7px]">Telefono</span>
+                        <span id="clientPhone" class="font-bold text-black">N/D</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-bold text-gray-400 uppercase tracking-widest text-[7px]">TG Chat ID</span>
+                        <span id="clientTgId" class="font-mono font-bold text-black">N/D</span>
+                    </div>
+                </div>
+
+                <!-- Qualificazione GPCTBA -->
+                <div class="bg-white border border-border rounded-3xl p-4 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between pb-2 border-b border-border">
+                        <h3 class="font-black text-xs uppercase tracking-tight text-black">Qualificazione GPCTBA</h3>
+                        <span class="text-[7px] text-gray-400 font-bold tracking-widest uppercase">Sales Model</span>
+                    </div>
+                    <div id="gpctbaGrid" class="grid grid-cols-1 gap-2.5">
+                        <!-- Popolato dinamicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANNELLO DI RISPOSTA PERSISTENTE IN DETTAGLIO -->
+            <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-lg border-t border-border z-50">
+                <div class="max-w-md mx-auto space-y-3">
+                    <textarea id="messageInput" rows="3" oninput="validateForm()" 
+                        class="w-full bg-gray-50 p-3 rounded-2xl text-xs font-semibold border border-transparent focus:border-black outline-none transition-all resize-none shadow-inner"
+                        placeholder="Scrivi una risposta al cliente..."></textarea>
+
+                    <div class="flex items-center justify-between gap-3">
+                        <!-- Allegato -->
+                        <div class="flex items-center gap-2">
+                            <button onclick="document.getElementById('fileInput').click()" 
+                                class="w-8 h-8 bg-gray-100 hover:bg-gray-200 text-black rounded-lg border border-border active:scale-95 transition flex items-center justify-center text-xs relative">
+                                <i class="fas fa-paperclip"></i>
+                                <span id="fileBadge" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-black rounded-full border border-white hidden"></span>
+                            </button>
+                            <div id="fileInfoChip" class="hidden items-center bg-gray-100 border border-border px-2 py-1 rounded-xl text-[8px] font-black uppercase text-black gap-1.5 transition-all">
+                                <span id="fileIcon"><i class="fas fa-file-alt text-gray-500"></i></span>
+                                <span id="attachedFileName" class="max-w-[70px] truncate">Nessun file</span>
+                                <button onclick="clearSelectedFile(event)" class="text-gray-400 hover:text-black">
+                                    <i class="fas fa-times-circle"></i>
+                                </button>
+                            </div>
+                            <span id="noFileLabel" class="text-[7px] font-black uppercase text-gray-400">Nessun file</span>
+                            <input type="file" id="fileInput" class="hidden" accept=".pdf,image/jpeg,image/png" onchange="handleFileSelect(event)">
+                        </div>
+
+                        <!-- Chiudi Pratica -->
+                        <div class="flex items-center gap-2 bg-gray-50 border border-border px-3 py-1.5 rounded-xl">
+                            <input type="checkbox" id="closeTicket" class="cursor-pointer">
+                            <label for="closeTicket" class="text-[8px] font-black uppercase tracking-widest text-black cursor-pointer">Chiudi Pratica</label>
+                        </div>
+                    </div>
+
+                    <!-- Tasti invio -->
+                    <div class="flex items-center gap-3">
+                        <button id="sendBtn" disabled 
+                            class="flex-1 h-10 bg-black text-white rounded-xl shadow-sm font-black uppercase tracking-widest text-[9px] active:scale-95 transition-all disabled:opacity-20 flex items-center justify-center gap-2">
+                            <i class="fas fa-paper-plane text-xs"></i> <span id="btnText">Invia Risposta</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        'use strict';
+        const WEBHOOK_URL = "https://prod.workflow.trinai.it/webhook/f9ff7847-db13-41eb-bc27-216c6a732aca";
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.ready(); tg.expand();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialAsh = urlParams.get('ash');
+
+        let originalAsh = initialAsh || localStorage.getItem('sitebos_operator_ash');
+        if (initialAsh) {
+            localStorage.setItem('sitebos_operator_ash', initialAsh);
+        }
+
+        let inboxData = [];
+        let currentCustomerId = null;
+        let selectedFile = null;
+        let activeTab = 'CHAT';
+        let currentOrders = [];
+        let currentInboxFilter = 'ALL';
+
+        const dom = {
+            loader: document.getElementById('loader'),
+            inboxView: document.getElementById('inboxView'),
+            detailView: document.getElementById('detailView'),
+            inboxList: document.getElementById('inboxList'),
+            searchBar: document.getElementById('searchBar'),
+            clientName: document.getElementById('clientName'),
+            clientStatus: document.getElementById('clientStatus'),
+            ticketStatusBadge: document.getElementById('ticketStatusBadge'),
+            clientEmail: document.getElementById('clientEmail'),
+            clientPhone: document.getElementById('clientPhone'),
+            clientTgId: document.getElementById('clientTgId'),
+            chatLog: document.getElementById('chatLog'),
+            proposalsList: document.getElementById('proposalsList'),
+            gpctbaGrid: document.getElementById('gpctbaGrid'),
+            messageInput: document.getElementById('messageInput'),
+            fileInput: document.getElementById('fileInput'),
+            fileBadge: document.getElementById('fileBadge'),
+            fileInfoChip: document.getElementById('fileInfoChip'),
+            fileIcon: document.getElementById('fileIcon'),
+            attachedFileName: document.getElementById('attachedFileName'),
+            noFileLabel: document.getElementById('noFileLabel'),
+            closeTicket: document.getElementById('closeTicket'),
+            sendBtn: document.getElementById('sendBtn'),
+            btnText: document.getElementById('btnText'),
+            tabChatBtn: document.getElementById('tabBtn-CHAT'),
+            tabPrevBtn: document.getElementById('tabBtn-PREV'),
+            tabProfBtn: document.getElementById('tabBtn-PROF'),
+            tabChatContent: document.getElementById('tabContent-CHAT'),
+            tabPrevContent: document.getElementById('tabContent-PREV'),
+            tabProfContent: document.getElementById('tabContent-PROF')
+        };
+
+        // --- INIZIALIZZAZIONE ---
+        async function init() {
+            if (!originalAsh) {
+                document.body.innerHTML = `
+                    <div class="h-screen flex items-center justify-center p-8 text-center text-red-500 font-black">
+                        <div>
+                            <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
+                            <h2 class="uppercase text-sm tracking-wider">Accesso Negato</h2>
+                            <p class="text-[9px] mt-1 text-gray-500 font-bold uppercase tracking-tight">ASH Token non presente o non valido</p>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            if (initialAsh) {
+                showLoader();
+                await loadHandoverDetails(null);
+            } else {
+                await loadInbox();
+            }
+        }
+
+        function showLoader() { dom.loader.classList.remove('hidden'); }
+        function hideLoader() { dom.loader.classList.add('hidden'); }
+
+        // --- CARICAMENTO ELENCO CHAT (INBOX) ---
+        async function loadInbox() {
+            showLoader();
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        _auth: tg.initData,
+                        ash: originalAsh,
+                        action: "get_support_inbox"
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && Array.isArray(data.sessions)) {
+                        inboxData = data.sessions;
+                        filterInbox();
+                    } else {
+                        renderInboxEmpty("Errore nel recupero delle sessioni attive.");
+                    }
+                } else {
+                    renderInboxEmpty("Impossibile connettersi al server.");
+                }
+            } catch (err) {
+                renderInboxEmpty("Errore di rete.");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        function renderInbox(sessions) {
+            dom.inboxList.innerHTML = '';
+            if (sessions.length === 0) {
+                dom.inboxList.innerHTML = `
+                    <div class="text-center py-12 text-gray-400 font-bold text-xs uppercase tracking-widest bg-white rounded-3xl border border-border">
+                        Nessuna pratica corrispondente
+                    </div>`;
+                return;
+            }
+
+            sessions.forEach(session => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-3xl border border-border flex items-center justify-between active:scale-[0.98] transition shadow-sm cursor-pointer hover:border-black";
+                card.onclick = () => selectClient(session.customer_id);
+
+                const name = session.customer_name || `Cliente (${session.customer_id})`;
+                const snippet = session.last_message ? session.last_message : "Vedi dettagli...";
+                const badgeClass = session.type === 'PREVENTIVO' ? 'bg-amber-100 text-amber-800' : 
+                                   session.type === 'BOOKING' ? 'bg-purple-100 text-purple-800' : 
+                                   'bg-blue-100 text-blue-800';
+                
+                const isClosed = session.closed === true || session.status === 'closed' || session.status === 'resolved';
+                const statusBadge = isClosed 
+                    ? `<span class="px-1.5 py-0.5 text-[6px] font-black uppercase tracking-widest rounded bg-green-100 text-green-800">GESTITO</span>` 
+                    : `<span class="px-1.5 py-0.5 text-[6px] font-black uppercase tracking-widest rounded bg-rose-100 text-rose-800">IN ATTESA</span>`;
+
+                card.innerHTML = `
+                    <div class="flex-1 overflow-hidden pr-3">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <h3 class="font-black text-xs uppercase tracking-tight truncate max-w-[150px] text-black">${name}</h3>
+                            <span class="px-1.5 py-0.5 text-[6px] font-black uppercase tracking-widest rounded ${badgeClass}">${session.type || 'TICKET'}</span>
+                            ${statusBadge}
+                        </div>
+                        <p class="text-[9px] font-medium text-gray-500 truncate mt-1">${snippet}</p>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+                `;
+                dom.inboxList.appendChild(card);
+            });
+        }
+
+        function renderInboxEmpty(msg) {
+            dom.inboxList.innerHTML = `
+                <div class="text-center py-12 text-gray-400 font-bold text-xs uppercase tracking-widest bg-white rounded-3xl border border-border">
+                    ${msg}
+                </div>`;
+        }
+
+        function setInboxFilter(filter) {
+            currentInboxFilter = filter;
+            ['ALL', 'PENDING', 'PREV', 'TICKET'].forEach(f => {
+                const btn = document.getElementById(`filterBtn-${f}`);
+                if (f === filter) {
+                    btn.className = "flex-1 py-1.5 rounded-xl bg-black text-white transition-all text-center";
+                } else {
+                    btn.className = "flex-1 py-1.5 rounded-xl text-gray-400 hover:text-black transition-all text-center";
+                }
+            });
+            filterInbox();
+        }
+
+        function filterInbox() {
+            const query = dom.searchBar.value.toLowerCase().trim();
+            let filtered = inboxData;
+
+            // Applica il filtro della categoria
+            if (currentInboxFilter === 'PENDING') {
+                filtered = filtered.filter(s => s.status !== 'resolved' && s.status !== 'closed' && s.closed !== true);
+            } else if (currentInboxFilter === 'PREV') {
+                filtered = filtered.filter(s => s.type === 'PREVENTIVO' || s.type === 'BOOKING');
+            } else if (currentInboxFilter === 'TICKET') {
+                filtered = filtered.filter(s => s.type === 'TICKET' || !s.type);
+            }
+
+            // Applica la query di ricerca
+            if (query) {
+                filtered = filtered.filter(s => 
+                    (s.customer_name && s.customer_name.toLowerCase().includes(query)) || 
+                    String(s.customer_id).includes(query)
+                );
+            }
+
+            renderInbox(filtered);
+        }
+
+        // --- VISTA DETTAGLIO ---
+        async function selectClient(customerId) {
+            currentCustomerId = customerId;
+            showLoader();
+            await loadHandoverDetails(customerId);
+        }
+
+        async function loadHandoverDetails(customerId) {
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        _auth: tg.initData,
+                        ash: originalAsh,
+                        target_customer_id: customerId,
+                        action: "get_handover_details"
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        renderClientDetails(data);
+                        dom.inboxView.classList.add('hidden');
+                        dom.detailView.classList.remove('hidden');
+                        switchTab('CHAT');
+                    } else {
+                        tg.showAlert("Impossibile caricare la scheda cliente.");
+                    }
+                } else {
+                    tg.showAlert("Errore di rete.");
+                }
+            } catch (err) {
+                tg.showAlert("Errore durante il recupero dei dettagli.");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        function renderClientDetails(data) {
+            const stake = data.stakeholder || {};
+            const ref = stake.user_ref || {};
+            const session = data.active_session || {};
+            const lead = session.lead_profile || {};
+
+            currentCustomerId = data.target_customer_id || session.customer_chatid || ref.chat_id;
+
+            // Anagrafica
+            const name = ref.nome ? `${ref.nome} ${ref.cognome || ''}`.trim() : `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || `ID: ${currentCustomerId}`;
+            dom.clientName.innerText = name;
+            
+            const isRegistered = stake.document_type === "STAKEHOLDER_PROFILE";
+            dom.clientStatus.innerText = isRegistered ? "CLIENTE VERIFICATO" : "GUEST";
+            dom.clientStatus.className = `inline-block px-1.5 py-0.5 mt-0.5 text-[6px] font-black uppercase tracking-widest rounded-full ${isRegistered ? 'bg-black text-white' : 'bg-gray-200 text-gray-500'}`;
+
+            // Ticket Status Badge
+            const isClosed = session.closed === true || session.status === 'closed' || session.status === 'resolved';
+            if (isClosed) {
+                dom.ticketStatusBadge.innerText = "RISOLTO";
+                dom.ticketStatusBadge.className = "inline-block px-1.5 py-0.5 mt-0.5 bg-green-100 text-green-800 text-[6px] font-black uppercase tracking-widest rounded";
+            } else {
+                dom.ticketStatusBadge.innerText = "IN ATTESA";
+                dom.ticketStatusBadge.className = "inline-block px-1.5 py-0.5 mt-0.5 bg-amber-100 text-amber-800 text-[6px] font-black uppercase tracking-widest rounded";
+            }
+
+            dom.clientEmail.innerText = ref.email || "Non fornita";
+            dom.clientPhone.innerText = ref.telefono || "Non fornito";
+            dom.clientTgId.innerText = currentCustomerId || "N/D";
+
+            // Chat Log
+            renderChatHistory(session.messages || []);
+
+            // Salva preventivi per esportazione
+            currentOrders = data.orders || [];
+            renderProposalsHistory(currentOrders);
+
+            // Qualificazione GPCTBA
+            const gpctbaData = session.gpctba || lead.gpctba || stake.gpctba || data.gpctba || {};
+            renderGPCTBA(gpctbaData);
+        }
+
+        // Parse robusto dei messaggi Langchain
+        function parseMessage(m) {
+            let role = 'ai';
+            if (m.type === 'human' || m.id?.[3] === 'HumanMessage' || m.kwargs?.type === 'human' || m.sender === 'customer') {
+                role = 'human';
+            }
+            const content = m.data?.content || m.kwargs?.content || m.text || m.content || '';
+            return { role, content };
+        }
+
+        function renderChatHistory(messages) {
+            dom.chatLog.innerHTML = '';
+            if (!Array.isArray(messages) || messages.length === 0) {
+                dom.chatLog.innerHTML = `<div class="text-center py-8 text-gray-300 text-[10px] font-bold uppercase tracking-wider">Nessun messaggio registrato.</div>`;
+                return;
+            }
+
+            messages.forEach(msg => {
+                const parsed = parseMessage(msg);
+                if (!parsed.content) return;
+
+                const wrap = document.createElement('div');
+                wrap.className = `flex ${parsed.role === 'human' ? 'justify-end' : 'justify-start'}`;
+
+                const inner = document.createElement('div');
+                inner.className = `max-w-[75%] p-3 text-xs font-semibold shadow-sm ${parsed.role === 'human' ? 'bubble-human' : 'bubble-ai'}`;
+                inner.innerHTML = parsed.content.replace(/\n/g, '<br>');
+
+                wrap.appendChild(inner);
+                dom.chatLog.appendChild(wrap);
+            });
+        }
+
+        function renderProposalsHistory(orders) {
+            dom.proposalsList.innerHTML = '';
+            if (!Array.isArray(orders) || orders.length === 0) {
+                dom.proposalsList.innerHTML = `
+                    <div class="text-center py-8 text-gray-400 font-bold text-xs uppercase tracking-widest bg-white rounded-3xl border border-border">
+                        Nessun preventivo, ordine o appuntamento registrato
+                    </div>`;
+                return;
+            }
+
+            orders.forEach((order, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-3xl border border-border shadow-sm space-y-3";
+
+                const isProposal = (order.sessionId && order.sessionId.includes('prev')) || order.type === 'PREVENTIVO' || order.orderId?.startsWith('prev_');
+                const isBooking = order.type === 'BOOKING' || order.orderId?.startsWith('book_');
+                const title = isProposal ? "📝 Richiesta Preventivo" : isBooking ? "📅 Proposta Appuntamento" : "📦 Ordine";
+                const total = order.total_amount ? `€ ${parseFloat(order.total_amount).toFixed(2)}` : 'N/D';
+                const date = order.timestamp ? new Date(order.timestamp).toLocaleDateString('it-IT') : 'N/D';
+
+                // Lista articoli o dettagli booking
+                let contentHtml = '';
+                if (isBooking) {
+                    const booking = order.booking_data || {};
+                    const services = booking.services || [];
+                    const servicesHtml = services.map(s => `<div class="text-[9px] font-bold text-gray-600 border-l-2 border-black pl-2 mt-1">• ${s.name} (${s.duration_min} min)</div>`).join('');
+                    
+                    const availabilities = booking.availabilities || [];
+                    const availabilitiesHtml = availabilities.map(a => `${a.day} (${a.period})`).join(', ');
+
+                    contentHtml = `
+                        <div class="space-y-2.5 text-xs">
+                            <div>
+                                <span class="font-black text-[7px] text-gray-400 uppercase tracking-widest block">Servizi Richiesti</span>
+                                ${servicesHtml || '<div class="text-gray-400 pl-2">Nessun servizio selezionato</div>'}
+                            </div>
+                            <div class="pt-1.5 border-t border-gray-50">
+                                <span class="font-black text-[7px] text-gray-400 uppercase tracking-widest block">Preferenze Disponibilità Cliente</span>
+                                <div class="text-black font-bold pl-2 mt-1 text-[10px]">
+                                    <i class="far fa-calendar-alt mr-1 text-purple-500"></i> ${availabilitiesHtml || 'N/D'}
+                                </div>
+                            </div>
+                            ${booking.notes ? `
+                            <div class="pt-1.5 border-t border-gray-50">
+                                <span class="font-black text-[7px] text-gray-400 uppercase tracking-widest block">Note Cliente</span>
+                                <div class="text-gray-500 italic pl-2 bg-gray-50 p-2 rounded-xl mt-1 border border-gray-100">${booking.notes}</div>
+                            </div>` : ''}
+                        </div>`;
+                } else {
+                    let itemsHtml = '';
+                    if (Array.isArray(order.items)) {
+                        order.items.forEach(item => {
+                            itemsHtml += `<div class="text-[9px] font-bold text-gray-600 border-l-2 border-black pl-2 mt-1">• ${item.quantity || 1}x ${item.name}</div>`;
+                        });
+                    } else if (order.description) {
+                        itemsHtml = `<div class="text-[9px] font-bold text-gray-600 border-l-2 border-black pl-2 mt-1">${order.description}</div>`;
+                    }
+                    contentHtml = `<div class="space-y-1">${itemsHtml}</div>`;
+                }
+
+                // GPCTBA specifico di questo preventivo
+                let orderGpctbaHtml = '';
+                if (order.gpctba) {
+                    const g = order.gpctba;
+                    const items = [];
+                    if (g.goals) items.push(`🎯 <b>Obiettivi:</b> ${g.goals}`);
+                    if (g.plans) items.push(`⚙️ <b>Piani:</b> ${g.plans}`);
+                    if (g.challenges) items.push(`⚠️ <b>Sfide:</b> ${g.challenges}`);
+                    if (g.timeline) items.push(`⏳ <b>Tempistiche:</b> ${g.timeline}`);
+                    if (g.budget) items.push(`💰 <b>Budget:</b> ${g.budget}`);
+                    if (g.authority) items.push(`👤 <b>Decisore:</b> ${g.authority}`);
+                    
+                    if (items.length > 0) {
+                        orderGpctbaHtml = `
+                            <div class="mt-3 p-3 bg-gray-50 border border-gray-100 rounded-2xl space-y-1.5">
+                                <span class="font-black text-[7px] text-gray-400 uppercase tracking-widest block">Qualificazione Preventivo</span>
+                                <div class="text-[8px] text-black font-semibold space-y-1">
+                                    ${items.map(it => `<div>${it}</div>`).join('')}
+                                </div>
+                            </div>`;
+                    }
+                }
+
+                let footerHtml = '';
+                if (isBooking) {
+                    const booking = order.booking_data || {};
+                    footerHtml = `
+                        <!-- Form di Pianificazione Inline -->
+                        <div id="schedule-form-${idx}" class="hidden p-3 bg-gray-50 border border-gray-100 rounded-2xl space-y-3 mt-3 fade-in-up">
+                            <span class="font-black text-[7px] text-gray-400 uppercase tracking-widest block">Definisci Appuntamento</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="space-y-1">
+                                    <label class="text-[7px] font-black uppercase text-gray-400">Data</label>
+                                    <input type="date" id="sched-date-${idx}" class="w-full bg-white p-2 rounded-xl text-[9px] font-bold border border-gray-200 outline-none">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[7px] font-black uppercase text-gray-400">Ora Inizio</label>
+                                    <input type="time" id="sched-time-${idx}" class="w-full bg-white p-2 rounded-xl text-[9px] font-bold border border-gray-200 outline-none">
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[7px] font-black uppercase text-gray-400">Durata (minuti)</label>
+                                <input type="number" id="sched-duration-${idx}" value="${booking.total_duration_min || 30}" class="w-full bg-white p-2 rounded-xl text-[9px] font-bold border border-gray-200 outline-none">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 pt-1">
+                                <button onclick="cancelSchedule(${idx})" class="h-8 bg-gray-200 text-black rounded-xl font-black uppercase text-[7px] tracking-wider transition active:scale-95">
+                                    Annulla
+                                </button>
+                                <button onclick="saveSchedule('${order.orderId || order.id || idx}', ${idx})" class="h-8 bg-black text-white rounded-xl font-black uppercase text-[7px] tracking-wider transition active:scale-95">
+                                    Conferma e Invia
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Pulsanti d'azione primari -->
+                        <div id="action-buttons-${idx}" class="grid grid-cols-2 gap-2 pt-2 border-t border-gray-50">
+                            <button onclick="showScheduleForm(${idx})" class="h-8 bg-black hover:bg-neutral-800 text-white rounded-xl font-black uppercase text-[7px] tracking-wider transition active:scale-95 flex items-center justify-center gap-1">
+                                <i class="fas fa-calendar-check"></i> Pianifica
+                            </button>
+                            <button onclick="manageBooking('${order.orderId || order.id || idx}', 'reject', ${idx})" class="h-8 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-black uppercase text-[7px] tracking-wider transition active:scale-95 flex items-center justify-center gap-1">
+                                <i class="fas fa-times-circle"></i> Rifiuta
+                            </button>
+                        </div>`;
+                } else {
+                    footerHtml = `
+                        <div class="flex justify-between items-center pt-2 border-t border-gray-50 text-[10px]">
+                            <span class="font-black uppercase tracking-widest text-gray-400 text-[8px]">Totale</span>
+                            <span class="font-black text-black">${total}</span>
+                        </div>
+                        ${orderGpctbaHtml}
+                        <div class="grid grid-cols-2 gap-2 pt-2">
+                            <button onclick="copyProposalToClipboard(${idx})" class="h-8 bg-gray-100 hover:bg-gray-200 text-black border border-border rounded-xl font-black uppercase text-[7px] tracking-wider transition active:scale-95 flex items-center justify-center gap-1">
+                                <i class="fas fa-copy"></i> Copia
+                            </button>
+                            <button onclick="downloadProposalReport(${idx})" class="h-8 bg-black hover:bg-neutral-800 text-white rounded-xl font-black uppercase text-[7px] tracking-wider transition active:scale-95 flex items-center justify-center gap-1">
+                                <i class="fas fa-download"></i> Scarica Report
+                            </button>
+                        </div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-50">
+                        <span class="font-black uppercase tracking-tight text-[10px] text-black">${title}</span>
+                        <span class="text-[8px] font-bold text-gray-400">${date}</span>
+                    </div>
+                    <div class="py-1">
+                        ${contentHtml}
+                    </div>
+                    ${footerHtml}
+                `;
+                dom.proposalsList.appendChild(card);
+            });
+        }
+
+        // --- EXPORT FUNZIONI ---
+        function generateProposalText(order) {
+            const clientName = dom.clientName.innerText;
+            const clientEmail = dom.clientEmail.innerText;
+            const clientPhone = dom.clientPhone.innerText;
+            const clientTgId = dom.clientTgId.innerText;
+            const date = order.timestamp ? new Date(order.timestamp).toLocaleString('it-IT') : 'N/D';
+            const total = order.total_amount ? `€ ${parseFloat(order.total_amount).toFixed(2)}` : 'N/D';
+            
+            let itemsText = '';
+            if (Array.isArray(order.items)) {
+                order.items.forEach(item => {
+                    itemsText += `- ${item.quantity || 1}x ${item.name} (${item.price ? '€' + parseFloat(item.price).toFixed(2) : 'N/D'})\n`;
+                });
+            } else if (order.description) {
+                itemsText += `- ${order.description}\n`;
+            } else {
+                itemsText += `- Dettagli non disponibili\n`;
+            }
+
+            let gpctbaText = 'Non completata';
+            if (order.gpctba) {
+                const g = order.gpctba;
+                gpctbaText = `
+  🎯 Obiettivi: ${g.goals || 'N/D'}
+  ⚙️ Stato Attuale: ${g.plans || 'N/D'}
+  ⚠️ Ostacoli: ${g.challenges || 'N/D'}
+  ⏳ Tempistiche: ${g.timeline || 'N/D'}
+  💰 Budget: ${g.budget || 'N/D'}
+  👤 Decisore: ${g.authority || 'N/D'}`;
+            }
+
+            return `========================================
+RESOCONTO RICHIESTA PREVENTIVO / ORDINE
+========================================
+CLIENTE: ${clientName}
+TG CHAT ID: ${clientTgId}
+EMAIL: ${clientEmail}
+TELEFONO: ${clientPhone}
+DATA RICHIESTA: ${date}
+
+PRODOTTI / SERVIZI RICHIESTI:
+${itemsText}
+TOTALE ESTIMATO: ${total}
+
+QUALIFICAZIONE GPCTBA:
+${gpctbaText}
+========================================
+Generato da SiteBoS Centro Supporto il ${new Date().toLocaleString('it-IT')}
+========================================`;
+        }
+
+        function copyProposalToClipboard(idx) {
+            const order = currentOrders[idx];
+            if (!order) return;
+            const text = generateProposalText(order);
+            navigator.clipboard.writeText(text).then(() => {
+                tg.showAlert("Resoconto copiato negli appunti con successo!");
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            }).catch(err => {
+                tg.showAlert("Errore durante la copia negli appunti.");
+            });
+        }
+
+        function downloadProposalReport(idx) {
+            const order = currentOrders[idx];
+            if (!order) return;
+            const text = generateProposalText(order);
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            const dateStr = order.timestamp ? new Date(order.timestamp).toISOString().split('T')[0] : 'date';
+            link.setAttribute("download", `Report_Preventivo_${dom.clientTgId.innerText}_${dateStr}.txt`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        }
+
+        function showScheduleForm(idx) {
+            document.getElementById(`schedule-form-${idx}`).classList.remove('hidden');
+            document.getElementById(`action-buttons-${idx}`).classList.add('hidden');
+        }
+
+        function cancelSchedule(idx) {
+            document.getElementById(`schedule-form-${idx}`).classList.add('hidden');
+            document.getElementById(`action-buttons-${idx}`).classList.remove('hidden');
+        }
+
+        async function saveSchedule(bookingId, idx) {
+            if (!currentCustomerId) return;
+            const dateVal = document.getElementById(`sched-date-${idx}`).value;
+            const timeVal = document.getElementById(`sched-time-${idx}`).value;
+            const durationVal = parseInt(document.getElementById(`sched-duration-${idx}`).value);
+
+            if (!dateVal || !timeVal || isNaN(durationVal)) {
+                tg.showAlert("Inserisci data, ora e durata per confermare l'appuntamento.");
+                return;
+            }
+
+            const order = currentOrders[idx] || {};
+            const services = order.booking_data?.services || [];
+            const servicesStr = services.map(s => s.name).join(', ');
+            
+            tg.showConfirm(`Pianificare l'appuntamento il ${dateVal} alle ore ${timeVal} con durata ${durationVal} min?`, async ok => {
+                if (ok) {
+                    showLoader();
+                    try {
+                        const response = await fetch(WEBHOOK_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                _auth: tg.initData,
+                                ash: originalAsh,
+                                target_customer_id: currentCustomerId,
+                                booking_id: bookingId,
+                                action: "confirm_booking",
+                                confirmed_slot: {
+                                    date: dateVal,
+                                    time_start: timeVal,
+                                    duration_min: durationVal,
+                                    title: `Appuntamento: ${servicesStr || "Servizi Selezionati"}`
+                                }
+                            })
+                        });
+
+                        if (response.ok) {
+                            tg.showAlert("Appuntamento confermato e salvato in agenda!");
+                            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                            await loadHandoverDetails(currentCustomerId);
+                        } else {
+                            throw new Error("Errore chiamata");
+                        }
+                    } catch (err) {
+                        tg.showAlert("Errore durante il salvataggio dell'appuntamento.");
+                    } finally {
+                        hideLoader();
+                    }
+                }
+            });
+        }
+
+        async function manageBooking(bookingId, action, idx) {
+            if (!currentCustomerId) return;
+            const actionText = action === 'confirm' ? 'CONFERMARE' : 'RIFIUTARE';
+            const actionName = action === 'confirm' ? 'confirm_booking' : 'reject_booking';
+            
+            tg.showConfirm(`Sei sicuro di voler ${actionText} questo appuntamento?`, async ok => {
+                if (ok) {
+                    showLoader();
+                    try {
+                        const response = await fetch(WEBHOOK_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                _auth: tg.initData,
+                                ash: originalAsh,
+                                target_customer_id: currentCustomerId,
+                                booking_id: bookingId,
+                                action: actionName,
+                                booking_data: currentOrders[idx]?.booking_data || {}
+                            })
+                        });
+
+                        if (response.ok) {
+                            tg.showAlert(`Appuntamento rifiutato con successo!`);
+                            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                            await loadHandoverDetails(currentCustomerId);
+                        } else {
+                            throw new Error("Errore chiamata");
+                        }
+                    } catch (err) {
+                        tg.showAlert("Errore durante la gestione dell'appuntamento.");
+                    } finally {
+                        hideLoader();
+                    }
+                }
+            });
+        }
+
+        // --- GRID GPCTBA ---
+        function renderGPCTBA(gpctba) {
+            dom.gpctbaGrid.innerHTML = '';
+            if (!gpctba || Object.keys(gpctba).length === 0) {
+                dom.gpctbaGrid.innerHTML = `
+                    <div class="text-center py-6 text-gray-400 font-bold text-[10px] uppercase tracking-widest">
+                        Nessun dato di qualificazione GPCTBA disponibile
+                    </div>`;
+                return;
+            }
+
+            const fields = [
+                { key: 'goals', label: 'Obiettivi (Goals)', icon: 'fa-bullseye', color: 'text-red-500 bg-red-50' },
+                { key: 'plans', label: 'Stato Attuale / Piani (Plans)', icon: 'fa-cog', color: 'text-blue-500 bg-blue-50' },
+                { key: 'challenges', label: 'Ostacoli (Challenges)', icon: 'fa-exclamation-triangle', color: 'text-amber-500 bg-amber-50' },
+                { key: 'timeline', label: 'Tempistiche / Urgenza (Timeline)', icon: 'fa-clock', color: 'text-indigo-500 bg-indigo-50' },
+                { key: 'budget', label: 'Budget (Budget)', icon: 'fa-wallet', color: 'text-emerald-500 bg-emerald-50' },
+                { key: 'authority', label: 'Decisore / Autorità (Authority)', icon: 'fa-user-tie', color: 'text-purple-500 bg-purple-50' }
+            ];
+
+            let hasData = false;
+            fields.forEach(f => {
+                const val = gpctba[f.key] || gpctba[f.key.toLowerCase()] || '';
+                if (val && val !== 'N/D' && val !== 'n/d') {
+                    hasData = true;
+                    const card = document.createElement('div');
+                    card.className = "p-3 bg-gray-50 rounded-2xl border border-gray-100 space-y-1";
+                    card.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-lg flex items-center justify-center text-xs ${f.color}">
+                                <i class="fas ${f.icon}"></i>
+                            </div>
+                            <span class="font-black uppercase tracking-wider text-[7px] text-gray-500">${f.label}</span>
+                        </div>
+                        <p class="text-[9px] font-bold text-black pl-8 whitespace-pre-line leading-relaxed">${val}</p>
+                    `;
+                    dom.gpctbaGrid.appendChild(card);
+                }
+            });
+
+            if (!hasData) {
+                dom.gpctbaGrid.innerHTML = `
+                    <div class="text-center py-6 text-gray-400 font-bold text-[10px] uppercase tracking-widest">
+                        Dati GPCTBA incompleti o non disponibili
+                    </div>`;
+            }
+        }
+
+        // --- NAVIGAZIONE TAB ---
+        function switchTab(tab) {
+            activeTab = tab;
+            const tabs = ['CHAT', 'PREV', 'PROF'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tabBtn-${t}`);
+                const content = document.getElementById(`tabContent-${t}`);
+                if (t === tab) {
+                    btn.className = "flex-1 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest bg-black text-white transition-all flex items-center justify-center gap-1.5";
+                    content.classList.remove('hidden');
+                } else {
+                    btn.className = "flex-1 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-all flex items-center justify-center gap-1.5";
+                    content.classList.add('hidden');
+                }
+            });
+            if (tab === 'CHAT') {
+                setTimeout(() => dom.chatLog.scrollTop = dom.chatLog.scrollHeight, 50);
+            }
+        }
+
+        function showInbox() {
+            currentCustomerId = null;
+            dom.detailView.classList.add('hidden');
+            dom.inboxView.classList.remove('hidden');
+            loadInbox();
+        }
+
+        // --- FORM RISPOSTA ---
+        function validateForm() {
+            const hasText = dom.messageInput.value.trim().length > 0;
+            dom.sendBtn.disabled = !(hasText || selectedFile);
+        }
+
+        function handleFileSelect(e) {
+            const f = e.target.files[0]; if (!f) return;
+            if (f.size > 10 * 1024 * 1024) { tg.showAlert("File max 10MB consentito."); return; }
+            const r = new FileReader(); 
+            r.onload = (ev) => {
+                selectedFile = { base64_content: ev.target.result.split(',')[1], mime_type: f.type, file_name: f.name };
+                
+                dom.fileBadge.classList.remove('hidden');
+                dom.attachedFileName.innerText = f.name;
+                
+                if (f.type === 'application/pdf') {
+                    dom.fileIcon.innerHTML = '<i class="fas fa-file-pdf text-red-600"></i>';
+                } else if (f.type.startsWith('image/')) {
+                    dom.fileIcon.innerHTML = '<i class="fas fa-file-image text-blue-600"></i>';
+                } else {
+                    dom.fileIcon.innerHTML = '<i class="fas fa-file-alt text-gray-600"></i>';
+                }
+                
+                dom.noFileLabel.classList.add('hidden');
+                dom.fileInfoChip.classList.remove('hidden');
+                dom.fileInfoChip.classList.add('flex');
+                
+                validateForm();
+            };
+            r.readAsDataURL(f);
+        }
+
+        function clearSelectedFile(e) {
+            if (e) e.stopPropagation();
+            selectedFile = null;
+            dom.fileInput.value = '';
+            dom.fileBadge.classList.add('hidden');
+            dom.fileInfoChip.classList.add('hidden');
+            dom.fileInfoChip.classList.remove('flex');
+            dom.noFileLabel.classList.remove('hidden');
+            validateForm();
+        }
+
+        dom.sendBtn.onclick = async () => {
+            if (!currentCustomerId) { tg.showAlert("Nessun cliente selezionato."); return; }
+            dom.sendBtn.disabled = true;
+            showLoader();
+            dom.btnText.innerText = "INVIO...";
+
+            const payload = {
+                _auth: tg.initData,
+                ash: originalAsh,
+                target_customer_id: currentCustomerId,
+                action: "handover",
+                message_text: dom.messageInput.value.trim(),
+                close_ticket: dom.closeTicket.checked,
+                file_data: selectedFile,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const r = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (r.ok) {
+                    dom.sendBtn.className = "flex-1 h-10 bg-green-600 text-black rounded-xl shadow-sm font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2";
+                    dom.btnText.innerText = "INVIATO!";
+                    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                    
+                    dom.messageInput.value = '';
+                    clearSelectedFile();
+
+                    await loadHandoverDetails(currentCustomerId);
+                    
+                    setTimeout(() => {
+                        dom.sendBtn.className = "flex-1 h-10 bg-black text-white rounded-xl shadow-sm font-black uppercase tracking-widest text-[9px] active:scale-95 transition-all disabled:opacity-20 flex items-center justify-center gap-2";
+                        dom.btnText.innerText = "Invia Risposta";
+                        validateForm();
+                    }, 2000);
+                } else {
+                    throw new Error("Errore risposta");
+                }
+            } catch (err) {
+                tg.showAlert("Errore durante l'invio della risposta.");
+                dom.sendBtn.disabled = false;
+                dom.btnText.innerText = "RIPROVA";
+            } finally {
+                hideLoader();
+            }
+        };
+
+        init();
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

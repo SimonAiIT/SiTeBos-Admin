@@ -1,0 +1,2501 @@
+{
+  "name": "tasks",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "d253f855-ce1a-43ee-81aa-38fa11a9d639",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -384,
+        1168
+      ],
+      "id": "06664388-5873-4f3c-91fc-3627f0560576",
+      "name": "Webhook",
+      "webhookId": "d253f855-ce1a-43ee-81aa-38fa11a9d639"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1568,
+        928
+      ],
+      "id": "2cdd5127-ca40-4908-b947-9f277ff6f3b0",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4fced2cf-09aa-4ff8-a700-3834cac2ebff",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "https://prod.workflow.trinai.it/webhook/d253f855-ce1a-43ee-81aa-38fa11a9d639",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -160,
+        1168
+      ],
+      "id": "85cb3772-02ff-49e9-b015-8f40522c37e5",
+      "name": "Autorize"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "check_customer",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b3cc8f69-4f27-48cb-8708-747db0df0dbb"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Check"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d686d619-28d5-4f4f-b293-9c3ac5fdeb2d",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_catalog",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GetCatalog"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1f301ef3-517f-4375-9e12-e13a508806af",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "generate_quote",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Generate"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "65e6cb72-7165-4c27-a840-d63bb26449ed",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_project",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GetProject"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fbfec0d1-8deb-4364-9d1c-0f32c702cd64",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "send_project_to_app",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SendProject"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1db6f807-6a0d-4b7b-8186-0ed6313173d7",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_tasks",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GetTask"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        1072
+      ],
+      "id": "695f3f37-af35-4d2e-a60a-670a3560ab76",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"error\",\n  \"code\": 500,\n  \"message\": \"⛔️ ACCESS DENIED: Unauthorized User or Invalid Endpoint.\",\n  \"details\": \"Your ID {{ $json.query.user_id || 'Unknown' }} is not in the allowlist.\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -160,
+        1024
+      ],
+      "id": "912d53ba-0113-4769-802f-10b334593012",
+      "name": "⛔️ 500 Forbidden"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "115d6c96-ddf6-45e8-8c21-3d21e41c2137",
+              "name": "body",
+              "value": "={{ $json.body }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        1152
+      ],
+      "id": "d8bb7e96-60b1-40f1-96d5-1c70e25e71ac",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "collection": "stakeholders",
+        "options": {},
+        "query": "={\n  \"messages.data.tasks.invite_token\": \"{{ $json.body.session_id }}\"\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1216,
+        912
+      ],
+      "id": "316b03d5-45a1-4182-828b-3a28994e3ba2",
+      "name": "stakeholders",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.messages[0] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1376,
+        912
+      ],
+      "id": "d07a1da6-8ebe-4504-b2f8-6aa77d47207c",
+      "name": "exist?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bfe4c563-7a59-4d37-9ee9-d40f4891210b",
+              "name": "ready",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "862f623a-2a4c-4423-ac3b-66fdb935ff08",
+              "name": "customer",
+              "value": "={{ $json.messages[0].data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1216,
+        736
+      ],
+      "id": "2e6ca076-b9ed-4206-b547-67ec2ea622ec",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1568,
+        736
+      ],
+      "id": "408878f6-8f2c-4745-9903-a2b062540b57",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "collection": "service_catalog",
+        "options": {},
+        "query": "={\n  \"sessionId\": \"{{ $json.body.vat }}_setup_ik\"\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1488,
+        1088
+      ],
+      "id": "87296fbf-fe05-431b-a2bf-300999718a1b",
+      "name": "stakeholders1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.messages[0] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1648,
+        1088
+      ],
+      "id": "11088d69-8484-4282-9f18-b0497d275308",
+      "name": "exist?1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "94e6a228-ab8b-4c26-a128-b812c7e1eda7",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "74397f01-8194-4de0-869c-314a7e3996b7",
+              "name": "categories",
+              "value": "={{ $json.messages[0].data.categories }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1840,
+        1072
+      ],
+      "id": "00a42a23-73ba-43d9-a5db-266557100019",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        688,
+        1456
+      ],
+      "id": "fe5a35e6-2bff-4897-bcc6-9287107c5d66",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.vat }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        896,
+        1392
+      ],
+      "id": "49d208a6-3904-45f9-b4ec-9da2702d90b0",
+      "name": "owner",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1088,
+        1392
+      ],
+      "id": "792fd2c7-d821-441a-97a0-f7d13c4df563",
+      "name": "OwnerExist"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1312,
+        1440
+      ],
+      "id": "c107cc69-a643-43ac-8885-94abb8079744",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        5136,
+        1536
+      ],
+      "id": "af42cf46-6c8b-4628-9454-af0fb92bc043",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8cf7f007-f2af-4913-9d80-9876a76f2701",
+              "name": "vat_number",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "8fa74f43-dcd4-4b1c-aad1-ea17ce7502c8",
+              "name": "services",
+              "value": "={{ $json.body.services }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        1744
+      ],
+      "id": "c276ec76-3167-48cd-b50e-57044d7fb59b",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "services",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        1744
+      ],
+      "id": "78b80da5-ccad-403f-8eff-91f85bafd8ce",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1440,
+        1744
+      ],
+      "id": "326d0073-6ad4-4e65-8dde-ee5d831294fb",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.messages[0] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1600,
+        2240
+      ],
+      "id": "bc941506-b894-4548-adb9-38e20e7e7dcd",
+      "name": "exist?2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "74397f01-8194-4de0-869c-314a7e3996b7",
+              "name": "services.blueprints",
+              "value": "={{ $json.messages[0].data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        2224
+      ],
+      "id": "8e7499cd-2d18-47c6-a86f-36e34eee1e64",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.messages[0] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1600,
+        2080
+      ],
+      "id": "42670149-39b7-484f-8311-5c241dc78c08",
+      "name": "exist?3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "74397f01-8194-4de0-869c-314a7e3996b7",
+              "name": "services",
+              "value": "={{ $json.messages[0].data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        2064
+      ],
+      "id": "a6b262d4-5a60-4391-8f1e-f20dd7d212fd",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {
+        "collection": "process_blueprints",
+        "options": {},
+        "query": "={\n  \"sessionId\": \"{{ $json.vat_number }}-{{ $json.services.callback_data }}\"\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1440,
+        2240
+      ],
+      "id": "b529aca6-bac6-4945-b6a9-2fb2faf3eb45",
+      "name": "blueprints",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "service_catalog",
+        "options": {},
+        "query": "={\n  \"sessionId\": \"{{ $json.vat_number }}-{{ $json.services.callback_data }}\"\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1440,
+        2080
+      ],
+      "id": "e7991a5a-8c9a-41cc-8ffd-3f372ad115e2",
+      "name": "catalog",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1440,
+        1920
+      ],
+      "id": "264ff57a-e45d-40dc-a4e0-91f061d80bd4",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "services"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        1728
+      ],
+      "id": "33e9dbf6-3743-4989-96c9-dd4ed824079a",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1664,
+        1456
+      ],
+      "id": "e4387ac9-3f87-4459-aaed-0333a414adf6",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4ae8af44-a522-443c-8a4c-cb7d22a68bfb",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            },
+            {
+              "id": "fc692d67-5f7d-4375-8df6-f3195b84fcfd",
+              "name": "customer",
+              "value": "={{ $json.body.customer }}",
+              "type": "object"
+            },
+            {
+              "id": "93d4b7e1-c6a7-4c49-8d4d-f76539c9fdaa",
+              "name": "operator_id",
+              "value": "={{ $json.body.operator_id }}",
+              "type": "string"
+            },
+            {
+              "id": "4d91ae5f-1b59-4bd1-8944-ec7905f73219",
+              "name": "photos",
+              "value": "={{ $json.body.photos }}",
+              "type": "array"
+            },
+            {
+              "id": "b59efbc7-dc2d-4d32-9383-f610dc6ba6ed",
+              "name": "documents",
+              "value": "={{ $json.body.documents }}",
+              "type": "array"
+            },
+            {
+              "id": "8f8bc36a-637d-4dba-9208-0af5b4ea05a5",
+              "name": "OperatorNote",
+              "value": "={{ $json.body.notes }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1472,
+        1440
+      ],
+      "id": "543993af-fe33-459c-aa02-b35a9f4486f8",
+      "name": "Edit Fields7"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.messages[0] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2000,
+        1584
+      ],
+      "id": "668c3e0a-ce70-4962-8191-a1055ea98cfd",
+      "name": "exist?4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "74397f01-8194-4de0-869c-314a7e3996b7",
+              "name": "HoneyPot.company_context",
+              "value": "={{ $json.messages[0].data.company_context_string }}",
+              "type": "string"
+            },
+            {
+              "id": "277b7f80-b2fc-4001-a1cf-bd14704d9098",
+              "name": "HoneyPot.offer_text",
+              "value": "={{ $json.messages[0].data.offer_text }}",
+              "type": "string"
+            },
+            {
+              "id": "6a9ecbcc-ebd4-4234-8645-c8cf07005caa",
+              "name": "HoneyPot..offers",
+              "value": "={{ $json.messages[0].data.offers }}",
+              "type": "array"
+            },
+            {
+              "id": "803bf1db-2892-4c7e-8734-85125dc19685",
+              "name": "HoneyPot.availability_schedule",
+              "value": "={{ $json.messages[0].data.availability_schedule }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2192,
+        1568
+      ],
+      "id": "4a36b996-d73a-45fc-8cac-49d03c0c9322",
+      "name": "Edit Fields8"
+    },
+    {
+      "parameters": {
+        "collection": "honeypots",
+        "options": {},
+        "query": "={\n  \"sessionId\": \"{{ $json.owner_data.vat_number }}\"\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1840,
+        1584
+      ],
+      "id": "f9b9189d-7c68-4517-948f-6ffb529a6d5f",
+      "name": "honeypot",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2384,
+        1472
+      ],
+      "id": "076110ab-a663-4730-a80a-81f96a1eddfe",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node - Spacchetta base64 photos e documents\n// Mantiene tutti i campi originali, estrae mimetype e base64 pulito\n\nconst items = $input.all();\n\nreturn items.map(item => {\n  const inputData = item.json;\n  \n  // Clona tutti i campi originali\n  const output = { ...inputData };\n  \n  // === PROCESSA PHOTOS ===\n  if (Array.isArray(inputData.photos)) {\n    output.photos = inputData.photos.map(photoBase64 => {\n      if (typeof photoBase64 === 'string' && photoBase64.includes(',')) {\n        // Split: \"data:image/jpeg;base64,/9j/4AAQ...\" -> [\"data:image/jpeg;base64\", \"/9j/4AAQ...\"]\n        const [header, data] = photoBase64.split(',');\n        \n        // Estrai mimetype da \"data:image/jpeg;base64\"\n        const mimetype = header.split(':')[1]?.split(';')[0] || 'image/jpeg';\n        \n        return {\n          mimetype: mimetype,\n          data: data  // Solo base64 pulito senza header\n        };\n      }\n      \n      // Se già è un oggetto, ritorna così com'è\n      return photoBase64;\n    });\n  }\n  \n  // === PROCESSA DOCUMENTS ===\n  if (Array.isArray(inputData.documents)) {\n    output.documents = inputData.documents.map(doc => {\n      // Se il documento ha già la struttura con \"data\" field\n      if (doc.data && typeof doc.data === 'string' && doc.data.includes(',')) {\n        const [header, data] = doc.data.split(',');\n        const mimetype = header.split(':')[1]?.split(';')[0] || doc.type || 'application/pdf';\n        \n        return {\n          name: doc.name,\n          size: doc.size,\n          mimetype: mimetype,\n          data: data  // Solo base64 pulito\n        };\n      }\n      \n      // Se è direttamente una stringa base64\n      if (typeof doc === 'string' && doc.includes(',')) {\n        const [header, data] = doc.split(',');\n        const mimetype = header.split(':')[1]?.split(';')[0] || 'application/pdf';\n        \n        return {\n          mimetype: mimetype,\n          data: data\n        };\n      }\n      \n      // Se già è formattato correttamente, ritorna così\n      return doc;\n    });\n  }\n  \n  return { json: output };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2544,
+        1472
+      ],
+      "id": "514171a9-47e6-4bb1-9ad7-39e05bd58171",
+      "name": "base64 Parser"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.finalApiUrl }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "={{ $json.GeminiKey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.geminiApiCallPayload }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3296,
+        1824
+      ],
+      "id": "48ac63fc-4c5f-4445-97ba-37f41edd6cad",
+      "name": "Gemini Think",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 2000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: DPF (Dynamic Payload Factory) - MULTI-MEDIA VERSION\n// VERSIONE: 3.0 - Supporto per array photos[] e documents[]\n// OBIETTIVO: Assemblare il payload finale per Gemini con tutti i media inline\n\n// --- 1. Estrazione degli Input ---\nconst item = $input.first().json;\n\n// Input obbligatori\nconst systemInstruction = item.SystemInstruction;\nconst prompt = item.Prompt;\nconst modelChoiceUrl = item.ModelChoice;\nconst GeminiKey = item.GeminiKey;\n\n// Input opzionali\nconst useGrounding = item.grounding === true;\n\n// Array di media (già processati dal nodo precedente)\nconst photos = item.photos || [];\nconst documents = item.documents || [];\n\n// Validazione input essenziali\nif (!systemInstruction || !prompt || !modelChoiceUrl) {\n    throw new Error('DPF Error: Input essenziali mancanti (SystemInstruction, Prompt, o ModelChoice).');\n}\n\n// --- 2. Costruzione della Sezione \"contents\" ---\nconst contentsParts = [{ \"text\": prompt }];\n\n// === AGGIUNGI TUTTE LE FOTO ===\nif (Array.isArray(photos) && photos.length > 0) {\n    photos.forEach(photo => {\n        if (photo.data && photo.mimetype) {\n            contentsParts.push({\n                \"inline_data\": {\n                    \"mime_type\": photo.mimetype,\n                    \"data\": photo.data\n                }\n            });\n        }\n    });\n    console.log(`DPF: Aggiunte ${photos.length} foto al payload`);\n}\n\n// === AGGIUNGI TUTTI I DOCUMENTI ===\nif (Array.isArray(documents) && documents.length > 0) {\n    documents.forEach(doc => {\n        if (doc.data && doc.mimetype) {\n            contentsParts.push({\n                \"inline_data\": {\n                    \"mime_type\": doc.mimetype,\n                    \"data\": doc.data\n                }\n            });\n        }\n    });\n    console.log(`DPF: Aggiunti ${documents.length} documenti al payload`);\n}\n\n// --- 3. Costruzione del Payload Finale ---\nlet finalPayload = {\n    \"system_instruction\": {\n        \"parts\": [\n            { \"text\": systemInstruction }\n        ]\n    },\n    \"contents\": [\n        {\n            \"role\": \"user\",\n            \"parts\": contentsParts\n        }\n    ],\n    \"generation_config\": {\n        \"thinkingConfig\": {\n            \"thinkingBudget\": -1\n        },\n        \"response_mime_type\": \"application/json\"\n    }\n};\n\n// --- 4. Configurazione Grounding (opzionale) ---\nif (useGrounding) {\n    finalPayload.tools = [\n        {\n            \"google_search_retrieval\": {}\n        }\n    ];\n}\n\n// --- 5. Output Finale (SOLO payload per Gemini) ---\nconst outputItem = {\n    finalApiUrl: modelChoiceUrl,\n    geminiApiCallPayload: finalPayload,\n    GeminiKey: GeminiKey\n};\n\n// Logging per debug\nconsole.log(`DPF: Payload preparato per: ${modelChoiceUrl}`);\nconsole.log(`DPF: Grounding: ${useGrounding}`);\nconsole.log(`DPF: Total media parts: ${contentsParts.length - 1}`); // -1 per il text prompt\n\nreturn [{\n    json: outputItem\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3152,
+        1824
+      ],
+      "id": "1869d085-a83e-4d17-93e6-18b0d5244af6",
+      "name": "DPF Gemini T"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "13a9d006-e657-4ed7-8f23-d187f73d7138",
+              "name": "services",
+              "value": "={{ $json.body.services }}",
+              "type": "array"
+            },
+            {
+              "id": "c8daebef-65a2-4161-9af2-1b4d34e32509",
+              "name": "vat",
+              "value": "={{ $json.body.vat }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1936,
+        1440
+      ],
+      "id": "a7091769-3fcb-4c21-aa33-89cdb74668ba",
+      "name": "Edit Fields10"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Trasforma services array in quantity_service con service_id composito\nconst item = $input.first().json;\n\nconst vat = item.vat;\nconst services = item.services || [];\n\nconst quantityService = services.map(service => ({\n  service_id: `${vat}-${service.callback_data}`,\n  quantity: service.quantity\n}));\n\nreturn [{\n  json: {\n    quantity_service: quantityService\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2128,
+        1440
+      ],
+      "id": "b5b24f86-6add-43a0-bd64-51d47cc43679",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2736,
+        1456
+      ],
+      "id": "d625063f-d3e7-4c05-a427-fe069ce77b78",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Brutal Force Parser V7 - Proactive Sanitization Edition\n\n// OBIETTIVO: Parser JSON robusto per output LLM con sistema di correzione\n//            proattiva a cascata. Elimina la dipendenza dai messaggi di errore\n//            specifici attraverso sanificazione preventiva intelligente.\n//\n// ARCHITETTURA: Logica bifasica con pipeline di sanificazione ottimizzata\n//               Fase 1: Tentativo parsing diretto (ottimistico)\n//               Fase 2: Sanificazione proattiva + retry (resiliente)\n//\n// OUTPUT: Oggetto JSON parsato (successo) o oggetto errore strutturato (fallimento)\n// ==============================================================================\n\n// --- FUNZIONI DI SANIFICAZIONE PROATTIVA ---\n\n/**\n * Chiude parentesi graffe, quadre e virgolette non bilanciate\n * PRIORITÀ: MASSIMA - Garantisce integrità strutturale per operazioni successive\n */\nfunction closeBracketsQuotes(str) {\n    let cleaned = str;\n    \n    // Conteggio parentesi graffe\n    const openBraces = (str.match(/{/g) || []).length;\n    const closeBraces = (str.match(/}/g) || []).length;\n    \n    // Conteggio parentesi quadre\n    const openBrackets = (str.match(/\\[/g) || []).length;\n    const closeBrackets = (str.match(/]/g) || []).length;\n    \n    // Chiusura intelligente: rispetta l'ordine di annidamento\n    if (openBraces > closeBraces) {\n        const missing = openBraces - closeBraces;\n        cleaned += '}'.repeat(missing);\n        console.log(`REPAIR APPLIED: Closed ${missing} unclosed brace(s).`);\n    }\n    \n    if (openBrackets > closeBrackets) {\n        const missing = openBrackets - closeBrackets;\n        cleaned += ']'.repeat(missing);\n        console.log(`REPAIR APPLIED: Closed ${missing} unclosed bracket(s).`);\n    }\n    \n    // Gestione virgolette: conta solo quelle non escapate usando lookbehind negativo\n    const unescapedQuotes = (str.match(/(?<!\\\\)\"/g) || []).length;\n    if (unescapedQuotes % 2 !== 0) {\n        cleaned += '\"';\n        console.log(\"REPAIR APPLIED: Closed unclosed quote.\");\n    }\n    \n    return cleaned;\n}\n\n/**\n * Rimuove virgole trailing prima di } o ]\n * Errore comune: {\"key\":\"value\",} o [1,2,3,]\n */\nfunction removeTrailingCommas(str) {\n    const cleaned = str.replace(/,(\\s*[}\\]])/g, '$1');\n    if (cleaned !== str) {\n        console.log(\"REPAIR APPLIED: Removed trailing comma(s).\");\n    }\n    return cleaned;\n}\n\n/**\n * Aggiunge virgole mancanti tra elementi consecutivi\n * Pattern gestiti:\n * - Stringhe consecutive: \"a\" \"b\" → \"a\",\"b\"\n * - Oggetti consecutivi: }{  → },{\n * - Array consecutivi: ][  → ],[\n * - Proprietà oggetto: \"key\":\"value\" \"key2\" → \"key\":\"value\",\"key2\"\n */\nfunction fixMissingCommas(str) {\n    let cleaned = str;\n    \n    // Virgola tra stringhe consecutive separate da newline o spazi\n    cleaned = cleaned.replace(/\"\\s*\\n\\s*\"/g, '\",\\n\"');\n    \n    // Virgola tra oggetti consecutivi\n    cleaned = cleaned.replace(/}(\\s*){/g, '},\\n{');\n    \n    // Virgola tra array consecutivi\n    cleaned = cleaned.replace(/](\\s*)\\[/g, '],\\n[');\n    \n    // Virgola tra proprietà di oggetti (pattern più conservativo)\n    cleaned = cleaned.replace(/(\"\\s*:\\s*(?:\"[^\"]*\"|[^,}\\s]+))\\s+\"/g, '$1,\"');\n    \n    if (cleaned !== str) {\n        console.log(\"REPAIR APPLIED: Fixed missing comma(s).\");\n    }\n    \n    return cleaned;\n}\n\n/**\n * Pipeline di sanificazione completa con tracking delle operazioni\n * ORDINE OTTIMIZZATO: Struttura → Sintassi → Separatori\n * Questo ordine garantisce che le operazioni successive lavorino su JSON \"completo\"\n */\nfunction sanitizeJsonString(str) {\n    let result = str;\n    const repairs = [];  // Traccia operazioni applicate per analytics\n    \n    // FASE 1: Completamento strutturale (massima priorità)\n    const beforeClose = result;\n    result = closeBracketsQuotes(result);\n    if (result !== beforeClose) repairs.push(\"STRUCTURAL_CLOSURE\");\n    \n    // FASE 2: Pulizia virgole trailing (ora su struttura completa)\n    const beforeTrailing = result;\n    result = removeTrailingCommas(result);\n    if (result !== beforeTrailing) repairs.push(\"TRAILING_COMMA_REMOVAL\");\n    \n    // FASE 3: Aggiunta virgole mancanti (ultima operazione)\n    const beforeMissing = result;\n    result = fixMissingCommas(result);\n    if (result !== beforeMissing) repairs.push(\"MISSING_COMMA_INSERTION\");\n    \n    // Log strutturato per analytics\n    if (repairs.length > 0) {\n        console.log(`SANITIZATION_PIPELINE: Applied [${repairs.join(' → ')}]`);\n    }\n    \n    return result;\n}\n\n// --- FUNZIONE DI PARSING A DUE FASI ---\n\n/**\n * Parser proattivo con strategia ottimistica + resiliente\n * Elimina completamente la dipendenza dai messaggi di errore specifici\n */\nfunction proactiveJsonParse(jsonString) {\n    // FASE 1: Tentativo diretto (percorso veloce per JSON già validi)\n    try {\n        const result = JSON.parse(jsonString);\n        console.log(\"Phase 1 SUCCESS: Direct parsing succeeded.\");\n        return result;\n    } catch (directError) {\n        console.log(`Phase 1 failed: ${directError.message}. Attempting proactive sanitization...`);\n    }\n    \n    // FASE 2: Sanificazione proattiva + Retry (percorso resiliente)\n    try {\n        const sanitized = sanitizeJsonString(jsonString);\n        const parsed = JSON.parse(sanitized);\n        console.log(\"Phase 2 SUCCESS: Parsing succeeded after sanitization.\");\n        return parsed;\n    } catch (sanitizedError) {\n        // Entrambe le fasi sono fallite - restituisce errore dettagliato\n        throw new Error(\n            `Parser Error: Impossibile riparare il JSON. ` +\n            `Dettaglio: ${sanitizedError.message}`\n        );\n    }\n}\n\n// --- LOGICA PRINCIPALE DEL NODO ---\n\nlet stringToParse = '';  // Variabile per tracking in caso di errore\n\ntry {\n    // --- ESTRAZIONE INPUT DA GEMINI API RESPONSE ---\n    const rawString = $input.first().json.candidates[0].content.parts[0].text;\n\n    // Validazione presenza e tipo\n    if (!rawString || typeof rawString !== 'string' || rawString.trim() === '') {\n        stringToParse = rawString || \"Input vuoto\";\n        throw new Error(\"La stringa di input dall'AI è vuota o non valida.\");\n    }\n\n    // --- PREPROCESSING: RIMOZIONE MARKDOWN CODE BLOCKS ---\n    // Gestisce sia `````` come delimitatori\nlet cleanedString = rawString\n\n    .replace(/^```(?:json)?\\s*/, '') \n    .replace(/\\s*```$/, '');        \n\n    // --- ESTRAZIONE OGGETTO JSON PRINCIPALE ---\n    // Cerca il primo { e l'ultimo } per isolare l'oggetto JSON\n    const firstBrace = cleanedString.indexOf('{');\n    const lastBrace = cleanedString.lastIndexOf('}');\n\n    // Validazione presenza struttura JSON\n    if (firstBrace === -1 || lastBrace === -1 || lastBrace < firstBrace) {\n        stringToParse = cleanedString;\n        throw new Error(\"Nessun oggetto JSON valido trovato nella stringa.\");\n    }\n\n    // Estrazione substring contenente solo il JSON\n    stringToParse = cleanedString.substring(firstBrace, lastBrace + 1);\n    \n    // --- PARSING PROATTIVO BIFASICO ---\n    const parsedJson = proactiveJsonParse(stringToParse);\n    \n    // --- PERCORSO DI SUCCESSO ---\n    // Restituisce il JSON parsato sulla via principale (uscita verde)\nreturn [{\n    json: {\n        project: parsedJson\n    }\n}];\n\n} catch (error) {\n    // --- PERCORSO DI FALLIMENTO ---\n    // Costruisce oggetto di errore strutturato invece di far fallire il nodo\n    // Questo permette al workflow di gestire il fallimento tramite Livello 3 (LLM riparatore)\n    console.error(`Parser ha fallito. Messaggio: ${error.message}`);\n    console.error(`Stringa problematica salvata per fallback repair.`);\n    \n    return [{\n        json: {\n            error: error.message,\n            Prompt: stringToParse  // Salva la stringa per il tentativo di riparazione LLM\n        }\n    }];\n}\n\n// ==============================================================================\n// NOTE DI IMPLEMENTAZIONE:\n// \n// 1. CONFIGURAZIONE NODO N8N:\n//    - Mode: \"Run Once for All Items\"\n//    - Language: JavaScript\n//    - Continue On Fail: false (gestito internamente dal codice)\n//\n// 2. NODO SUCCESSIVO CONSIGLIATO:\n//    Un \"IF\" node che controlla la presenza del campo \"error\" nell'output\n//    - Se presente: instrada verso Livello 3 (LLM riparatore + MongoDB retry logic)\n//    - Se assente: continua il workflow normale\n//\n// 3. LOGGING E ANALYTICS:\n//    Tutti i console.log() sono visibili nei log di esecuzione n8n\n//    Considera l'aggiunta di un nodo MongoDB logger per aggregare metriche:\n//    - Frequenza operazioni di repair\n//    - Tasso successo Fase 1 vs Fase 2\n//    - Pattern di errori ricorrenti\n//\n// 4. EVOLUZIONE FUTURA:\n//    Per aggiungere nuove correzioni, semplicemente:\n//    a) Crea una nuova funzione fixNuovoErrore()\n//    b) Aggiungila alla pipeline in sanitizeJsonString()\n//    c) Aggiungi console.log() per tracking\n//\n// ==============================================================================\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3296,
+        1664
+      ],
+      "id": "12a3ccbc-a158-41a8-ac43-b2038ba67941",
+      "name": "Parse_Parts",
+      "alwaysOutputData": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<system_instruction>\n  <role>\n    Sei un Senior Sales Architect per: {{ $json.owner_data.ragione_sociale }}.\n    Il tuo contesto operativo è: {{ $json.owner_data.business_description }}.\n    \n    MISSIONE B2B:\n    Stai scrivendo a un'AZIENDA (o Professionista).\n    Devi vendere VALORE, ROI e SICUREZZA.\n    Il preventivo deve sembrare un \"Progetto Esecutivo\", non una lista della spesa.\n  </role>\n  \n  <communication_style>\n    <rule_1>\n      Traduci il tecnico in vantaggio competitivo.\n      - NO: \"Configurazione API Rest N8N\".\n      - SÌ: \"Integrazione automatica che elimina l'errore umano e velocizza i processi\".\n    </rule_1>\n    <rule_2>\n      IPER-CONTESTUALIZZAZIONE.\n      Usa le <operator_notes> e i MEDIA.\n      Se il cliente vuole uno \"Specchio Magico\", ogni riga del preventivo deve spiegare come quel servizio contribuisce a realizzarlo.\n    </rule_2>\n    <rule_3>\n      TRUST & COMPLIANCE (Cruciale).\n      Giustifica il prezzo alto evidenziando la sicurezza legale e informatica (GDPR, Cyber Security).\n      Riempi sempre l'array \"compliance_trust_badges\".\n    </rule_3>\n    <rule_4>\n      Lingua output: {{ $json.owner_data.lenguage }}.\n    </rule_4>\n  </communication_style>\n\n  <identity_protocol>\n    <provider>\n      Analizza <provider_identity> (HoneyPot). Assumi quel \"Tone of Voice\" aziendale.\n    </provider>\n    <customer>\n      Analizza <customer_data>. Parla al \"Voi\" aziendale o al Referente professionale.\n    </customer>\n  </identity_protocol>\n\n  <logic_processing>\n    <service_matching>\n      Usa SOLO i servizi in <catalog_services> richiesti in <quantity_list>.\n    </service_matching>\n\n    <multimodal_analysis>\n      HAI ACCESSO A MEDIA (Inline Data). GUARDALI.\n      Usa ciò che vedi per dimostrare di aver capito il contesto operativo del cliente.\n    </multimodal_analysis>\n\n    <blueprint_simplification>\n      Sintetizza i blueprint tecnici in \"milestones\" chiare e orientate al risultato.\n    </blueprint_simplification>\n  </logic_processing>\n\n  <output_schema format=\"JSON_ONLY\">\n    Genera ESCLUSIVAMENTE un oggetto JSON valido:\n    {\n      \"meta\": {\n        \"quote_id\": \"String (QT-{TIMESTAMP})\",\n        \"language\": \"String\",\n        \"provider_name\": \"String\"\n      },\n      \"customer_context\": {\n        \"name\": \"String (Nome Azienda/Referente)\",\n        \"needs_summary\": \"String (Sintesi potente del bisogno business basata su Note e Media)\"\n      },\n      \"executive_summary\": {\n        \"title\": \"String (Titolo professionale orientato al risultato)\",\n        \"value_proposition\": \"String (Come la soluzione porta ROI o Vantaggio Competitivo)\"\n      },\n      \"items\": [\n        {\n          \"sku\": \"String\",\n          \"name\": \"String\",\n          \"qty\": Number,\n          \"price_unit\": Number,\n          \"total\": Number,\n          \"description_customized\": \"String (Descrizione business-oriented, cita il progetto specifico)\",\n          \"timeline_estimation\": \"String\",\n          \"compliance_trust_badges\": [\"Array di 2-3 stringhe brevi (Es: 'GDPR Compliant', 'Data Encryption', 'ISO Standard')\"],\n          \"milestones\": [\"Array di stringhe (Fasi di progetto chiare)\"]\n        }\n      ],\n      \"financials\": {\n        \"subtotal\": Number,\n        \"tax_percent\": Number,\n        \"tax_amount\": Number,\n        \"grand_total\": Number,\n        \"currency\": \"String\"\n      }\n    }\n  </output_schema>\n</system_instruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ai_quote_request>\n\n  <settings>\n    <timestamp>{{ new Date().toISOString() }}</timestamp>\n    <target_language>{{ $json.owner_data.lenguage }}</target_language>\n  </settings>\n\n  <!-- ISTRUZIONE MEDIA -->\n  <visual_context_instruction>\n    ⚠️ ATTENZIONE: Analizza i file allegati (Foto/PDF).\n    Usa gli insight visivi per confermare la fattibilità tecnica e personalizzare l'offerta.\n  </visual_context_instruction>\n\n  <customer_data>\n    <name>Alberto Trinaier</name>\n    <email>info@trinai.it</email>\n    <company>TrinAi Srl</company>\n  </customer_data>\n\n  <!-- CONTESTO PROGETTO -->\n  <project_context>\n    <operator_notes>{{ $json.OperatorNote }}</operator_notes>\n  </project_context>\n\n  <!-- IDENTITÀ PROVIDER -->\n  <provider_identity>\n     {{ JSON.stringify($json.HoneyPot) }}\n  </provider_identity>\n\n  <!-- DATI TECNICI -->\n  <technical_data>\n    <quantity_list>\n      {{ JSON.stringify($json.quantity_service) }}\n    </quantity_list>\n    <catalog_services>\n      {{ JSON.stringify($json.services) }}\n    </catalog_services>\n  </technical_data>\n\n  <task>\n    1. Analizza MEDIA e <operator_notes>. Definisci l'obiettivo di Business del cliente.\n    2. Identificati come il Provider (B2B).\n    3. Seleziona i servizi richiesti.\n    4. SCRIVI IL PREVENTIVO (JSON):\n       - Traduci i termini tecnici in vantaggi di business (\"Potabile\").\n       - COMPILA SEMPRE \"compliance_trust_badges\" per ogni servizio (Fondamentale per il valore percepito).\n       - Collega ogni servizio al progetto specifico citato nelle note.\n       - Mantieni un tono professionale e rassicurante.\n  </task>\n\n</ai_quote_request>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "496c68d5-53ff-47d6-bfa7-507bc08e9966",
+              "name": "photos",
+              "value": "={{ $json.photos }}",
+              "type": "array"
+            },
+            {
+              "id": "edc50324-b4a4-4b23-acd3-b53a0dc45dbf",
+              "name": "documents",
+              "value": "={{ $json.documents }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2992,
+        1824
+      ],
+      "id": "6b7d1a40-3e93-4caf-9597-0696f6e2a8b1",
+      "name": "AnalizeB2B"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dea4bf5f-904c-4d59-af16-46ab4043218b",
+              "name": "operator_id",
+              "value": "={{ $json.operator_id }}",
+              "type": "string"
+            },
+            {
+              "id": "35cc8ef1-231b-4a47-a8a1-9023e89b0ee4",
+              "name": "OperatorNote",
+              "value": "={{ $json.OperatorNote }}",
+              "type": "string"
+            },
+            {
+              "id": "9cf950ee-35fb-4fc5-9e0d-e48cf3f98e61",
+              "name": "customer",
+              "value": "={{ $json.customer }}",
+              "type": "object"
+            },
+            {
+              "id": "98a6d0a7-f04c-4f5a-954f-eb6f9c95b6d6",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3296,
+        1456
+      ],
+      "id": "222c3b6d-a074-44f9-8c5e-f7c4e91cfff6",
+      "name": "Edit Fields9"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3568,
+        1552
+      ],
+      "id": "0ffce400-b5d3-4aa9-908b-2d6bbd29461f",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Project Data Integration & Placeholder Replacement\n// Sostituisce placeholder LLM con dati reali e arricchisce metadata\n\nconst item = $input.first().json;\n\n// === 1. ESTRAI DATI REALI ===\nconst customer = item.customer;\nconst ownerData = item.owner_data;\nconst operatorId = item.operator_id;\n\n// Trova operatore che ha creato il preventivo\nconst operator = ownerData.operators.find(op => op.OperatorChatID?.toString() === operatorId);\nconst operatorName = operator?.OperatorName || \"Operatore Sconosciuto\";\n\n// Trova il task legato a questo VAT e operatore per estrarre invite_token\nconst taskIndex = customer.tasks?.findIndex(task => \n  task.linked_vat_id === ownerData.vat_number && \n  task.linked_operator_id === operatorId\n);\n\nconst customerTask = customer.tasks?.[taskIndex];\nconst inviteToken = customerTask?.invite_token || null;\n\n// Genera Project ID basato su invite_token se disponibile\nlet projectId;\nif (inviteToken) {\n  projectId = `${inviteToken}`;\n} else {\n  projectId = `${item.project.meta.quote_id.replace('QT-', '')}`;\n}\n\n// === 2. DATI REALI CLIENTE ===\nconst realCustomerData = {\n  name: `${customer.firstName} ${customer.lastName}`.trim(),\n  email: customer.email,\n  phone: customer.phone || \"N/A\",\n  company: customer.company || \"Privato\",\n  address: customer.address ? \n    `${customer.address.street}, ${customer.address.zip} ${customer.address.city} (${customer.address.province})` : \n    \"N/A\"\n};\n\n// === 3. FUNZIONE DI SOSTITUZIONE PLACEHOLDER ===\nfunction replacePlaceholders(text, realData) {\n  if (typeof text !== 'string') return text;\n  \n  return text\n    .replace(/<name>.*?<\\/name>/g, realData.name)\n    .replace(/<email>.*?<\\/email>/g, realData.email)\n    .replace(/<company>.*?<\\/company>/g, realData.company)\n    .replace(/<phone>.*?<\\/phone>/g, realData.phone)\n    .replace(/\\{customer_name\\}/g, realData.name)\n    .replace(/\\{customer_email\\}/g, realData.email)\n    .replace(/\\{customer_company\\}/g, realData.company)\n    .replace(/\\{customer_phone\\}/g, realData.phone)\n    .replace(/Alberto Trinaier/g, realData.name)\n    .replace(/TrinAi Srl/g, realData.company)\n    .replace(/info@trinai\\.it/g, realData.email);\n}\n\n// === 4. APPLICA SOSTITUZIONE RICORSIVA ===\nfunction deepReplacePlaceholders(obj, realData) {\n  if (typeof obj === 'string') {\n    return replacePlaceholders(obj, realData);\n  } else if (Array.isArray(obj)) {\n    return obj.map(item => deepReplacePlaceholders(item, realData));\n  } else if (obj !== null && typeof obj === 'object') {\n    const newObj = {};\n    for (const key in obj) {\n      newObj[key] = deepReplacePlaceholders(obj[key], realData);\n    }\n    return newObj;\n  }\n  return obj;\n}\n\n// === 5. CLONA E PROCESSA IL PROJECT ===\nlet enrichedProject = JSON.parse(JSON.stringify(item.project));\n\n// Sostituisci tutti i placeholder nel project\nenrichedProject = deepReplacePlaceholders(enrichedProject, realCustomerData);\n\n// === 6. ARRICCHISCI METADATA ===\nenrichedProject.meta.project_id = projectId;\nenrichedProject.meta.invite_token = inviteToken;\nenrichedProject.meta.created_at = new Date().toISOString();\nenrichedProject.meta.created_by_operator = operatorName;\nenrichedProject.meta.created_by_operator_id = operatorId;\nenrichedProject.meta.vat_number = ownerData.vat_number;\nenrichedProject.meta.status = \"draft\";\n\n// Aggiungi validità preventivo (+30 giorni)\nconst validUntil = new Date();\nvalidUntil.setDate(validUntil.getDate() + 30);\nenrichedProject.meta.valid_until = validUntil.toISOString().split('T')[0];\n\n// === 7. AGGIORNA CUSTOMER CONTEXT CON DATI REALI ===\nenrichedProject.customer_context = {\n  name: realCustomerData.company !== \"Privato\" ? \n    `${realCustomerData.name} (${realCustomerData.company})` : \n    realCustomerData.name,\n  email: realCustomerData.email,\n  phone: realCustomerData.phone,\n  address: realCustomerData.address,\n  needs_summary: enrichedProject.customer_context.needs_summary\n};\n\n// === 8. AGGIORNA TASK NEL CUSTOMER CON PROJECT DRAFT ===\nconst updatedCustomer = JSON.parse(JSON.stringify(customer));\n\nif (taskIndex !== -1 && taskIndex !== undefined) {\n  // Aggiungi il project al task corrispondente\n  updatedCustomer.tasks[taskIndex].project = {\n    project_id: projectId,\n    quote_id: enrichedProject.meta.quote_id,\n    status: \"draft\",\n    created_at: enrichedProject.meta.created_at,\n    total_amount: enrichedProject.financials.grand_total,\n    currency: enrichedProject.financials.currency\n  };\n  \n  console.log(`✅ Task aggiornato con project_id: ${projectId} (status: draft)`);\n} else {\n  console.warn('⚠️ Nessun task trovato per aggiornare il project');\n}\n\n// === 9. OUTPUT FINALE ===\nconst output = {\n  owner_data: ownerData,\n  operator_id: operatorId,\n  operator_name: operatorName,\n  operator_note: item.OperatorNote,\n  \n  // Customer aggiornato con project nel task\n  customer: updatedCustomer,\n  \n  // Project arricchito e con placeholder sostituiti\n  project: enrichedProject,\n  \n  // Metadati per workflow successivi\n  workflow_metadata: {\n    project_id: projectId,\n    invite_token: inviteToken,\n    customer_email: realCustomerData.email,\n    total_amount: enrichedProject.financials.grand_total,\n    currency: enrichedProject.financials.currency,\n    status: \"draft\",\n    created_at: enrichedProject.meta.created_at,\n    valid_until: enrichedProject.meta.valid_until\n  }\n};\n\n// Logging\nconsole.log(`✅ Project ID: ${projectId}`);\nconsole.log(`👤 Operatore: ${operatorName}`);\nconsole.log(`📧 Cliente: ${realCustomerData.name} (${realCustomerData.email})`);\nconsole.log(`💰 Totale: ${enrichedProject.financials.grand_total} ${enrichedProject.financials.currency}`);\nconsole.log(`🔗 Invite Token: ${inviteToken || 'N/A'}`);\nconsole.log(`📊 Status: draft`);\n\nreturn [{ json: output }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3776,
+        1552
+      ],
+      "id": "48e7bc4c-d45d-45d7-bee9-89e780a8546c",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"$or\": [\n        {\n          \"messages.0.data.telegram_id\": {\n            \"$eq\": \"{{ $json.customer.telegram_id }}\"\n          }\n        },\n        {\n          \"messages.0.data.google_id\": {\n            \"$eq\": \"{{ $json.customer.google_id }}\"\n          }\n        }\n      ]\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        3776,
+        1376
+      ],
+      "id": "4935e229-fab3-4da0-84eb-b830075f8990",
+      "name": "stakeholders2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.messages[0] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3936,
+        1376
+      ],
+      "id": "27c59186-1709-498d-865f-e5402969ef6e",
+      "name": "exist?5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3b3b3885-73ee-4166-8927-99e498f6dd10",
+              "name": "project.meta.customer_Id",
+              "value": "={{ $json.sessionId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3968,
+        1584
+      ],
+      "id": "cd4f71a0-2c43-45d5-af61-d3bbe835fa73",
+      "name": "Edit Fields11"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4240,
+        1568
+      ],
+      "id": "ac29da3a-436d-452b-9c08-1b3a50acb068",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.project.meta.customer_Id }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        4480,
+        1792
+      ],
+      "id": "adac6cc9-4ca6-45e4-9e6f-941fb0524321",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.customer }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        4480,
+        1664
+      ],
+      "id": "1dd45811-df27-420a-a04d-ee2c8d7f7170",
+      "name": "stakeholders4"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.project.meta.project_id }}",
+        "collectionName": "projects",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        4480,
+        1488
+      ],
+      "id": "807b2210-03b7-4c18-81f7-2e8601b41bb7",
+      "name": "MongoDB Chat Memory1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.project }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        4480,
+        1360
+      ],
+      "id": "3c6d3b96-de24-4d51-8ab1-dea451721180",
+      "name": "project"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4864,
+        1536
+      ],
+      "id": "1653fbb4-bda5-4578-842a-396e17850940",
+      "name": "Merge7"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.project }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2320,
+        1152
+      ],
+      "id": "dac046eb-1c8a-4fb9-9248-0f4ab5bc2ee2",
+      "name": "OwnerExist1"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "projects",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.invite_token }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"project\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2128,
+        1152
+      ],
+      "id": "974fc0c8-e46a-4105-a5b1-71dae0b030bf",
+      "name": "projects",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d5e95aca-ca93-43e5-817e-b8571bf20d91",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2544,
+        1136
+      ],
+      "id": "d402391f-f3c3-42aa-9110-dfaa15b33961",
+      "name": "Edit Fields12"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f401a903-305d-44db-b395-5bc62a843c47",
+              "name": "body.project.meta.status",
+              "value": "=pending",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        576
+      ],
+      "id": "c5e0a52f-3814-472c-bfce-e6fbbabdd1a9",
+      "name": "Edit Fields13"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.project.meta.project_id }}",
+        "collectionName": "projects",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        144,
+        496
+      ],
+      "id": "3371e3c6-d3c9-4381-9ebf-35284878d5c1",
+      "name": "MongoDB Chat Memory2",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.body.project }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        144,
+        368
+      ],
+      "id": "70725ca2-ccf2-4c8d-85fc-3f06cacc02fa",
+      "name": "project1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        528,
+        560
+      ],
+      "id": "897b715c-cd56-4f86-b582-da96941db7c6",
+      "name": "Merge8"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recuperiamo i dati dal nodo precedente\nconst inputData = items[0].json.body ? items[0].json.body.project : items[0].json;\n\n// --- FUNZIONI DI UTILITÀ ---\n\nconst formatMoney = (amount, currency = 'EUR') => {\n  return new Intl.NumberFormat('it-IT', {\n    style: 'currency',\n    currency: currency,\n    minimumFractionDigits: 2\n  }).format(amount);\n};\n\nconst formatDate = (dateString) => {\n  if (!dateString) return '';\n  const date = new Date(dateString);\n  return date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });\n};\n\n// --- LOGICA FISCALE ---\nlet taxNote = \"\";\nif (inputData.financials.tax_amount === 0) {\n    taxNote = \"Operazione effettuata ai sensi dell’articolo 1, commi da 54 a 89, della Legge n. 190/2014 così come modificato dalla Legge n. 208/2015. Imposta di bollo da 2 euro assolta sull'originale per importi superiori a 77,47 euro.\";\n}\n\n// --- COSTRUZIONE HTML ---\n\nconst itemsHtml = inputData.items.map(item => {\n    \n    const complianceBadges = (item.compliance_trust_badges || []).map(badge => \n        `<span class=\"badge-trust\">🛡️ ${badge}</span>`\n    ).join('');\n\n    const milestonesList = (item.milestones || []).map(m => \n        `<li class=\"milestone-item\"><span class=\"icon-check\">✓</span> ${m}</li>`\n    ).join('');\n\n    return `\n    <div class=\"service-card\">\n        <div class=\"card-header\">\n            <div class=\"header-left\">\n                <span class=\"service-name\">${item.name}</span>\n                <span class=\"sku-tag\">${item.sku}</span>\n            </div>\n            <div class=\"header-right\">\n                <span class=\"service-price\">${formatMoney(item.total, inputData.financials.currency)}</span>\n            </div>\n        </div>\n        \n        <div class=\"card-body\">\n            <div class=\"timeline-pill\">⏱ ${item.timeline_estimation}</div>\n            \n            <div class=\"description\">\n                ${item.description_customized}\n            </div>\n\n            <div class=\"compliance-section\">\n                ${complianceBadges}\n            </div>\n\n            <div class=\"milestones-section\">\n                <h5>Fasi Operative</h5>\n                <ul>\n                    ${milestonesList}\n                </ul>\n            </div>\n        </div>\n    </div>\n    `;\n}).join('');\n\n\n// --- TEMPLATE COMPLETO ---\nconst htmlTemplate = `\n<!DOCTYPE html>\n<html lang=\"${inputData.meta.language || 'it'}\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Preventivo ${inputData.meta.quote_id}</title>\n    <style>\n        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');\n        \n        :root {\n            --primary: #2563EB;\n            --primary-light: #EFF6FF;\n            --secondary: #0F172A;\n            --text: #334155;\n            --border: #E2E8F0;\n            --success: #059669;\n            --success-bg: #ECFDF5;\n            --warning-bg: #FFFBEB;\n            --warning-text: #B45309;\n        }\n\n        body {\n            font-family: 'Inter', sans-serif;\n            color: var(--text);\n            line-height: 1.6;\n            margin: 0;\n            padding: 0;\n            background-color: #fff;\n            -webkit-print-color-adjust: exact; \n        }\n\n        .container {\n            max-width: 800px;\n            margin: 0 auto;\n            padding: 40px;\n        }\n\n        /* HEADER AGGIORNATO */\n        header {\n            display: flex;\n            justify-content: space-between;\n            align-items: flex-start;\n            border-bottom: 2px solid var(--primary);\n            padding-bottom: 20px;\n            margin-bottom: 40px;\n        }\n\n        .brand h1 { margin: 0; color: var(--secondary); font-size: 24px; text-transform: uppercase; font-weight: 800; line-height: 1.2; }\n        \n        .provider-details {\n            font-size: 13px;\n            color: #475569;\n            margin-top: 4px;\n            margin-bottom: 8px;\n        }\n\n        .doc-type {\n            font-size: 11px;\n            color: var(--primary);\n            font-weight: 700;\n            letter-spacing: 1px;\n            text-transform: uppercase;\n            background: var(--primary-light);\n            padding: 4px 8px;\n            border-radius: 4px;\n            display: inline-block;\n        }\n        \n        .meta-grid { text-align: right; font-size: 13px; color: #64748B; }\n        .meta-grid strong { color: var(--secondary); }\n\n        /* CLIENT INFO */\n        .info-section {\n            display: grid;\n            grid-template-columns: 1fr 1fr;\n            gap: 40px;\n            margin-bottom: 40px;\n        }\n        \n        .info-box h3 { font-size: 11px; text-transform: uppercase; color: #94A3B8; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; }\n        .client-name { font-size: 18px; font-weight: 700; color: var(--secondary); }\n        .client-details { font-size: 13px; color: #475569; margin-top: 5px; }\n\n        /* EXECUTIVE SUMMARY */\n        .exec-summary {\n            background: linear-gradient(135deg, var(--primary-light) 0%, #FFFFFF 100%);\n            border: 1px solid #BFDBFE;\n            border-left: 5px solid var(--primary);\n            border-radius: 8px;\n            padding: 25px;\n            margin-bottom: 50px;\n        }\n        .exec-title { color: var(--primary); font-weight: 700; font-size: 18px; margin-bottom: 10px; }\n        .exec-text { font-size: 15px; color: var(--secondary); margin: 0; }\n\n        /* SERVICE CARDS */\n        .service-card {\n            border: 1px solid var(--border);\n            border-radius: 12px;\n            margin-bottom: 30px;\n            overflow: hidden;\n            page-break-inside: avoid;\n            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);\n        }\n\n        .card-header {\n            background: #F8FAFC;\n            padding: 20px 25px;\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n            border-bottom: 1px solid var(--border);\n        }\n\n        .service-name { font-weight: 700; color: var(--secondary); font-size: 16px; display: block; }\n        .sku-tag { font-family: monospace; font-size: 11px; background: #E2E8F0; padding: 2px 6px; border-radius: 4px; color: #64748B; margin-top: 4px; display: inline-block; }\n        .service-price { font-weight: 700; font-size: 18px; color: var(--secondary); }\n\n        .card-body { padding: 25px; }\n\n        .timeline-pill {\n            display: inline-block;\n            background: var(--warning-bg);\n            color: var(--warning-text);\n            font-size: 12px;\n            font-weight: 600;\n            padding: 4px 12px;\n            border-radius: 20px;\n            margin-bottom: 15px;\n            border: 1px solid #FDE68A;\n        }\n\n        .description { font-size: 14px; margin-bottom: 25px; text-align: justify; }\n\n        .compliance-section { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 25px; }\n        .badge-trust { \n            font-size: 11px; background: var(--success-bg); color: var(--success); \n            padding: 4px 8px; border-radius: 4px; font-weight: 600; border: 1px solid #A7F3D0; \n        }\n\n        .milestones-section { background: #F8FAFC; padding: 15px; border-radius: 8px; }\n        .milestones-section h5 { margin: 0 0 10px 0; font-size: 11px; text-transform: uppercase; color: #94A3B8; }\n        .milestones-section ul { padding: 0; margin: 0; list-style: none; }\n        .milestone-item { font-size: 13px; margin-bottom: 6px; display: flex; gap: 10px; }\n        .icon-check { color: var(--primary); font-weight: bold; }\n\n        /* FINANCIALS */\n        .financials-wrapper {\n            display: flex;\n            justify-content: flex-end;\n            margin-top: 40px;\n            page-break-inside: avoid;\n        }\n\n        .totals-table { width: 350px; border-collapse: collapse; }\n        .totals-table td { padding: 8px 0; text-align: right; }\n        .label { font-size: 14px; color: #64748B; }\n        .value { font-size: 15px; font-weight: 600; color: var(--secondary); font-family: monospace; }\n        \n        .grand-total td { border-top: 2px solid var(--secondary); padding-top: 15px; margin-top: 10px; }\n        .grand-total .label { font-weight: 700; color: var(--secondary); font-size: 16px; }\n        .grand-total .value { font-weight: 800; color: var(--primary); font-size: 24px; }\n\n        /* FOOTER */\n        footer {\n            margin-top: 60px;\n            border-top: 1px solid var(--border);\n            padding-top: 20px;\n            font-size: 11px;\n            color: #94A3B8;\n            text-align: center;\n        }\n        .tax-note { color: #64748B; font-style: italic; margin-top: 5px; }\n\n    </style>\n</head>\n<body>\n\n<div class=\"container\">\n\n    <header>\n        <div class=\"brand\">\n            <h1>${inputData.meta.provider_name}</h1>\n            <div class=\"provider-details\">\n                P.IVA: ${inputData.meta.vat_number || 'N/A'}\n            </div>\n            <span class=\"doc-type\">Project Proposal</span>\n        </div>\n        <div class=\"meta-grid\">\n            <div><strong>ID Progetto:</strong> ${inputData.meta.quote_id}</div>\n            <div><strong>Emesso il:</strong> ${formatDate(inputData.meta.created_at)}</div>\n            <div><strong>Scadenza:</strong> ${formatDate(inputData.meta.valid_until)}</div>\n        </div>\n    </header>\n\n    <div class=\"info-section\">\n        <div class=\"info-box\">\n            <h3>Destinatario</h3>\n            <div class=\"client-name\">${inputData.customer_context.name}</div>\n            <div class=\"client-details\">\n                ${inputData.customer_context.address ? inputData.customer_context.address + '<br>' : ''}\n                ${inputData.customer_context.email}<br>\n                ${inputData.customer_context.phone || ''}\n            </div>\n        </div>\n        <div class=\"info-box\">\n            <h3>Obiettivo Strategico</h3>\n            <div style=\"font-size: 14px; color: #475569; font-style: italic;\">\n                \"${inputData.customer_context.needs_summary}\"\n            </div>\n        </div>\n    </div>\n\n    <div class=\"exec-summary\">\n        <div class=\"exec-title\">${inputData.executive_summary.title}</div>\n        <p class=\"exec-text\">${inputData.executive_summary.value_proposition}</p>\n    </div>\n\n    <div class=\"services-list\">\n        ${itemsHtml}\n    </div>\n\n    <div class=\"financials-wrapper\">\n        <table class=\"totals-table\">\n            <tr>\n                <td class=\"label\">Imponibile</td>\n                <td class=\"value\">${formatMoney(inputData.financials.subtotal, inputData.financials.currency)}</td>\n            </tr>\n            ${inputData.financials.tax_amount > 0 ? `\n            <tr>\n                <td class=\"label\">IVA (${inputData.financials.tax_percent}%)</td>\n                <td class=\"value\">${formatMoney(inputData.financials.tax_amount, inputData.financials.currency)}</td>\n            </tr>` : ''}\n            \n            <tr class=\"grand-total\">\n                <td class=\"label\">TOTALE</td>\n                <td class=\"value\">${formatMoney(inputData.financials.grand_total, inputData.financials.currency)}</td>\n            </tr>\n        </table>\n    </div>\n\n    <footer>\n        <div>${inputData.meta.provider_name} • P.IVA ${inputData.meta.vat_number}</div>\n        <div class=\"tax-note\">${taxNote}</div>\n    </footer>\n\n</div>\n\n</body>\n</html>\n`;\n\nreturn {\n  html: htmlTemplate\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        736,
+        560
+      ],
+      "id": "dccb79b2-6fc9-47f0-aafb-10278e4a344a",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"html\": {{ JSON.stringify($json.html) }},\n  \"status\": \"pending\",\n  \"message\": \"Project sent to customer app\"\n}\n",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        944,
+        560
+      ],
+      "id": "050149f8-1f5d-424f-8117-bb9a0f42c1f2",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "company_logbook",
+        "query": "=[\n  {\n    \"$match\": {\n      \"owner_id\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_id\": 1,\n      \"routines\": 1,\n      \"_id\": 0\n    }\n  }\n]",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -112,
+        96
+      ],
+      "id": "mongodb-get-logbook-node-id",
+      "name": "MongoDB Get Logbook",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"routines\": {{ $json.routines || [] }}\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        100,
+        96
+      ],
+      "id": "respond-get-logbook-node-id",
+      "name": "Respond Get Logbook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 500 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "stakeholders",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "stakeholders1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "projects",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields13",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MongoDB Get Logbook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders": {
+      "main": [
+        [
+          {
+            "node": "exist?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exist?": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders1": {
+      "main": [
+        [
+          {
+            "node": "exist?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exist?1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 500 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "owner",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "owner": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerExist": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 500 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields7",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "blueprints",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "catalog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exist?2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "exist?3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "blueprints": {
+      "main": [
+        [
+          {
+            "node": "exist?2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "catalog": {
+      "main": [
+        [
+          {
+            "node": "exist?3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "honeypot",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields7": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exist?4": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 500 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields8": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "honeypot": {
+      "main": [
+        [
+          {
+            "node": "exist?4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "base64 Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "base64 Parser": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Gemini Think": {
+      "main": [
+        [
+          {
+            "node": "Parse_Parts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DPF Gemini T": {
+      "main": [
+        [
+          {
+            "node": "Gemini Think",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields10": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "AnalizeB2B",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse_Parts": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "AnalizeB2B": {
+      "main": [
+        [
+          {
+            "node": "DPF Gemini T",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields9": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "stakeholders2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders2": {
+      "main": [
+        [
+          {
+            "node": "exist?5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exist?5": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields11",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 500 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields11": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "stakeholders4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "project",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholders4",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders4": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "project",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "project": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge7": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerExist1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields12",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 500 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "projects": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields12": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields13": {
+      "main": [
+        [
+          {
+            "node": "project1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "project1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "project1": {
+      "main": [
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge8": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Get Logbook": {
+      "main": [
+        [
+          {
+            "node": "Respond Get Logbook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond Get Logbook": {}
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e8e67af8-8a65-468b-babf-7cc2535aea04",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "8mT1FXgIbJ324z8D",
+  "tags": []
+}

@@ -1,0 +1,3271 @@
+{
+  "name": "analize_evidence",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        288,
+        768
+      ],
+      "id": "3f61f614-39b3-47f5-8053-04b8862497f8",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.user_request.evidence_type }}",
+                    "rightValue": "VISION",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0c59108b-93ef-42b8-85b8-ba6e86e487f1"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Vision"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b917f164-87f3-4ebc-8981-e22cb99d4b3c",
+                    "leftValue": "={{ $json.user_request.evidence_type }}",
+                    "rightValue": "FILE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "File"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "94c39545-3872-4adc-9680-24f5689da576",
+                    "leftValue": "={{ $json.user_request.evidence_type }}",
+                    "rightValue": "TEXT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "40f752ea-28fd-4238-a9af-8438d7212315",
+                    "leftValue": "={{ $json.user_request.evidence_type }}",
+                    "rightValue": "SIGNATURE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Firma"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e710a948-6609-49ed-a861-1b08a3c19a31",
+                    "leftValue": "={{ $json.user_request.evidence_type }}",
+                    "rightValue": "SKIP",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Skip"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1200,
+        752
+      ],
+      "id": "0ccb85fd-b174-4f8a-8f33-4c5808cbb34f",
+      "name": "Switch3"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "process_blueprints",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}-{{ $json.user_request.sop_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"Blueprint\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        1296
+      ],
+      "id": "2081c261-a155-4327-a527-cfdb1f497ad3",
+      "name": "blueprints1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d12c796a-4e17-4456-9a7d-022242576163",
+              "leftValue": "={{ $json.Blueprint }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        1296
+      ],
+      "id": "ce74806c-304d-41b8-8601-7ea1393d26b3",
+      "name": "blueprint Exist1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        496,
+        784
+      ],
+      "id": "e06b6f90-839b-4601-91bb-83f8996893f4",
+      "name": "Merge24"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n<Role>TrinAi_Enterprise_Auditor_Intelligence</Role>\n<Persona>\nSei un Revisore Tecnico, Fiscale e Strategico Senior. Il tuo compito è analizzare evidenze multimediali (foto o documenti) caricate dal personale aziendale. \nHai una doppia missione: \n1. AUDIT (Il Notaio): Certificare con inflessibile precisione che l'evidenza rispetti i protocolli operativi e legali (Compliance).\n2. INTELLIGENCE (Il CFO/Consulente): Estrarre da quell'evidenza il massimo valore informativo, fiscale o strategico per l'azienda (es. deducibilità, rischi normativi, ottimizzazione costi).\n</Persona>\n\n<Rules>\n1. **AUDIT RIGOROSO**: Valuta l'immagine rispetto all'<ActiveProcedure> e al <ComplianceFramework>. Se non è pertinente o viola una regola bloccante, imposta `success: false`.\n2. **VERITÀ DOCUMENTALE**: Produci un `rationale` tecnico e inoppugnabile che descriva esattamente cosa hai certificato (o perché hai respinto l'evidenza). Questo è il testo per il registro ufficiale.\n3. **ANALISI FISCALE E LEGALE**: Oltre a validare, inquadra il documento/oggetto secondo la normativa italiana (es. TUIR, IVA, D.Lgs 81/08). Identifica la tipologia (es. \"Scontrino non parlante\", \"DPI a norma CE\", \"Fattura\").\n4. **INTELLIGENCE STRATEGICA**: Genera un `strategic_insight`. Se l'evidenza è valida, fornisci un consiglio per ottimizzare il processo (es. come recuperare l'IVA, come migliorare la sicurezza, o avvisi su scadenze). Se è respinta, spiega esattamente come l'operatore deve rimediare.\n</Rules>\n\n<OutputSchema>\n{\n  \"success\": boolean,\n  \"rationale\": \"Dichiarazione peritale oggettiva per il registro legale (es. 'Acquisita evidenza fotografica di... conforme al protocollo...').\",\n  \"extracted_value\": \"Tutti i dati estratti dall' OCR semantico\",\n  \"fiscal_legal_status\": \"L'inquadramento normativo/fiscale dell'oggetto o documento analizzato (es. 'Spesa di rappresentanza deducibile', 'Manutenzione ordinaria a norma').\",\n  \"strategic_insight\": \"Il consiglio operativo, fiscale o di sicurezza di alto valore per l'imprenditore o l'operatore.\"\n}\n</OutputSchema>\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<AuditTask>\n<CompanyProfile>\n  {{ $json.HoneyPot.company_context_string }}\n</CompanyProfile>\n\n<ActiveProcedure>\n  Nome: {{ $json.current_step_details.step_name }}\n  Obiettivo: {{ $json.current_step_details.instructions }}\n  Criterio di Accettazione: {{ $json.current_step_details.acceptance_criteria }}\n</ActiveProcedure>\n\n<ComplianceFramework>\n  <![CDATA[\n  {{ $json.Compliance.content || \"Nessun framework legale specifico fornito. Applica rigorosamente le normative italiane vigenti (Fisco, Lavoro, Sicurezza, GDPR).\" }}\n  ]]>\n</ComplianceFramework>\n\n<Task>\nEsegui un Audit Integrato sull'evidenza allegata:\nFASE 0: DATA EXTRACTION (OCR Semantico)\n- Estrai tutti i metadati rilevanti compilando minuziosamente l'oggetto `extracted_data`. NON INVENTARE DATI.\n\nFASE 1: AUDIT (Validazione)\n- L'immagine rappresenta ciò che è richiesto dall'<ActiveProcedure>?\n- L'evidenza soddisfa il <Criterio di Accettazione> senza violare il <ComplianceFramework>?\n- Imposta `success` a true o false e scrivi il `rationale` ufficiale. Estrai il dato puro in `extracted_value`.\n\nFASE 2: INTELLIGENCE (Analisi Fiscale/Normativa)\n- Compila `fiscal_legal_status`: Qual è il peso legale/fiscale di questo documento/oggetto in Italia? (es. Se è uno scontrino, indica la detraibilità IVA in base alla presenza di P.IVA/CF. Se è un controllo sicurezza, indica se la data di scadenza è a norma).\n\nFASE 3: STRATEGIA (Consulenza)\n- Compila `strategic_insight`: Trasforma la tua analisi in un consiglio pratico. \n  - Se è un costo aziendale, suggerisci come ottimizzare il recupero fiscale la prossima volta.\n  - Se è una procedura di sicurezza, suggerisci un miglioramento o avvisa di eventuali rischi futuri.\n  - Se hai bocciato l'evidenza, scrivi le istruzioni esatte per l'operatore per correggere l'errore.\n</Task>\n\n<Format>Rispondi ESCLUSIVAMENTE con un oggetto JSON valido e ben formattato.</Format>\n</AuditTask>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "Evicence_Rational_Log",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.evidence }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.mime_type }}",
+              "type": "string"
+            },
+            {
+              "id": "52d68f54-d986-42d2-9c1b-f133640073e0",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "3b411433-83e3-4e35-9280-0faf679687b4",
+              "name": "billing_source.use",
+              "value": "=Catalog Evidence Analysis {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "21fa3301-3598-46ca-a870-a1c7ed87ec5d",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/6333dff0-d886-499c-8000-f3e0266845ed",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        448
+      ],
+      "id": "7dbfc52a-9702-4e65-8193-8161d3bcb67a",
+      "name": "VisionRational"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        768,
+        528
+      ],
+      "id": "c089bcd8-0fd7-4c90-97db-aa6adb89a2d7",
+      "name": "GeminiCallCert"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n<Role>TrinAi_Enterprise_Document_Auditor</Role>\n<Persona>\nSei un Revisore Tecnico, Fiscale e Strategico Senior. Analizzi documenti digitali (fatture, bolle, referti, checklist) caricati dal personale aziendale.\nHai una doppia missione:\n1. AUDIT (Il Notaio): Certificare con inflessibile precisione che il documento rispetti i protocolli operativi e legali dell'azienda.\n2. INTELLIGENCE (Il CFO/Consulente): Estrarre dal documento il massimo valore informativo, fiscale o strategico (es. deducibilità, rischi normativi, ottimizzazione).\n</Persona>\n\n<Rules>\n1. **AUDIT RIGOROSO**: Valuta il documento rispetto all'<ActiveProcedure> e al <ComplianceFramework>. Se non è pertinente (es. è un PDF vuoto o una foto senza senso) o viola una regola bloccante, DEVI impostare 'success': false.\n2. **VERITÀ DOCUMENTALE**: Produci un `rationale` tecnico che descriva esattamente cosa hai certificato (o perché hai respinto l'evidenza). Questo è il testo inoppugnabile per il registro ufficiale.\n3. **ANALISI FISCALE E LEGALE**: Inquadra il documento secondo la normativa italiana (es. IVA, TUIR, Sicurezza, Privacy). Identifica la tipologia formale (es. \"Fattura elettronica\", \"DPI a norma\", \"Consenso GDPR\").\n4. **INTELLIGENCE STRATEGICA**: Genera un `strategic_insight`. Se il documento è valido, dai un consiglio per ottimizzare il processo o recuperare costi. Se è respinto, spiega esattamente all'operatore come rimediare.\n</Rules>\n\n<OutputSchema>\n{\n  \"success\": boolean,\n  \"rationale\": \"Dichiarazione peritale oggettiva per il registro legale (es. 'Acquisito documento conforme al protocollo...').\",\n  \"extracted_value\": \"Dati chiave estratti dal documento (es. numero fattura, data, importo totale).\",\n  \"fiscal_legal_status\": \"L'inquadramento normativo/fiscale del documento analizzato in Italia.\",\n  \"strategic_insight\": \"Il consiglio operativo, fiscale o di sicurezza di alto valore per l'azienda o l'istruzione di correzione per l'operatore.\"\n}\n</OutputSchema>\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<AuditTask>\n<CompanyProfile>\n  {{ $json.HoneyPot.company_context_string }}\n</CompanyProfile>\n\n<ActiveProcedure>\n  Nome: {{ $json.current_step_details.step_name }}\n  Obiettivo: {{ $json.current_step_details.instructions }}\n  Criterio di Accettazione: {{ $json.current_step_details.acceptance_criteria }}\n</ActiveProcedure>\n\n<ComplianceFramework>\n  <![CDATA[\n  {{ $json.Compliance.content || \"Nessun framework legale specifico fornito. Applica rigorosamente le normative italiane vigenti (Fisco, Lavoro, Sicurezza, Privacy).\" }}\n  ]]>\n</ComplianceFramework>\n\n<Task>\nEsegui un Audit Integrato sul documento allegato:\n\nFASE 1: AUDIT (Validazione)\n- Il documento rappresenta ciò che è richiesto dall'<ActiveProcedure>?\n- Il documento soddisfa il <Criterio Base> senza violare il <ComplianceFramework>?\n- Imposta `success` a true o false e scrivi il `rationale` ufficiale per il registro. Estrai i dati richiesti in `extracted_value`.\n\nFASE 2: INTELLIGENCE (Analisi Fiscale/Normativa)\n- Compila `fiscal_legal_status`: Qual è il peso legale, contabile o di sicurezza di questo documento in Italia?\n\nFASE 3: STRATEGIA (Consulenza)\n- Compila `strategic_insight`: Trasforma la tua analisi in un consiglio pratico per l'azienda (ottimizzazione) o per l'operatore (correzione errore).\n</Task>\n\n<Format>Rispondi ESCLUSIVAMENTE con un oggetto JSON valido e ben formattato.</Format>\n</AuditTask>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "Evicence_Rational_Log",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.evidence }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.mime_type }}",
+              "type": "string"
+            },
+            {
+              "id": "e600f72a-951b-4a3e-919d-e522670ae72e",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "8964deb8-77bb-4751-a12f-28eed9642cf8",
+              "name": "billing_source.use",
+              "value": "=Catalog Evidence Analysis {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "7f5a767c-00e5-4516-8a5e-3f77ad59c5ab",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/6333dff0-d886-499c-8000-f3e0266845ed",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        320,
+        528
+      ],
+      "id": "67702aca-01c5-40d3-8cfd-495487db70bd",
+      "name": "FileRational"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n<Role>TrinAi_Data_Intelligence_Auditor</Role>\n<Persona>\nSei un Data Auditor Logico e un Analista Operativo. Il tuo compito è duplice:\n1. Certificare che l'input testuale o numerico fornito da un operatore aziendale rispetti rigorosamente i criteri di accettazione di una SOP aziendale.\n2. Estrarre intelligenza operativa dal dato fornito, suggerendo ottimizzazioni basate sulle normative di settore.\n</Persona>\n\n<Rules>\n1. **CONGRUITÀ LOGICA**: Analizza l'input dell'operatore. Se è testo senza senso, spam (es. \"asd\", \"ok\", \"fatto\") o non rispetta il formato richiesto dal criterio (es. viene chiesto un codice e l'utente inserisce parole a caso), DEVI marcare 'success': false.\n2. **GENERAZIONE RAZIONALE**: Produci il `rationale` tecnico per il registro (es. 'L'operatore ha inserito e confermato il dato: [X], che risulta congruo ai parametri del protocollo.').\n3. **ANALISI NORMATIVA**: Ove applicabile, inquadra il dato secondo la normativa (es. se è una misurazione di temperatura HACCP, conferma che rientra nei limiti di legge).\n4. **INTELLIGENCE**: Genera uno `strategic_insight`. Se l'utente ha inserito un dato anomalo o al limite della norma, consiglia un'azione preventiva. Se il dato è errato, spiega esattamente come deve formattarlo per essere accettato.\n</Rules>\n\n<OutputSchema>\n{\n  \"success\": boolean,\n  \"rationale\": \"Dichiarazione formale e oggettiva per il registro legale.\",\n  \"extracted_value\": \"Il dato netto estratto e ripulito da eventuali commenti superflui dell'operatore.\",\n  \"fiscal_legal_status\": \"Inquadramento normativo del dato (se applicabile, altrimenti scrivi 'N/A').\",\n  \"strategic_insight\": \"Consiglio operativo di alto livello o motivazione dettagliata del rifiuto.\"\n}\n</OutputSchema>\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<AuditTask>\n<Context>\n  Nome: {{ $json.current_step_details.step_name }}\n  Obiettivo: {{ $json.current_step_details.instructions }}\n  Criterio di Accettazione: {{ $json.current_step_details.acceptance_criteria }}\n</Context>\n\n<Input_Operatore>\n  \"{{ $json.body.text_content }}\"\n</Input_Operatore>\n\n<ComplianceFramework>\n  <![CDATA[\n  {{ $json.Compliance.content || \"Nessun framework specifico. Applica la logica e le normative operative standard.\" }}\n  ]]>\n</ComplianceFramework>\n\n<Task>\nEsegui un Audit Integrato sull'<Input_Operatore>:\n\n1. **VERIFICA**: L'input soddisfa i requisiti del Criterio di Accettazione e la logica operativa? \n2. **ESTRAZIONE**: Se l'input è un numero o un codice descritto a parole (es. \"Il valore rilevato è 45\"), estrai il dato puro per il campo 'extracted_value' (es. \"45\").\n3. **COMPLIANCE**: Qual è lo status legale/operativo di questo dato? (Compila 'fiscal_legal_status').\n4. **INTELLIGENCE**: Genera un consiglio strategico o un alert preventivo basato sul dato inserito (Compila 'strategic_insight'). Se l'input è respinto (success: false), scrivi un feedback chiaro per l'operatore indicando l'errore.\n</Task>\n\n<Format>Rispondi ESCLUSIVAMENTE in formato JSON valido.</Format>\n</AuditTask>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "Evicence_Rational_Log",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.evidence }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.mime_type }}",
+              "type": "string"
+            },
+            {
+              "id": "30248599-f341-4b2e-9ca2-b34f2c0285b9",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3726c31-3631-4d1d-bcfd-7edce7dda86a",
+              "name": "billing_source.use",
+              "value": "=Catalog Evidence Analysis {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "bc7f5c2d-fd3b-45bc-8a98-6d0c7a96b34f",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/6333dff0-d886-499c-8000-f3e0266845ed",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        608
+      ],
+      "id": "e757e1c3-e3d2-4b53-83a0-0999db48c3e9",
+      "name": "TextRational"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.Evicence_Rational_Log }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        944,
+        528
+      ],
+      "id": "bc7b508b-69bf-4c12-9542-b768ee4b0d90",
+      "name": "GeminiError"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "compliance_docs",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}-{{ $json.user_request.sop_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"Compliance\": \"$service.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        1040
+      ],
+      "id": "5ae64c52-53e3-49bf-b334-22cb3bbead03",
+      "name": "Compliance",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        768,
+        320
+      ],
+      "id": "2ad5eba6-fd81-4b4f-87c6-78b0516383c6",
+      "name": "Merge41"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "user_request.evidence",
+        "options": {
+          "fileName": "={{ $json.user_request.sop_id }}_{{ $json.user_request.file_name || ($json.user_request.step_id + '.' + ($json.user_request.mime_type ? $json.user_request.mime_type.split('/')[1] : 'dat')) }}",
+          "mimeType": "={{ $json.user_request.mime_type }}"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        496,
+        128
+      ],
+      "id": "0a2413f8-8746-47a4-a772-0aa837cc5f59",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        768,
+        112
+      ],
+      "id": "6d654616-57dc-455c-8619-160e4c5eedf7",
+      "name": "Merge42"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/sendDocument",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "=document",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "chat_id",
+              "value": "={{ $json.owner_data.chat_id }}"
+            },
+            {
+              "name": "caption",
+              "value": "=🛡️ <b>VAULT EVIDENZA SiteBoS</b>\n━━━━━━━━━━━━━━━━━━━━\n📌 <b>PROCEDURA:</b> <code>{{ $json.Blueprint.blueprint_name }}</code>\n\n⚙️ <b>DETTAGLI ESECUZIONE:</b>\n├ <b>Descrizione:</b> {{ $json.current_step_details.step_name }}\n├ └ <b>Step ID:</b> {{ $json.user_request.step_id }}\n├ <b>Operatore:</b> {{ $json.user_request.chat_id || $json.owner_data.chat_id }}\n├ <b>RAZIONALE AI:</b>\n<i>{{ $json.Evicence_Rational_Log.rationale.replace(/<(?!b|i|u|code|a|pre|\\/b|\\/i|\\/u|\\/code|\\/a|\\/pre)[^>]+>/gi, '') }}</i>\n\n⚖️ <b>ESITO:</b> {{ $json.Evicence_Rational_Log.success ? '✅ CONFORME' : '❌ RESPINTA' }}\n━━━━━━━━━━━━━━━━━━━━\n🔐 <i>Record archiviato digitalmente.</i>"
+            },
+            {
+              "name": "parse_mode",
+              "value": "HTML"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        944,
+        112
+      ],
+      "id": "4659e497-4126-420e-9064-4c60223895fd",
+      "name": "📤 Telegram User Valut",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d12c796a-4e17-4456-9a7d-022242576163",
+              "leftValue": "={{ $json.Compliance }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        928,
+        1040
+      ],
+      "id": "8dba8945-7898-4107-8eeb-186d21d1057d",
+      "name": "compliance Exist2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: StepIsolator\n// DESC: Estrae solo i dettagli dello step specifico dal Blueprint\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\n\n// 1. Recupero Blueprint e ID dello step dal webhook\nconst blueprint = item.Blueprint || {};\nconst targetStepId = item.user_request.step_id;\n\nlet currentStep = null;\n\n// 2. Ricerca ricorsiva dello step nei vari stage\nif (blueprint.stages && Array.isArray(blueprint.stages)) {\n    for (const stage of blueprint.stages) {\n        if (stage.steps && Array.isArray(stage.steps)) {\n            const found = stage.steps.find(s => s.step_id === targetStepId);\n            if (found) {\n                currentStep = found;\n                break; \n            }\n        }\n    }\n}\n\n// 3. Gestione errore (se lo step non esiste nel blueprint)\nif (!currentStep) {\n    return [{\n        json: {\n            ...item,\n            error: \"STEP_NOT_FOUND\",\n            error_details: `Lo step ${targetStepId} non è stato trovato nel blueprint ${item.user_request.sop_id}`\n        }\n    }];\n}\n\n// 4. Output pulito: passiamo solo lo step essenziale\nreturn [{\n    json: {\n        ...item,\n        current_step_details: {\n            step_name: currentStep.step_name,\n            instructions: currentStep.instructions,\n            evidence_type: currentStep.quality_check.evidence_type,\n            check_description: currentStep.quality_check.check_description,\n            acceptance_criteria: currentStep.quality_check.acceptance_criteria\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        784
+      ],
+      "id": "e37afcb3-bbd8-4ccf-beee-174956f33bef",
+      "name": "StepIsolator"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<SystemInstruction>\n<Role>TrinAi_Enterprise_Auditor_Intelligence</Role>\n<Persona>\nSei un Revisore Tecnico, Fiscale e Strategico Senior. Il tuo compito è analizzare evidenze multimediali (foto, documenti o firme digitali) caricate dal personale aziendale. \nHai una doppia missione: \n1. AUDIT (Il Notaio): Certificare con inflessibile precisione che l'evidenza rispetti i protocolli operativi e legali (Compliance).\n2. INTELLIGENCE (Il CFO/Consulente): Estrarre da quell'evidenza il massimo valore informativo, fiscale o strategico per l'azienda.\n</Persona>\n\n<Rules>\n1. **AUDIT RIGOROSO**: Valuta l'immagine rispetto all'<ActiveProcedure>. Se l'evidenza non è pertinente (es. una foto a caso invece di una firma) o viola una regola bloccante, imposta `success: false`.\n2. **VERITÀ DOCUMENTALE**: Produci un `rationale` tecnico e inoppugnabile che descriva cosa hai certificato. Se è una firma, conferma se il tratto è presente e idoneo alla validazione dello step.\n3. **ANALISI FISCALE E LEGALE**: Inquadra l'evidenza secondo la normativa italiana. \n4. **INTELLIGENCE STRATEGICA**: Genera un `strategic_insight`. Se è una firma, sottolinea il valore della responsabilità assunta e l'integrità del processo.\n5. **GESTIONE FIRMA (SIGNATURE)**: Se l'evidenza è una firma digitale, non cercare testo OCR standard. Valuta se il tratto grafico rappresenta un'autenticazione valida dell'operatore per quello specifico step.\n</Rules>\n\n<OutputSchema>\n{\n  \"success\": boolean,\n  \"rationale\": \"Dichiarazione peritale oggettiva (es. 'Acquisita firma digitale valida per la finalizzazione del protocollo...').\",\n  \"extracted_value\": \"Dati estratti (per foto) o descrizione dell'atto di firma (per SIGNATURE).\",\n  \"fiscal_legal_status\": \"Peso legale/fiscale (es. 'Assunzione di responsabilità penale/civile ai sensi del D.P.R. 445/2000').\",\n  \"strategic_insight\": \"Consiglio operativo o valore della tracciabilità dell'atto.\"\n}\n</OutputSchema>\n</SystemInstruction>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<AuditTask>\n<CompanyProfile>\n  {{ $json.HoneyPot.company_context_string }}\n</CompanyProfile>\n\n<ActiveProcedure>\n  Nome: {{ $json.current_step_details.step_name }}\n  Obiettivo: {{ $json.current_step_details.instructions }}\n  Criterio di Accettazione: {{ $json.current_step_details.acceptance_criteria }}\n</ActiveProcedure>\n\n<ComplianceFramework>\n  <![CDATA[\n  {{ $json.Compliance.content || \"Nessun framework legale specifico fornito. Applica normativa italiana su validità firme e tracciabilità.\" }}\n  ]]>\n</ComplianceFramework>\n\n<Task>\nEsegui un Audit Integrato sull'evidenza allegata:\n\nFASE 0: ANALISI VISIVA\n- Se è un documento/foto: Esegui OCR Semantico.\n- Se è una FIRMA (SIGNATURE): Conferma la presenza del tratto grafico e la sua unicità.\n\nFASE 1: AUDIT (Validazione)\n- L'evidenza (foto o firma) corrisponde a quanto richiesto nell'<ActiveProcedure>?\n- Rispetta il <Criterio di Accettazione>? (Es. se il criterio è 'FIRMA OPERATORE', verifica che l'immagine contenga una firma e non una foto).\n- Imposta `success` e scrivi il `rationale`.\n\nFASE 2: INTELLIGENCE (Peso Legale)\n- Compila `fiscal_legal_status`: Che valore ha questo atto? Se è una firma su un protocollo SOP, cita la responsabilità dell'operatore nell'esecuzione a norma.\n\nFASE 3: STRATEGIA\n- Compila `strategic_insight`: Se è una firma, suggerisci come questa tracciabilità riduca il rischio di contestazioni future o migliori la qualità aziendale.\n</Task>\n\n<Format>Rispondi ESCLUSIVAMENTE con un oggetto JSON valido.</Format>\n</AuditTask>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "Evicence_Rational_Log",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.evidence }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.mime_type }}",
+              "type": "string"
+            },
+            {
+              "id": "d6819dd6-16b3-456f-a3ea-41ac33ea6385",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "a1c1a80e-3b83-4af8-9cef-ed3a3b75864d",
+              "name": "billing_source.use",
+              "value": "=Catalog Evidence Analysis {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "99f45f05-2e62-4d84-b014-17e6c50dcb14",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/6333dff0-d886-499c-8000-f3e0266845ed",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1440,
+        832
+      ],
+      "id": "a3fb0d08-8199-46c4-8bb1-06ede6210218",
+      "name": "SignRational"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        928,
+        800
+      ],
+      "id": "437d2e8f-5a78-4542-949e-b912de275d2e",
+      "name": "Merge28"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c278546e-1c50-4446-ac48-d9703279169e",
+              "name": "={{ $json.EvidenceError}}",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1200,
+        1280
+      ],
+      "id": "f7f83b95-ca73-476d-bb22-2f85578f5bd0",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        928,
+        1264
+      ],
+      "id": "1a8e3d5e-6295-410b-8aff-2493e45c3340",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1200,
+        112
+      ],
+      "id": "eac8f868-3ef6-4a75-85dc-3484195ccaa8",
+      "name": "Oscurante"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1200,
+        496
+      ],
+      "id": "94ac9be5-310c-4ddb-a05d-d73ff5296b63",
+      "name": "Merge29"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1200,
+        288
+      ],
+      "id": "041a0492-2f69-468b-88f6-122670cc990f",
+      "name": "Merge1"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "service_catalog_setup": {
+            "categories": [
+              {
+                "name": "[SOP] Gestione Cassa e Conti",
+                "short_name": "💰 Cassa e Conti",
+                "callback_data": "CAT_03L2TPAY",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Chiusura cassa serale e controllo contanti",
+                    "short_name": "💰 Chiusura Cassa",
+                    "callback_data": "SVC_LKXV9GG9",
+                    "original_slug": "CHIUSURA_CASSA"
+                  },
+                  {
+                    "name": "Come emettere la fattura elettronica senza errori",
+                    "short_name": "🧾 Fattura Elettronica",
+                    "callback_data": "SVC_IPT9R5HO",
+                    "original_slug": "FATTURA_ELETTRONICA"
+                  },
+                  {
+                    "name": "Cosa fare se un paziente non paga il saldo",
+                    "short_name": "💳 Paziente Moroso",
+                    "callback_data": "SVC_3ZV53AS1",
+                    "original_slug": "PAZIENTE_MOROSO"
+                  },
+                  {
+                    "name": "Gestione acconti e rateizzazioni interne",
+                    "short_name": "💸 Acconti e Rate",
+                    "callback_data": "SVC_YB5QY8RR",
+                    "original_slug": "ACCONTI_RATE"
+                  },
+                  {
+                    "name": "Controllo rapido delle scadenze dei fornitori",
+                    "short_name": "📦 Scadenze Fornitori",
+                    "callback_data": "SVC_DN0XNPMN",
+                    "original_slug": "SCADENZE_FORNITORI"
+                  },
+                  {
+                    "name": "Archiviazione scontrini e fatture acquisti",
+                    "short_name": "📁 Archiviazione Doc",
+                    "callback_data": "SVC_TMX373RB",
+                    "original_slug": "ARCHIVIAZIONE_DOC"
+                  },
+                  {
+                    "name": "Gestione dei rimborsi con le assicurazioni sanitarie",
+                    "short_name": "🏥 Rimborsi Assic.",
+                    "callback_data": "SVC_G5O0E0Y9",
+                    "original_slug": "RIMBORSI_ASSIC"
+                  },
+                  {
+                    "name": "Come pagare i collaboratori esterni",
+                    "short_name": "🧑‍💻 Pagare Collab.",
+                    "callback_data": "SVC_HR6IOKPN",
+                    "original_slug": "PAGARE_COLLAB"
+                  },
+                  {
+                    "name": "Controllo mensile dell'estratto conto bancario",
+                    "short_name": "📊 Estratto Conto",
+                    "callback_data": "SVC_F4410WCL",
+                    "original_slug": "ESTRATTO_CONTO"
+                  },
+                  {
+                    "name": "Pagamento F24 e scadenze tasse dello studio",
+                    "short_name": "🏛️ F24 e Tasse",
+                    "callback_data": "SVC_UHOHVDJW",
+                    "original_slug": "F24_TASSE"
+                  },
+                  {
+                    "name": "Gestione del fondo cassa per le piccole spese",
+                    "short_name": "💵 Fondo Cassa",
+                    "callback_data": "SVC_14Y4013H",
+                    "original_slug": "FONDO_CASSA"
+                  },
+                  {
+                    "name": "Procedura per l'invio dati al Sistema Tessera Sanitaria",
+                    "short_name": "🩺 Sistema TS",
+                    "callback_data": "SVC_UK6D60OF",
+                    "original_slug": "SISTEMA_TS"
+                  }
+                ],
+                "original_slug": "CASSA_E_CONTI"
+              },
+              {
+                "name": "[SOP] Accoglienza e Agenda Intelligente",
+                "short_name": "🛎️ Accoglienza",
+                "callback_data": "CAT_KEBSMYLI",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Come rispondere al telefono in modo rassicurante",
+                    "short_name": "📞 Risposta Telefono",
+                    "callback_data": "SVC_AHYQVUN6",
+                    "original_slug": "RISPOSTA_TELEFONO"
+                  },
+                  {
+                    "name": "Gestione dei buchi in agenda (lista d'attesa dinamica)",
+                    "short_name": "📅 Buchi Agenda",
+                    "callback_data": "SVC_O5YZCLX8",
+                    "original_slug": "BUCHI_AGENDA"
+                  },
+                  {
+                    "name": "Messaggi di conferma appuntamento per evitare buchi",
+                    "short_name": "💬 Conferma Appunt.",
+                    "callback_data": "SVC_YQQ21AQ7",
+                    "original_slug": "CONFERMA_APPUNT"
+                  },
+                  {
+                    "name": "Accoglienza del nuovo paziente e prima modulistica",
+                    "short_name": "👤 Nuovo Paziente",
+                    "callback_data": "SVC_3VJI87FL",
+                    "original_slug": "NUOVO_PAZIENTE"
+                  },
+                  {
+                    "name": "Cosa fare se un paziente arriva con 15 minuti di ritardo",
+                    "short_name": "⏱️ Paziente in Ritardo",
+                    "callback_data": "SVC_MNSZ593N",
+                    "original_slug": "PAZIENTE_RITARDO"
+                  },
+                  {
+                    "name": "Gestione delle urgenze telefoniche dell'ultimo minuto",
+                    "short_name": "🚨 Urgenze Telefono",
+                    "callback_data": "SVC_HIZ4O4D9",
+                    "original_slug": "URGENZE_TELEFONO"
+                  },
+                  {
+                    "name": "Procedura di recall per le pulizie dei denti semestrali",
+                    "short_name": "🔄 Recall Igiene",
+                    "callback_data": "SVC_XBQUXWAW",
+                    "original_slug": "RECALL_IGIENE"
+                  },
+                  {
+                    "name": "Come spiegare un preventivo lungo e complesso",
+                    "short_name": "📋 Spiegare Preventivo",
+                    "callback_data": "SVC_SDI615XM",
+                    "original_slug": "SPIEGARE_PREVENTIVO"
+                  },
+                  {
+                    "name": "Riordino della sala d'attesa e dei giornali",
+                    "short_name": "🛋️ Sala d'Attesa",
+                    "callback_data": "SVC_5S9TUJ2O",
+                    "original_slug": "SALA_ATTESA"
+                  },
+                  {
+                    "name": "Gestione dei messaggi WhatsApp dello studio",
+                    "short_name": "📱 Messaggi WhatsApp",
+                    "callback_data": "SVC_LNPT137A",
+                    "original_slug": "MESSAGGI_WHATSAPP"
+                  },
+                  {
+                    "name": "Cosa dire a chi chiede uno sconto eccessivo",
+                    "short_name": "🏷️ Gestione Sconto",
+                    "callback_data": "SVC_FN9Y4NFO",
+                    "original_slug": "GESTIONE_SCONTO"
+                  },
+                  {
+                    "name": "Archiviazione radiografie e documenti clinici",
+                    "short_name": "🗄️ Archiviazione Clinica",
+                    "callback_data": "SVC_ZA4QLL7I",
+                    "original_slug": "ARCHIVIAZIONE_CLINICA"
+                  }
+                ],
+                "original_slug": "ACCOGLIENZA"
+              },
+              {
+                "name": "[SOP] Igiene, Sterilizzazione e Pulizia",
+                "short_name": "🪥 Igiene e Steril.",
+                "callback_data": "CAT_TOAQM7UX",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Ciclo di Sterilizzazione in Autoclave: Avvio e Controllo",
+                    "short_name": "⚙️ Sterilizzazione",
+                    "callback_data": "SVC_0B195WQX",
+                    "blueprint_ready": true
+                  },
+                  {
+                    "name": "Preparazione dei kit di strumenti per la chirurgia",
+                    "short_name": "🔪 Kit Chirurgia",
+                    "callback_data": "SVC_RRX98E6B",
+                    "original_slug": "KIT_CHIRURGIA"
+                  },
+                  {
+                    "name": "Sanificazione del riunito tra un paziente e l'altro",
+                    "short_name": "🧼 Sanificazione",
+                    "callback_data": "SVC_NSCGFJF6",
+                    "original_slug": "SANIFICAZIONE"
+                  },
+                  {
+                    "name": "Pulizia dei manipoli e lubrificazione",
+                    "short_name": "🔧 Manipoli",
+                    "callback_data": "SVC_OFXO6E58",
+                    "original_slug": "MANIPOLI"
+                  },
+                  {
+                    "name": "Smaltimento dei rifiuti speciali e aghi",
+                    "short_name": "☣️ Rifiuti Speciali",
+                    "callback_data": "SVC_XXD2W5WF",
+                    "original_slug": "RIFIUTI_SPECIALI"
+                  },
+                  {
+                    "name": "Checklist pulizia pavimenti e superfici a fine turno",
+                    "short_name": "🧹 Pulizia Pavimenti",
+                    "callback_data": "SVC_H7PU37SM",
+                    "original_slug": "PULIZIA_PAVIMENTI"
+                  },
+                  {
+                    "name": "Lavaggio e disinfezione della vasca ultrasuoni",
+                    "short_name": "🫧 Vasca Ultrasuoni",
+                    "callback_data": "SVC_EDXE1Z1O",
+                    "original_slug": "VASCA_ULTRASUONI"
+                  },
+                  {
+                    "name": "Controllo scadenza buste sterili in magazzino",
+                    "short_name": "🏥 SOP Steril",
+                    "callback_data": "SVC_QFSY059Y",
+                    "blueprint_ready": true
+                  },
+                  {
+                    "name": "Manutenzione ordinaria del sistema di aspirazione",
+                    "short_name": "💨 Aspirazione",
+                    "callback_data": "SVC_A433PUXB",
+                    "original_slug": "ASPIRAZIONE"
+                  },
+                  {
+                    "name": "Gestione della biancheria e dei camici sporchi",
+                    "short_name": "🥼 Biancheria",
+                    "callback_data": "SVC_ZVRYTWJB",
+                    "original_slug": "BIANCHERIA"
+                  },
+                  {
+                    "name": "Cosa fare se si rompe un flacone di disinfettante",
+                    "short_name": "🧪 Versamento Fluido",
+                    "callback_data": "SVC_0D106SR6",
+                    "original_slug": "VERSAMENTO_FLUIDO"
+                  },
+                  {
+                    "name": "Pulizia profonda dei filtri dell'aria condizionata",
+                    "short_name": "❄️ Filtri Aria",
+                    "callback_data": "SVC_DQHP4U5I",
+                    "original_slug": "FILTRI_ARIA"
+                  }
+                ],
+                "original_slug": "IGIENE_STERIL"
+              },
+              {
+                "name": "[SOP] Sicurezza sul Lavoro e Pronto Soccorso",
+                "short_name": "🦺 Sicurezza Lavoro",
+                "callback_data": "CAT_TB8BSUZ9",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Controllo mensile della valigetta di pronto soccorso",
+                    "short_name": "🚑 Kit Pronto Soccorso",
+                    "callback_data": "SVC_7C9GS9QQ",
+                    "original_slug": "KIT_PRONTO_SOCCORSO"
+                  },
+                  {
+                    "name": "Verifica semestrale degli estintori",
+                    "short_name": "🧯 Estintori",
+                    "callback_data": "SVC_YHJPF2OR",
+                    "original_slug": "ESTINTORI"
+                  },
+                  {
+                    "name": "Cosa fare se un collaboratore si punge con un ago",
+                    "short_name": "💉 Puntura Accidentale",
+                    "callback_data": "SVC_IIG7MDE4",
+                    "original_slug": "PUNTURA_ACCIDENTALE"
+                  },
+                  {
+                    "name": "Gestione del malore improvviso in sala d'attesa",
+                    "short_name": "🆘 Malore Paziente",
+                    "callback_data": "SVC_IF52ITGF",
+                    "original_slug": "MALORE_PAZIENTE"
+                  },
+                  {
+                    "name": "Prova annuale delle luci di emergenza",
+                    "short_name": "💡 Luci Emergenza",
+                    "callback_data": "SVC_E359E0CU",
+                    "original_slug": "LUCI_EMERGENZA"
+                  },
+                  {
+                    "name": "Come denunciare un infortunio sul lavoro",
+                    "short_name": "📝 Denuncia Infortunio",
+                    "callback_data": "SVC_60ABB84H",
+                    "original_slug": "DENUNCIA_INFORTUNIO"
+                  },
+                  {
+                    "name": "Verifica dei dispositivi di protezione individuale (DPI)",
+                    "short_name": "🛡️ DPI",
+                    "callback_data": "SVC_3L9BLXYV",
+                    "original_slug": "DPI"
+                  },
+                  {
+                    "name": "Procedura in caso di incendio nello studio",
+                    "short_name": "🔥 Incendio",
+                    "callback_data": "SVC_FX1S3E45",
+                    "original_slug": "INCENDIO"
+                  },
+                  {
+                    "name": "Controllo delle porte di uscita di sicurezza",
+                    "short_name": "🚪 Uscite Sicurezza",
+                    "callback_data": "SVC_SKQRO67X",
+                    "original_slug": "USCITE_SICUREZZA"
+                  },
+                  {
+                    "name": "Punto di raccolta in caso di evacuazione",
+                    "short_name": "📍 Punto Raccolta",
+                    "callback_data": "SVC_951BCW51",
+                    "original_slug": "PUNTO_RACCOLTA"
+                  },
+                  {
+                    "name": "Aggiornamento periodico dei corsi sicurezza",
+                    "short_name": "🎓 Corsi Sicurezza",
+                    "callback_data": "SVC_4K48FGKZ",
+                    "original_slug": "CORSI_SICUREZZA"
+                  },
+                  {
+                    "name": "Manutenzione della segnaletica di sicurezza",
+                    "short_name": "⚠️ Segnaletica",
+                    "callback_data": "SVC_RI5I9FN7",
+                    "original_slug": "SEGNALETICA"
+                  }
+                ],
+                "original_slug": "SICUREZZA_LAVORO"
+              },
+              {
+                "name": "[SOP] Privacy e Difesa dei Dati",
+                "short_name": "🔒 Privacy e Dati",
+                "callback_data": "CAT_DACHK7EX",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Come far firmare la privacy sul tablet o carta",
+                    "short_name": "✍️ Firma Privacy",
+                    "callback_data": "SVC_9IKHBDZY",
+                    "original_slug": "FIRMA_PRIVACY"
+                  },
+                  {
+                    "name": "Salvataggio dati del gestionale (Backup serale)",
+                    "short_name": "💾 Backup Dati",
+                    "callback_data": "SVC_PNC6SYGT",
+                    "original_slug": "BACKUP_DATI"
+                  },
+                  {
+                    "name": "Regole per le password dei computer dello studio",
+                    "short_name": "🔑 Password Sicure",
+                    "callback_data": "SVC_10YG0DB5",
+                    "original_slug": "PASSWORD_SICURE"
+                  },
+                  {
+                    "name": "Cosa fare se si perde il cellulare aziendale",
+                    "short_name": "📱 Smartphone Perso",
+                    "callback_data": "SVC_975QUPN0",
+                    "original_slug": "SMARTPHONE_PERSO"
+                  },
+                  {
+                    "name": "Gestione sicura delle foto dei denti dei pazienti",
+                    "short_name": "📸 Foto Denti",
+                    "callback_data": "SVC_OH1OMRPM",
+                    "original_slug": "FOTO_DENTI"
+                  },
+                  {
+                    "name": "Come inviare documenti protetti al paziente",
+                    "short_name": "📧 Invio Protetto",
+                    "callback_data": "SVC_1EBFJ3SU",
+                    "original_slug": "INVIO_PROTETTO"
+                  },
+                  {
+                    "name": "Cosa fare se un paziente chiede la sua cartella clinica",
+                    "short_name": "📑 Richiesta Cartella",
+                    "callback_data": "SVC_COS6OVBY",
+                    "original_slug": "RICHIESTA_CARTELLA"
+                  },
+                  {
+                    "name": "Protezione dei computer contro i virus (Antivirus)",
+                    "short_name": "🛡️ Antivirus",
+                    "callback_data": "SVC_Z4CTH7XZ",
+                    "original_slug": "ANTIVIRUS"
+                  },
+                  {
+                    "name": "Smaltimento documenti cartacei con dati sensibili",
+                    "short_name": "🗑️ Smaltimento Dati",
+                    "callback_data": "SVC_F24VM0KW",
+                    "original_slug": "SMALTIMENTO_DATI"
+                  },
+                  {
+                    "name": "Controllo accessi per i consulenti esterni",
+                    "short_name": "🛂 Accessi Consulenti",
+                    "callback_data": "SVC_GHX6QEUG",
+                    "original_slug": "ACCESSI_CONSULENTI"
+                  },
+                  {
+                    "name": "Istruzioni per l'uso dei social senza mostrare volti",
+                    "short_name": "🤳 Social Privacy",
+                    "callback_data": "SVC_ZKZBTOEU",
+                    "original_slug": "SOCIAL_PRIVACY"
+                  },
+                  {
+                    "name": "Cosa fare in caso di attacco hacker allo studio",
+                    "short_name": "💻 Attacco Hacker",
+                    "callback_data": "SVC_VXHMC0HD",
+                    "original_slug": "ATTACCO_HACKER"
+                  }
+                ],
+                "original_slug": "PRIVACY_DATI"
+              },
+              {
+                "name": "[SOP] Manutenzione Strumenti e Riuniti",
+                "short_name": "🛠️ Manutenzione",
+                "callback_data": "CAT_M5KRLRGP",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Controllo pressione compressore e scarico condensa",
+                    "short_name": "⚙️ Compressore",
+                    "callback_data": "SVC_UP9ZQSQZ",
+                    "original_slug": "COMPRESSORE"
+                  },
+                  {
+                    "name": "Sostituzione rapida lampadine del riunito",
+                    "short_name": "💡 Lampadine Riunito",
+                    "callback_data": "SVC_AJ9JLCEI",
+                    "original_slug": "LAMPADINE_RIUNITO"
+                  },
+                  {
+                    "name": "Cosa fare se la poltrona odontoiatrica si blocca",
+                    "short_name": "💺 Poltrona Bloccata",
+                    "callback_data": "SVC_RECWGADA",
+                    "original_slug": "POLTRONA_BLOCCATA"
+                  },
+                  {
+                    "name": "Verifica periodica del sensore radiografico",
+                    "short_name": "X-RAY Sensore X-Ray",
+                    "callback_data": "SVC_OCGHKM0L",
+                    "original_slug": "SENSORE_XRAY"
+                  },
+                  {
+                    "name": "Pulizia del filtro dell'aspirazione chirurgica",
+                    "short_name": "💧 Filtro Aspirazione",
+                    "callback_data": "SVC_UF75854M",
+                    "original_slug": "FILTRO_ASPIRAZIONE"
+                  },
+                  {
+                    "name": "Manutenzione ordinaria del manipolo piezoelettrico",
+                    "short_name": "🔋 Manipolo Piezo",
+                    "callback_data": "SVC_WN5EH161",
+                    "original_slug": "MANIPOLO_PIEZO"
+                  },
+                  {
+                    "name": "Controllo livelli dei liquidi dei macchinari",
+                    "short_name": "🧪 Livelli Liquidi",
+                    "callback_data": "SVC_5HDDIRH0",
+                    "original_slug": "LIVELLI_LIQUIDI"
+                  },
+                  {
+                    "name": "Chiamata rapida del tecnico: contatti di emergenza",
+                    "short_name": "📞 Tecnico Emergenza",
+                    "callback_data": "SVC_4JJV1YRP",
+                    "original_slug": "TECNICO_EMERGENZA"
+                  },
+                  {
+                    "name": "Test di funzionamento delle lampade fotopolimerizzanti",
+                    "short_name": "🔦 Fotopolimerizzatore",
+                    "callback_data": "SVC_WMIY0W7X",
+                    "original_slug": "FOTOPOLIMERIZZATORE"
+                  },
+                  {
+                    "name": "Lubrificazione delle turbine e dei contrangoli",
+                    "short_name": "🛢️ Lubrificazione",
+                    "callback_data": "SVC_6OZXNKWJ",
+                    "original_slug": "LUBRIFICAZIONE"
+                  },
+                  {
+                    "name": "Pulizia e test dello scanner intraorale",
+                    "short_name": "🖥️ Scanner Intraorale",
+                    "callback_data": "SVC_QGQTJU6J",
+                    "original_slug": "SCANNER_INTRAORALE"
+                  },
+                  {
+                    "name": "Verifica annuale della taratura del radiografico",
+                    "short_name": "📐 Taratura RX",
+                    "callback_data": "SVC_YOM3EVDU",
+                    "original_slug": "TARATURA_RX"
+                  }
+                ],
+                "original_slug": "MANUTENZIONE"
+              },
+              {
+                "name": "[SOP] Gestione Collaboratori e Team",
+                "short_name": "👥 Gestione Team",
+                "callback_data": "CAT_2HE4XT3H",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Regole per le ferie e permessi dei dipendenti",
+                    "short_name": "🏖️ Ferie e Permessi",
+                    "callback_data": "SVC_7JWF0C12",
+                    "original_slug": "FERIE_PERMESSI"
+                  },
+                  {
+                    "name": "Abbigliamento e decoro richiesto in studio",
+                    "short_name": "👕 Dress Code",
+                    "callback_data": "SVC_LGF30I93",
+                    "original_slug": "DRESS_CODE"
+                  },
+                  {
+                    "name": "Come inserire un nuovo assistente alla poltrona",
+                    "short_name": "🆕 Nuovo Assitente",
+                    "callback_data": "SVC_2UGEI8Z6",
+                    "original_slug": "NUOVO_ASSISTENTE"
+                  },
+                  {
+                    "name": "Gestione dei turni e orari di lavoro",
+                    "short_name": "🗓️ Turni Lavoro",
+                    "callback_data": "SVC_CF02YN32",
+                    "original_slug": "TURNI_LAVORO"
+                  },
+                  {
+                    "name": "Regole sull'uso del cellulare durante il turno",
+                    "short_name": "📵 Uso Cellulare",
+                    "callback_data": "SVC_YV2TJ364",
+                    "original_slug": "USO_CELLULARE"
+                  },
+                  {
+                    "name": "Briefing mattutino: i casi clinici del giorno",
+                    "short_name": "☕ Briefing Mattutino",
+                    "callback_data": "SVC_NO96RSDG",
+                    "original_slug": "BRIEFING_MATTUTINO"
+                  },
+                  {
+                    "name": "Cosa fare se un collaboratore è in malattia",
+                    "short_name": "🤒 Gestione Malattia",
+                    "callback_data": "SVC_3XGBF3RF",
+                    "original_slug": "GESTIONE_MALATTIA"
+                  },
+                  {
+                    "name": "Organizzazione della cena aziendale o eventi",
+                    "short_name": "🎉 Eventi Studio",
+                    "callback_data": "SVC_UKT4YUAJ",
+                    "original_slug": "EVENTI_STUDIO"
+                  },
+                  {
+                    "name": "Gestione dei conflitti interni tra il personale",
+                    "short_name": "🤝 Risoluzione Conflitti",
+                    "callback_data": "SVC_0YNG05B2",
+                    "original_slug": "RISOLUZIONE_CONFLITTI"
+                  },
+                  {
+                    "name": "Modulo per la valutazione delle performance",
+                    "short_name": "📈 Valutazione",
+                    "callback_data": "SVC_UGKNHY2W",
+                    "original_slug": "VALUTAZIONE"
+                  },
+                  {
+                    "name": "Standard di comportamento davanti al paziente",
+                    "short_name": "👔 Comportamento",
+                    "callback_data": "SVC_AB619IJG",
+                    "original_slug": "COMPORTAMENTO"
+                  },
+                  {
+                    "name": "Formazione rapida sull'uso del gestionale",
+                    "short_name": "🖥️ Formazione Gestionale",
+                    "callback_data": "SVC_PNF47X9W",
+                    "original_slug": "FORMAZIONE_GESTIONALE"
+                  }
+                ],
+                "original_slug": "GESTIONE_TEAM"
+              },
+              {
+                "name": "[SOP] Controllo Magazzino e Acquisti",
+                "short_name": "📦 Controllo Magazzino",
+                "callback_data": "CAT_ZIOYI6NH",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Checklist scorte minime di guanti e mascherine",
+                    "short_name": "🧤 Scorte Guanti",
+                    "callback_data": "SVC_UAPU20K7",
+                    "original_slug": "SCORTE_GUANTI"
+                  },
+                  {
+                    "name": "Come ordinare il materiale da impronta",
+                    "short_name": "🦷 Materiale Impronta",
+                    "callback_data": "SVC_QGJEGZFA",
+                    "original_slug": "MAT_IMPRONTA"
+                  },
+                  {
+                    "name": "Ricezione merce e controllo bolle di consegna",
+                    "short_name": "🚚 Ricezione Merce",
+                    "callback_data": "SVC_83GIWCLB",
+                    "original_slug": "RICEZIONE_MERCE"
+                  },
+                  {
+                    "name": "Gestione delle scadenze dei materiali compositi",
+                    "short_name": "⏳ Scadenze Composit",
+                    "callback_data": "SVC_0376DP82",
+                    "original_slug": "SCADENZE_COMPOSIT"
+                  },
+                  {
+                    "name": "Cosa Fare Se Un Materiale È In Esaurimento",
+                    "short_name": "📦 SOP Magazzino",
+                    "callback_data": "SVC_AD1B5YYL",
+                    "blueprint_ready": true
+                  },
+                  {
+                    "name": "Confronto prezzi tra diversi fornitori odontoiatrici",
+                    "short_name": "💰 Confronto Prezzi",
+                    "callback_data": "SVC_BNFIBD3I",
+                    "original_slug": "CONFRONTO_PREZZI"
+                  },
+                  {
+                    "name": "Organizzazione degli scaffali per tipologia d'uso",
+                    "short_name": "🏗️ Organizzazione",
+                    "callback_data": "SVC_20KL3HHI",
+                    "original_slug": "ORGANIZZAZIONE"
+                  },
+                  {
+                    "name": "Ritiro campioni gratuiti e nuovi prodotti",
+                    "short_name": "🎁 Campioni Omaggio",
+                    "callback_data": "SVC_KZ9BQOIR",
+                    "original_slug": "CAMPIONI_OMAGGIO"
+                  },
+                  {
+                    "name": "Gestione resi per prodotti difettosi",
+                    "short_name": "🔄 Gestione Resi",
+                    "callback_data": "SVC_72LC9ZX0",
+                    "original_slug": "GESTIONE_RESI"
+                  },
+                  {
+                    "name": "Inventario completo di fine anno",
+                    "short_name": "📋 Inventario Finale",
+                    "callback_data": "SVC_8GFXXMJW",
+                    "original_slug": "INVENTARIO_FINALE"
+                  },
+                  {
+                    "name": "Acquisto prodotti di pulizia per l'ufficio",
+                    "short_name": "🧼 Prodotti Pulizia",
+                    "callback_data": "SVC_90G9IS5K",
+                    "original_slug": "PRODOTTI_PULIZIA"
+                  },
+                  {
+                    "name": "Monitoraggio consumi degli anestetici",
+                    "short_name": "💉 Consumo Anestetici",
+                    "callback_data": "SVC_XTX1KP8R",
+                    "original_slug": "CONSUMO_ANESTETICI"
+                  }
+                ],
+                "original_slug": "CONTROLLO_MAGAZZINO"
+              },
+              {
+                "name": "[SOP] Qualità e Feedback Paziente",
+                "short_name": "⭐ Qualità e Feedback",
+                "callback_data": "CAT_9IC5ZTKK",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Come chiedere una recensione su Google a fine cura",
+                    "short_name": "🌐 Recensione Google",
+                    "callback_data": "SVC_KHODIDUE",
+                    "original_slug": "RECENSIONE_GOOGLE"
+                  },
+                  {
+                    "name": "Questionario di soddisfazione anonimo in sala",
+                    "short_name": "📝 Questionario",
+                    "callback_data": "SVC_ZFXLAXKS",
+                    "original_slug": "QUESTIONARIO"
+                  },
+                  {
+                    "name": "Gestione del paziente arrabbiato per il ritardo",
+                    "short_name": "😡 Paziente Arrabbiato",
+                    "callback_data": "SVC_YWD0Z5RJ",
+                    "original_slug": "PAZIENTE_ARRABBIATO"
+                  },
+                  {
+                    "name": "Cosa fare se una protesi si rompe dopo poco tempo",
+                    "short_name": "🦷 Rottura Protesi",
+                    "callback_data": "SVC_GGNUST5C",
+                    "original_slug": "ROTTURA_PROTESI"
+                  },
+                  {
+                    "name": "Procedura per gestire un insuccesso implantare",
+                    "short_name": "⚠️ Insuccesso Impl.",
+                    "callback_data": "SVC_GG8SHTXG",
+                    "original_slug": "INSUCCESSO_IMPL"
+                  },
+                  {
+                    "name": "Telefonata di controllo dopo un intervento chirurgico",
+                    "short_name": "📞 Telefonata Controllo",
+                    "callback_data": "SVC_JJ5LXJ4Z",
+                    "original_slug": "TELEFONATA_CONTROLLO"
+                  },
+                  {
+                    "name": "Analisi delle critiche costruttive dei pazienti",
+                    "short_name": "🧐 Analisi Critiche",
+                    "callback_data": "SVC_LX4Q6B75",
+                    "original_slug": "ANALISI_CRITICHE"
+                  },
+                  {
+                    "name": "Come festeggiare il fine cura di un bambino",
+                    "short_name": "🎈 Fine Cura Bimbi",
+                    "callback_data": "SVC_1Z629425",
+                    "original_slug": "FINE_CURA_BIMBI"
+                  },
+                  {
+                    "name": "Standard estetico della sala d'attesa e bagno",
+                    "short_name": "✨ Estetica Studio",
+                    "callback_data": "SVC_ZB44PLQU",
+                    "original_slug": "ESTETICA_STUDIO"
+                  },
+                  {
+                    "name": "Checklist del 'Paziente Felice' prima dell'uscita",
+                    "short_name": "😊 Paziente Felice",
+                    "callback_data": "SVC_O0PX9E00",
+                    "original_slug": "PAZIENTE_FELICE"
+                  },
+                  {
+                    "name": "Regalo di ringraziamento per chi porta un amico",
+                    "short_name": "🎁 Passaparola",
+                    "callback_data": "SVC_WG6PWXEJ",
+                    "original_slug": "PASSAPAROLA"
+                  },
+                  {
+                    "name": "Monitoraggio della puntualità media dei medici",
+                    "short_name": "⏱️ Puntualità Medici",
+                    "callback_data": "SVC_4S66CQUM",
+                    "original_slug": "PUNTUALITA_MEDICI"
+                  }
+                ],
+                "original_slug": "QUALITA_FEEDBACK"
+              },
+              {
+                "name": "[SOP] Marketing Locale e Autorità",
+                "short_name": "📢 Marketing Locale",
+                "callback_data": "CAT_IQZQB1U7",
+                "macrocategories": "SOP",
+                "subcategories": [
+                  {
+                    "name": "Cosa pubblicare su Facebook ogni settimana",
+                    "short_name": "📘 Post Facebook",
+                    "callback_data": "SVC_KSN2JTTE",
+                    "original_slug": "POST_FACEBOOK"
+                  },
+                  {
+                    "name": "Gestione delle foto 'Prima e Dopo' dei casi clinici",
+                    "short_name": "📸 Prima e Dopo",
+                    "callback_data": "SVC_0JUJMO72",
+                    "original_slug": "PRIMA_E_DOPO"
+                  },
+                  {
+                    "name": "Partecipazione a eventi Rotary e impatto locale",
+                    "short_name": "🤝 Networking",
+                    "callback_data": "SVC_CKZWIL9Q",
+                    "original_slug": "NETWORKING"
+                  },
+                  {
+                    "name": "Sponsorizzazione di piccoli eventi sportivi a Menfi",
+                    "short_name": "🏅 Sponsor Sport",
+                    "callback_data": "SVC_6EG95F3S",
+                    "original_slug": "SPONSOR_SPORT"
+                  },
+                  {
+                    "name": "Come scrivere una mail informativa ai pazienti",
+                    "short_name": "✉️ Email Pazienti",
+                    "callback_data": "SVC_4K67UB89",
+                    "original_slug": "EMAIL_PAZIENTI"
+                  },
+                  {
+                    "name": "Aggiornamento orari su Google My Business",
+                    "short_name": "📍 Google My Business",
+                    "callback_data": "SVC_0WFDEPFR",
+                    "original_slug": "GOOGLE_MY_BUSINESS"
+                  },
+                  {
+                    "name": "Risposta diplomatica alle recensioni negative",
+                    "short_name": "💬 Recensioni Neg.",
+                    "callback_data": "SVC_ENY4KSOR",
+                    "original_slug": "RECENSIONI_NEG"
+                  },
+                  {
+                    "name": "Organizzazione di giornate della prevenzione",
+                    "short_name": "📅 Prevenzione",
+                    "callback_data": "SVC_8H6B5BGK",
+                    "original_slug": "PREVENZIONE"
+                  },
+                  {
+                    "name": "Rapporti con i medici di base della zona",
+                    "short_name": "🩺 Medici Base",
+                    "callback_data": "SVC_M0RURYHU",
+                    "original_slug": "MEDICI_BASE"
+                  },
+                  {
+                    "name": "Creazione di locandine per promozioni stagionali",
+                    "short_name": "🎨 Promozioni",
+                    "callback_data": "SVC_GU6Q8YMD",
+                    "original_slug": "PROMOZIONI"
+                  },
+                  {
+                    "name": "Gestione del blog sul sito web della clinica",
+                    "short_name": "🌐 Blog Clinica",
+                    "callback_data": "SVC_OH4GLRMU",
+                    "original_slug": "BLOG_CLINICA"
+                  },
+                  {
+                    "name": "Monitoraggio della provenienza dei nuovi pazienti",
+                    "short_name": "📈 Origine Pazienti",
+                    "callback_data": "SVC_9ZD5J1PQ",
+                    "original_slug": "ORIGINE_PAZIENTI"
+                  }
+                ],
+                "original_slug": "MARKETING_LOCALE"
+              },
+              {
+                "name": "[SER] Chirurgia Orale Specialistica",
+                "short_name": "🦷 Chirurgia Orale",
+                "callback_data": "CAT_OIU8XEDJ",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Installazione Impianto Singolo A Carico Immediato",
+                    "short_name": "🦷 Impianto Rapido",
+                    "callback_data": "SVC_E8QU7ECD",
+                    "blueprint_ready": true
+                  },
+                  {
+                    "name": "Intervento di rigenerazione ossea guidata",
+                    "short_name": "🦴 Rigenerazione",
+                    "callback_data": "SVC_9P7XZ7MS",
+                    "blueprint_ready": true,
+                    "advanced_ready": false
+                  },
+                  {
+                    "name": "Estrazione dente del giudizio in inclusione ossea",
+                    "short_name": "🦷 Dente Giudizio",
+                    "callback_data": "SVC_7CNOVIHZ",
+                    "original_slug": "DENTE_GIUDIZIO"
+                  },
+                  {
+                    "name": "Grande rialzo del seno mascellare",
+                    "short_name": "🏗️ Rialzo Seno",
+                    "callback_data": "SVC_MBMYVWV7",
+                    "original_slug": "RIALZO_SENO"
+                  },
+                  {
+                    "name": "Intervento All-on-4 per arcata completa",
+                    "short_name": "✨ All-on-4",
+                    "callback_data": "SVC_U1Y57POD",
+                    "original_slug": "ALL_ON_4"
+                  },
+                  {
+                    "name": "Chirurgia gengivale estetica per recessioni",
+                    "short_name": "👄 Chirurgia Gengiva",
+                    "callback_data": "SVC_UZQX1DSD",
+                    "original_slug": "CHIRURGIA_GENGIVA"
+                  },
+                  {
+                    "name": "Frenulotomia con tecnologia laser",
+                    "short_name": "⚡ Frenulotomia",
+                    "callback_data": "SVC_XEP6SR0B",
+                    "original_slug": "FRENULOTOMIA"
+                  },
+                  {
+                    "name": "Biopsia dei tessuti molli del cavo orale",
+                    "short_name": "🔬 Biopsia",
+                    "callback_data": "SVC_JFLXDV6M",
+                    "original_slug": "BIOPSIA"
+                  },
+                  {
+                    "name": "Sostituzione corone su impianti pre-esistenti",
+                    "short_name": "🔧 Sost. Corone",
+                    "callback_data": "SVC_JY5SXU10",
+                    "original_slug": "SOST_CORONE"
+                  },
+                  {
+                    "name": "Trattamento chirurgico delle perimplantiti",
+                    "short_name": "⚠️ Perimplantite",
+                    "callback_data": "SVC_J433ALVX",
+                    "original_slug": "PERIMPLANTITE"
+                  },
+                  {
+                    "name": "Rimozione cisti mascellari",
+                    "short_name": "🩺 Rimozione Cisti",
+                    "callback_data": "SVC_U15QQIC3",
+                    "original_slug": "RIMOZIONE_CISTI"
+                  },
+                  {
+                    "name": "Apicectomia e chirurgia endodontica",
+                    "short_name": "🦷 Apicectomia",
+                    "callback_data": "SVC_WQL5IQXO",
+                    "original_slug": "APICECTOMIA"
+                  }
+                ],
+                "original_slug": "CHIRURGIA_ORALE"
+              },
+              {
+                "name": "[SER] Gnatologia e Disordini ATM",
+                "short_name": "🧩 Gnatologia ATM",
+                "callback_data": "CAT_HCBKN5KM",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Prima visita gnatologica con analisi posturale",
+                    "short_name": "🚶 Visita Gnatologia",
+                    "callback_data": "SVC_PLQXDHDZ",
+                    "original_slug": "VISITA_GNATOLOGIA"
+                  },
+                  {
+                    "name": "Progettazione e consegna Bite personalizzato",
+                    "short_name": "🦷 Bite Su Misura",
+                    "callback_data": "SVC_5B91XTGW",
+                    "original_slug": "BITE_SU_MISURA"
+                  },
+                  {
+                    "name": "Analisi computerizzata del morso (Occlusione)",
+                    "short_name": "💻 Analisi Morso",
+                    "callback_data": "SVC_LL1WUK88",
+                    "original_slug": "ANALISI_MORSO"
+                  },
+                  {
+                    "name": "Terapia per il bruxismo e serramento dentale",
+                    "short_name": "💤 Bruxismo",
+                    "callback_data": "SVC_BIRGNM95",
+                    "original_slug": "BRUXISMO"
+                  },
+                  {
+                    "name": "Trattamento dei dolori mandibolari e cefalee",
+                    "short_name": "🤕 Dolori Mandibolari",
+                    "callback_data": "SVC_JLHXARW8",
+                    "original_slug": "DOLORI_MANDIBOLARI"
+                  },
+                  {
+                    "name": "Fisioterapia mirata per articolazione temporo-mandibolare",
+                    "short_name": "💆 Fisioterapia ATM",
+                    "callback_data": "SVC_4OE2XSWX",
+                    "original_slug": "FISIOTERAPIA_ATM"
+                  },
+                  {
+                    "name": "Regolazione periodica e molaggio del Bite",
+                    "short_name": "🔧 Regolazione Bite",
+                    "callback_data": "SVC_IUP53USZ",
+                    "original_slug": "REGOLAZIONE_BITE"
+                  },
+                  {
+                    "name": "Diagnosi e cura del click mandibolare",
+                    "short_name": "🔊 Click Mandibolare",
+                    "callback_data": "SVC_2OAFAFYN",
+                    "original_slug": "CLICK_MANDIBOLARE"
+                  },
+                  {
+                    "name": "Esercizi di rieducazione motoria masticatoria",
+                    "short_name": "🤸 Esercizi ATM",
+                    "callback_data": "SVC_OYEAUA77",
+                    "original_slug": "ESERCIZI_ATM"
+                  },
+                  {
+                    "name": "Studio dei movimenti della mascella (Assiografia)",
+                    "short_name": "📐 Assiografia",
+                    "callback_data": "SVC_BDW7CDSO",
+                    "original_slug": "ASSIOGRAFIA"
+                  },
+                  {
+                    "name": "Consulto per acufeni di origine dentale",
+                    "short_name": "👂 Acufeni",
+                    "callback_data": "SVC_FSUS84EP",
+                    "original_slug": "ACUFENI"
+                  },
+                  {
+                    "name": "Riabilitazione gnatologica per sportivi",
+                    "short_name": "🏅 Gnatologia Sport",
+                    "callback_data": "SVC_MPH410PA",
+                    "original_slug": "GNATOLOGIA_SPORT"
+                  }
+                ],
+                "original_slug": "GNATOLOGIA_ATM"
+              },
+              {
+                "name": "[SER] Ortodonzia per Adulti e Bambini",
+                "short_name": "😁 Ortodonzia",
+                "callback_data": "CAT_7GULYPV1",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Allineamento con mascherine trasparenti (Invisalign)",
+                    "short_name": "🦷 Invisalign",
+                    "callback_data": "SVC_CFQX8TSF",
+                    "blueprint_ready": true
+                  },
+                  {
+                    "name": "Apparecchio fisso estetico in ceramica",
+                    "short_name": "🦷 Apparecchio Fisso",
+                    "callback_data": "SVC_THZ4O18S",
+                    "original_slug": "APPARECCHIO_FISSO"
+                  },
+                  {
+                    "name": "Ortodonzia intercettiva per bambini piccoli",
+                    "short_name": "🦷 Ortod. Bambini",
+                    "callback_data": "SVC_5ZD1XG6Y",
+                    "blueprint_ready": true
+                  },
+                  {
+                    "name": "Espansione rapida del palato",
+                    "short_name": "🏗️ Espansione Palato",
+                    "callback_data": "SVC_WP7ODQF2",
+                    "original_slug": "ESPANSIONE_PALATO"
+                  },
+                  {
+                    "name": "Trattamento delle malocclusioni gravi",
+                    "short_name": "⚠️ Malocclusioni",
+                    "callback_data": "SVC_LRXN62RJ",
+                    "original_slug": "MALOCCLUSIONI"
+                  },
+                  {
+                    "name": "Contenzione post-ortodontica fissa o mobile",
+                    "short_name": "🔒 Contenzione",
+                    "callback_data": "SVC_RTS2VGES",
+                    "original_slug": "CONTENZIONE"
+                  },
+                  {
+                    "name": "Studio del caso con scansione 3D intraorale",
+                    "short_name": "🖥️ Scansione 3D",
+                    "callback_data": "SVC_JC2Q1H2D",
+                    "original_slug": "SCANSIONE_3D"
+                  },
+                  {
+                    "name": "Ortodonzia pre-chirurgica per casi complessi",
+                    "short_name": "🔪 Ortod. Chir.",
+                    "callback_data": "SVC_22EUTMD5",
+                    "original_slug": "ORTOD_CHIR"
+                  },
+                  {
+                    "name": "Terapia miofunzionale per deglutizione atipica",
+                    "short_name": "👅 Terapia Miofunz.",
+                    "callback_data": "SVC_WMEP52VL",
+                    "original_slug": "TERAPIA_MIOFUNZ"
+                  },
+                  {
+                    "name": "Applicazione di mini-viti ortodontiche",
+                    "short_name": "🔩 Mini-Viti",
+                    "callback_data": "SVC_HZC5JS1V",
+                    "original_slug": "MINI_VITI"
+                  },
+                  {
+                    "name": "Allineamento denti affollati senza estrazioni",
+                    "short_name": "🦷 Allineamento",
+                    "callback_data": "SVC_JCZNTOR8",
+                    "original_slug": "ALLINEAMENTO"
+                  },
+                  {
+                    "name": "Controllo mensile dell'apparecchio e igiene",
+                    "short_name": "📅 Controllo Ortod.",
+                    "callback_data": "SVC_YK26HC66",
+                    "original_slug": "CONTROLLO_ORTOD"
+                  }
+                ],
+                "original_slug": "ORTODONZIA"
+              },
+              {
+                "name": "[SER] Estetica e Riabilitazione Protesica",
+                "short_name": "✨ Estetica Protesi",
+                "callback_data": "CAT_6JNBX1RZ",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Faccette dentali in ceramica per sorriso perfetto",
+                    "short_name": "🌟 Faccette",
+                    "callback_data": "SVC_J3W1S4HO",
+                    "original_slug": "FACCETTE"
+                  },
+                  {
+                    "name": "Protesi fissa in zirconio-ceramica",
+                    "short_name": "🦷 Protesi Zirconio",
+                    "callback_data": "SVC_MNYQBPLC",
+                    "original_slug": "PROTESI_ZIRCONIO"
+                  },
+                  {
+                    "name": "Sostituzione vecchie otturazioni scure con estetiche",
+                    "short_name": "⚪ Otturazioni Estet.",
+                    "callback_data": "SVC_Q1B50LOR",
+                    "original_slug": "OTTURAZIONI_ESTET"
+                  },
+                  {
+                    "name": "Protesi mobile parziale o totale",
+                    "short_name": "🪥 Protesi Mobile",
+                    "callback_data": "SVC_AVW43TYL",
+                    "original_slug": "PROTESI_MOBILE"
+                  },
+                  {
+                    "name": "Riabilitazione estetica con corone integrali",
+                    "short_name": "👑 Corone Estetiche",
+                    "callback_data": "SVC_302GCBFA",
+                    "original_slug": "CORONE_ESTETICHE"
+                  },
+                  {
+                    "name": "Intarsi in ceramica per denti molto danneggiati",
+                    "short_name": "🧩 Intarsi Ceramica",
+                    "callback_data": "SVC_TSTEH4T7",
+                    "original_slug": "INTARSI_CERAMICA"
+                  },
+                  {
+                    "name": "Sbiancamento professionale alla poltrona",
+                    "short_name": "💎 Sbiancamento",
+                    "callback_data": "SVC_F7XYVLT0",
+                    "original_slug": "SBIANCAMENTO"
+                  },
+                  {
+                    "name": "Trattamento delle macchie dentali (Fluorosi)",
+                    "short_name": "🦷 Macchie Denti",
+                    "callback_data": "SVC_R89YLHT2",
+                    "original_slug": "MACCHIE_DENTI"
+                  },
+                  {
+                    "name": "Modellazione del sorriso (Smile Design)",
+                    "short_name": "🎨 Smile Design",
+                    "callback_data": "SVC_IGS763AI",
+                    "original_slug": "SMILE_DESIGN"
+                  },
+                  {
+                    "name": "Riparazione immediata di protesi rotte",
+                    "short_name": "🛠️ Riparaz. Protesi",
+                    "callback_data": "SVC_O8Y3ZY72",
+                    "original_slug": "RIPARAZ_PROTESI"
+                  },
+                  {
+                    "name": "Ponti dentali su denti naturali",
+                    "short_name": "🌉 Ponti Dentali",
+                    "callback_data": "SVC_TRDH97HM",
+                    "original_slug": "PONTI_DENTALI"
+                  },
+                  {
+                    "name": "Densitometria estetica del dente",
+                    "short_name": "🔍 Densitometria",
+                    "callback_data": "SVC_Y2ZFTTUH",
+                    "original_slug": "DENSITOMETRIA"
+                  }
+                ],
+                "original_slug": "ESTETICA_PROTESI"
+              },
+              {
+                "name": "[SER] Igiene, Prevenzione e Parodontologia",
+                "short_name": "🧼 Igiene Prevenz.",
+                "callback_data": "CAT_Y2WBK1I0",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Pulizia dei denti professionale (Ablazione tartaro)",
+                    "short_name": "🦷 Pulizia Denti",
+                    "callback_data": "SVC_SOFCOPJ6",
+                    "blueprint_ready": true
+                  },
+                  {
+                    "name": "Trattamento Air-Polishing per macchie da fumo/caffè",
+                    "short_name": "🌬️ Air-Polishing",
+                    "callback_data": "SVC_169R0ZO0",
+                    "original_slug": "AIR_POLISHING"
+                  },
+                  {
+                    "name": "Levigatura delle radici per cura parodontite",
+                    "short_name": "🩺 Levigatura",
+                    "callback_data": "SVC_E23RB8WH",
+                    "original_slug": "LEVIGATURA"
+                  },
+                  {
+                    "name": "Test salivare per rischio carie",
+                    "short_name": "🧪 Test Carie",
+                    "callback_data": "SVC_NK9F35LC",
+                    "original_slug": "TEST_CARIE"
+                  },
+                  {
+                    "name": "Sigillatura dei solchi per prevenzione bambini",
+                    "short_name": "🛡️ Sigillature",
+                    "callback_data": "SVC_2PTKCTMQ",
+                    "original_slug": "SIGILLATURE"
+                  },
+                  {
+                    "name": "Applicazione professionale di fluoro protettivo",
+                    "short_name": "✨ Fluoro",
+                    "callback_data": "SVC_TOQJA8N6",
+                    "original_slug": "FLUORO"
+                  },
+                  {
+                    "name": "Istruzioni personalizzate di igiene orale",
+                    "short_name": "🪥 Igiene Domiciliare",
+                    "callback_data": "SVC_40MY6YHJ",
+                    "original_slug": "IGIENE_DOMICILIARE"
+                  },
+                  {
+                    "name": "Cura delle gengive che sanguinano",
+                    "short_name": "🩸 Gengive",
+                    "callback_data": "SVC_85OSA8VZ",
+                    "original_slug": "GENGIVE"
+                  },
+                  {
+                    "name": "Monitoraggio periodico delle tasche parodontali",
+                    "short_name": "📊 Tasche Parodont.",
+                    "callback_data": "SVC_OMMFB538",
+                    "original_slug": "TASCHE_PARODONT"
+                  },
+                  {
+                    "name": "Trattamento dell'alitosi cronica",
+                    "short_name": "🍃 Alitosi",
+                    "callback_data": "SVC_7P4VC9TE",
+                    "original_slug": "ALITOSI"
+                  },
+                  {
+                    "name": "Decontaminazione laser delle tasche gengivali",
+                    "short_name": "⚡ Laser Gengive",
+                    "callback_data": "SVC_KL2MYT8X",
+                    "original_slug": "LASER_GENGIVE"
+                  },
+                  {
+                    "name": "Controllo placca con rivelatore cromatico",
+                    "short_name": "🎨 Rivelatore Placca",
+                    "callback_data": "SVC_CP2BPBB9",
+                    "original_slug": "RIVELATORE_PLACCA"
+                  }
+                ],
+                "original_slug": "IGIENE_PREVENZ"
+              },
+              {
+                "name": "[SER] Odontoiatria Conservativa e Urgenze",
+                "short_name": "🚑 Odonto. Urgenze",
+                "callback_data": "CAT_TGA72DF5",
+                "macrocategories": "SER",
+                "subcategories": [
+                  {
+                    "name": "Otturazione carie semplice o complessa",
+                    "short_name": "🦷 Otturazione",
+                    "callback_data": "SVC_JIW4U855",
+                    "original_slug": "OTTURAZIONE"
+                  },
+                  {
+                    "name": "Devitalizzazione dente (Endodonzia specialistica)",
+                    "short_name": "☠️ Devitalizzazione",
+                    "callback_data": "SVC_34DHIS94",
+                    "original_slug": "DEVITALIZZAZIONE"
+                  },
+                  {
+                    "name": "Ritrattamento canalare di denti infetti",
+                    "short_name": "🔄 Ritrattamento",
+                    "callback_data": "SVC_9EDL6TMV",
+                    "original_slug": "RITRATTAMENTO"
+                  },
+                  {
+                    "name": "Ricostruzione dente con perno in fibra di vetro",
+                    "short_name": "⚙️ Ricostruzione",
+                    "callback_data": "SVC_SQW81YXH",
+                    "original_slug": "RICOSTRUZIONE"
+                  },
+                  {
+                    "name": "Pronto soccorso per mal di denti acuto",
+                    "short_name": "🚨 Mal di Denti",
+                    "callback_data": "SVC_075RKTU6",
+                    "original_slug": "MAL_DENTI"
+                  },
+                  {
+                    "name": "Riparazione dente scheggiato o rotto",
+                    "short_name": "💔 Dente Rotto",
+                    "callback_data": "SVC_BR7QJRRM",
+                    "original_slug": "DENTE_ROTTO"
+                  },
+                  {
+                    "name": "Gestione del trauma dentale (cadute/incidenti)",
+                    "short_name": "⚠️ Trauma Dentale",
+                    "callback_data": "SVC_STXMAVW1",
+                    "original_slug": "TRAUMA_DENTALE"
+                  },
+                  {
+                    "name": "Trattamento della sensibilità dentinale al freddo",
+                    "short_name": "🧊 Sensibilità",
+                    "callback_data": "SVC_5I06RW4X",
+                    "original_slug": "SENSIBILITA"
+                  },
+                  {
+                    "name": "Rimozione protetta di vecchi amalgami",
+                    "short_name": "⚙️ Rimoz. Amalgami",
+                    "callback_data": "SVC_6BJQYWMZ",
+                    "original_slug": "RIMOZ_AMALGAMI"
+                  },
+                  {
+                    "name": "Incappucciamento della polpa per salvare il dente",
+                    "short_name": "✨ Incappucciamento",
+                    "callback_data": "SVC_SF2JLPHS",
+                    "original_slug": "INCAPPUCCIAMENTO"
+                  },
+                  {
+                    "name": "Sostituzione di otturazioni infiltrate",
+                    "short_name": "🔄 Sost. Otturaz.",
+                    "callback_data": "SVC_5Z9DM18B",
+                    "original_slug": "SOST_OTTURAZ"
+                  },
+                  {
+                    "name": "Consulenza diagnostica con radiografia digitale",
+                    "short_name": "🖥️ Rx Digitale",
+                    "callback_data": "SVC_PQZ5UU61",
+                    "original_slug": "RX_DIGITALE"
+                  }
+                ],
+                "original_slug": "ODONTO_URGENZE"
+              },
+              {
+                "name": "[PRO] Kit Domiciliari di Mantenimento",
+                "short_name": "🎒 Kit Domiciliari",
+                "callback_data": "CAT_JKEC98UP",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "Kit Post-Chirurgico (Gel clorexidina + spazzolino soft)",
+                    "short_name": "🔪 Kit Chirurgia",
+                    "callback_data": "SVC_CMWBTEQV",
+                    "original_slug": "KIT_CHIRURGIA_PRO"
+                  },
+                  {
+                    "name": "Kit Sbiancamento domiciliare con mascherine",
+                    "short_name": "💎 Kit Sbiancamento",
+                    "callback_data": "SVC_JRWEH7UZ",
+                    "original_slug": "KIT_SBIANCAMENTO"
+                  },
+                  {
+                    "name": "Box Igiene Junior (Clessidra + dentifricio + guida)",
+                    "short_name": "👶 Kit Bimbi",
+                    "callback_data": "SVC_DS5664W2",
+                    "original_slug": "KIT_BIMBI"
+                  },
+                  {
+                    "name": "Kit anti-sensibilità per denti delicati",
+                    "short_name": "🧊 Kit Sensibilità",
+                    "callback_data": "SVC_AHMHWVK1",
+                    "original_slug": "KIT_SENSIBILITA"
+                  },
+                  {
+                    "name": "Set completo per la pulizia della protesi mobile",
+                    "short_name": "🪥 Kit Protesi",
+                    "callback_data": "SVC_ZFF7AAWA",
+                    "original_slug": "KIT_PROTESI"
+                  },
+                  {
+                    "name": "Kit Ortodontico (Cera + scovolini + filo speciale)",
+                    "short_name": "😁 Kit Ortodonzia",
+                    "callback_data": "SVC_UYBFPQZ3",
+                    "original_slug": "KIT_ORTODONZIA"
+                  },
+                  {
+                    "name": "Dentifrici professionali specifici COSB",
+                    "short_name": "🦷 Dentifricio Prof.",
+                    "callback_data": "SVC_VFKRUOQ5",
+                    "original_slug": "DENTIFRICIO_PROF"
+                  },
+                  {
+                    "name": "Kit viaggio igiene orale essenziale",
+                    "short_name": "✈️ Kit Viaggio",
+                    "callback_data": "SVC_5X036MPS",
+                    "original_slug": "KIT_VIAGGIO"
+                  },
+                  {
+                    "name": "Spray rinfrescante e protettivo per alitosi",
+                    "short_name": "🍃 Spray Alitosi",
+                    "callback_data": "SVC_K5DDSJ1Z",
+                    "original_slug": "SPRAY_ALITOSI"
+                  },
+                  {
+                    "name": "Idropulsore professionale consigliato dallo studio",
+                    "short_name": "💧 Idropulsore",
+                    "callback_data": "SVC_A3DGXJ2Z",
+                    "original_slug": "IDROPULSORE"
+                  },
+                  {
+                    "name": "Kit per il sollievo da afte e stomatiti",
+                    "short_name": "🩹 Kit Afte",
+                    "callback_data": "SVC_JKMY1HN7",
+                    "original_slug": "KIT_AFTE"
+                  },
+                  {
+                    "name": "Test diagnosi carie fai-da-te per casa",
+                    "short_name": "🧪 Test Carie Home",
+                    "callback_data": "SVC_NU9TUADR",
+                    "original_slug": "TEST_CARIE_HOME"
+                  }
+                ],
+                "original_slug": "KIT_DOMICILIARI"
+              },
+              {
+                "name": "[PRO] Abbonamenti e Piani Salute",
+                "short_name": "💳 Piani Salute",
+                "callback_data": "CAT_RZKVDY50",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "Abbonamento 'Sorriso Pulito' (2 igiene + 2 controlli)",
+                    "short_name": "✨ Sorriso Pulito",
+                    "callback_data": "SVC_6S9DBDQQ",
+                    "original_slug": "SORRISO_PULITO"
+                  },
+                  {
+                    "name": "Piano 'Protezione Bimbi' (Sigillature + controlli inclusi)",
+                    "short_name": "👶 Protez. Bimbi",
+                    "callback_data": "SVC_ZZ4YY3EO",
+                    "original_slug": "PROTEZ_BIMBI"
+                  },
+                  {
+                    "name": "Abbonamento 'Gnatologia Relax' (Controlli Bite + regolazioni)",
+                    "short_name": "🧩 Gnatologia Relax",
+                    "callback_data": "SVC_2INTW9ZZ",
+                    "original_slug": "GNATOLOGIA_RELAX"
+                  },
+                  {
+                    "name": "Pacchetto 'Prevenzione Parodontite' (4 richiami l'anno)",
+                    "short_name": "🧼 Prevenz. Paro",
+                    "callback_data": "SVC_0NYVTHWE",
+                    "original_slug": "PREVENZ_PARO"
+                  },
+                  {
+                    "name": "Family Pass (Sconto fisso per famiglie numerose)",
+                    "short_name": "👨‍👩‍👧‍👦 Family Pass",
+                    "callback_data": "SVC_3IQHNVB7",
+                    "original_slug": "FAMILY_PASS"
+                  },
+                  {
+                    "name": "Piano 'Silver' per portatori di protesi (Manutenzione inclusa)",
+                    "short_name": "🥈 Piano Silver",
+                    "callback_data": "SVC_8EQ6QGZ3",
+                    "original_slug": "PIANO_SILVER"
+                  },
+                  {
+                    "name": "Abbonamento 'Sbiancamento Annuale' (Mantenimento colore)",
+                    "short_name": "💎 Sbiancamento Ann.",
+                    "callback_data": "SVC_RZPWLB26",
+                    "original_slug": "SBIANCAMENTO_ANN"
+                  },
+                  {
+                    "name": "Pacchetto 'Urgenza Garantita' (Accesso prioritario 24h)",
+                    "short_name": "🚨 Urgenza Garantita",
+                    "callback_data": "SVC_24S2TLB0",
+                    "original_slug": "URGENZA_GARANTITA"
+                  },
+                  {
+                    "name": "Piano 'Impianto Sicuro' (Manutenzione decennale garantita)",
+                    "short_name": "🔩 Impianto Sicuro",
+                    "callback_data": "SVC_KOQQA65N",
+                    "original_slug": "IMPIANTO_SICURO"
+                  },
+                  {
+                    "name": "Abbonamento 'Check-up Digitale' (Lastre + scansione 3D)",
+                    "short_name": "🖥️ Check-up Digitale",
+                    "callback_data": "SVC_QLIFG4VN",
+                    "original_slug": "CHECKUP_DIGITALE"
+                  },
+                  {
+                    "name": "Voucher regalo 'Prima Visita Specialistica'",
+                    "short_name": "🎁 Voucher Visita",
+                    "callback_data": "SVC_F8AUPWSR",
+                    "original_slug": "VOUCHER_VISITA"
+                  },
+                  {
+                    "name": "Piano 'Salute Gengive Gold' per fumatori",
+                    "short_name": "🚬 Gengive Gold",
+                    "callback_data": "SVC_YKQ3OFID",
+                    "original_slug": "GENGIVE_GOLD"
+                  }
+                ],
+                "original_slug": "PIANI_SALUTE"
+              },
+              {
+                "name": "[PRO] Asset Digitali e Guide Paziente",
+                "short_name": "📖 Asset Digitali",
+                "callback_data": "CAT_4FT5AWO6",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "Guida PDF: 'Cosa mangiare dopo l'impianto dentale'",
+                    "short_name": "🍴 Guida Impianti",
+                    "callback_data": "SVC_7KNE44IQ",
+                    "original_slug": "GUIDA_IMPIANTI"
+                  },
+                  {
+                    "name": "Video-corso: 'Come lavare i denti ai bambini senza capricci'",
+                    "short_name": "📹 Video Bimbi",
+                    "callback_data": "SVC_S1A2OEZP",
+                    "original_slug": "VIDEO_BIMBI"
+                  },
+                  {
+                    "name": "E-book: 'Guida alla convivenza con l'apparecchio invisibile'",
+                    "short_name": "📘 E-book Apparecchio",
+                    "callback_data": "SVC_TQ83LRQZ",
+                    "original_slug": "EBOOK_APPARECCHIO"
+                  },
+                  {
+                    "name": "Manuale Digitale: 'Mascella che schiocca: esercizi di sollievo'",
+                    "short_name": "🧩 Guida Mascella",
+                    "callback_data": "SVC_RXSHCW0K",
+                    "original_slug": "GUIDA_MASCELLA"
+                  },
+                  {
+                    "name": "Video: 'Manutenzione corretta della tua protesi mobile'",
+                    "short_name": "📹 Manut. Protesi",
+                    "callback_data": "SVC_IPJRUXI6",
+                    "original_slug": "MANUT_PROTESI"
+                  },
+                  {
+                    "name": "Checklist: 'I 10 segnali che indicano un problema gnatologico'",
+                    "short_name": "✔️ Checklist Gnatol.",
+                    "callback_data": "SVC_MS90CXRW",
+                    "original_slug": "CHECKLIST_GNATOL"
+                  },
+                  {
+                    "name": "Guida PDF: 'Sbiancamento: come farlo durare 2 anni'",
+                    "short_name": "💎 Guida Sbiancam.",
+                    "callback_data": "SVC_47IWQG9X",
+                    "original_slug": "GUIDA_SBIANCAM"
+                  },
+                  {
+                    "name": "Video: 'Esercizi di rilassamento per chi soffre di bruxismo'",
+                    "short_name": "📹 Video Bruxismo",
+                    "callback_data": "SVC_WCZGYN9C",
+                    "original_slug": "VIDEO_BRUXISMO"
+                  },
+                  {
+                    "name": "Infografica: 'Il percorso ortodontico step-by-step'",
+                    "short_name": "📊 Info Ortodonzia",
+                    "callback_data": "SVC_OHPRHUO8",
+                    "original_slug": "INFO_ORTODONZIA"
+                  },
+                  {
+                    "name": "Webinar registrato: 'Impianti dentali senza paura'",
+                    "short_name": "🌐 Webinar Impianti",
+                    "callback_data": "SVC_WFGSNLHC",
+                    "original_slug": "WEBINAR_IMPIANTI"
+                  },
+                  {
+                    "name": "Guida digitale: 'Denti e postura: tutto quello che devi sapere'",
+                    "short_name": "🧘 Postura Denti",
+                    "callback_data": "SVC_8HLKE6UW",
+                    "original_slug": "POSTURA_DENTI"
+                  },
+                  {
+                    "name": "Documento: 'Glossario dei termini dentistici per il paziente'",
+                    "short_name": "📝 Glossario",
+                    "callback_data": "SVC_TXSNNMBI",
+                    "original_slug": "GLOSSARIO"
+                  }
+                ],
+                "original_slug": "ASSET_DIGITALI"
+              },
+              {
+                "name": "[PRO] Gift Card e Voucher Sorriso",
+                "short_name": "🎁 Gift Card",
+                "callback_data": "CAT_T83VXD8U",
+                "macrocategories": "PRO",
+                "subcategories": [
+                  {
+                    "name": "Gift Card 'Sbiancamento di Natale'",
+                    "short_name": "🎄 Gift Sbiancam.",
+                    "callback_data": "SVC_YJ64KAFW",
+                    "original_slug": "GIFT_SBIANCAM"
+                  },
+                  {
+                    "name": "Voucher 'Regala un Sorriso' (Valore libero)",
+                    "short_name": "🎁 Regala Sorriso",
+                    "callback_data": "SVC_VW37D32Q",
+                    "original_slug": "REGALA_SORRISO"
+                  },
+                  {
+                    "name": "Gift Card 'Salute Orale' per la festa della mamma/papà",
+                    "short_name": "💖 Gift Salute",
+                    "callback_data": "SVC_AYZM8J5V",
+                    "original_slug": "GIFT_SALUTE"
+                  },
+                  {
+                    "name": "Voucher 'Benvenuto in Famiglia' per i nuovi nati",
+                    "short_name": "👶 Voucher Benvenuto",
+                    "callback_data": "SVC_HON5D1T7",
+                    "original_slug": "VOUCHER_BENVENUTO"
+                  },
+                  {
+                    "name": "Gift Card 'Kit Bellezza Denti' (Prodotti + Igiene)",
+                    "short_name": "✨ Gift Bellezza",
+                    "callback_data": "SVC_1PAR92Q9",
+                    "original_slug": "GIFT_BELLEZZA"
+                  },
+                  {
+                    "name": "Voucher per consulto gnatologico specialistico",
+                    "short_name": "🧩 Voucher Gnatol.",
+                    "callback_data": "SVC_QGZUZD4U",
+                    "original_slug": "VOUCHER_GNATOL"
+                  },
+                  {
+                    "name": "Premio fedeltà per pazienti storici dello studio",
+                    "short_name": "⭐ Premio Fedeltà",
+                    "callback_data": "SVC_DCQDVYA3",
+                    "original_slug": "PREMIO_FEDELTA"
+                  },
+                  {
+                    "name": "Voucher 'Azienda Amica' per dipendenti locali",
+                    "short_name": "🏢 Azienda Amica",
+                    "callback_data": "SVC_RO3016U0",
+                    "original_slug": "AZIENDA_AMICA"
+                  },
+                  {
+                    "name": "Gift Card 'Zero Dolore' per trattamenti specifici",
+                    "short_name": "🛡️ Gift Zero Dolore",
+                    "callback_data": "SVC_FNKF4EP4",
+                    "original_slug": "GIFT_ZERO_DOLORE"
+                  },
+                  {
+                    "name": "Voucher 'Puntualità' (Sconto se arrivi sempre in orario)",
+                    "short_name": "⏱️ Voucher Puntual.",
+                    "callback_data": "SVC_J75WPNM8",
+                    "original_slug": "VOUCHER_PUNTUAL"
+                  },
+                  {
+                    "name": "Gift Card 'Matrimonio' per sposi (Trattamenti estetici)",
+                    "short_name": "💍 Gift Matrimonio",
+                    "callback_data": "SVC_ABN66FGT",
+                    "original_slug": "GIFT_MATRIMONIO"
+                  },
+                  {
+                    "name": "Voucher 'Laurea' (Pulizia + Sbiancamento)",
+                    "short_name": "🎓 Voucher Laurea",
+                    "callback_data": "SVC_93PJ4F95",
+                    "original_slug": "VOUCHER_LAUREA"
+                  }
+                ],
+                "original_slug": "GIFT_CARD"
+              }
+            ],
+            "additional_kwargs": {},
+            "response_metadata": {},
+            "metadata": {
+              "last_updated_at": "2026-06-18T08:18:29.576Z",
+              "updated_by": "SYSTEM_AUTO_PROVISIONING"
+            }
+          },
+          "user_request": {
+            "action": "SAVE_LOG_STEP",
+            "ash": "ODMwNTEyNjI2N3wxNzgxODQ5MDAzOTYwfGVmNGFlY2U0LTllYzAtNDAyNi1hN2E3LTMyODU2MmJjYmRmNg==.49ee871b",
+            "sop_id": "SVC_0B195WQX",
+            "_auth": "query_id=AAF7KwZvAwAAAHsrBm8bzVU_&user=%7B%22id%22%3A8305126267%2C%22first_name%22%3A%22Giuseppe%22%2C%22last_name%22%3A%22B%22%2C%22language_code%22%3A%22it%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2Fp6piCXvtNSGj4KPd60vozxgOJss0ji-aGRNNX4I7CVNme0ergMr6kC1wUoV60zBY.svg%22%7D&auth_date=1781854370&signature=TTzRE6sKPZcKR2Gev3R18vRp7ObTEel0QHxofcPPsA5uucBcb1OIjTrXCOdw21Jepk_F4sPa7RBXElMbklieCw&hash=ace798d96fb3315571dd9b048e26b357a7ae0dc6ffdf71dc6f7fa3f13ddc882b",
+            "session_id": "log_SVC_0B195WQX_STEP_04_01_1781854392184",
+            "step_id": "STEP_04_01",
+            "evidence_type": "SIGNATURE",
+            "evidence": "iVBORw0KGgoAAAANSUhEUgAAAPUAAACACAYAAADTXi8XAAAN3UlEQVR4AeydSex9yRTHf41u3YRG0G3WxLBhQ8fCEEGskEgEnVgQQ8JGRO/aEMEOYUMiEnYIK2wkwgKJ0CsWSEwthm7aGLTWpvN5efX7n//p+353eLduDe/7S517a7pVpz5V59Z9dYfffc70JwIi0BUBGXVX3anGiMDZmYxao0AEOiMgo+6sQ9UcEWjJqNVbIiACEwjIqCdAUhYRaImAjLql3pKuIjCBgIx6AiRlEYGWCMio8/SWShWBYgRk1MXQq2IRyENARp2Hq0oVgWIEZNTF0KtiEchDQEadh2tLpUrXzgjIqDvrUDVHBGTUGgMi0BkBGXVnHarmiICMWmOgJQLSdQIBGfUESMoiAi0RkFG31FvSVQQmEJBRT4CkLCLQEoEajPq7Buxve/mH7b3cZeFDcrelHZJ/WdqQ/Nvip8qzLK+cCCwlUOy40kb9X2v5jSYP3Ms1tvdytYUPyVWWdkiutLQhua/FT5VbLa+cCDRHoLRRX1E5sVsq10/qicC9CJQ26nspVFnEByvTR+qIwCiBmoyaWbs2GQWoDCJQG4EFRl1bE6SPCIiAJ1CTUbNo5nWTXwREYAGB0kb9P6czl95fc2F5RUAEFhAobdSfDzq/OIQVFAERmEmgtFHfZPr62dqCZ7ezWUdUigicHoHSRg3xqMN1REpEQASWEYgGtayU44+6JxTxzxBWUAREYCKBWoyaxz29yve3gBbNDIKcCMwlUItRo/cdbJy8yPlPwKsmisA6BGoy6uutSX7RjFtcvLFl0XIiIAJTCdRk1Oj8KTZOeGNLl+EOiLwiMEagNqN+iyn8GxPvdBnuacgvAiMEajNq1H2MbXQZbhDqddKsZgI1GjW8hi7DiZeIgAiMEKjVqIcuw/XCx0hnKlkEIFCrUaPb0GW4Fs0gIxGBCwjUbNSo/RE2TvTCh4Mh7xQCp5endqO+2brEL5pZ8Ow2NhIREIFhArUbNVpHHR9PpEQERGCYQDSY4VzlY/mGt9eC74T7sPwiIAJ7Aq0YNS947FXe7fhOuBbNdii06YfAOi1pxahp7S/ZONGTZg6GvCKQCLRk1E8wpf2iGS98/NTi5ERABByBlowatd/DxskNzi+vCIiAEWjNqD9gOv/HJDlma/7hXQprLwInT2Abo14X8/2sOH8Zzj+806KZQZETAQi0aNToHS/DtWgGFYkIGIFWjZrLcD9bcxn+Z2uPnAicPIFWjZqOi7pfS6REBE6dQDSM1nj8LCh8/OuZocCVgq+3cvTZY4Mgl59A60b9ZEMUL8O/ZHE1OfT7tCnEU3H4zSsnAvkItG7UkImLZi8jshIZekb9AZXoJjU6JdCDUQ8tmv2okv6KBsxMrc8eV9I5varRg1HTN3G2fiqRFQir8l6NdXn7kuUXgT2BXgbZ0Gz9x30ba9kxS9eii/TomEAvRk0XxbY8lMiKJOpXQrUnWqWvMpHrmEANA21NvPH3am2z9ZptnVPWey0zVwo/t/0XTP5i8i4TuQ4J9GbUfDzBdxOzdW23uLx+W/m5T+7rerAF3m+CoX/I9vmdatiMQG9GDbgfs3FS0y0up9am3vdZbUO31yz67J226cWweb/+e9aeb5mc7Es+PRr1061DmYFst3OsQJ/665mfMRIPMrndZMi9YyiyoTj6G3mS6fxsk+ea8Dlp4sx7Wq5Ho6YHY7t4PfP7JJy4PMraz0kO8Se6yMuyre6oLwpP2R1b0Zjh3nNsBa0dv0VnlmLytlDxMyys39cGYe+u3O9z7XgACCPmeXwMjxNrlGOfh6fsMf15/34sz+XpjYd6NupPWN/8wMQ7/b72NPL5MeKnWfEYMVcF5j3oHnswZTzBl02dhJEvh0NParbu2ajp12fahs623c7R4cweu4A2WQh43mMVkPdXY5kOpHOsT/Jj+RWW4NNParb2IIxDly62kdmjxO/rQ6vPPUH3huTbRTwn1Cixb/wxF/nj8weUH/N/JUTcHcLdBpdCbQ1IDb+v48sdrTEc0zcaFuFkxGuPM54/SPpQz1D5cba+yg74rElfbqA1QzAGsjUfVer3NQMuwWOAJ39v+7hgRbu3Glt/uABm1OE1F+TtJik2upuGDTRk6Pc1j00OZM0Wdeg+cbYKNyo4nrC2HFePGGkjJ5iUBT27n623hJ/Alty/OlTOCw45b3O9INR3XQj3EPRGQ3v8d9kJl5Y4xrufrWODS3dA7vq/aBXcauJdzttcPK4YB328VPW6tOaP/42UtuZeaaaOuZx+6w7ofrau1qhdJ6ztvdEK9AODTs55GQ7jWN9fTYfSbo1no6MB09ac7fIcqSeGiRuSR4fI14ZwV8HcnVArrNKX4TyHHW/LbM1qjX+AwAkx6T3VwFL+ufu4HkF9c8bv50KFnwzhboJzoHTTaGtIicvwP1m93nFb5tc+YmO/N8glPwnipffXM+v/yFD+3LF7Uzj+zSHcTXAumG4abg0Zugw/9llkK/age5ilMLvY7tzxgsV5YENPNGIeyJlbfbz0fsncAmbm9yehyHFqUfE78V3O1qds1AyE2H7eGmJxi7TJMiMj9fkByUCNBjajuMVZqTcd7PVJcVP2vowp+Y/JEx/tjR+anFo234n3ed/oA734GWS9tGVpO54fDuRd3BC1ajAyxzh+v2oNFxf295Ac9QnJk4JLTwyTCrdM/kqCuvjQpEUvcne5o2h7d7M1jXJtPEkvM/O3Q8tz3rumqngiebhF3mayhfOPq2IgS+qMz1HnHEdxlvZGuUR3336Ofx2bniRnZ7TE6XlB2Zz3rqmKE8mdeJw8zvlzeeOl/tL+z/0utm+/n6WJj9+hI26ueA7XzD249vxLO7X2do3px3es+Ne3vGdLB8cZi0visTKOTefxRl8vdaLLseUeOp4TyRUu0dftoid50TVlPKacVMah/dqzdKonnigYCymt+f3aRs1jl0mY/YaE705Plbca4anyVcvLk0MIl2g8rogw6KLwHatrLT8ruH6AWtSmDv7olipFlxz3rzmJxbUC6k71HrOPrzgeU1Y8NhpfvHSO+eeEGRspP2Mh+Zvfr9Wx/rvSPJ2FfNPoDAnfnZ4qH7cypspLLe/1e7na9rQNMe9sx4lh9kELD4jPh3P/Oj5osbDo3WF8C52T2C6w3xC39x694xXHowsZKCDXLJ2q+mjy7PfdzNZLB/2ew/kuflf6PKFiDzMkwoftkQ+brsyUSHys0JKyOS6L7wil8+IHl+J88jYkzQpy3z3+ZqTNa/wunaXIgsw5Z2nUudk2/sTRzWy9llHzXelfGCSEBSBgReFyhwE1RayoxQ5jQBjQzHgYzbutNASDTULbkYdYGkInm7eI4woDLr5y9OSTt7RliXFTHvfdfZmsWtNmH1ejn7Fz5hSjL11wNe/HQkldzNZrdTDflb7BACEsALE6GoXfr9Q3RRjQS4UzPMIMxRNb3D7iviZiKlbr4IIhRgXhkIybL3TG9BjmJDBUDusM/CyJ+WsM039eL/rSh72f24+HhHeno3BfOgn/qYTJJpXHbM0/NuBfEnnx6zp+PSitGbGOlMoovmcgFVdCCpwToD84CZ1HOA/GzRc6MVhmMmZvjDxJMmbyucN2XuLWXGTaFZppQzt80X6W/o4lcOWFkA8WL7e4Q8LbWFF45ttLPIHwH0v4l0Re/LqOXw9Ka0asIX3D9KjCMYiqUERKnBNgwGKEh4ybjAxEZm+MPAnHkOaFQT8U7/PU5o/6plkaI36OKcsqPhLzWVJR98KitbvKZdQORmVeb9wY5xz1yM+gb61/MVzfTtqQwt6f4krt4Ytw6c5V052myBtMqnCtdXoV0DZWAuOmnxjUDKCLqmegkY/8F+WrMY3LbHRPutGW5B/ak87HJjhmDfEnlKTLoXLhi7BOxNoR60isKw3puXkcim1eqSpcTIABdGigEV+iP70xLG6YHRhX6mNbePrPsp1hzKmtLGwRt4b8zhXSyoKiU/mSN4K7lCKfCEwjgIFNy3k4F4bqU2OYNL7bTV25xix3SqgnCavfyd/UPhegpiBI2dkE+C3pDzpmto4GTLjUuPTtuMU3sCX/GLyW2iJdtyPAb0lfGzMov0N93BQ/BuzzES45Jru4BC8J0Hem/O0RiLM1v4mnGjYzIgbsW0249HiMl+A8dOJ1bMJfGmITkKTkIAFmawzRJ2LYrNAnYXHLSzJmZnZ/HOXUMhbRJen29uRpaV8LyJaYSddLBBg/3ghI4cGYJBi+l2jM5Od4ysFfg3BCSnrwYk3yN7OvCeax0HR8GQKMIQxzbu0cg5Fz/Nxjc+b3Xxxd85ZZTp0vK7s2oJcpp0AzBBhHGOkUhclXozEn3X+YPLZHT9u15eiMtjSWtrUSYCxhBGNCvlrbgF6vZNOy1A64ZbbSXQSKEJBRF8F+plpFIBsBGXU2tCq4YQLpHnzaN9UUGXVT3SVlNyLAG1c/sbpKfuLKql/mZNTLuOmovgm8yZr3FJP4xVGLqt/JqOvvo9Iaqv7GCMioG+swqSsCYwRk1GOElC4CjRGQUTfWYVJXBMYIyKjHCCm9JQLS1QjIqA2CnAj0REBG3VNvqi0iYARk1AZBTgR6IiCj7qk31ZaWCGTTVUadDa0KFoEyBGTUZbirVhHIRkBGnQ2tChaBMgRk1GW4q1YRyEYgg1Fn01UFi4AITCAgo54ASVlEoCUCMuqWeku6isAEAjLqCZCURQRaInDiRt1SV0lXEZhGQEY9jZNyiUAzBGTUzXSVFBWBaQT+DwAA//8BpvYFAAAABklEQVQDAE/H5BDGUIVMAAAAAElFTkSuQmCC",
+            "mime_type": "image/png",
+            "duration_seconds": 9
+          },
+          "owner_data": {
+            "user_id": "IT02564250849",
+            "chat_id": 8305126267,
+            "access_token": "3085509e-63ee-463a-ba87-e0de3b975218",
+            "group_id": null,
+            "user_name": "",
+            "vat_number": "IT02564250849",
+            "gemini_key": "AIzaSyAbDReRpDWAg93RXoOxuOmNtCGzIfZmF4Q",
+            "bot_key": "8407768207:AAE8ki9v8DPdcrYYyWDFjPFON6cS-7sehb8",
+            "path": "",
+            "name": "GIUSEPPE",
+            "surname": "BUSCEMI",
+            "email": "giuseppe.buscemi78@gmail.com",
+            "phone": "3934425185",
+            "ragione_sociale": "Centro Odontoiatrico Buscemi srl",
+            "indirizzo": "via tagliavia , 92013 MENFI (AG)",
+            "fiscal_code": "BSCGPP78S29G273C",
+            "sdi_pec": "KRRH6B9",
+            "site": "www.centroodontoiatricobuscemi.com",
+            "linkedin_page": "",
+            "facebook_page": "https://www.facebook.com/profile.php?id=100064938375333",
+            "instagram_page": "https://www.instagram.com/centrodentisticobuscemi/",
+            "twitter_page": "",
+            "sector": "services_personal",
+            "business_description": "ATTIVITà DI ODONTOIATRIA DI ECCELLENZA",
+            "kyc_details": {
+              "professional_questionnaire": {
+                "role": "founder_ceo",
+                "team_size": "6-10",
+                "years_experience": "20+",
+                "hard_skills": [
+                  "ODONTOIATRA SPECIALISTA IN ORTODONZIA",
+                  "IMPRENDITORE",
+                  "DENTAL OFFICE MANAGER",
+                  "ODONTOIATRA SPECIALISTA IN CHIRURGIA",
+                  "ESPERTO DI GNATOLOGIA"
+                ],
+                "certifications": "ALBO DEI MEDICI DI AG NUM 353",
+                "recent_training": "formal_course",
+                "specialization_level": "specialist",
+                "digital_tools": [
+                  "email",
+                  "whatsapp",
+                  "word",
+                  "calendar",
+                  "social",
+                  "crm",
+                  "accounting"
+                ],
+                "client_workflow": "physical_dominant",
+                "document_management": "gestionale",
+                "pain_points": [
+                  "bureaucracy",
+                  "find_clients",
+                  "time_management",
+                  "costs_control",
+                  "scaling"
+                ],
+                "main_goal": "save_time"
+              }
+            },
+            "subscription_plan": "pioneer_free_trial",
+            "subscription_status": "Pending_Activation",
+            "credits_balance": 494756,
+            "model_choice": "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+            "lenguage": "Italiano",
+            "owner_unavailable_time": "21-7",
+            "operator_unavailable_time": "19-9",
+            "operators": [
+              {
+                "OperatorName": "GIUSEPPE BUSCEMI",
+                "OperatorChatID": 8305126267,
+                "OperatorLenguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Owner",
+                "GeminiKey": "AIzaSyBCV2D4FL-1Nww0jYJRJTDBG5QRdm7Kclc",
+                "OperatorLanguage": "Italiano",
+                "Job": "Odontoiatra",
+                "isOwner": true,
+                "contract": "Partita IVA",
+                "level": "",
+                "hours": 40,
+                "salary": 0,
+                "rate_type": "percentage",
+                "rate": 30,
+                "specialization": "Ortodontista",
+                "status": "",
+                "invitation_code": ""
+              },
+              {
+                "OperatorName": "Sara",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Operator",
+                "Job": "Igienista",
+                "isOwner": false,
+                "contract": "Dipendente (CCNL)",
+                "level": "2° Livello",
+                "hours": 40,
+                "salary": 1878.32,
+                "rate_type": "percentage",
+                "rate": 0,
+                "specialization": "Generico / Generalista",
+                "GeminiKey": "",
+                "status": "PENDING",
+                "invitation_code": "INV-IT02564250849-XNUAX",
+                "created_at": "2026-06-16T15:01:37.564Z"
+              },
+              {
+                "OperatorName": "Vita",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Operator",
+                "Job": "ASO (Assistente)",
+                "isOwner": false,
+                "contract": "Dipendente (CCNL)",
+                "level": "5° Livello",
+                "hours": 30,
+                "salary": 1126.64,
+                "rate_type": "percentage",
+                "rate": 0,
+                "specialization": "Generico / Generalista",
+                "GeminiKey": "",
+                "status": "",
+                "invitation_code": ""
+              },
+              {
+                "OperatorName": "Arianna",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Operator",
+                "Job": "ASO (Assistente)",
+                "isOwner": false,
+                "contract": "Dipendente (CCNL)",
+                "level": "4° Livello",
+                "hours": 30,
+                "salary": 1210.59,
+                "rate_type": "percentage",
+                "rate": 0,
+                "specialization": "Generico / Generalista",
+                "GeminiKey": "",
+                "status": "",
+                "invitation_code": ""
+              },
+              {
+                "OperatorName": "Filippo",
+                "OperatorChatID": null,
+                "OperatorLanguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "External",
+                "Job": "Odontoiatra",
+                "isOwner": false,
+                "contract": "Partita IVA",
+                "level": "",
+                "hours": 40,
+                "salary": 0,
+                "rate_type": "percentage",
+                "rate": 30,
+                "specialization": "Chirurgo / Implantologo",
+                "GeminiKey": "",
+                "status": "",
+                "invitation_code": ""
+              }
+            ],
+            "payment_preference": "stripe",
+            "terms_accepted": true,
+            "operator_owner": "",
+            "operator_credit": "1",
+            "created_at": "2026-03-24T18:17:36.730Z",
+            "additional_kwargs": {},
+            "response_metadata": {},
+            "subscription_certificator": true,
+            "last_update": "2026-06-16T15:01:37.564Z",
+            "subscription_custombot": true,
+            "customer_bot_config": {
+              "status": "ACTIVE",
+              "activated_at": "2026-04-21T10:46:26.534Z",
+              "last_updated_at": "2026-04-21T10:46:26.534Z",
+              "identity": {
+                "agent_name": "Arianna",
+                "role_persona": "customer_support"
+              },
+              "permissions": {
+                "allow_images": true,
+                "allow_files": true
+              },
+              "personality": {
+                "tone": "friendly",
+                "vibe": "helpful_assistant",
+                "language_style": "casual",
+                "emoji_usage": "moderate",
+                "custom_instructions": ""
+              },
+              "business_logic": {
+                "primary_goal": "lead_generation",
+                "fallback_message": "Al momento non dispongo di questa informazione specifica. Preferisce che inoltri la Sua richiesta a un operatore umano?"
+              },
+              "system_safety_limits": {
+                "max_daily_messages_per_user": 20,
+                "max_tokens_per_chat": 2000
+              }
+            },
+            "vertical": "dental",
+            "machinery": [
+              {
+                "type": "Riunito Odontoiatrico (Fascia Media)",
+                "year": 2024,
+                "ownership": "Proprietà",
+                "value": 18500,
+                "useful_life": 10
+              },
+              {
+                "type": "Riunito Odontoiatrico (Fascia Media)",
+                "year": 2024,
+                "ownership": "Proprietà",
+                "value": 18500,
+                "useful_life": 10
+              },
+              {
+                "type": "Compressore d'Aria Medicale Secco con Essiccatore (2-3 riuniti)",
+                "year": 2026,
+                "ownership": "Proprietà",
+                "value": 1600,
+                "useful_life": 8
+              },
+              {
+                "type": "Sistema di Aspirazione Chirurgica ad Anello Umido",
+                "year": 2025,
+                "ownership": "Proprietà",
+                "value": 2000,
+                "useful_life": 8
+              },
+              {
+                "type": "Radiografico Endorale a Parete (Generatore RX)",
+                "year": 2010,
+                "ownership": "Proprietà",
+                "value": 3000,
+                "useful_life": 8
+              },
+              {
+                "type": "Autoclave di Classe B 18-23 L (Fascia Base)",
+                "year": 2026,
+                "ownership": "Proprietà",
+                "value": 2600,
+                "useful_life": 5
+              },
+              {
+                "type": "Termosigillatrice / Sigillatrice Rotativa",
+                "year": 2026,
+                "ownership": "Proprietà",
+                "value": 900,
+                "useful_life": 5
+              },
+              {
+                "type": "Riunito Odontoiatrico (Fascia Media)",
+                "year": 2024,
+                "ownership": "Proprietà",
+                "value": 18500,
+                "useful_life": 10
+              },
+              {
+                "type": "TAC CBCT (Cone Beam 3D – FOV standard)",
+                "year": 2022,
+                "ownership": "Leasing/Noleggio",
+                "value": 900,
+                "useful_life": 8
+              }
+            ],
+            "financials": {
+              "631.01000": 33706.4,
+              "631.01001": 8676.6,
+              "631.01002": 26029.8,
+              "631.01003": 8676.6,
+              "631.01004": 8676.6,
+              "631.01005": 10516.74,
+              "631.01006": 0,
+              "631.00002": 10516.74,
+              "631.00005": 2503.33,
+              "631.00007": 2050,
+              "631.00008": 3505.58,
+              "631.00009": 2050,
+              "631.00011": 2106.58,
+              "631.00020": 1000,
+              "631.00023": 2103.35,
+              "631.00026": 400,
+              "631.00201": 3828.2,
+              "631.00251": 3828.2,
+              "610.00001": 55930,
+              "610.00021": 10204,
+              "610.00003": 1120,
+              "610.00101": 3450,
+              "610.00201": 900,
+              "610.01000": 0,
+              "612.00001": 3504.66,
+              "612.00005": 72115.69,
+              "606.00001": 3536,
+              "606.00005": 17527.89,
+              "606.00007": 900,
+              "606.00010": 12620.08,
+              "621.00001": 900,
+              "621.00002": 450,
+              "621.00005": 0,
+              "621.00031": 4500,
+              "631.00017": 3003.99,
+              "626.00201": 2500,
+              "626.00202": 750,
+              "632.00001": 1263.95,
+              "632.00002": 2804.46,
+              "632.00005": 3600,
+              "632.00015": 1402.23,
+              "601.00001": 293,
+              "601.00004": 4155,
+              "601.00007": 293,
+              "601.00008": 0,
+              "601.00010": 293,
+              "601.00012": 586,
+              "601.00013": 200,
+              "601.00101": 40,
+              "605.00001": 10800,
+              "605.00061": 540,
+              "631.00016": 1502,
+              "631.00101": 0,
+              "631.00103": 2503.33,
+              "631.00111": 0,
+              "631.00121": 0,
+              "635.00001": 0
+            },
+            "number_of_chairs": 3,
+            "profile_type": "societa_capitali",
+            "advanced_setup": true
+          }
+        },
+        "binary": {},
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Switch3": {
+      "main": [
+        [
+          {
+            "node": "VisionRational",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge41",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "FileRational",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge41",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "TextRational",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SignRational",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge41",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "blueprints1": {
+      "main": [
+        [
+          {
+            "node": "blueprint Exist1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "blueprint Exist1": {
+      "main": [
+        [
+          {
+            "node": "Merge24",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge24": {
+      "main": [
+        [
+          {
+            "node": "StepIsolator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VisionRational": {
+      "main": [
+        [
+          {
+            "node": "GeminiCallCert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GeminiCallCert": {
+      "main": [
+        [
+          {
+            "node": "GeminiError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FileRational": {
+      "main": [
+        [
+          {
+            "node": "GeminiCallCert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TextRational": {
+      "main": [
+        [
+          {
+            "node": "GeminiCallCert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GeminiError": {
+      "main": [
+        [
+          {
+            "node": "Merge41",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Merge29",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compliance": {
+      "main": [
+        [
+          {
+            "node": "compliance Exist2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge41": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge42",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Merge42",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge42": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram User Valut",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "compliance Exist2": {
+      "main": [
+        [
+          {
+            "node": "Merge28",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "StepIsolator": {
+      "main": [
+        [
+          {
+            "node": "Compliance",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge28",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SignRational": {
+      "main": [
+        [
+          {
+            "node": "GeminiCallCert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge28": {
+      "main": [
+        [
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "blueprints1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge24",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram User Valut": {
+      "main": [
+        [
+          {
+            "node": "Oscurante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Oscurante": {
+      "main": [
+        [
+          {
+            "node": "Merge29",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        []
+      ]
+    },
+    "Merge29": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "0f209e93-19c5-477a-b7b7-dfee79cfd8fa",
+  "meta": {
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "QQksskE7M7LzKkd9",
+  "tags": []
+}

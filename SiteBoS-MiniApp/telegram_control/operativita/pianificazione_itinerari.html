@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Agenda & Percorsi - SiteBoS</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+(function() {
+    // Riferimento locale e temporaneo all'SDK per il controllo iniziale
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) {
+                redirectPath = "../../index.html";
+            } else {
+                redirectPath = "../index.html";
+            }
+        }
+
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', surface: '#ffffff', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem' }
+                }
+            }
+        }
+    </script>
+    <style>
+
+/* SiteBoS Architect Alignment */
+body { background-color: #fafafa !important; color: #000000 !important; }
+.card, .section-card, .dark-card, .upload-box { 
+    background: white !important; 
+    border: 1px solid #eeeeee !important; 
+    box-shadow: none !important; 
+}
+input:focus, textarea:focus, select:focus { 
+    border-color: #000000 !important; 
+    box-shadow: none !important; 
+    outline: none !important;
+}
+.text-primary, .text-black, .text-blue-600, .text-black { color: #000000 !important; }
+.bg-primary, .bg-black, .bg-black, .bg-black { background-color: #000000 !important; color: #ffffff !important; }
+.border-primary, .border-black, .border-blue-600, .border-black { border-color: #000000 !important; }
+.spinner { border-top-color: #000 !important; }
+input[type="checkbox"]:checked { background-color: #000 !important; border-color: #000 !important; }
+/* Forza icone pesanti */
+.fas, .far, .fal { font-weight: 900 !important; font-family: "Font Awesome 6 Free" !important; }
+
+
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #fafafa; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        input[type="checkbox"] { appearance: none; width: 18px; height: 18px; border: 2px solid #000; border-radius: 4px; position: relative; cursor: pointer; }
+        input[type="checkbox"]:checked { background-color: #000; }
+        input[type="checkbox"]:checked::after { content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900; color: white; font-size: 9px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .segmented input:checked + label { background-color: #000; color: #fff; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeIn 0.3s ease forwards; }
+    </style>
+    <script>
+        (function() { if (!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)) { document.body.innerHTML = `<div class="p-10 text-center bg-black text-white h-screen flex items-center justify-center">🚫 ACCESS DENIED</div>`; window.stop(); } })();
+    </script>
+</head>
+<body class="bg-bg text-primary pb-24 no-scrollbar overflow-x-hidden">
+
+    <header class="bg-white p-5 border-b border-border sticky top-0 z-50 flex items-center gap-3 shadow-sm">
+        <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center text-black"><i class="fas fa-calendar-check text-sm"></i></div>
+        <div>
+            <h1 class="text-base font-black tracking-tighter uppercase leading-none">Percorsi</h1>
+            <p class="text-[8px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Optimizer Engine</p>
+        </div>
+    </header>
+
+    <div class="p-4 max-w-md mx-auto space-y-5">
+        <form id="travelForm" class="space-y-5">
+            <div class="bg-white rounded-3xl p-5 border border-border shadow-sm space-y-4">
+                <span class="text-[8px] font-black uppercase tracking-widest text-gray-300">📍 Logistica</span>
+                <div class="flex items-center justify-between"><label class="text-xs font-bold">Partenza da Sede</label><input type="checkbox" id="partenzaDaSede" checked></div>
+                <div id="customPartenzaContainer" class="hidden animate-in"><input type="text" id="partenza" placeholder="Indirizzo partenza..." class="w-full bg-gray-50 p-3 rounded-xl border-none text-xs"></div>
+                <div class="h-px bg-gray-50 w-full"></div>
+                <div class="flex items-center justify-between"><label class="text-xs font-bold">Rientro in Sede</label><input type="checkbox" id="arrivoInSede" checked></div>
+                <div id="customArrivoContainer" class="hidden animate-in"><input type="text" id="arrivo" placeholder="Indirizzo rientro..." class="w-full bg-gray-50 p-3 rounded-xl border-none text-xs"></div>
+            </div>
+
+            <div id="agenda-container" class="space-y-3"></div>
+
+            <button type="button" class="w-full border-2 border-dashed border-gray-200 py-6 rounded-3xl flex flex-col items-center justify-center gap-1 group active:scale-95 transition" id="btnAddStop">
+                <i class="fas fa-plus text-gray-300"></i>
+                <span class="text-[8px] font-black uppercase text-gray-500">Aggiungi Tappa</span>
+            </button>
+
+            <div class="bg-black text-white rounded-3xl p-5 shadow-sm space-y-4">
+                <span class="text-[8px] font-black uppercase tracking-widest text-neutral-500">🤖 AI Config</span>
+                <div class="flex items-center justify-between"><span class="text-xs font-bold uppercase tracking-tight">Ottimizza Percorso</span><input type="checkbox" id="aiOptimize" checked></div>
+                <textarea id="noteAI" rows="2" placeholder="Preferenze extra..." class="w-full bg-neutral-900 rounded-xl p-3 text-xs outline-none border-none text-black"></textarea>
+            </div>
+
+            <button type="submit" id="submitBtn" class="w-full h-12 bg-black text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm active:scale-95 transition">Genera Piano</button>
+        </form>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff'); tg.ready(); tg.expand();
+        const WH_SOLVER = "https://prod.workflow.trinai.it/webhook/26237ccb-3621-4dc7-b15f-fe8a50be3a6f";
+        const chatId = tg.initDataUnsafe.user?.id || "DEBUG";
+        let stopCount = 0;
+
+        function addStop() {
+            stopCount++; const id = stopCount; const d = document.createElement('div');
+            d.className = 'bg-white rounded-3xl p-5 border border-border shadow-sm space-y-4 animate-in relative'; d.id = `stop-${id}`;
+            d.innerHTML = `
+                <div class="flex justify-between items-center"><span class="text-[8px] font-black uppercase tracking-widest text-gray-300">📍 Tappa #${id}</span>${id>1?`<button onclick="document.getElementById('stop-${id}').remove()" class="text-gray-300"><i class="fas fa-trash-alt text-[10px]"></i></button>`:''}</div>
+                <div class="segmented flex bg-gray-50 p-1 rounded-xl">
+                    <input type="radio" id="bus-${id}" name="type-${id}" value="Lavoro" checked class="hidden"><label for="bus-${id}" class="flex-1 text-center py-2 rounded-lg text-[9px] font-black uppercase tracking-widest cursor-pointer transition">💼 Work</label>
+                    <input type="radio" id="lei-${id}" name="type-${id}" value="Libero" class="hidden"><label for="lei-${id}" class="flex-1 text-center py-2 rounded-lg text-[9px] font-black uppercase tracking-widest cursor-pointer transition">📸 Free</label>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="date" class="s-date w-full bg-gray-50 p-3 rounded-xl text-[10px] font-bold" value="${new Date().toISOString().split('T')[0]}" required>
+                    <input type="text" class="s-time w-full bg-gray-50 p-3 rounded-xl text-[10px] font-bold" placeholder="10:30" required>
+                </div>
+                <input type="text" class="s-loc w-full bg-gray-50 p-3 rounded-xl text-xs font-medium" placeholder="Località..." required>`;
+            document.getElementById('agenda-container').appendChild(d);
+        }
+
+        document.getElementById('partenzaDaSede').onchange = () => document.getElementById('customPartenzaContainer').classList.toggle('hidden', document.getElementById('partenzaDaSede').checked);
+        document.getElementById('arrivoInSede').onchange = () => document.getElementById('customArrivoContainer').classList.toggle('hidden', document.getElementById('arrivoInSede').checked);
+        document.getElementById('btnAddStop').onclick = () => { addStop(); if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); };
+        addStop();
+
+        document.getElementById('travelForm').onsubmit = async (e) => {
+            e.preventDefault(); const btn = document.getElementById('submitBtn'); btn.disabled = true; btn.innerText = "Processing...";
+            const stops = []; document.querySelectorAll('.animate-in[id^="stop-"]').forEach((card, i) => { const id = card.id.split('-')[1]; stops.push({ tappa: i + 1, tipo: card.querySelector(`input[name="type-${id}"]:checked`).value, data: card.querySelector('.s-date').value, ora: card.querySelector('.s-time').value, luogo: card.querySelector('.s-loc').value }); });
+            const payload = { _auth: tg.initData, type: 'AGENDA_MIXED_SUBMISSION', payload: { Partenza: document.getElementById('partenzaDaSede').checked ? 'Sede' : document.getElementById('partenza').value, Arrivo: document.getElementById('arrivoInSede').checked ? 'Sede' : document.getElementById('arrivo').value, Agenda: stops, Ottimizza: document.getElementById('aiOptimize').checked, NoteUtente: document.getElementById('noteAI').value }, context: { chatId } };
+            try {
+                const res = await fetch(WH_SOLVER, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (res.ok) { if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); window.parent.postMessage({ type: 'SOLVER_DATA', payload: "Agenda Inviata ✅" }, '*'); }
+            } catch (e) { btn.disabled = false; btn.innerText = "Genera Piano"; }
+        };
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        // 1. Determine HTML filename to play the correct WAV file
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        
+        let audioSrc = baseName + '.wav';
+        if (baseName === 'add-product') audioSrc = 'catalog_add-product.wav';
+        if (baseName === 'edit-product') audioSrc = 'catalog_edit-product.wav';
+
+        // 2. Determine corresponding userguide page
+        let guidePage = 'userguide/index.html';
+        if (window.location.pathname.includes('/gestione/')) {
+            guidePage = 'userguide/03_catalog.html';
+        } else if (window.location.pathname.includes('/identity/')) {
+            guidePage = 'userguide/02_onboarding.html';
+        } else if (window.location.pathname.includes('/agents/')) {
+            if (baseName.includes('controllo')) guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName.includes('sicurezza')) guidePage = 'userguide/11_agente_sicurezza.html';
+            else guidePage = 'userguide/01_intro.html';
+        } else {
+            if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'certificator') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'intelligent-warehouse') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'orders-manager') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'job-create') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'pianificazione_itinerari') guidePage = 'userguide/07_magazzino_logistica.html';
+            else if (baseName === 'fine-tuning') guidePage = 'userguide/12_fine_tuning.html';
+            else if (baseName === 'risorse_umane') guidePage = 'userguide/06_team.html';
+            else if (baseName === 'analisi-mercato') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agent_intelligence') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'agenda') guidePage = 'userguide/10_agenda_radar.html';
+            else if (baseName === 'assistente-sicurezza') guidePage = 'userguide/11_agente_sicurezza.html';
+            else if (baseName === 'controllo_gestione') guidePage = 'userguide/09_controllo_gestione.html';
+            else if (baseName === 'ecommerce') guidePage = 'userguide/04_online.html';
+            else if (baseName === 'preventivi') guidePage = 'userguide/09_controllo_gestione.html';
+        }
+
+        // Calculate relative path depth
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+        
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        // 3. Inject Font Awesome stylesheet if missing
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        // 4. Inject Drawer HTML structure into Body
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        // 5. Inject Globe and Volume Buttons
+        const header = document.querySelector('header');
+        let buttonContainer = null;
+        if (header) {
+            buttonContainer = header.querySelector('.flex.gap-2') || header.querySelector('.flex.items-center.gap-2') || header.querySelector('.flex.gap-3');
+        }
+
+        const btnHtml = `
+        <!-- User Guide Button -->
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <!-- Speech Audio Button -->
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (buttonContainer) {
+            buttonContainer.insertAdjacentHTML('afterbegin', btnHtml);
+        } else if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        // 6. Action Functions (Drawer & Audio)
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            const iframe = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+
+            window.stopAudio();
+            
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                drawer.classList.remove('translate-y-full');
+            }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                document.getElementById('userguide-iframe').src = "";
+            }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) {
+                voiceAudio.pause();
+                voiceAudio.currentTime = 0;
+            }
+            isAudioPlaying = false;
+            voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) {
+                icon.className = 'fas fa-volume-high text-xs';
+            }
+            if (btn) {
+                btn.classList.remove('bg-black', 'text-white', 'border-black');
+                btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+            }
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    voiceAudio.currentTime = 0;
+                    if (icon) {
+                        icon.className = 'fas fa-volume-high text-xs';
+                        btn.classList.remove('bg-black', 'text-white', 'border-black');
+                        btn.classList.add('bg-white', 'text-slate-500', 'border-gray-200');
+                    }
+                });
+            }
+
+            if (isAudioPlaying) {
+                window.stopAudio();
+            } else {
+                voiceAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    if (icon) {
+                        icon.className = 'fas fa-stop text-xs';
+                        btn.classList.remove('bg-white', 'text-slate-500', 'border-gray-200');
+                        btn.classList.add('bg-black', 'text-white', 'border-black');
+                    }
+                }).catch(err => {
+                    console.error("Errore riproduzione audio:", err);
+                });
+            }
+        };
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1622 @@
+{
+  "name": "Billing-Balance",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "e353fd8a-62fb-4203-a2a7-20369d832e00",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -704,
+        -16
+      ],
+      "id": "7bc76144-769e-4330-b9da-6d7bc4bdf211",
+      "name": "Webhook",
+      "webhookId": "e353fd8a-62fb-4203-a2a7-20369d832e00"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "32b62bd1-6642-4c95-954c-4bd4e9c318f2",
+              "leftValue": "={{ $json.headers['content-type'] }}",
+              "rightValue": "=application/json",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "dd2d7003-f612-4cfe-86c0-e8f2112bc669",
+              "leftValue": "={{ $json.body.autorize }}",
+              "rightValue": "TrinAI-Autorize-Transaction-2=2&",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "0c324723-6ffd-4bf9-b2eb-e14d0b880c0e",
+              "leftValue": "={{ $json.headers[\"content-length\"].toNumber() }}",
+              "rightValue": 1000,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            },
+            {
+              "id": "8ec15fff-0dde-4a4d-be4e-5d83233c181a",
+              "leftValue": "={{ $json.body.user }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "8ffec8ef-9a2f-4d21-b530-81bc8873b275",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "e353fd8a-62fb-4203-a2a7-20369d832e00",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -208,
+        -16
+      ],
+      "id": "f9b344c0-f96b-42ee-a0e4-39641cb5e951",
+      "name": "Autorize"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.user.email }}\" \n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -208,
+        -240
+      ],
+      "id": "453bc499-6b66-4897-8369-055ca9de6933",
+      "name": "stakeholder",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        464,
+        -832
+      ],
+      "id": "340c9687-7380-4192-bdb1-0b667e3c71bd",
+      "name": "Success"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"error\",\n  \"code\": 500,\n  \"message\": \"⛔️ ACCESS DENIED: Unauthorized User or Invalid Endpoint.\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -464,
+        -176
+      ],
+      "id": "4c9ca10d-dea1-49b5-93a9-a5b53e27197f",
+      "name": "⛔️ 500 Forbidden"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -208,
+        -384
+      ],
+      "id": "5cf12bfb-1725-4afa-b407-955e05abf493",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a066569a-c5de-463b-b98e-52e4b849a1f2"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GET"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fe111911-ae6d-4c3d-963f-b4468fa004d8",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "add",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ADD"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "067c74be-08ea-485e-b20e-a625bfd1c173",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "use",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "USE"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        -400
+      ],
+      "id": "4edacb44-eff8-401f-ab4a-d8ea796c78b6",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "70c37b8e-dc3f-4216-b924-12e472914a94",
+              "name": "email",
+              "value": "={{ $json.stakeholder.user_ref.email }}",
+              "type": "string"
+            },
+            {
+              "id": "9c528754-0d64-4a41-8615-dbfafbe8b9dc",
+              "name": "credit_balance",
+              "value": "={{ $json.stakeholder.commercial_profile.credit_balance }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        -848
+      ],
+      "id": "9896d19a-69c2-44ad-9ae7-4f044895a081",
+      "name": "ResponseEdit"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.owner_data_ref.vat_number }}",
+        "collectionName": "billing_buffers",
+        "databaseName": "MemoryManager",
+        "contextWindowLength": 150
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        800,
+        128
+      ],
+      "id": "930d3bdb-3e58-4f82-8d28-eca0719f2cb8",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.transaction_summary }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        784,
+        -32
+      ],
+      "id": "085b2aa8-cdbd-4c3e-aa14-c9d5a3a1e224",
+      "name": "billing_buffers",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.stakeholder }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1024,
+        -384
+      ],
+      "id": "dddbfbdc-1649-414f-8252-dcdc714cfb2b",
+      "name": "stakeholders",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.user_ref.email }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        -224
+      ],
+      "id": "07d91bb4-f369-4bb8-bfaf-505199b2d098",
+      "name": "MongoDB Chat Memory4",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1760,
+        -64
+      ],
+      "id": "a9ac79f6-d6bc-478f-86f5-a79f550651f9",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1216,
+        -32
+      ],
+      "id": "cd62ae3d-fc03-49b2-9242-c4818e45b22e",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"code\": 501,\n  \"message\": \"stakeholder not found\"\n}",
+        "options": {
+          "responseCode": 501
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        -224
+      ],
+      "id": "bb1312fa-539f-469a-af9c-ce4a40b02a15",
+      "name": "501-StakeholderError"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"code\": 501,\n  \"message\": \"save gone wrong\"\n}",
+        "options": {
+          "responseCode": 501
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1440,
+        -32
+      ],
+      "id": "1d3243a3-bd67-4400-bbea-03b104fcf51a",
+      "name": "502-SaveError"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.owner_data_ref.vat_number || $json.stakeholder.user_ref.codiceFiscale }}",
+        "collectionName": "billing_buffers",
+        "databaseName": "MemoryManager",
+        "contextWindowLength": 150
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -544
+      ],
+      "id": "2d4664f6-86b6-4bde-b82b-bfca454517a9",
+      "name": "MongoDB Chat Memory1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "simplifyOutput": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        -672
+      ],
+      "id": "282c74bd-144a-4df2-b649-edc1a5535e2d",
+      "name": "get_billing_buffers",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (let item of items) {\n  // Verifichiamo se esiste l'array messages\n  if (item.json.messages && Array.isArray(item.json.messages)) {\n    \n    // Creiamo il nuovo array billing partendo dai kwargs di ogni messaggio\n    const billingArray = item.json.messages.map(msg => {\n      // Destrutturiamo kwargs per rimuovere le chiavi che non vuoi\n      // 'rest' conterrà tutto il resto (id, action, amount, ecc.)\n      const { additional_kwargs, response_metadata, ...rest } = msg.kwargs;\n      return rest;\n    });\n\n    // Sovrascriviamo l'intero oggetto JSON per lasciare solo la chiave 'billing'\n    item.json = {\n      billing: billingArray\n    };\n    \n  } else {\n    // Caso di fallback se l'input non è come previsto\n    item.json = { billing: [] };\n  }\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        -688
+      ],
+      "id": "673c44d2-0239-465f-b4e6-00a5a85d4888",
+      "name": "Aggregate Billing LOG"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        320,
+        -832
+      ],
+      "id": "17dbed21-511e-4712-811c-22774aff23b3",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Update_Stakeholder_Credits (ADD)\n// VERSIONE: 2.1 - Minimal Centralization Injection\n\nconst item = $input.first().json;\n\nconst stakeholder = item.stakeholder;\nconst body = item.body || {};\nconst wh = item.webhookUrl || \"\";\n\nif (!stakeholder || !body) {\n    throw new Error(\"Dati mancanti: stakeholder o body non trovati.\");\n}\n\n// Supporto flessibile per ambo le chiavi d'ingresso\nconst transactionAmount = Number(body.amount || body.credit) || 0;\nconst action = \"add\";\nconst transactionId = body.transaction_id || body.autorize || \"SYSTEM_UPDATE\";\n\nlet creditBalance = stakeholder.commercial_profile.credit_balance;\nconst prevAvailable = creditBalance.available_credits || 0;\nconst prevLTV = creditBalance.lifetime_value || 0;\n\nconst newBalance = prevAvailable + transactionAmount;\nconst newLTV = prevLTV + transactionAmount;\n\ncreditBalance.available_credits = newBalance;\ncreditBalance.lifetime_value = newLTV;\ncreditBalance.last_transaction_id = transactionId;\ncreditBalance.last_update = new Date().toISOString();\n\nif (stakeholder.metadata) {\n    stakeholder.metadata.last_updated = creditBalance.last_update;\n}\n\nreturn [{\n    json: {\n        ...item,\n        stakeholder: stakeholder,\n        transaction_summary: {\n            id: transactionId,\n            action: action,\n            amount: transactionAmount,\n            new_ltv: newLTV,\n            previous_balance: prevAvailable,\n            final_balance: newBalance,\n            timestamp: creditBalance.last_update,          \n            billing_source: {\n                use: \"Add Credit Deposit\",\n                wh: wh\n            }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        -384
+      ],
+      "id": "029fbff2-b40f-4bab-9006-822035611a4a",
+      "name": "Update_Stakeholder_Credits"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Spend_Stakeholder_Credits (USE)\n// VERSIONE: 2.1 - Minimal Centralization Injection (Coordinated)\n\nconst item = $input.first().json;\n\nconst stakeholder = item.stakeholder;\nconst body = item.body || {};\nconst wh = item.webhookUrl || \"\";\n\nif (!stakeholder || !body) {\n    throw new Error(\"Dati mancanti: stakeholder o body non trovati.\");\n}\n\n// Supporto flessibile per ambo le chiavi d'ingresso\nconst transactionAmount = Number(body.credit || body.amount) || 0;\nconst action = \"use\";\nconst transactionId = body.transaction_id || body.operation || \"SYSTEM_SPEND\";\n\nlet creditBalance = stakeholder.commercial_profile.credit_balance;\nconst prevAvailable = creditBalance.available_credits || 0;\n\nconst newBalance = prevAvailable - transactionAmount;\n\nif (prevAvailable < transactionAmount) {\n    console.warn(`Attenzione: Saldo insufficiente per ${transactionId}. Procedo con saldo negativo.`);\n}\n\ncreditBalance.available_credits = newBalance;\ncreditBalance.last_transaction_id = transactionId;\ncreditBalance.last_update = new Date().toISOString();\n\nif (stakeholder.metadata) {\n    stakeholder.metadata.last_updated = creditBalance.last_update;\n}\n\nreturn [{\n    json: {\n        ...item,\n        stakeholder: stakeholder,\n        transaction_summary: {\n            id: transactionId,\n            action: action,\n            amount: transactionAmount,\n            previous_balance: prevAvailable,\n            final_balance: newBalance,\n            timestamp: creditBalance.last_update,          \n            billing_source: {\n                use: \"Spend Credit Usage\",\n                wh: wh\n            }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        720
+      ],
+      "id": "39c6c9a6-fe33-4749-898f-8f5edc79ad8c",
+      "name": "Update_Stakeholder_Credits1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.user_ref.email }}",
+        "collectionName": "billing_buffers",
+        "databaseName": "MemoryManager",
+        "contextWindowLength": 150
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        240,
+        1168
+      ],
+      "id": "467fa051-0660-4bb8-9e82-5d4f45a9741f",
+      "name": "MongoDB Chat Memory2",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.transaction_summary }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        1024
+      ],
+      "id": "8cfa74ef-f7a4-4c68-8d94-7df5733d3dfc",
+      "name": "billing_buffers1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.stakeholder }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        720
+      ],
+      "id": "2427c9f5-f316-4c24-a1a6-e5d46b0d7169",
+      "name": "stakeholders1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.user_ref.email }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        240,
+        848
+      ],
+      "id": "c7dee892-d435-45bf-b48e-f2a762eb4f42",
+      "name": "MongoDB Chat Memory5",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        592,
+        720
+      ],
+      "id": "4dfaccd5-f3e1-4edc-8070-000cc4d6c25c",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        592,
+        928
+      ],
+      "id": "54e02aec-3911-43ac-a818-3f54b08729a5",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"complete\",\n  \"code\": 200,\n  \"message\": \"Credit successfully added\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        960,
+        704
+      ],
+      "id": "a9c414ca-a776-428d-90d4-1e3d9a951f46",
+      "name": "AddSuccess1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"code\": 501,\n  \"message\": \"save gone wrong\"\n}",
+        "options": {
+          "responseCode": 501
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        816,
+        944
+      ],
+      "id": "a142fa86-4cec-4c84-b103-4b62eedda435",
+      "name": "502-SaveError1"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.stakeholder.owner_data_ref.vat_number }}\" \n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        528
+      ],
+      "id": "76883781-f54a-4640-accb-820074989d0d",
+      "name": "owner",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "aedd5273-69d7-4f31-b705-33c43d9122ba",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        400
+      ],
+      "id": "69d55586-57fb-4b57-9e8c-595065bb227a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9ac30fbe-a9a3-418a-b9c5-c9b92413b88e",
+              "name": "owner_data.credits_balance",
+              "value": "={{ $json.stakeholder.commercial_profile.credit_balance.available_credits }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        192
+      ],
+      "id": "c844f249-023c-42f3-bfb7-37a5796c8cde",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        0,
+        48
+      ],
+      "id": "2eac405c-621c-4529-9a2f-f64f85487729",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        288,
+        400
+      ],
+      "id": "2056492f-8536-446a-b763-980072f0e5f1",
+      "name": "Merge7"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        624,
+        528
+      ],
+      "id": "e3f51e49-b685-43a2-912e-3ef6da70adeb",
+      "name": "MongoDB Chat Memory6",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        784,
+        704
+      ],
+      "id": "e9bb8a7a-96fd-4ae8-a161-25ca8b5d7c44",
+      "name": "Merge8"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        624,
+        400
+      ],
+      "id": "7248b380-70c8-471f-8d68-921db7326b1f",
+      "name": "owner_save",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"complete\",\n  \"code\": 200,\n  \"message\": \"Credit successfully added\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2128,
+        -80
+      ],
+      "id": "321e7bd0-f4b6-426b-8b96-d29a6f409e18",
+      "name": "AddSuccess2"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.stakeholder.owner_data_ref.vat_number }}\" \n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        784,
+        -576
+      ],
+      "id": "9d143f6c-50ca-4bd3-baa4-3c5334aa8c96",
+      "name": "owner1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        784,
+        -704
+      ],
+      "id": "5712cfc7-d045-4613-9b42-f53baac45388",
+      "name": "Merge10"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        -576
+      ],
+      "id": "4b9fa78a-cce9-4279-8f25-bb707c81f17f",
+      "name": "MongoDB Chat Memory7",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1952,
+        -80
+      ],
+      "id": "817337b3-4121-4602-a034-e35776b65431",
+      "name": "Merge12"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1248,
+        -704
+      ],
+      "id": "f45c9fae-4fd9-474c-bbb4-284d19b84290",
+      "name": "owner_save1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "aedd5273-69d7-4f31-b705-33c43d9122ba",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        784,
+        -880
+      ],
+      "id": "5f78ce72-0a17-4fad-bb0b-dae168532129",
+      "name": "ownerExist?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9ac30fbe-a9a3-418a-b9c5-c9b92413b88e",
+              "name": "owner_data.credits_balance",
+              "value": "={{ $json.stakeholder.commercial_profile.credit_balance.available_credits }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1056,
+        -704
+      ],
+      "id": "ff8197d7-4ec0-42e2-b35e-796eaee826e3",
+      "name": "OwnerCeditUpdate"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Symfony HttpClient (Curl)",
+            "content-length": "204",
+            "accept": "application/json",
+            "accept-encoding": "gzip",
+            "content-type": "application/json",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "46.252.148.106",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "get",
+            "autorize": "TrinAI-Autorize-Transaction-2=2&",
+            "user": {
+              "email": "cale.davide@gmail.com"
+            },
+            "webhookUrl": "https://prod.workflow.trinai.it/webhook/e353fd8a-62fb-4203-a2a7-20369d832e00"
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/e353fd8a-62fb-4203-a2a7-20369d832e00",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "stakeholder",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 500 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholder": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "501-StakeholderError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "ResponseEdit",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "get_billing_buffers",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update_Stakeholder_Credits",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update_Stakeholder_Credits1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ResponseEdit": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "billing_buffers",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory4": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholders",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "billing_buffers": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Merge12",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "502-SaveError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "get_billing_buffers",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_billing_buffers": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Billing LOG",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "501-StakeholderError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Billing LOG": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update_Stakeholder_Credits": {
+      "main": [
+        [
+          {
+            "node": "stakeholders",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "billing_buffers",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "owner1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "billing_buffers1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "billing_buffers1": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "stakeholders1": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory5": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholders1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "502-SaveError1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update_Stakeholder_Credits1": {
+      "main": [
+        [
+          {
+            "node": "stakeholders1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "billing_buffers1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "owner",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory6": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner_save",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge7": {
+      "main": [
+        [
+          {
+            "node": "owner_save",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge8": {
+      "main": [
+        [
+          {
+            "node": "AddSuccess1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner_save": {
+      "main": [
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "owner1": {
+      "main": [
+        [
+          {
+            "node": "ownerExist?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge10": {
+      "main": [
+        [
+          {
+            "node": "OwnerCeditUpdate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory7": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner_save1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge12": {
+      "main": [
+        [
+          {
+            "node": "AddSuccess2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner_save1": {
+      "main": [
+        [
+          {
+            "node": "Merge12",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "502-SaveError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ownerExist?": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerCeditUpdate": {
+      "main": [
+        [
+          {
+            "node": "owner_save1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "f8f954dc-39e7-436e-addb-931962982de9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "l7x52TmwwPmoAh1dRNayL",
+  "tags": []
+}

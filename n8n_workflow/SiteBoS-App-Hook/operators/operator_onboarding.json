@@ -1,0 +1,1816 @@
+{
+  "name": "operator_onboarding",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        848,
+        848
+      ],
+      "id": "a39b41af-e172-46bf-b29e-8b07ac932b46",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "771638a1-7a79-4cb0-a36e-29b03901cc4a",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1808,
+        1808
+      ],
+      "id": "f85dcf23-2157-42c5-989b-ffbabf644087",
+      "name": "Webhook",
+      "webhookId": "771638a1-7a79-4cb0-a36e-29b03901cc4a"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4fced2cf-09aa-4ff8-a700-3834cac2ebff",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "771638a1-7a79-4cb0-a36e-29b03901cc4a",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1216,
+        1808
+      ],
+      "id": "09c27aef-c2dc-4af2-abcb-1d1b3075296a",
+      "name": "Autorize"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"error\",\n  \"code\": 500,\n  \"message\": \"\u26d4\ufe0f ACCESS DENIED: Unauthorized User or Invalid Endpoint.\",\n  \"details\": \"Your ID {{ $json.query.user_id || 'Unknown' }} is not in the allowlist.\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1440,
+        1200
+      ],
+      "id": "f5062451-f76f-4580-bf74-c2c92538f1cd",
+      "name": "\u26d4\ufe0f 403 Forbidden"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0577ae31-77e8-47a8-acb6-8322f9b9f5a5",
+              "name": "body",
+              "value": "={{ $json.body }}",
+              "type": "object"
+            },
+            {
+              "id": "c967eafc-81aa-40a3-9f51-2214e9246e9e",
+              "name": "body.user",
+              "value": "={{ $json.user }}",
+              "type": "object"
+            },
+            {
+              "id": "70f62d13-6140-4b45-8f2e-03e35fa9b752",
+              "name": "body.owner_id",
+              "value": "={{ $json.ids.owner_id }}",
+              "type": "string"
+            },
+            {
+              "id": "dbf6ab20-2711-4c73-a5ff-b8622ac4ac34",
+              "name": "urlMiniApp",
+              "value": "={{ $json.urlMiniApp }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        1360
+      ],
+      "id": "7f3d3df7-7f63-4243-971b-f64ad38a36d0",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "validate_invitation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "88028417-38c5-4716-91ba-e8eab5b94ac5"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Validate"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a20eeb2f-0f4d-4a6f-9648-fe7625b09fc3",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "verify_gemini_key",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Key"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e4989a8a-3847-4278-bf3d-d2ff7ef2aa6f",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "parse_cv",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CV"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5b7fff7f-b7dd-4c43-aa7f-4a6ef708bf34",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "complete_onboarding",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Complete"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "74bd95e7-8be5-435d-a26f-cd4fe3bfd169",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "get"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        1312
+      ],
+      "id": "6818aa59-3f80-4ecd-85e3-64a11b0b1308",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d12c796a-4e17-4456-9a7d-022242576163",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        352,
+        864
+      ],
+      "id": "353d5825-f717-45e4-8e27-39e74f0c157a",
+      "name": "Owner Exist"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.vat_number }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -160,
+        768
+      ],
+      "id": "5feca6a7-b428-47cf-941a-d33515db69a4",
+      "name": "Owner",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        0,
+        864
+      ],
+      "id": "a9f4b327-a483-4710-b66a-4ef83802aacc",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0dbcac1f-4831-4fd1-a081-89ae443ffb1e",
+              "leftValue": "={{ $json.is_valid_format }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -304,
+        896
+      ],
+      "id": "ed0fc2ec-9177-4876-84a3-f45c941a5bb6",
+      "name": "valid?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n// NODO: Validate_And_Respond_Invitation\n// DESC: Valida invitation e prepara risposta per Respond to Webhook\n// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nconst item = $input.first().json;\nconst ownerData = item.owner_data;\nconst invitationCode = item.invitation_code;\nconst chatId = item.chat_id;\n\n// Cerca invitation code nell'array operators\nconst operatorInvite = ownerData.operators.find(op => \n  op.invitation_code === invitationCode\n);\n\nif (!operatorInvite) {\n  // \u274c CASO 1: Invitation code non trovato\n  return [{\n    json: {\n      valid: false,\n      error: 'invitation_not_found',\n      message: 'Codice invito non valido o scaduto'\n    }\n  }];\n  \n} else if (operatorInvite.OperatorChatID !== null) {\n  // \u274c CASO 2: Invito gi\u00e0 utilizzato\n  return [{\n    json: {\n      valid: false,\n      error: 'invitation_already_used',\n      message: 'Questo invito \u00e8 gi\u00e0 stato attivato',\n      activated_at: operatorInvite.activation_date || null,\n      operator_chat_id: operatorInvite.OperatorChatID\n    }\n  }];\n  \n} else {\n  // \u2705 CASO 3: Invito valido e disponibile\n  return [{\n    json: {\n      valid: true,\n      company_name: ownerData.ragione_sociale || ownerData.name || 'Azienda',\n      owner_name: `${ownerData.name || ''} ${ownerData.surname || ''}`.trim(),\n      operator_name: operatorInvite.OperatorName,\n      operator_language: operatorInvite.OperatorLenguage || 'it',\n      cost: operatorInvite.cost || 10000,\n      message: 'Invito valido'\n    }\n  }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        848
+      ],
+      "id": "a105cce2-4beb-4dff-9b49-4d74561dfd07",
+      "name": "Respond"
+    },
+    {
+      "parameters": {
+        "jsCode": "// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n// NODO: Extract_Document_Data\n// DESC: Separa mimetype e base64 - Output minimale\n// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nconst item = $input.first().json;\nconst body = item.body || item;\n\nconst documentBase64 = body.cv_base64;\nconst chatId = body.chat_id;\nconst geminiKey = body.gemini_key;\n\n// Estrai mimetype e base64 puro\nconst match = documentBase64.match(/^data:([^;]+);base64,(.+)$/);\n\nif (match) {\n  return [{\n    json: {\n      chat_id: chatId,\n      gemini_key: geminiKey,\n      mimetype: match[1],\n      base64: match[2]\n    }\n  }];\n} else {\n  return [{\n    json: {\n      chat_id: chatId,\n      error: 'invalid_format'\n    }\n  }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        1904
+      ],
+      "id": "ed5d1f87-e3b4-462f-b752-743ec813003d",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4a91ec12-7575-4fb9-8ee6-28205b0f129c",
+              "leftValue": "={{ $json.document }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        160,
+        1904
+      ],
+      "id": "0fbff2c1-f3fc-4f41-b698-e31dda550c7b",
+      "name": "ErrorApi"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=\n  <system_instruction>\nYou are an expert CV/Resume parser specialized in extracting professional data from Italian and international CVs.\n\nYour task is to analyze the provided CV and extract ONLY professional information: education, work experience, skills, and certifications.\n\n**Key Rules:**\n1. Return ONLY valid JSON, no markdown, no explanations\n2. If a field is not found, use null (not empty string)\n3. Infer education_level from degree names\n4. Extract ALL skills and classify by proficiency level\n5. Calculate experience_years from work history\n6. Extract all certifications and professional qualifications\n7. Ignore personal data (address, phone, email) - user will input manually\n  </system_instruction>\n\n\n",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=  <user_prompt>\nAnalizza il seguente CV e restituisci SOLO un JSON con questa struttura esatta:\n\n{\n\"education_level\": \"middle_school | high_school | professional_diploma | bachelor | master | phd | other | null\",\n\"education_field\": \"string | null\",\n\"job_title\": \"string | null\",\n\"experience_years\": \"0-1 | 1-3 | 3-5 | 5-10 | 10-15 | 15+ | null\",\n\"first_job_year\": number | null,\n\"work_description\": \"string (200-500 words summary) | null\",\n\"hard_skills\": [\n{\n\"skill\": \"string\",\n\"level\": \"beginner | intermediate | expert\"\n}\n],\n\"certifications\": [\"string\"]\n}\n\n\n**Extraction Guidelines:**\n\n**Education Level - Map titles:**\n  - Licenza Media \u2192 middle_school\n  - Diploma Superiore \u2192 high_school\n  - Diploma ITS/Professionale \u2192 professional_diploma\n  - Laurea Triennale/Bachelor \u2192 bachelor\n  - Laurea Magistrale/Master \u2192 master\n  - Dottorato/PhD \u2192 phd\n  \n**Education Field:** Extract specialization (es: \"Elettrotecnica\", \"Informatica\", \"Meccanica\")\n\n**Job Title:** Extract most recent or primary role (es: \"Elettricista\", \"Idraulico\", \"Tecnico Manutentore\")\n\n**Experience Years:** Calculate total years from work history, map to closest range:\n  - 0-1: Less than 1 year\n  - 1-3: 1 to 3 years\n  - 3-5: 3 to 5 years\n  - 5-10: 5 to 10 years\n  - 10-15: 10 to 15 years\n  - 15+: More than 15 years\n\n**First Job Year:** Extract year of first professional experience (es: 2015)\n\n**Work Description:** Synthesize 200-500 words summarizing:\n  - All work experiences chronologically\n  - Key responsibilities and projects\n  - Main achievements\n  - Technologies/tools used\n  - Work environments (cantieri, aziende, settori)\n\n**Hard Skills:** Extract technical competencies from:\n  - \"Competenze\" section\n  - Job descriptions (tools, technologies, methodologies)\n  - Certifications context\n  \n**Skill Levels (infer from context):**\n  - **beginner**: Mentioned but limited experience (<1 year)\n  - **intermediate**: Regular usage, moderate experience (1-3 years)\n  - **expert**: Significant experience (3+ years), leadership, certifications, mastery\n\n**Certifications:** Extract from \"Certificazioni\", \"Patentini\", \"Qualifiche\" sections\n  - Professional licenses (es: \"PES-PAV\", \"Patentino Frigoristi\")\n  - Technical certifications (es: \"Saldatore TIG\", \"Operatore Carrello Elevatore\")\n  - Industry qualifications (es: \"HACCP\", \"Primo Soccorso\")\n\n**Example Output:**\n{\n\"education_level\": \"high_school\",\n\"education_field\": \"Elettrotecnica\",\n\"job_title\": \"Elettricista Specializzato\",\n\"experience_years\": \"5-10\",\n\"first_job_year\": 2015,\n\"work_description\": \"Ho iniziato la mia carriera nel 2015 come elettricista junior presso XYZ Impianti, occupandomi principalmente di installazioni civili residenziali. Dopo 2 anni sono passato ad ABC Energia dove ho acquisito esperienza nella progettazione e installazione di impianti fotovoltaici, gestendo oltre 30 progetti in totale. Dal 2020 lavoro come elettricista senior per DEF Costruzioni, specializzandomi in impianti industriali BT/MT, manutenzione quadri elettrici e supervisione cantieri. Ho coordinato team di 3-5 operatori e gestito commesse fino a 200k\u20ac.\",\n\"hard_skills\": [\n{\"skill\": \"Impianti elettrici civili\", \"level\": \"expert\"},\n{\"skill\": \"Fotovoltaico\", \"level\": \"expert\"},\n{\"skill\": \"Quadri elettrici BT/MT\", \"level\": \"intermediate\"},\n{\"skill\": \"Manutenzione predittiva\", \"level\": \"intermediate\"},\n{\"skill\": \"Normativa CEI 64-8\", \"level\": \"expert\"},\n{\"skill\": \"AutoCAD Electrical\", \"level\": \"intermediate\"}\n],\n\"certifications\": [\n\"PES-PAV\",\n\"Patentino Installatore Fotovoltaico\",\n\"Primo Soccorso Aziendale\",\n\"Lavori in Quota\"\n]\n}\n\n\n**IMPORTANT:** Ignore and do NOT extract:\n  - Address, residence, domicile\n  - Phone numbers\n  - Email addresses\n  - Date of birth\n  - Fiscal code\n  - Personal identifiers\n\nReturn ONLY the JSON object, no additional text.\n  </user_prompt>\n",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.chat_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "document",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.base64 }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.mimetype }}",
+              "type": "string"
+            },
+            {
+              "id": "e5f9e3c2-491d-4177-b5ed-27670c177c64",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "03c63751-a6fc-4923-9ab3-d82057be0123",
+              "name": "billing_source.use",
+              "value": "=Operator Onboarding {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "1b0aae07-0d65-47a9-8913-80f744cf72e6",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/771638a1-7a79-4cb0-a36e-29b03901cc4a",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        1904
+      ],
+      "id": "8a8a5aa8-7902-4183-b2bb-7dc786ae91cf",
+      "name": "Extract1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "de8471c2-e1e0-4e73-9af9-e8f5bf9bb772",
+              "name": "status",
+              "value": "success",
+              "type": "string"
+            },
+            {
+              "id": "209491c4-00ca-4bc9-8d1b-090cc3051a43",
+              "name": "profile",
+              "value": "={{ $json.document }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        368,
+        1920
+      ],
+      "id": "b057976e-dd1c-41a2-ab9b-89ad50c51d07",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "de8471c2-e1e0-4e73-9af9-e8f5bf9bb772",
+              "name": "error_code",
+              "value": "CV_PARSE_FAILED",
+              "type": "string"
+            },
+            {
+              "id": "4db8e71f-6b24-4cba-af11-f6451f3702c4",
+              "name": "error",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "f01b952d-a8bf-40e8-8943-6a4c621d265e",
+              "name": "message",
+              "value": "Impossibile analizzare il CV. Riprova o compila manualmente.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -720,
+        1184
+      ],
+      "id": "6dc500fc-670f-4ad0-a74f-241e6a6fcb8f",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        816,
+        1920
+      ],
+      "id": "6bb0e56e-a36a-467e-8c75-99f6b8e990f9",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// N8N Code Node - Prepare Response\nconst input = $input.first().json.profile;\n\n// Struttura pulita\nconst response = {\n  profile: {\n    education_level: input.education_level || null,\n    education_field: input.education_field || null,\n    job_title: input.job_title || null,\n    experience_years: input.experience_years || null,\n    first_job_year: input.first_job_year || null,\n    work_description: input.work_description || null,\n    hard_skills: input.hard_skills || [],\n    certifications: input.certifications || []\n  }\n};\n\nreturn [{\n  json: response\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        544,
+        1920
+      ],
+      "id": "e1e91251-e053-4dc9-9cdb-b17178e889d2",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        416,
+        1328
+      ],
+      "id": "9ed1297a-3d3e-4dbe-9e91-a63f8ac54032",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.operator_data.sessionId }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        816,
+        1584
+      ],
+      "id": "faf62d88-cd4a-4959-9969-464f4f04b3eb",
+      "name": "MongoDB Chat Memory1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.body.operator_data.data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        816,
+        1456
+      ],
+      "id": "e5e99b83-48a5-4617-9550-5b76cec4cfb4",
+      "name": "stakeholders6"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1120,
+        1344
+      ],
+      "id": "ed155bdc-cb8b-444c-ae5c-f9447c30ff50",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"message\": \"Attivazione completata con successo!\",\n  \"operator\": {\n    \"chat_id\": \"{{ $json.stakeholder.system_access.telegram_chat_id }}\",\n    \"full_name\": \"{{ $json.stakeholder.identity.full_name }}\",\n    \"role\": \"operator\"\n  },\n  \"redirect_url\": \"https://simonaiit.github.io/SiteBoS-MiniApp/operators/operator_dashbord.html?chat_id={{ $json.stakeholder.system_access.telegram_chat_id }}&vat={{ $json.stakeholder.system_access.linked_owner.vat_number }}\"\n}\n",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2784,
+        1344
+      ],
+      "id": "7e488038-a785-4e77-8e2b-f331f73085c5",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8644939941:AAHPiZM3D9xg6TbHXGSiCfiXbA4q99fyuYQ/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "id": "4a81d45f-8f6b-40ed-a7ca-34930dab29aa",
+      "name": "NoMultiSession",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2192,
+        1232
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2400,
+        1232
+      ],
+      "id": "c3e9c346-b513-4621-820c-1a61967706b6",
+      "name": "Edit Fields7"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2592,
+        1344
+      ],
+      "id": "6637feda-ae89-40fd-90a9-ae776df4efcd",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        1696
+      ],
+      "id": "af782c39-37ad-4fa5-b77c-6a284ace71a3",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1600,
+        1360
+      ],
+      "id": "1a9078e6-d531-4d64-aeac-d34e61222a4a",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1456,
+        1568
+      ],
+      "id": "e4109e73-f0e7-4ec2-a6b5-cf5b802d2b1a",
+      "name": "owner_data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&'; // La tua chiave segreta\n\n// 1. Recupero del token\nconst rawAsh =\n  item.ash ||\n  item.query?.ash ||\n  item.body?.ash ||\n  item.body?.web_app_data?.data ||\n  item.body?.message?.web_app_data?.data;\n\nif (!rawAsh || typeof rawAsh !== \"string\") {\n  throw new Error(\"ASH non trovato nell'input.\");\n}\n\n// 2. Separazione Payload e Firma\nconst [encodedPayload, signatureReceived] = rawAsh.split(\".\");\n\nif (!encodedPayload || !signatureReceived) {\n  throw new Error(\"Formato ASH non valido.\");\n}\n\n// 3. Decodifica e verifica integrit\u00e0\nlet decodedPayload;\ntry {\n    decodedPayload = Buffer.from(encodedPayload, \"base64\").toString(\"utf8\");\n} catch (e) {\n    throw new Error(\"Errore decodifica Base64.\");\n}\n\n// --- LOGICA DI VERIFICA FIRMA ---\nfunction verifySignature(payload, secret, receivedSig) {\n    let hash = 0;\n    const combined = payload + secret;\n    for (let i = 0; i < combined.length; i++) {\n        hash = ((hash << 5) - hash) + combined.charCodeAt(i);\n        hash = hash & hash; \n    }\n    const expectedSig = Math.abs(hash).toString(16);\n    return expectedSig === receivedSig;\n}\n\nif (!verifySignature(decodedPayload, SECRET_KEY, signatureReceived)) {\n    // Se la firma non corrisponde, blocchiamo tutto qui!\n    throw new Error(\"SICUREZZA: Firma ASH non valida o manomessa. Accesso negato.\");\n}\n// --------------------------------\n\n// 4. Estrazione ID (Solo se la firma \u00e8 valida)\nconst parts = decodedPayload.split(\"|\");\n\nreturn [{\n    json: {\n        ...item,\n        ids: {\n            owner_id: parts[0],\n            operator: parts[1],\n            timestamp: parts[2],\n            webhook: parts[3]\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1216,
+        1664
+      ],
+      "id": "2e90df62-1f61-4adf-bdd3-87f3633a9d12",
+      "name": "Ash Decoder",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- 1. CONFIGURAZIONE ---\nconst BOT_TOKEN = \"8644939941:AAHPiZM3D9xg6TbHXGSiCfiXbA4q99fyuYQ\";\nconst initData = $input.item.json.body._auth;\n\nif (!initData) return { isValid: false, error: \"Dato _auth mancante\" };\n\n// --- 2. LIBRERIA CRIPTOGRAFICA PURE JS (SHA-256 & HMAC) ---\nconst CryptoJS = (function() {\n    function sha256(m) {\n        var h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];\n        var k = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];\n        var b = Array.from(typeof m === 'string' ? new TextEncoder().encode(m) : m);\n        var l = b.length * 8; b.push(0x80);\n        while ((b.length * 8) % 512 !== 448) b.push(0);\n        for (var i = 7; i >= 0; i--) b.push((l / Math.pow(2, i * 8)) & 0xff);\n        for (var i = 0; i < b.length; i += 64) {\n            var w = new Int32Array(64);\n            for (var j = 0; j < 16; j++) w[j] = (b[i + j * 4] << 24) | (b[i + j * 4 + 1] << 16) | (b[i + j * 4 + 2] << 8) | (b[i + j * 4 + 3]);\n            for (var j = 16; j < 64; j++) {\n                var s0 = ((w[j - 15] >>> 7) | (w[j - 15] << 25)) ^ ((w[j - 15] >>> 18) | (w[j - 15] << 14)) ^ (w[j - 15] >>> 3);\n                var s1 = ((w[j - 2] >>> 17) | (w[j - 2] << 15)) ^ ((w[j - 2] >>> 19) | (w[j - 2] << 13)) ^ (w[j - 2] >>> 10);\n                w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;\n            }\n            var [a, c, d, e, f, g, i_h, j_h] = h;\n            var v = [...h];\n            for (var j = 0; j < 64; j++) {\n                var S1 = ((v[4] >>> 6) | (v[4] << 26)) ^ ((v[4] >>> 11) | (v[4] << 21)) ^ ((v[4] >>> 25) | (v[4] << 7));\n                var ch = (v[4] & v[5]) ^ (~v[4] & v[6]);\n                var t1 = (v[7] + S1 + ch + k[j] + w[j]) | 0;\n                var S0 = ((v[0] >>> 2) | (v[0] << 30)) ^ ((v[0] >>> 13) | (v[0] << 19)) ^ ((v[0] >>> 22) | (v[0] << 10));\n                var maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);\n                var t2 = (S0 + maj) | 0;\n                v.unshift((t1 + t2) | 0); v.splice(8); v[4] = (v[4] + t1) | 0;\n            }\n            for (var j = 0; j < 8; j++) h[j] = (h[j] + v[j]) | 0;\n        }\n        return h.reduce((acc, val) => acc.concat([(val >>> 24) & 0xff, (val >>> 16) & 0xff, (val >>> 8) & 0xff, val & 0xff]), []);\n    }\n\n    if (typeof TextEncoder === \"undefined\") {\n        window.TextEncoder = function() {};\n        TextEncoder.prototype.encode = function(s) {\n            return new Uint8Array(unescape(encodeURIComponent(s)).split(\"\").map(c => c.charCodeAt(0)));\n        };\n    }\n\n    return {\n        hmac: function(key, message) {\n            var k = typeof key === 'string' ? Array.from(new TextEncoder().encode(key)) : key;\n            var m = Array.from(new TextEncoder().encode(message));\n            var b = 64;\n            if (k.length > b) k = sha256(k);\n            while (k.length < b) k.push(0);\n            var ipad = k.map(x => x ^ 0x36);\n            var opad = k.map(x => x ^ 0x5c);\n            var inner = sha256(ipad.concat(m));\n            return sha256(opad.concat(inner));\n        }\n    };\n})();\n\n// --- 3. LOGICA PARSING ---\nconst data = {};\ninitData.split('&').forEach(pair => {\n    const [k, v] = pair.split('=');\n    data[k] = decodeURIComponent(v);\n});\n\nconst hashReceived = data.hash;\nconst checkString = Object.keys(data)\n    .filter(k => k !== 'hash')\n    .sort()\n    .map(k => k + '=' + data[k])\n    .join('\\n');\n\n// --- 4. CALCOLO HASH TELEGRAM ---\nconst secretKey = CryptoJS.hmac(\"WebAppData\", BOT_TOKEN);\nconst computedHashBytes = CryptoJS.hmac(secretKey, checkString);\nconst computedHash = computedHashBytes.map(b => b.toString(16).padStart(2, '0')).join('');\n\n// --- 5. CONTROLLO SCADENZA (MAX 1 ORA) ---\nconst now = Math.floor(Date.now() / 1000);\nconst authDate = parseInt(data.auth_date);\nconst isExpired = (now - authDate) > 3600; // Scade dopo 3600 secondi (1 ora)\n\n// --- 6. RISULTATO FINALE ---\nconst isHashValid = (computedHash === hashReceived);\n\nreturn {\n    isValid: isHashValid && !isExpired,\n    isExpired: isExpired,\n    isHashValid: isHashValid,\n    user: data.user ? JSON.parse(data.user) : null,\n    auth_date_human: new Date(authDate * 1000).toLocaleString('it-IT'),\n    debug: {\n        time_diff_seconds: now - authDate,\n        computed: computedHash,\n        received: hashReceived\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1216,
+        1520
+      ],
+      "id": "ddddb8aa-d145-4a65-8858-688240ea6654",
+      "name": "telegram_validator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c0743357-f434-4892-bd7b-5847fa15c35c",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1440,
+        1504
+      ],
+      "id": "4218e289-dc51-4f1e-b53c-6c2ad216f05b",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1440,
+        1360
+      ],
+      "id": "8fee3b38-c372-4f2b-b1aa-1ac2ff25b984",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.chat_id\": {\n        \"$eq\": {{ $json.body.owner_id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        1712
+      ],
+      "id": "67e8272f-6474-42fd-91c9-3cce6658cae9",
+      "name": "owner_data1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        272,
+        1712
+      ],
+      "id": "2f2d0d0f-330c-4ee4-91de-0e1696e55d6c",
+      "name": "Respond to Webhook4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n// NODO: Parse_Invitation_Code\n// DESC: Estrae VAT, Owner ChatID e Random Code dall'invitation\n// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\nconst item = $input.first().json;\nconst body = item.body;\n\nconst action = body.action;\nconst invitationCode = body.invitation_code;\nconst chatId = body.chat_id;\n\n// Parse formato: INV-{VAT}-{OWNER}-{RANDOM}\nconst parts = invitationCode.split('-');\n\nif (parts.length === 4 && parts[0] === 'INV') {\n  // Estrazione riuscita\n  return [{\n    json: {\n      action: action,\n      chat_id: chatId,\n      invitation_code: invitationCode,\n      vat_number: parts[1],           // IT06988830821\n      owner_chat_id: parts[2],        // 720379727\n      random_code: parts[3],          // S547AE\n      is_valid_format: true\n    }\n  }];\n} else {\n  // Formato invalido\n  return [{\n    json: {\n      action: action,\n      chat_id: chatId,\n      invitation_code: invitationCode,\n      is_valid_format: false,\n      error: 'Invalid invitation code format'\n    }\n  }];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        896
+      ],
+      "id": "3ea55d7d-733a-42e4-b8da-bc7eabc79516",
+      "name": "Parse_Invitation_Code"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "={{ $json.body.gemini_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Generate a tiny 256x256 pixel simple solid green square, low resolution.\"\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"candidate_count\": 1\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -496,
+        480
+      ],
+      "id": "3c289667-4105-48ce-9da0-2c78a39a67d5",
+      "name": "HTTP Request",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7dc08fd1-d100-4e7b-81f7-a2cdc5e4d90c",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "77b223b5-6fa6-48bb-87f5-85eaaa834e27",
+              "name": "gemini key",
+              "value": "Free Tier",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -288,
+        576
+      ],
+      "id": "a18255bf-ab02-44a7-be63-5cd43691c99f",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7dc08fd1-d100-4e7b-81f7-a2cdc5e4d90c",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "77b223b5-6fa6-48bb-87f5-85eaaa834e27",
+              "name": "gemini key",
+              "value": "Paid Tier",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -288,
+        400
+      ],
+      "id": "dcf69ce8-fdd0-4f61-8d9d-b004510b2992",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -96,
+        480
+      ],
+      "id": "c8e7ed18-8ac4-407d-8879-c08ad8242d90",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.chat_id\": {\n        \"$eq\": {{ $json.body.owner_id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        1488
+      ],
+      "id": "09f82c87-0eaf-4fe2-8563-a1c10ea5b263",
+      "name": "owner_data2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Operator_Merger\n// VERSIONE: 2.5 - Allineamento chat_id esclusivamente in user_ref per gli operatori\n\nfor (const item of $input.all()) {\n  \n  // \u2501\u2501\u2501 1. ALLINEAMENTO CHAT_ID UTENTE OPERATORE \u2501\u2501\u2501\n  if (item.json.body && item.json.body.operator_data && item.json.body.operator_data.data) {\n    const opProfile = item.json.body.operator_data.data;\n    \n    if (opProfile.user_ref) {\n      // Estrae il chat_id personale dell'operatore\n      const opChatId = opProfile.user_ref.chat_id || \n                       opProfile.user_ref.operator_chat_id || \n                       item.json.body.chat_id || \n                       null;\n      \n      if (opChatId) {\n        // Scrive la chiave standard \"chat_id\" unificata SOLO in user_ref\n        opProfile.user_ref.chat_id = opChatId;\n      }\n    }\n    // owner_data_ref non viene toccato per preservare il chat_id dell'Owner di riferimento\n  }\n\n  // \u2501\u2501\u2501 2. AGGIORNAMENTO OPERATORI SULL'OWNER (Logica Originale) \u2501\u2501\u2501\n  const operators = item.json.owner_data.operators || [];\n  const updateData = item.json.body.owner_operators_update;\n\n  if (updateData) {\n    item.json.owner_data.operators = operators.map(operator => {\n      if (operator.OperatorChatID === updateData.OperatorChatID) {\n        const updatedOperator = {\n          ...operator,\n          ...updateData\n        };\n        delete updatedOperator.invitation_code;\n        return updatedOperator;\n      }\n      return operator;\n    });\n  }\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        1328
+      ],
+      "id": "149c1053-b547-4b55-824e-b10d3bc7a093",
+      "name": "Operator_Merger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d14b4715-baea-47c3-ac0b-a151a3b384be",
+              "name": "urlMiniApp",
+              "value": "={{ \n  (() => {\n    const userId = $json.body?.data?.owner_id || \n                   $json.body?.data?.chat_id || \n                   $json.body?.callback_query?.from?.id || \n                   $json.body?.message?.from?.id ||\n                   $json.body?.owner_id ||\n                   $json.user?.id ||\n                   $json.ids?.owner_id ||\n                   $json.owner_data?.chat_id;\n                   \n    // Array degli ID abilitati all'ambiente di test (GitHub Pages)\n    const testers = [\"2041408875\", \"8305126267\"];\n                   \n    return testers.includes(String(userId)) \n      ? \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/telegram_control/\" \n      : \"https://telegram.trinai.it/\";\n  })()\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1552,
+        1808
+      ],
+      "id": "09f47a0b-4904-470a-8204-f548b8348a5b",
+      "name": "appUrl"
+    },
+    {
+      "parameters": {
+        "jsCode": "// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n// NODO: Prepare_Dynamic_Operator_Keyboard (V1.2.3 - ONLY MINIAPP)\n// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nconst item = $input.first().json;\nconst original = $node[\"PrepareRequest\"].json;\nconst owner = item.owner_data || {}; \n\nconst baseUrl = original.UrlMiniApp;\nconst chatId = original.Operator_request.message.chat.id;\nconst userMsgId = original.Operator_request.message.message_id;\nconst messageIdToEdit = userMsgId - 1; \n\nconst credits = owner.credits_balance || 0;\n\n// --- LOGICA ASH ---\nfunction generateSignature(str, key) {\n    let hash = 0; const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        hash = ((hash << 5) - hash) + combined.charCodeAt(i);\n        hash = hash & hash; \n    }\n    return Math.abs(hash).toString(16);\n}\n\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst ts = Date.now().toString();\nconst webhookId = \"ef4aece4-9ec0-4026-a7a7-328562bcbdf6\"; \nconst ownerId = owner.chat_id || owner.user_id;\n\nconst payloadASH = `${ownerId}|${chatId}|${ts}|${webhookId}`;\nconst ash = `${Buffer.from(payloadASH).toString('base64')}.${generateSignature(payloadASH, SECRET_KEY)}`;\n\nconst t = {\n    header: `\u2699\ufe0f <b>SiteBoS Operator KeyBoard</b>`,\n    entity: `\ud83c\udfe2 <b>${(owner.ragione_sociale || 'PRIVATE_TENANT').toUpperCase()}</b>`,\n    user: `\ud83d\udc64 OPERATORE: <b>${owner.name || ''} ${owner.surname || ''}</b>`,\n    status: `\ud83d\udcca OPERATIVIT\u00c0: <b>IN SERVIZIO</b>`,\n    balance: `\ud83d\udd0b RESIDUO AZIONI: <b>${credits}</b>`,\n    gdpr: `\ud83d\udd10 <b>PROTOCOLLO SICUREZZA</b>\\n<i>I dati operativi sono cifrati e trattati secondo il GDPR.</i>`\n};\n\nconst buttons = [\n    [{ text: \"\ud83d\udccb Missioni & Task Attivi\", web_app: { url: `${baseUrl}operators/operator_tasks.html?ash=${ash}&msg_id=${messageIdToEdit}` } }],\n    [{ text: \"\ud83e\udde0 Analisi e Percorso Personale\", web_app: { url: `${baseUrl}softskill/index.html?ash=${ash}&msg_id=${messageIdToEdit}` } }],\n    [\n        { text: \"\ud83d\udce6 Ordini\", web_app: { url: `${baseUrl}orders-manager.html?ash=${ash}&msg_id=${messageIdToEdit}` } },\n        { text: \"\ud83d\udcdd Preventivi\", web_app: { url: `${baseUrl}preventivi.html?ash=${ash}&msg_id=${messageIdToEdit}` } }\n    ],\n    [\n        { text: \"\ud83e\udd1d Supporto Hub\", web_app: { url: `${baseUrl}support_hub.html?ash=${ash}&msg_id=${messageIdToEdit}` } },\n        { text: \"\ud83d\udee0\ufe0f Magazzino\", web_app: { url: `${baseUrl}new-insert.html?ash=${ash}&msg_id=${messageIdToEdit}` } }\n    ],\n    [\n        { text: \"\ud83d\udee1\ufe0f SuperVisor\", web_app: { url: `${baseUrl}operators/catalog.html?ash=${ash}&msg_id=${messageIdToEdit}` } }, \n        { text: \"\ud83d\udcca Performance\", callback_data: \"op_stats\" }\n    ],\n    [\n        { text: \"\ud83d\udd04 Sincronizza Sistema\", callback_data: \"open_agent_control_center\" }\n    ]\n];\n\nreturn [{\n    json: {\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: chatId,\n            message_id: messageIdToEdit,\n            text: `${t.header}\\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\\n${t.entity}\\n${t.user}\\n${t.status}\\n${t.balance}\\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\\n${t.gdpr}`,\n            parse_mode: \"HTML\",\n            reply_markup: { inline_keyboard: buttons }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        1232
+      ],
+      "id": "69bc5963-5b08-42a9-a871-7e96d5353c31",
+      "name": "Prepare_Dynamic_Operator_Keyboard"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        1904
+      ],
+      "id": "ee3cc796-d4ea-4e18-bc23-bf8374299a16",
+      "name": "Call 'GeminiCall'",
+      "alwaysOutputData": false
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "trinai.api.workflow.dcmake.it",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0",
+            "content-length": "3890",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "it,it-IT;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "content-type": "application/json",
+            "origin": "https://trinaibusinessoperatingsystem.github.io",
+            "priority": "u=1, i",
+            "referer": "https://trinaibusinessoperatingsystem.github.io/",
+            "sec-ch-ua": "\"Not.A/Brand\";v=\"8\", \"Microsoft Edge WebView2\";v=\"147\", \"Chromium\";v=\"147\", \"Microsoft Edge\";v=\"147\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "151.57.0.2",
+            "x-forwarded-host": "trinai.api.workflow.dcmake.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "_auth": "query_id=AAFPH_AqAAAAAE8f8CozeYUS&user=%7B%22id%22%3A720379727%2C%22first_name%22%3A%22ImYourEnd%22%2C%22last_name%22%3A%22%22%2C%22username%22%3A%22ImYorEnd%22%2C%22language_code%22%3A%22it%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2FkFg2QYP2r0j9PZyiU5vudFwjSHEG3u7r5kwUwtf3uyk.svg%22%7D&auth_date=1777447579&signature=Va0TEmpv7G9gj1QOY2lL3-9JV8WX_EmE_jnRtIlcFIiS3wlJBf4q7KovyXCNb43GJiCoRtRtqhgDy5Eox03EAw&hash=2baedd595f45e012fc7c46e684607b6ff88d78c220dd60716743aaec1611213b",
+            "ash": "MjA0MTQwODg3NXw3MjAzNzk3Mjd8MTc3NzQ0NzEwODQyMHxlZjRhZWNlNC05ZWMwLTQwMjYtYTdhNy0zMjg1NjJiY2JkZjY=.4356962",
+            "action": "complete_onboarding",
+            "msg_id": "16",
+            "chat_id": 720379727,
+            "operator_data": {
+              "sessionId": "tbos@app.trinai.it",
+              "data": {
+                "document_type": "STAKEHOLDER_PROFILE",
+                "owner_data_ref": {
+                  "vat_number": "IT06988830821",
+                  "ragioneSociale": "Garofalo AI Consulting",
+                  "chat_id": 2041408875
+                },
+                "user_ref": {
+                  "nome": "garofalo",
+                  "cognome": "giuseppe",
+                  "email": "tbos@app.trinai.it",
+                  "telefono": "3273569647",
+                  "fiscal_code": "",
+                  "status": "ACTIVE",
+                  "profileCompleted": true,
+                  "operator_chat_id": 720379727,
+                  "address": {
+                    "route": "via esterna valle cuba ",
+                    "number": "14/1",
+                    "zip": "900046",
+                    "city": "monreale",
+                    "province": "pa"
+                  },
+                  "config": {
+                    "gemini_key": "",
+                    "language": "it"
+                  }
+                },
+                "professional_profile": {
+                  "role": "Operator",
+                  "job_title": "AI Automation Architect",
+                  "experience_years": "15+",
+                  "education": {
+                    "level": "high_school",
+                    "field": "Elettronica"
+                  },
+                  "hard_skills": [
+                    "n8n",
+                    "Generative AI (Google Gemini)",
+                    "Prompt Engineering",
+                    "MongoDB",
+                    "Telegram MiniApps",
+                    "HTML5/CSS3/JS",
+                    "Autodesk Inventor",
+                    "CAD 3D",
+                    "Diagnostica elettronica",
+                    "Impiantistica (Elettrica, Idraulica, Pneumatica)",
+                    "SQL",
+                    "Visual Basic"
+                  ],
+                  "certifications": "Corso HACCP e Somministrazione, Corso Tecnico Kavo, Corso Tecnico Tecnomed, Corsi di specializzazione Castellini, Corso di WEB Designer, Corso di programmazione Visual Basic 4 e SQL",
+                  "work_description": "Giuseppe Garofalo vanta un percorso professionale ultraventennale che spazia dall'elettromeccanica alla progettazione ingegneristica 3D, culminando nell'attuale ruolo di AI Automation Architect. Ha iniziato la carriera nel 2006 come Responsabile Assistenza Tecnica presso TDS s.n.c., gestendo problematiche complesse su attrezzature medicali. Dal 2008 al 2010, come Capo Squadra presso Caparelli s.r.l., ha diretto l'installazione di impianti critici presso il Tribunale di Palermo, coordinando squadre multidisciplinari in ambienti ad alta sicurezza. Successivamente, ha operato come lavoratore autonomo nel settore medicale/odontoiatrico (2010-2017), specializzandosi nell'integrazione di sistemi CAD/CAM e diagnostica avanzata. Nel 2018 \u00e8 entrato in ACC s.r.l. come Capo Progettista R&D, concentrandosi sulla progettazione 3D (Autodesk Inventor) di veicoli per la mobilit\u00e0 sostenibile e sulla gestione del ciclo di prodotto. Dal 2023 guida Garofalo Ai Consulting, dove fonde le sue competenze fisiche con lo sviluppo software all'avanguardia. Ha ideato 'SiteBoS', un ecosistema ERP basato su AI generativa (Google Gemini), orchestrazione no-code (n8n) e integrazioni via Telegram. Il suo lavoro attuale si focalizza sull'ottimizzazione dei processi aziendali delle PMI, trasformando attivit\u00e0 manuali in workflow digitali scalabili tramite RAG, computer vision e automazione dei dati, dimostrando una spiccata capacit\u00e0 di visione sistemica e leadership tecnica.",
+                  "other_skills": ""
+                },
+                "behavioral_profile": {
+                  "current_stance": {
+                    "stance_id": "ONBOARDED_OPERATOR",
+                    "rationale": "Onboarding completed via WebApp"
+                  }
+                },
+                "compliance_log": {
+                  "ai_disclosure_seen": true,
+                  "human_verification_performed": true,
+                  "api_provider": "Google Gemini",
+                  "timestamp": "2026-04-29T07:27:49.574Z"
+                }
+              }
+            },
+            "owner_operators_update": {
+              "OperatorName": "garofalo giuseppe",
+              "OperatorChatID": 720379727,
+              "OperatorEmail": "tbos@app.trinai.it",
+              "Role": "Operator",
+              "status": "ACTIVE",
+              "FreeHandOperator": true,
+              "GeminiKey": ""
+            }
+          },
+          "webhookUrl": "https://trinai.api.workflow.dcmake.it/webhook/771638a1-7a79-4cb0-a36e-29b03901cc4a",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "appUrl",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "Ash Decoder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "\u26d4\ufe0f 403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Parse_Invitation_Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "owner_data2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "owner_data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Owner Exist": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "\u26d4\ufe0f 403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Owner": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Owner Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "valid?": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Owner",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "\u26d4\ufe0f 403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Extract1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ErrorApi": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract1": {
+      "main": [
+        [
+          {
+            "node": "Call 'GeminiCall'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "\u26d4\ufe0f 403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Operator_Merger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholders6",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders6": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "owner_data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NoMultiSession": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields7": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner_data",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Prepare_Dynamic_Operator_Keyboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner_data": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Ash Decoder": {
+      "main": [
+        [
+          {
+            "node": "telegram_validator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "\u26d4\ufe0f 403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "telegram_validator": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "\u26d4\ufe0f 403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner_data1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse_Invitation_Code": {
+      "main": [
+        [
+          {
+            "node": "valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner_data2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Operator_Merger": {
+      "main": [
+        [
+          {
+            "node": "stakeholders6",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "appUrl": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare_Dynamic_Operator_Keyboard": {
+      "main": [
+        [
+          {
+            "node": "NoMultiSession",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'GeminiCall'": {
+      "main": [
+        [
+          {
+            "node": "ErrorApi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6e8089dc-fb25-4769-9363-fe18627e9f61",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "YMUa7y3iKmxSHwNJ",
+  "tags": []
+}

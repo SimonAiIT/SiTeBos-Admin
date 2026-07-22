@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Social Hub | SiteBoS</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+(function() {
+    const tempTg = window.Telegram?.WebApp;
+    const isTelegramSession = tempTg && tempTg.initData && tempTg.initData !== "" && tempTg.platform !== "unknown";
+    if (!isTelegramSession) {
+        const currentPath = window.location.pathname;
+        let redirectPath = "index.html";
+        if (currentPath.includes('/telegram_control/')) {
+            const parts = currentPath.split('/telegram_control/');
+            const subPath = parts[1] || '';
+            if (subPath.includes('/')) { redirectPath = "../../index.html"; }
+            else { redirectPath = "../index.html"; }
+        }
+        window.location.replace(redirectPath);
+    }
+})();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#000000', bg: '#fafafa', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* SiteBoS Architect Alignment */
+        body {
+            background-color: #fafafa !important;
+            color: #000000 !important;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        .spinner {
+            border: 3px solid rgba(0,0,0,0.1);
+            border-top-color: #000;
+            border-radius: 50%;
+            width: 28px; height: 28px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .fade-in-up {
+            animation: fadeInUp 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .platform-card {
+            background: white;
+            border: 1px solid #eeeeee;
+            border-radius: 1.5rem;
+            padding: 1.25rem;
+        }
+
+        .label-micro {
+            font-size: 8px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #9ca3af;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+
+        textarea { outline: none !important; }
+        input { outline: none !important; }
+    </style>
+</head>
+
+<body class="pb-28 min-h-screen overflow-x-hidden">
+
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center space-y-4">
+        <div class="spinner"></div>
+        <p class="text-[8px] font-black uppercase tracking-widest text-gray-400">Social Hub...</p>
+    </div>
+
+    <!-- APP CONTENT -->
+    <div id="appContent" class="hidden max-w-md mx-auto p-5 space-y-5">
+
+        <!-- HEADER -->
+        <header class="flex justify-between items-start pt-4 pb-2 border-b border-gray-100 fade-in-up">
+            <div>
+                <div class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-black uppercase tracking-widest rounded-full mb-1 italic">
+                    Social Hub
+                </div>
+                <h1 id="productNameDisplay" class="text-lg font-black tracking-tighter uppercase leading-none text-slate-900">
+                    Caricamento...
+                </h1>
+                <p id="productSkuDisplay" class="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">
+                    ID: —
+                </p>
+            </div>
+            <div class="text-right">
+                <div id="variantsCount" class="text-2xl font-black leading-none tracking-tighter text-slate-900">0</div>
+                <div class="text-[7px] font-black text-gray-400 uppercase tracking-widest">Varianti</div>
+            </div>
+        </header>
+
+        <!-- ANALISI PSICOLOGICA AI -->
+        <div id="psiSection" class="hidden fade-in-up">
+            <div class="bg-slate-900 text-white rounded-[2rem] p-6 space-y-5 shadow-xl">
+                <span class="text-[8px] font-black uppercase tracking-[0.2em] text-slate-500 italic">🧠 Analisi Psicologica AI</span>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-[7px] font-black uppercase text-slate-500 mb-1">Drivers Emotivi</p>
+                        <p id="psi-emotional" class="text-[11px] font-medium leading-relaxed text-slate-200">—</p>
+                    </div>
+                    <div>
+                        <p class="text-[7px] font-black uppercase text-slate-500 mb-1">Drivers Logici</p>
+                        <p id="psi-logical" class="text-[11px] font-medium leading-relaxed text-slate-200">—</p>
+                    </div>
+                    <div>
+                        <p class="text-[7px] font-black uppercase text-slate-500 mb-1">Bias Cognitivi Attivati</p>
+                        <p id="psi-biases" class="text-[11px] font-medium leading-relaxed italic text-slate-400">—</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- POST VARIANTI PER PIATTAFORMA -->
+        <div id="postsContainer" class="space-y-4 fade-in-up"></div>
+
+        <!-- PROMPTS GENERAZIONE -->
+        <div id="promptsSection" class="platform-card space-y-4 fade-in-up">
+            <span class="label-micro">⚡ Prompting Generazione Visiva</span>
+
+            <div class="space-y-1">
+                <span class="label-micro">Master Prompt Immagine (Flux / Gemini)</span>
+                <textarea id="social-master-prompt" rows="3"
+                    class="w-full bg-slate-50 border border-transparent p-3 rounded-xl text-[10px] font-bold leading-relaxed resize-none transition focus:bg-white focus:border-slate-200 h-20"
+                    placeholder="Il prompt verrà generato automaticamente dall'AI..."></textarea>
+            </div>
+
+            <div class="space-y-1">
+                <span class="label-micro">Master Prompt Video (Veo 2 — 8s)</span>
+                <textarea id="social-veo-prompt" rows="3"
+                    class="w-full bg-slate-50 border border-transparent p-3 rounded-xl text-[10px] font-bold leading-relaxed resize-none transition focus:bg-white focus:border-slate-200 h-20"
+                    placeholder="Il prompt video verrà generato automaticamente..."></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-1">
+                <button onclick="generateImage()"
+                    class="py-3.5 bg-slate-950 text-white rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-image"></i> Genera Immagine
+                </button>
+                <button onclick="generateVideo()"
+                    class="py-3.5 bg-blue-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-video"></i> Genera Video
+                </button>
+            </div>
+        </div>
+
+        <!-- RIATTIVA SOCIAL se non esiste -->
+        <div id="noSocialSection" class="hidden text-center py-12 fade-in-up">
+            <div class="w-16 h-16 bg-gray-50 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-share-nodes text-2xl text-gray-300"></i>
+            </div>
+            <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">Nessun post social trovato</p>
+            <button onclick="activateSocial()"
+                class="px-6 py-3 bg-blue-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition shadow-md">
+                <i class="fas fa-plus mr-2"></i> Attiva Social (10 crediti)
+            </button>
+        </div>
+
+    </div>
+
+    <!-- FIXED BOTTOM BAR -->
+    <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-lg border-t border-gray-100 z-50">
+        <div class="max-w-md mx-auto flex items-center gap-3">
+            <button onclick="tg.close()"
+                class="w-10 h-10 bg-white border border-gray-200 text-slate-600 rounded-xl flex items-center justify-center text-sm active:scale-90 transition shadow-sm">
+                <i class="fas fa-times"></i>
+            </button>
+            <button onclick="savePrompts()"
+                class="flex-1 h-10 bg-black text-white rounded-xl text-[9px] font-black uppercase tracking-widest active:scale-95 transition flex items-center justify-center gap-2 shadow-sm">
+                <i class="fas fa-save text-[10px]"></i> Salva Prompt
+            </button>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+
+        const WEBHOOK_CATALOG = "https://prod.workflow.trinai.it/webhook/0fff7fa2-bcb2-4b50-a26b-589b7054952e";
+        const WEBHOOK_SOCIAL  = "https://prod.workflow.trinai.it/webhook/8fc050ca-41cd-4469-989c-269a113a00f9";
+        const WEBHOOK_VIDEO   = "https://prod.workflow.trinai.it/webhook/7d09d946-95e6-4efa-baee-00c458c82e9e";
+
+        const tg = window.Telegram.WebApp;
+        if (tg.setHeaderColor) tg.setHeaderColor('#ffffff');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#ffffff');
+        tg.ready(); tg.expand();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let ash = urlParams.get('ash');
+        let msg = urlParams.get('msg') || urlParams.get('message_id');
+        const sopId = urlParams.get('sop_id');
+        const productName = urlParams.get('name') || 'Social Post';
+
+        // Robust ash parsing
+        if (ash && ash.includes('?msg=')) {
+            const parts = ash.split('?msg=');
+            ash = parts[0];
+            if (!msg) msg = parts[1];
+        }
+
+        let currentSocialData = null;
+        let currentVatNumber = null;
+
+        async function init() {
+            if (!sopId) {
+                showNoSocial();
+                return;
+            }
+
+            document.getElementById('productNameDisplay').innerText = decodeURIComponent(productName);
+            document.getElementById('productSkuDisplay').innerText = `ID: ${sopId}`;
+
+            if (tg.BackButton) {
+                tg.BackButton.show();
+                tg.BackButton.onClick(() => tg.close());
+            }
+
+            try {
+                const res = await fetch(WEBHOOK_CATALOG, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'get_ghost_info',
+                        sop_id: sopId,
+                        ash: ash,
+                        msg: msg,
+                        _auth: tg.initData
+                    })
+                });
+                const raw = await res.json();
+                const info = Array.isArray(raw) ? raw[0] : raw;
+
+                currentVatNumber = info.vat_number || info.vatnumber || info.vat || '';
+
+                if (info.post) {
+                    currentSocialData = info.post;
+                    renderSocialHub();
+                } else {
+                    showNoSocial();
+                }
+            } catch (e) {
+                console.error('Init Error:', e);
+                tg.showAlert('Errore di caricamento. Riprova.');
+            } finally {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('appContent').classList.remove('hidden');
+            }
+        }
+
+        function renderSocialHub() {
+            // Analisi Psicologica
+            if (currentSocialData.psycological_analysis) {
+                const psi = currentSocialData.psycological_analysis;
+                document.getElementById('psi-emotional').innerText = psi.emotional_drivers || '—';
+                document.getElementById('psi-logical').innerText   = psi.logical_drivers || '—';
+                document.getElementById('psi-biases').innerText    = psi.cognitive_biases_used || '—';
+                document.getElementById('psiSection').classList.remove('hidden');
+            }
+
+            // Varianti Post
+            const posts = currentSocialData.variants || [];
+            document.getElementById('variantsCount').innerText = posts.length;
+            const container = document.getElementById('postsContainer');
+            container.innerHTML = '';
+
+            // Platform icons map
+            const platformIcons = {
+                linkedin: 'fa-linkedin',
+                facebook: 'fa-facebook-f',
+                instagram: 'fa-instagram',
+                x: 'fa-x-twitter',
+                twitter: 'fa-x-twitter',
+                tiktok: 'fa-tiktok'
+            };
+
+            posts.forEach((p, i) => {
+                const platform = (p.platform || 'social').toLowerCase();
+                const icon = platformIcons[platform] || 'fa-share-nodes';
+                const card = document.createElement('div');
+                card.className = 'platform-card space-y-4';
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="flex items-center gap-2">
+                            <span class="w-7 h-7 bg-slate-100 rounded-lg flex items-center justify-center">
+                                <i class="fab ${icon} text-xs text-slate-700"></i>
+                            </span>
+                            <span class="px-2.5 py-0.5 bg-slate-100 text-slate-800 rounded-full text-[8px] font-black uppercase tracking-wider">${platform.toUpperCase()}</span>
+                        </span>
+                        <button onclick="copyToClipboard('post-body-${i}')"
+                            class="w-8 h-8 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-900 active:scale-90 transition">
+                            <i class="fas fa-copy text-xs"></i>
+                        </button>
+                    </div>
+                    ${p.hook ? `
+                    <div>
+                        <span class="label-micro">🎯 Gancio d'Attacco (Hook)</span>
+                        <p class="text-xs font-black text-slate-900 leading-snug bg-slate-50 p-3 rounded-xl">${p.hook}</p>
+                    </div>` : ''}
+                    <div>
+                        <span class="label-micro">Testo Post</span>
+                        <textarea id="post-body-${i}"
+                            class="w-full bg-slate-50 border border-transparent p-3 rounded-xl text-xs font-medium leading-relaxed focus:bg-white focus:border-slate-200 transition resize-none h-32">${p.body_text || p.text || ''}</textarea>
+                    </div>
+                    ${p.hashtags ? `
+                    <div>
+                        <span class="label-micro"># Hashtag</span>
+                        <p class="text-[9px] font-bold text-blue-600 leading-relaxed">${Array.isArray(p.hashtags) ? p.hashtags.join(' ') : p.hashtags}</p>
+                    </div>` : ''}
+                `;
+                container.appendChild(card);
+            });
+
+            // Prompts
+            document.getElementById('social-master-prompt').value = currentSocialData.prompt || '';
+            document.getElementById('social-veo-prompt').value    = currentSocialData.veo_master_prompt_8s || '';
+
+            document.getElementById('promptsSection').classList.remove('hidden');
+        }
+
+        function showNoSocial() {
+            document.getElementById('noSocialSection').classList.remove('hidden');
+            document.getElementById('promptsSection').classList.add('hidden');
+        }
+
+        async function savePrompts() {
+            const promptVal = document.getElementById('social-master-prompt').value;
+            const veoVal    = document.getElementById('social-veo-prompt').value;
+
+            if (currentSocialData) {
+                currentSocialData.prompt = promptVal;
+                currentSocialData.veo_master_prompt_8s = veoVal;
+            }
+
+            try {
+                const idVal = `${currentVatNumber}-${sopId}`;
+                await fetch(WEBHOOK_CATALOG, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'update_social_prompts',
+                        id: idVal,
+                        social_post: currentSocialData,
+                        sop_id: sopId,
+                        ash: ash,
+                        msg: msg,
+                        msg_id: msg,
+                        _auth: tg.initData
+                    })
+                });
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert('Prompts salvati!');
+            } catch (e) {
+                console.error(e);
+                tg.showAlert('Errore salvataggio.');
+            }
+        }
+
+        window.generateImage = async () => {
+            tg.showConfirm("Generare un'immagine per questo post? (50 crediti)", async ok => {
+                if (ok) {
+                    await savePrompts();
+                    fetch(WEBHOOK_SOCIAL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'generate_image',
+                            sop_id: sopId,
+                            ash: ash,
+                            msg: msg,
+                            msg_id: msg,
+                            _auth: tg.initData
+                        }),
+                        keepalive: true
+                    });
+                    tg.close();
+                }
+            });
+        };
+
+        window.generateVideo = async () => {
+            tg.showConfirm("Generare un video per questo post? (320 crediti)", async ok => {
+                if (ok) {
+                    await savePrompts();
+                    fetch(WEBHOOK_VIDEO, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'generate_video',
+                            sop_id: sopId,
+                            ash: ash,
+                            msg: msg,
+                            msg_id: msg,
+                            _auth: tg.initData
+                        }),
+                        keepalive: true
+                    });
+                    tg.close();
+                }
+            });
+        };
+
+        window.activateSocial = () => {
+            tg.showConfirm('Attivare SOCIAL? (Costo: 10 crediti). Il contenuto verrà generato e inviato su Telegram.', ok => {
+                if (ok) {
+                    fetch(WEBHOOK_SOCIAL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'activate_social',
+                            sop_id: sopId,
+                            ash: ash,
+                            msg: msg,
+                            _auth: tg.initData
+                        }),
+                        keepalive: true
+                    });
+                    setTimeout(() => tg.close(), 2000);
+                }
+            });
+        };
+
+        window.copyToClipboard = (elementId) => {
+            const el = document.getElementById(elementId);
+            const text = el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' ? el.value : el.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                tg.showAlert('Copiato negli appunti!');
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            });
+        };
+
+        init();
+    </script>
+
+    <!-- User Guide and Audio Guide Integration Engine -->
+    <script>
+    (function() {
+        if (document.getElementById('userguide-drawer-overlay')) return;
+
+        const pathParts = window.location.pathname.split('/');
+        const pageName = pathParts[pathParts.length - 1] || 'index.html';
+        const baseName = pageName.replace('.html', '');
+        const audioSrc = baseName + '.wav';
+        const guidePage = 'userguide/04_online.html';
+
+        const tcIndex = window.location.pathname.indexOf('/telegram_control/');
+        let rootPath = '';
+        if (tcIndex !== -1) {
+            const subPath = window.location.pathname.substring(tcIndex + '/telegram_control/'.length);
+            const slashCount = (subPath.match(/\//g) || []).length;
+            rootPath = '../'.repeat(slashCount);
+        }
+
+        const finalGuideUrl = rootPath + guidePage;
+        const finalAudioUrl = audioSrc;
+
+        if (!document.querySelector('link[href*="font-awesome"]') && !document.querySelector('link[href*="all.min.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+            document.head.appendChild(link);
+        }
+
+        const drawerHtml = `
+        <div id="userguide-drawer-overlay" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[99999] hidden opacity-0 transition-opacity duration-300" onclick="closeUserGuide()">
+            <div id="userguide-drawer" class="fixed inset-0 max-w-md mx-auto h-screen bg-white shadow-2xl flex flex-col translate-y-full transition-transform duration-300 z-[100000]" onclick="event.stopPropagation()">
+                <div class="w-full flex items-center justify-between p-4 border-b border-slate-100 shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span class="text-xs font-black uppercase tracking-widest text-slate-800">Guida Utente</span>
+                    </div>
+                    <button onclick="closeUserGuide()" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-100 active:scale-90 transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full overflow-hidden bg-slate-50 relative">
+                    <iframe id="userguide-iframe" class="w-full h-full border-none" src=""></iframe>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', drawerHtml);
+
+        const header = document.querySelector('header');
+        const btnHtml = `
+        <button id="btn-nav-guide" onclick="openUserGuide('${finalGuideUrl}')" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Manuale Utente">
+            <i class="fas fa-globe text-xs"></i>
+        </button>
+        <button id="btn-nav-audio" onclick="toggleAudio()" class="w-10 h-10 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-slate-500 shadow-sm active:scale-90 transition shrink-0" title="Guida Vocale">
+            <i class="fas fa-volume-high text-xs"></i>
+        </button>`;
+
+        if (header) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-2 items-center';
+            wrapper.innerHTML = btnHtml;
+            header.appendChild(wrapper);
+        } else {
+            const floatingDiv = document.createElement('div');
+            floatingDiv.className = 'fixed top-4 right-4 flex gap-2 z-50';
+            floatingDiv.innerHTML = btnHtml;
+            document.body.appendChild(floatingDiv);
+        }
+
+        let voiceAudio = null;
+        let isAudioPlaying = false;
+
+        window.openUserGuide = function(url) {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer  = document.getElementById('userguide-drawer');
+            const iframe  = document.getElementById('userguide-iframe');
+            if (!overlay || !drawer || !iframe) return;
+            window.stopAudio && window.stopAudio();
+            iframe.src = url;
+            overlay.classList.remove('hidden');
+            setTimeout(() => { overlay.classList.remove('opacity-0'); drawer.classList.remove('translate-y-full'); }, 10);
+        };
+
+        window.closeUserGuide = function() {
+            const overlay = document.getElementById('userguide-drawer-overlay');
+            const drawer  = document.getElementById('userguide-drawer');
+            if (!overlay || !drawer) return;
+            overlay.classList.add('opacity-0');
+            drawer.classList.add('translate-y-full');
+            setTimeout(() => { overlay.classList.add('hidden'); document.getElementById('userguide-iframe').src = ""; }, 300);
+        };
+
+        window.stopAudio = function() {
+            if (isAudioPlaying && voiceAudio) { voiceAudio.pause(); voiceAudio.currentTime = 0; }
+            isAudioPlaying = false; voiceAudio = null;
+            const btn = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) icon.className = 'fas fa-volume-high text-xs';
+            if (btn) { btn.classList.remove('bg-black','text-white','border-black'); btn.classList.add('bg-white','text-slate-500','border-gray-200'); }
+        };
+
+        window.toggleAudio = function() {
+            const btn  = document.getElementById('btn-nav-audio');
+            const icon = btn ? btn.querySelector('i') : null;
+            if (!voiceAudio) {
+                voiceAudio = new Audio(finalAudioUrl);
+                voiceAudio.addEventListener('ended', () => { isAudioPlaying = false; voiceAudio.currentTime = 0; if (icon) { icon.className = 'fas fa-volume-high text-xs'; btn.classList.remove('bg-black','text-white','border-black'); btn.classList.add('bg-white','text-slate-500','border-gray-200'); } });
+            }
+            if (isAudioPlaying) { window.stopAudio(); }
+            else {
+                voiceAudio.play().then(() => { isAudioPlaying = true; if (icon) { icon.className = 'fas fa-stop text-xs'; btn.classList.remove('bg-white','text-slate-500','border-gray-200'); btn.classList.add('bg-black','text-white','border-black'); } }).catch(err => console.error(err));
+            }
+        };
+    })();
+    </script>
+
+</body>
+</html>

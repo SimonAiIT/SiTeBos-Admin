@@ -1,0 +1,1718 @@
+{
+  "name": "Commerce_Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "u_calc_ecom_get",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3d726d24-d755-4eb5-9477-c3551e79db45"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ECOM_GET"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "u_calc_ecom_save",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "77ce0e9b-3c20-49b3-8dad-b4950e47469f"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ECOM_SAVE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "u_calc_prev_get",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "64392c48-3b7b-4d5f-8826-e42b6128a574"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PREV_GET"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "u_calc_prev_save",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "c37eac64-a902-447e-83c0-d36f811ee681"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PREV_SAVE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "26a9cf8b-7c75-4eda-baa3-853b3c29bbd4",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "u_calc_get_order",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "GET ORDER"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a5b51901-eae5-4bbf-b6ba-e62128943f33",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "u_calc_evade_order",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -880,
+        112
+      ],
+      "id": "02ce082d-9764-4046-8814-fd967f37ca1c",
+      "name": "Action_Router"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "service_catalog",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$regex\": \"{{ $json.owner_data.vat_number }}-SVC\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service_catalog_setup\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"catalog\": \"$service_catalog_setup.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        -1504,
+        -384
+      ],
+      "id": "a3fc349a-b347-4a76-a526-893985f72db9",
+      "name": "Get_Catalog",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "orders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$regex\": \"{{ $json.ids.customer_id }}_order\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"order_data\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"order\": \"$order_data.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        -864,
+        -176
+      ],
+      "id": "c97be84c-0a41-4f38-b908-bae914ac2304",
+      "name": "Get_History",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: Ecom_Data_Formatter\n// VERSIONE: 2.6 - Added Inventory Support & Full Operations Mapping\n\nconst item = $input.first().json;\nconst setupData = item.catalog_setup || {};\nconst itemNodes = item.catalog_item || [];\nconst honeyPotData = item.HoneyPot || {};\nconst ownerData = item.owner_data || {};\n\n// --- CONTROLLO PAGAMENTI ---\nconst isPaymentActive = !!(ownerData.payment_provider_token && String(ownerData.payment_provider_token).trim() !== \"\");\n\n// 1. Risoluzione dinamica ROOT immagini\nconst rawAppUrl = item.urlMiniApp || \"\";\nconst rootUrl = rawAppUrl.split('telegram_control/')[0];\n\n// 2. Mappatura Catalog Items (Dettagli Tecnici)\nconst productSheets = {};\nif (Array.isArray(itemNodes)) {\n    itemNodes.forEach(wrapper => {\n        const product = wrapper.catalog || wrapper.catalog_item_draft;\n        if (product && product.identity) {\n            const sku = product.ui_node_draft?.callback_data || product.identity.item_sku;\n            \n            productSheets[sku] = {\n                full_name: product.identity.item_name || \"\",\n                short_desc: product.identity.description?.short || \"\",\n                long_desc: product.identity.description?.long || \"\",\n                price: parseFloat(product.pricing?.base_price || 0),\n                pricing: product.pricing || {},\n                commercial_setup: product.commercial_setup || { extra_options: [], allow_customer_notes: false },\n                // AGGIUNTO: Gestione Inventario\n                inventory_enabled: product.operations?.requires_inventory_check || false,\n                fulfillment_time: product.operations?.fulfillment_time || {}\n            };\n        }\n    });\n}\n\n// 3. Recupero resiliente dello storico ordini\nlet historyData = [];\nif (Array.isArray(item.order)) {\n    historyData = item.order\n        .map(entry => entry.order)\n        .filter(o => o !== undefined && o !== null);\n}\n\n// 4. Incrocio Tassonomia con Filtri di Attivazione\nconst products = [];\nif (setupData.categories) {\n    setupData.categories.forEach(cat => {\n        if (cat.macrocategories === \"PRO\" || cat.macrocategories === \"SER\") {\n            cat.subcategories.forEach(sub => {\n                // Filtro FONDAMENTALE: Passano solo i prodotti con blueprint attivo\n                if (sub.blueprint_ready === true) {\n                    const sheet = productSheets[sub.callback_data] || {};\n                    products.push({\n                        name: sheet.full_name || sub.name,\n                        short_name: sub.short_name,\n                        callback_data: sub.callback_data,\n                        price: sheet.price || 0,\n                        category: cat.name,\n                        description: sheet.short_desc || \"\",\n                        long_description: sheet.long_desc || \"\",\n                        pricing: sheet.pricing || {},\n                        commercial_setup: sheet.commercial_setup || {},\n                        inventory_enabled: sheet.inventory_enabled || false,\n                        fulfillment: sheet.fulfillment_time || {}\n                    });\n                }\n            });\n        }\n    });\n}\n\nreturn [{\n    json: {\n        success: true,\n        payment_active: false, //isPaymentActive (mantenuto come da tua versione)\n        catalog: products,\n        history: historyData,\n        brand: {\n            name: ownerData.ragione_sociale || \"SiteBoS Store\",\n            logo: honeyPotData.assets?.logo?.url || \"\"\n        },\n        urlMiniApp: rootUrl,\n        vat: ownerData.vat_number || \"\"\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        -368
+      ],
+      "id": "c8ff10f4-1d73-4582-b705-5efcb6460d4f",
+      "name": "Ecom_Formatter"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -192,
+        -192
+      ],
+      "id": "4883dfcf-5123-4de2-98f4-ee33da20357f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1712,
+        176
+      ],
+      "id": "fed42e9e-4292-4823-b95a-ce4eb04bf12d",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -192,
+        80
+      ],
+      "id": "d3aed523-ee79-444d-9ca6-ea2752f25192",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "honeypots",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service_catalog_setup\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"HoneyPot\": \"$service_catalog_setup.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        -864,
+        -384
+      ],
+      "id": "dd8de250-e39b-4ad6-8d15-1ea5cec86bc0",
+      "name": "HoneyPot",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -512,
+        -368
+      ],
+      "id": "247c6cf6-04ba-4dc7-96be-db9181d4b1cc",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "catalog_item",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1344,
+        -384
+      ],
+      "id": "0cdf1020-4249-4ebd-89f4-75363c9ac382",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "service_catalog",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}_setup_ik\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service_catalog_setup\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"catalog_setup\": \"$service_catalog_setup.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        -1504,
+        -544
+      ],
+      "id": "0d679076-a9a8-4780-81b9-ac2903b68ad8",
+      "name": "Get_Catalog_setup",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1504,
+        -208
+      ],
+      "id": "93a03f26-f6dc-488a-b200-3e19b014cac7",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "url": "https://nominatim.openstreetmap.org/reverse",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "format",
+              "value": "jsonv2"
+            },
+            {
+              "name": "lat",
+              "value": "={{ $json.body.order_data.location.lat }}"
+            },
+            {
+              "name": "lon",
+              "value": "={{ $json.body.order_data.location.lon }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "={{ $json.body.order_data.ids.customer_id }}{{ $json.body.order_data.ids.timestamp }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1504,
+        -816
+      ],
+      "id": "9033ad7c-cb44-4d47-bf56-68f3e7a20edd",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "order",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        -176
+      ],
+      "id": "0a2dff61-4e48-4227-8f6b-a7699655cebb",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1168,
+        -832
+      ],
+      "id": "084cce3d-040a-4849-99ff-61abfe3fa771",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload_owner }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1280,
+        -992
+      ],
+      "id": "dc8ecaaa-2654-4d70-98a1-8412df5a1604",
+      "name": "📤 Telegram Manager3",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * NODO: Prepare_Order_Message\n * OBIETTIVO: Formattazione ordine con GPS Disclaimer e ricerca per indirizzo\n * VERSION: 1.7 - Full HORECA Security\n */\nconst item = $input.first().json;\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst orderData = item.body.order_data;\nconst owner = item.owner_data;\nconst customer = item.stakeholder || {};\n\n// 1. Generazione ASH FIRMATO\nfunction generateAsh(ownerId, customerId, timestamp, whId, secret) {\n    const payload = `${ownerId}|${customerId}|${timestamp}|${whId}`;\n    const encodedPayload = Buffer.from(payload, \"utf8\").toString(\"base64\").replace(/=/g, '');\n    let hash = 0;\n    const combined = payload + secret;\n    for (let i = 0; i < combined.length; i++) {\n        hash = ((hash << 5) - hash) + combined.charCodeAt(i);\n        hash = hash & hash; \n    }\n    const signature = Math.abs(hash).toString(16);\n    return `${encodedPayload}.${signature}`;\n}\n\nconst ids = orderData.ids;\nconst ash = generateAsh(owner.chat_id, ids.customer_id, ids.timestamp, ids.webhook, SECRET_KEY);\n\n// 2. Mappatura Dati Stakeholder\nconst userRef = customer.user_ref || {};\nlet customerDetails = \"\";\nconst schemaMap = [\n    { key: \"nome\", label: \"Nome\" }, { key: \"cognome\", label: \"Cognome\" },\n    { key: \"email\", label: \"E-mail\" }, { key: \"telefono\", label: \"Telefono\" },\n    { key: \"indirizzo\", label: \"Domicilio\" }, { key: \"comune\", label: \"Comune\" }, \n    { key: \"provincia\", label: \"Prov.\" }, { key: \"cap\", label: \"Cap\" }\n];\nschemaMap.forEach(f => { if (userRef[f.key]) customerDetails += `• ${f.label}: <code>${userRef[f.key]}</code>\\n`; });\n\n// 3. Costruzione Messaggio HTML\nlet msg = `<b>📦 NUOVO ORDINE RICEVUTO</b>\\n`;\nmsg += `<code>ID: ${orderData.sessionId}</code>\\n\\n`;\nmsg += `👤 <b>PROFILO CLIENTE:</b>\\n${customerDetails}\\n`;\n\nmsg += `🚚 <b>DESTINAZIONE ORDINE:</b>\\n`;\nmsg += `📍 Indirizzo: <code>${orderData.address}</code>\\n`;\n\nif (orderData.location?.display_name) {\n    msg += `🌐 Rilevamento GPS: <i>${orderData.location.display_name}</i>\\n`;\n    msg += `⚠️ <i>Nota: La posizione rilevata potrebbe non essere precisa.</i>\\n`;\n}\n\n// Link Maps basato sull'indirizzo testuale di consegna\nconst mapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(orderData.address)}`;\nmsg += `🗺 <a href=\"${mapsSearchUrl}\">Calcola Percorso (Maps)</a>\\n`;\n\nmsg += `\\n💳 <b>PAGAMENTO:</b> ${orderData.payment_mode === 'CARD' ? '💳 CARTA' : '🚚 CONSEGNA'}\\n\\n`;\n\nmsg += `🛒 <b>DETTAGLIO ORDINE:</b>\\n`;\norderData.items.forEach(i => {\n    msg += `• <b>${i.quantity}x ${i.name}</b>\\n`;\n    if (i.selected_extras?.length > 0) i.selected_extras.forEach(e => msg += `  └ <i>+ ${e.name}</i>\\n`);\n    if (i.customer_note) msg += `  └ 📝 <i>Note: ${i.customer_note}</i>\\n`;\n});\n\nmsg += `\\n💰 <b>TOTALE: €${parseFloat(orderData.total_amount).toFixed(2)}</b>`;\n\n// 4. Link WebApp\nconst webAppUrl = `${item.urlMiniApp}order-viewer.html?session_id=${orderData.sessionId}&ash=${ash}`;\n\nconst payload_owner = {\n    chat_id: owner.chat_id,\n    text: msg,\n    parse_mode: 'HTML',\n//    reply_markup: {\n//        inline_keyboard: [[{ text: \"🧾 Visualizza ed Evadi\", web_app: { url: webAppUrl } }]]\n//    }\n};\n\nreturn { ...item, payload_owner, ash };\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1488,
+        -992
+      ],
+      "id": "5bc9b58d-bc76-4972-921d-bb6d5622c29a",
+      "name": "Prepare_Order_Message"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -896,
+        -976
+      ],
+      "id": "7451aaab-d14c-4f75-bab9-313111be7bf2",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2c2b81ff-82da-496c-bfbd-fde1eebf00b1",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "f62036bb-7956-4883-ba04-aa6e629acc3d",
+              "name": "code",
+              "value": 200,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -688,
+        -976
+      ],
+      "id": "511e2099-a779-4fc1-9a8f-e732a876c808",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "71da580f-1e3f-468f-ba8a-a601712d0dd0",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "6fbfe75f-b591-42c1-9e84-1a2adf197dae",
+              "name": "order_data",
+              "value": "={{ $json.order }}",
+              "type": "object"
+            },
+            {
+              "id": "10c6b788-498f-42ea-8427-9d19021d935e",
+              "name": "order_data.customer",
+              "value": "={{ $json.stakeholder.user_ref }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -704,
+        480
+      ],
+      "id": "2067723e-0a64-4616-86b2-0e2f880cb295",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "orders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.session_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"order_data\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"order\": \"$order_data.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        -1008,
+        496
+      ],
+      "id": "0800d814-d334-43e1-b40f-531ea313b53e",
+      "name": "Get_order",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -848,
+        480
+      ],
+      "id": "3f7b4c00-436c-4416-8459-8ca2a02f4712",
+      "name": "Merge7"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.order_data.sessionId }}",
+        "collectionName": "orders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -848,
+        -576
+      ],
+      "id": "ad906ba4-e6c7-42d8-b07a-27aee9cd08f7",
+      "name": "Save_Order_Persist",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.body.order_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -848,
+        -720
+      ],
+      "id": "99db10c2-a124-4b15-a252-91dff33924ed",
+      "name": "Order_Memory_Manager"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -544,
+        -816
+      ],
+      "id": "84f2518e-a277-4376-b0e0-e0005ca0d81a",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "745308a4-7113-4bca-8043-d8dd7cfec8e4",
+              "name": "body.order_data.ids",
+              "value": "={{ $json.ids }}",
+              "type": "object"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1024,
+        -832
+      ],
+      "id": "a4d21709-8298-4bd3-a9e6-5fdf37d55524",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1b5e8d95-40cb-4056-afc0-a7ea88c3bd49",
+              "name": "body.order_data.location.display_name",
+              "value": "={{ $json.display_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1376,
+        -816
+      ],
+      "id": "eb1e9d45-19fd-4c94-a2de-4d60f10e36dd",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "66ff7b98-a71c-4e37-9d24-7601d9360dec",
+              "name": "body.order_data.location",
+              "value": "={}",
+              "type": "object"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1744,
+        -848
+      ],
+      "id": "45dbd6c6-5e96-4db8-ae08-38ac73f5eed1",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "service_catalog",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}_setup_ik\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"service_catalog_setup\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"catalog_setup\": \"$service_catalog_setup.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        -656,
+        160
+      ],
+      "id": "a3e4704a-9133-4f68-93d7-ba25db477102",
+      "name": "Get_Catalog_setup1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * n8n Code Node - Get Multitenant Config\n */\n\nconst input = items[0].json; \nconst rawData = Array.isArray(input) ? input[0] : input;\n\n// 1. Filtro Catalogo (Solo PRO/SER pronti, No SOP)\nconst categories = rawData.catalog_setup.categories;\nlet flatCatalog = [];\ncategories.forEach(cat => {\n    if (cat.macrocategories === 'SOP') return; \n    cat.subcategories.forEach(sub => {\n        if (sub.blueprint_ready === true) {\n            flatCatalog.push({\n                callback_data: sub.callback_data,\n                name: sub.name,\n                short_name: sub.short_name,\n                category: cat.name \n            });\n        }\n    });\n});\n\n// 2. Configurazione Budget Multitenant\n// Puoi personalizzare queste opzioni in base al Tenant\nconst budgetOptions = [\n    { \n        id: 'LOW', \n        label: 'Essenziale', \n        desc: 'Soluzione focalizzata sulla risoluzione della necessità primaria.' \n    },\n    { \n        id: 'MEDIUM', \n        label: 'Completa', \n        desc: 'Copertura totale di ogni aspetto con il miglior bilanciamento valore-prezzo.' \n    },\n    { \n        id: 'HIGH', \n        label: 'Prioritaria', \n        desc: 'Massima cura del dettaglio, tempistiche accelerate e standard superiori.' \n    }\n];\n\nreturn {\n    success: true,\n    catalog: flatCatalog,\n    budget_options: budgetOptions // La WebApp ora leggerà questi dati\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        160
+      ],
+      "id": "1d2aeb39-4419-42a0-95fc-a2421b65928f",
+      "name": "Get Multitenant Config"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "30a9432f-f00a-478c-94f7-97cdf24fd6db",
+              "name": "order.evasion_data",
+              "value": "={{ $json.body.evasion_data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1008,
+        720
+      ],
+      "id": "349d814b-2aee-4a69-856f-88bf40058478",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "orders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.session_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"order_data\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"order\": \"$order_data.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        -1008,
+        896
+      ],
+      "id": "ae0d5724-04aa-4572-ad37-1914ca421121",
+      "name": "Get_order1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -784,
+        816
+      ],
+      "id": "4d65f5ff-3a93-422e-ae66-5ceec72a79e5",
+      "name": "Merge8"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.session_id }}",
+        "collectionName": "orders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        1104
+      ],
+      "id": "54809ff5-7cee-4232-afd2-d6b6936cd518",
+      "name": "Save_Order_Persist1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.order }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -608,
+        976
+      ],
+      "id": "077bd2a0-8d80-4f60-886b-c2aa1d64bdb3",
+      "name": "Order_Memory_Manager1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -320,
+        832
+      ],
+      "id": "6c6b8e73-4c1e-4e14-8152-93f3b1a4599f",
+      "name": "Merge9"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload_owner }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -112,
+        832
+      ],
+      "id": "37676ebc-4449-4a80-8050-f3bb8c8d4422",
+      "name": "📤 Telegram Manager",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst evasion = item.body.evasion_data;\nconst order = item.order; // Dati recuperati da MongoDB\nconst owner = item.owner_data;\n\n// Estraiamo il chat_id del cliente\nconst customerChatId = item.ids.customer_id;\n\n// --- COSTRUZIONE MESSAGGIO RIEPILOGO ---\nlet msg = `✅ <b>ORDINE CONFERMATO!</b>\\n`;\nmsg += `Il tuo ordine è in preparazione presso <b>${owner.ragione_sociale}</b>\\n\\n`;\n\nmsg += `⏱ <b>TEMPO STIMATO:</b> <code>${evasion.delivery_time} minuti</code>\\n`;\nmsg += `📍 <b>CONSEGNA:</b> <code>${order.address}</code>\\n`;\nmsg += `💳 <b>PAGAMENTO:</b> ${order.payment_mode === 'CARD' ? '💳 Carta (Online)' : '🚚 Contanti alla consegna'}\\n\\n`;\n\nmsg += `🛒 <b>RIEPILOGO PRODOTTI:</b>\\n`;\n\norder.items.forEach(i => {\n    msg += `• <b>${i.quantity}x ${i.name}</b>\\n`;\n    \n    // Se ci sono extra\n    if (i.selected_extras && i.selected_extras.length > 0) {\n        i.selected_extras.forEach(e => {\n            msg += `  └ <i>+ ${e.name}</i>\\n`;\n        });\n    }\n    \n    // Se c'è una nota per il singolo prodotto\n    if (i.customer_note) {\n        msg += `  └ 📝 <i>Nota: ${i.customer_note}</i>\\n`;\n    }\n});\n\nmsg += `\\n💰 <b>TOTALE: €${parseFloat(order.total_amount).toFixed(2)}</b>\\n`;\nmsg += `\\n<i>Grazie per il tuo acquisto!</i>`;\n\n// --- PREPARAZIONE PAYLOAD PER IL TUO TELEGRAM MANAGER ---\nconst payload_owner = {\n    chat_id: customerChatId,\n    text: msg,\n    parse_mode: 'HTML'\n};\n\n// Prepariamo l'oggetto aggiornato per MongoDB (mantenendo lo storico)\nconst updatedOrder = {\n    ...order,\n    status: evasion.status,\n    delivery_time: evasion.delivery_time,\n    evaded_at: evasion.timestamp\n};\n\nreturn {\n    ...item,\n    payload_owner,\n    updatedOrder\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        816
+      ],
+      "id": "7df82ca5-eaca-4a44-91c8-c5547ec2237f",
+      "name": "Prepare message"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2c2b81ff-82da-496c-bfbd-fde1eebf00b1",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "f62036bb-7956-4883-ba04-aa6e629acc3d",
+              "name": "code",
+              "value": 200,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        832
+      ],
+      "id": "c9d15fea-1c88-4c8b-90d8-3709ec14b166",
+      "name": "Edit Fields6"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0",
+            "content-length": "1340",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "it,it-IT;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "content-type": "application/json",
+            "origin": "https://trinaibusinessoperatingsystem.github.io",
+            "priority": "u=1, i",
+            "referer": "https://trinaibusinessoperatingsystem.github.io/",
+            "sec-ch-ua": "\"Not.A/Brand\";v=\"8\", \"Microsoft Edge WebView2\";v=\"147\", \"Chromium\";v=\"147\", \"Microsoft Edge\";v=\"147\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "151.35.179.219",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "_auth": "query_id=AAFPH_AqAAAAAE8f8Cpck2t-&user=%7B%22id%22%3A720379727%2C%22first_name%22%3A%22ImYourEnd%22%2C%22last_name%22%3A%22%22%2C%22username%22%3A%22ImYorEnd%22%2C%22language_code%22%3A%22it%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2FkFg2QYP2r0j9PZyiU5vudFwjSHEG3u7r5kwUwtf3uyk.svg%22%7D&auth_date=1776961694&signature=uxPq0E3MGky6FS-zoiTbmJ8Lo0FKIkO_C5Iq1XdXaZ8xDGavTjaiAcXFOYQdfwN8fqh05sYVp2puYsCcaU_6DA&hash=59796011b3f33e815ee0b5bea89cdf9d4bf65320566b3c5d12a5504c05ac5180",
+            "ash": "MjA0MTQwODg3NXw3MjAzNzk3Mjd8MTc3Njk1NTMyOTg3NHxlMzUzZmQ4YS02MmZiLTQyMDMtYTJhNy0yMDM2OWQ4MzJlMDA=.385b20b",
+            "action": "u_calc_ecom_save",
+            "order_data": {
+              "sessionId": "720379727_order_1776961722255",
+              "items": [
+                {
+                  "sku": "SVC_KH3MCNO3",
+                  "name": "Workshop Uso Pratico Di N8n",
+                  "base_price": 297,
+                  "final_price": 591,
+                  "quantity": 1,
+                  "selected_extras": [
+                    {
+                      "name": "Analisi workflow specifica (1h)",
+                      "price": 150
+                    },
+                    {
+                      "name": "Registrazione sessione + PDF blueprint",
+                      "price": 47
+                    },
+                    {
+                      "name": "Sessione follow-up 30min",
+                      "price": 97
+                    }
+                  ],
+                  "customer_note": ""
+                }
+              ],
+              "total_amount": 591,
+              "timestamp": "2026-04-23T16:28:42.255Z",
+              "location": {
+                "lat": 41.0445,
+                "lon": 16.8843
+              },
+              "address": "via suca 859",
+              "payment_mode": "DELIVERY",
+              "ids": {
+                "customer_id": 720379727,
+                "timestamp": 1776961722255,
+                "webhook": "8eb69e84-d20d-486e-a70e-9acf31c3da9e"
+              }
+            }
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/8eb69e84-d20d-486e-a70e-9acf31c3da9e",
+          "executionMode": "production",
+          "urlMiniApp": "https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/telegram_control/",
+          "ids": {
+            "owner_id": "2041408875",
+            "customer_id": "720379727",
+            "timestamp": "1776955329874",
+            "webhook": "e353fd8a-62fb-4203-a2a7-20369d832e00"
+          },
+          "owner_data": {
+            "user_id": "IT06988830821",
+            "chat_id": 2041408875,
+            "access_token": "3884d06f-f913-49c6-8544-200a96b79805",
+            "group_id": null,
+            "user_name": "",
+            "vat_number": "IT06988830821",
+            "gemini_key": "AIzaSyAbDReRpDWAg93RXoOxuOmNtCGzIfZmF4Q",
+            "bot_key": "8680185361:AAFb_6KjAXXw_YUPe4bI_SkVKBaateiEK9A",
+            "path": "",
+            "name": "Giuseppe",
+            "surname": "Garofalo",
+            "email": "garofalo.giuseppe77@gmail.com",
+            "phone": "3273569647",
+            "ragione_sociale": "Garofalo AI Consulting",
+            "indirizzo": "Via esterna valle cuba , 90046 Monreale (PA)",
+            "fiscal_code": "GRFGPP77M30G273K",
+            "sdi_pec": "KRRH6B9",
+            "site": "https://garofaloai.com/",
+            "linkedin_page": "https://www.linkedin.com/in/giuseppe-garofalo-8bb95880/",
+            "facebook_page": "",
+            "instagram_page": "",
+            "twitter_page": "",
+            "sector": "services_consulting",
+            "business_description": "AI System Architect & Business Automation Engineer.\nCostruzione ecosistemi software completi per le Tiny Enterprise. Unendo in modo magistrale l'orchestrazione di n8n, l'intelligenza di Google Gemini (Flash/Pro) e la robustezza di MongoDB, trasformiamo una semplice Partita IVA in un'azienda strutturata, dotata di cataloghi dinamici, assessment HR (Soft Skills) e automazione documentale.",
+            "kyc_details": {
+              "professional_questionnaire": {
+                "role": "freelance_solo",
+                "team_size": "solo",
+                "years_experience": "3-5",
+                "hard_skills": [
+                  "n8n Advanced Automation",
+                  "Google Gemini API",
+                  "System Architecture (SaaS)",
+                  "Prompt Engineering Avanzato",
+                  "MongoDB (NoSQL)",
+                  "Intelligent Process Automation",
+                  "API & Webhooks Integration",
+                  "Algorithmic Billing Logic",
+                  "JSON Data Structuring"
+                ],
+                "certifications": "Sistemi di Automazione Avanzata (n8n): Esperto certificato/specializzato nella progettazione di workflow complessi e automazione dei processi aziendali (IPA).\nArchitettura Cloud & AI (Google Cloud / Gemini): Competenze avanzate nell'integrazione delle API di Google Gemini e nell'ingegnerizzazione di prompt architetturali per modelli linguistici di grandi dimensioni.\nProject & Business Management: Data la sua esperienza ultra-ventennale in ruoli tecnici e di coordinamento, il profilo riflette certificazioni o mastery nell'architettura di sistemi SaaS e gestione di infrastrutture IT complesse.\nSicurezza & Compliance: Esperienza specifica in normative come il GDPR (fondamentale per il suo \"Metodo Godfellas\" di anonimizzazione dati).",
+                "recent_training": "online_course",
+                "specialization_level": "versatile",
+                "digital_tools": [
+                  "email",
+                  "whatsapp",
+                  "excel",
+                  "word",
+                  "calendar",
+                  "social",
+                  "crm",
+                  "accounting",
+                  "project_mgmt",
+                  "design",
+                  "ecommerce",
+                  "analytics",
+                  "video",
+                  "code"
+                ],
+                "client_workflow": "digital_dominant",
+                "document_management": "gestionale",
+                "pain_points": [
+                  "find_clients",
+                  "disorganization",
+                  "costs_control",
+                  "scaling",
+                  "competition"
+                ],
+                "main_goal": "beat_competition"
+              }
+            },
+            "subscription_plan": "pioneer_free_trial",
+            "subscription_status": "Pending_Activation",
+            "credits_balance": 998999,
+            "model_choice": "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent",
+            "lenguage": "Italiano",
+            "owner_unavailable_time": "21-7",
+            "operator_unavailable_time": "19-9",
+            "operators": [
+              {
+                "OperatorName": "Giuseppe Garofalo",
+                "OperatorChatID": 2041408875,
+                "OperatorLenguage": "Italiano",
+                "FreeHandOperator": true,
+                "Role": "Owner",
+                "GeminiKey": "AIzaSyAxXPYncXfpB34itpCiG228dl4DRIO3Oro"
+              },
+              {
+                "OperatorName": "Collaboratore_SPSIN",
+                "invitation_code": "INV-IT06988830821-SPSIN",
+                "OperatorChatID": null,
+                "Role": "Operator",
+                "FreeHandOperator": true,
+                "status": "PENDING",
+                "created_at": "2026-04-03T16:42:28.161Z"
+              }
+            ],
+            "payment_preference": "wire",
+            "terms_accepted": true,
+            "operator_owner": "",
+            "operator_credit": "1",
+            "created_at": "2026-03-02T13:33:53.049Z",
+            "additional_kwargs": {},
+            "response_metadata": {},
+            "subscription_assistant": true,
+            "subscription_certificator": true,
+            "last_update": "2026-04-04T10:19:19.567Z",
+            "subscription_custombot": true,
+            "customer_bot_config": {
+              "status": "ACTIVE",
+              "activated_at": "2026-04-04T10:19:19.567Z",
+              "last_updated_at": "2026-04-16T17:02:30.058Z",
+              "identity": {
+                "agent_name": "Giovanni Neve",
+                "role_persona": "sales_agent"
+              },
+              "permissions": {
+                "allow_images": true,
+                "allow_files": true
+              },
+              "personality": {
+                "tone": "friendly",
+                "vibe": "helpful_assistant",
+                "language_style": "casual",
+                "emoji_usage": "frequent",
+                "custom_instructions": ""
+              },
+              "business_logic": {
+                "primary_goal": "lead_generation",
+                "fallback_message": "Al momento non dispongo di questa informazione specifica. Preferisce che inoltri la Sua richiesta a un operatore umano?"
+              },
+              "system_safety_limits": {
+                "max_daily_messages_per_user": 20,
+                "max_tokens_per_chat": 2000
+              }
+            },
+            "payment_provider_token": "1877036958:TEST:0a3114c28d4099b70a8ee7e8e1461bc59bd541e6"
+          },
+          "isValid": true,
+          "isExpired": false,
+          "isHashValid": true,
+          "user": {
+            "id": 720379727,
+            "first_name": "ImYourEnd",
+            "last_name": "",
+            "username": "ImYorEnd",
+            "language_code": "it",
+            "allows_write_to_pm": true,
+            "photo_url": "https://t.me/i/userpic/320/kFg2QYP2r0j9PZyiU5vudFwjSHEG3u7r5kwUwtf3uyk.svg"
+          },
+          "auth_date_human": "23/04/2026, 16:28:14",
+          "debug": {
+            "time_diff_seconds": 29,
+            "computed": "59796011b3f33e815ee0b5bea89cdf9d4bf65320566b3c5d12a5504c05ac5180",
+            "received": "59796011b3f33e815ee0b5bea89cdf9d4bf65320566b3c5d12a5504c05ac5180"
+          },
+          "stakeholder": {
+            "document_type": "STAKEHOLDER_PROFILE",
+            "version": "1.9",
+            "owner_instance_id": 720379727,
+            "owner_data_ref": {
+              "ragioneSociale": null,
+              "pIva": null,
+              "codiceFiscale": null,
+              "indirizzo": null,
+              "comune": null,
+              "provincia": null,
+              "cap": null,
+              "sdi": null,
+              "pec": null,
+              "chat_id": 720379727
+            },
+            "user_ref": {
+              "first_name": "Giuseppe",
+              "last_name": "ImYourEnd",
+              "username": "ImYorEnd",
+              "chat_id": 720379727,
+              "language": "it",
+              "email": "tbos@app.trinai.it"
+            },
+            "metadata": {
+              "status": "PENDING_BILLING",
+              "created_at": "2026-04-17T06:14:36.723Z",
+              "last_updated": "2026-04-17T06:14:36.723Z",
+              "stakeholder_type": "USER",
+              "source": "TELEGRAM_SESSION"
+            },
+            "professional_profile": {
+              "soft_skills_modules": {
+                "modulo1": {
+                  "completed": false,
+                  "date": null,
+                  "time": null,
+                  "results": null,
+                  "timestamp": null
+                },
+                "modulo2": {
+                  "completed": false,
+                  "date": null,
+                  "time": null,
+                  "results": null,
+                  "timestamp": null
+                },
+                "modulo3": {
+                  "completed": false,
+                  "date": null,
+                  "time": null,
+                  "results": null,
+                  "timestamp": null
+                },
+                "modulo4": {
+                  "completed": false,
+                  "date": null,
+                  "time": null,
+                  "results": null,
+                  "timestamp": null
+                }
+              }
+            },
+            "commercial_profile": {
+              "customer_since": "2026-04-17T06:14:36.723Z",
+              "tags": [
+                "lead",
+                "telegram_user",
+                "incomplete_profile"
+              ],
+              "credit_balance": {
+                "available_credits": 0,
+                "last_transaction_id": "INITIAL_DRAFT",
+                "lifetime_value": 0,
+                "last_update": "2026-04-17T06:14:36.723Z"
+              }
+            },
+            "booking_summary": {
+              "total_bookings": 0,
+              "active_booking_count": 0,
+              "historical_booking_ids": []
+            },
+            "additional_kwargs": {},
+            "response_metadata": {}
+          }
+        },
+        "binary": {},
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Action_Router": {
+      "main": [
+        [
+          {
+            "node": "Get_Catalog",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get_History",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "HoneyPot",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get_Catalog_setup",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get_Catalog_setup1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Get_order",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get_order1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get_Catalog": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get_History": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Action_Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HoneyPot": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Ecom_Formatter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get_Catalog_setup": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare_Order_Message": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Manager3": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get_order": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge7": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save_Order_Persist": {
+      "ai_memory": [
+        [
+          {
+            "node": "Order_Memory_Manager",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Order_Memory_Manager": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Order_Memory_Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Prepare_Order_Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get_Catalog_setup1": {
+      "main": [
+        [
+          {
+            "node": "Get Multitenant Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ecom_Formatter": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get_order1": {
+      "main": [
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge8": {
+      "main": [
+        [
+          {
+            "node": "Order_Memory_Manager1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save_Order_Persist1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Order_Memory_Manager1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Order_Memory_Manager1": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge9": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare message": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Manager": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "06f0f6ef-2ea9-4954-912a-843c7f924b9b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "jnH1bR1I5w25S3aw",
+  "tags": []
+}

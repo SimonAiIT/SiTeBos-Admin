@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta name="color-scheme" content="light">
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>04. Presenza Online: Blog & Social Hub | SiTeBoS Guide</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;600;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
+                    colors: { primary: '#000000', bg: '#fafafa', surface: '#ffffff', border: '#eeeeee' },
+                    borderRadius: { '3xl': '1.5rem', '4xl': '2rem' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #000000;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .content-area {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .prose h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            tracking: -0.04em;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        .prose h2 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            tracking: -0.02em;
+            margin-top: 3rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid #000;
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .prose h3 {
+            font-size: 1rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-top: 2rem;
+            color: #4b5563;
+        }
+
+        .prose p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: #374151;
+            margin-bottom: 1.5rem;
+        }
+
+        .prose b {
+            font-weight: 800;
+            color: #000;
+        }
+
+        .prose ul {
+            margin: 0 0 1.4rem 1.5rem;
+        }
+
+        .prose ul li {
+            font-size: 0.93rem;
+            line-height: 1.65;
+            color: #374151;
+            margin-bottom: 0.4rem;
+            list-style: disc;
+        }
+
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .bento-item {
+            background: #fafafa;
+            border: 1px solid #eeeeee;
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+        }
+
+        .platform-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #000;
+            color: #fff;
+            padding: 0.4rem 0.9rem;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            text-decoration: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        /* Shared preview scoped styles */
+        .section-card {
+            background: white !important;
+            border: 1px solid #eeeeee !important;
+            box-shadow: none !important;
+            border-radius: 1.5rem;
+            padding: 1.25rem;
+        }
+
+        .label-micro {
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #6b7280;
+            margin-left: 0.25rem;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="safe-area-inset min-h-screen pb-32">
+
+    <!-- TOP NAV -->
+    <nav
+        class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-5 py-4 flex items-center justify-between">
+        <button onclick="location.href='index.html'"
+            class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
+            <i class="fas fa-arrow-left"></i> Index
+        </button>
+        <div class="text-[9px] font-black uppercase tracking-[0.2em] text-blue-600 italic">Capitolo 04</div>
+    </nav>
+
+    <main class="content-area animate-in">
+        <article class="prose">
+
+            <h1>Presenza Online:<br>Blog & Social Hub</h1>
+
+            <p>
+                SiTeBoS trasforma automaticamente le tue informazioni operative in strumenti di marketing persuasivi,
+                eliminando la necessità di webmaster esterni o agenzie di content marketing. Ogni articolo, ogni post
+                social, ogni vetrina digitale viene generata dall'intelligenza artificiale a partire dal tuo Know-How
+                reale.
+            </p>
+
+            <!-- ═══════════════════════════════════════
+                 SEZIONE 1 — PIATTAFORMA SITEBOS / MINISITE
+                 ═══════════════════════════════════════ -->
+            <h2>Piattaforma SiteBoS</h2>
+
+            <p>
+                Il <b>Minisite</b> non vive all'interno dell'app Telegram — è la tua vetrina digitale ospitata e gestita
+                direttamente dalla <b>Piattaforma SiteBoS</b>, accessibile all'indirizzo:
+            </p>
+
+            <div style="margin: 1.5rem 0;">
+                <a href="https://dashboard.trinai.it/sitebos/minisite" target="_blank" class="platform-badge">
+                    <i class="fas fa-external-link-alt"></i>
+                    dashboard.trinai.it/sitebos/minisite
+                </a>
+            </div>
+
+            <p>
+                Da questa piattaforma puoi visualizzare in anteprima la tua vetrina, cambiare il tema grafico e
+                monitorare le visite. L'app Telegram gestisce i <b>contenuti</b> (articoli blog, post social), mentre la
+                Piattaforma SiteBoS gestisce la <b>pubblicazione</b>.
+            </p>
+
+            <div class="bento-grid">
+                <div class="bento-item flex flex-col gap-2">
+                    <i class="fas fa-wand-magic-sparkles text-blue-600"></i>
+                    <p class="font-black text-[10px] uppercase">Generazione AI Auto</p>
+                    <p class="text-[10px] text-gray-500">Creata automaticamente dal tuo catalogo e descrizione
+                        aziendale.</p>
+                </div>
+                <div class="bento-item flex flex-col gap-2">
+                    <i class="fas fa-swatchbook text-blue-600"></i>
+                    <p class="font-black text-[10px] uppercase">Stili Variabili</p>
+                    <p class="text-[10px] text-gray-500">Scegli tra design Classic, Bento o Dark Tech dalla piattaforma.
+                    </p>
+                </div>
+                <div class="bento-item col-span-2 bg-white border-2 border-black flex items-center justify-between">
+                    <div>
+                        <p class="font-black text-[10px] uppercase text-blue-600 italic">Piattaforma SiteBoS</p>
+                        <p class="text-[10px] text-gray-500 font-medium">Pubblicazione istantanea con un solo click
+                            dalla dashboard.</p>
+                    </div>
+                    <i class="fas fa-rocket text-xl text-black"></i>
+                </div>
+            </div>
+
+
+            <!-- ═══════════════════════════════════════
+                 SEZIONE 2 — CONTENT ARCHITECT (edit-blog.html)
+                 ═══════════════════════════════════════ -->
+            <h2>Content Architect — Editor Blog</h2>
+
+            <p>
+                L'app <b>Content Architect</b> permette di revisionare, correggere e pubblicare gli articoli del blog
+                generati dall'IA. Ogni articolo è strutturato in sezioni narrative strategiche: Problema, Soluzione,
+                Autorità, Confronto, CTA e FAQ.
+            </p>
+
+            <!-- PREVIEW REALE: edit-blog.html — stesso stile di 03_catalog.html -->
+            <div class="my-10 rounded-3xl overflow-hidden border border-slate-200 shadow-xl" id="preview-blog"
+                style="background:#fafafa;">
+
+                <!-- Header Shell -->
+                <div
+                    style="background:#0f172a; padding:0.6rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.4rem; min-width:0;">
+                        <span
+                            style="width:9px; height:9px; border-radius:50%; background:#ef4444; flex-shrink:0; display:block;"></span>
+                        <span
+                            style="width:9px; height:9px; border-radius:50%; background:#f59e0b; flex-shrink:0; display:block;"></span>
+                        <span
+                            style="width:9px; height:9px; border-radius:50%; background:#22c55e; flex-shrink:0; display:block;"></span>
+                        <span
+                            style="font-size:8px; font-family:ui-monospace,monospace; color:#64748b; margin-left:0.5rem; white-space:nowrap;">Content
+                            Architect — Editor Blog</span>
+                    </div>
+                    <span
+                        style="font-size:7px; font-family:ui-monospace,monospace; color:#3b82f6; font-weight:700; text-transform:uppercase;">SiTeBoS
+                        Interface</span>
+                </div>
+
+                <!-- Body -->
+                <div class="p-5 max-w-xl mx-auto space-y-4" style="font-family:'Inter',sans-serif; background:#fafafa;">
+
+                    <!-- Header app -->
+                    <header
+                        style="display:flex; justify-content:space-between; align-items:center; padding-bottom:0.75rem; border-bottom:2px solid #000;">
+                        <h2
+                            style="font-size:16px; font-weight:900; text-transform:uppercase; letter-spacing:-0.04em; margin:0;">
+                            Content Architect</h2>
+                        <div style="display:flex; gap:6px;">
+                            <div
+                                style="width:34px; height:34px; background:white; border:1px solid #eee; border-radius:12px; display:flex; align-items:center; justify-content:center;">
+                                <i class="fas fa-globe" style="font-size:10px; color:#64748b;"></i>
+                            </div>
+                            <div
+                                style="width:34px; height:34px; background:white; border:1px solid #eee; border-radius:12px; display:flex; align-items:center; justify-content:center;">
+                                <i class="fas fa-volume-high" style="font-size:10px; color:#64748b;"></i>
+                            </div>
+                        </div>
+                    </header>
+
+                    <!-- Cover Image — immagine reale -->
+                    <div>
+                        <span class="label-micro">Cover Image</span>
+                        <div
+                            style="border-radius:1.5rem; overflow:hidden; border:1px solid #eeeeee; position:relative;">
+                            <img src="blog_cover_example.jpg" alt="Cover articolo blog"
+                                style="width:100%; height:180px; object-fit:cover; display:block;">
+                            <div
+                                style="position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,0.55); color:#fff; font-size:7px; font-weight:900; text-transform:uppercase; padding:4px 8px; border-radius:8px; letter-spacing:0.08em; backdrop-filter:blur(4px);">
+                                <i class="fas fa-camera" style="margin-right:3px;"></i> Cambia
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SEO Config -->
+                    <div class="section-card" style="background:#fafafa !important; border-style:dashed !important;">
+                        <span class="label-micro">SEO Configuration</span>
+                        <input readonly value="Come calcolare il costo di un impianto fotovoltaico: Guida 2025"
+                            style="width:100%; background:white; border:1px solid #e5e7eb; border-radius:12px; padding:10px 12px; font-size:11px; font-weight:700; color:#111; margin-bottom:8px;">
+                        <textarea readonly rows="2"
+                            style="width:100%; background:white; border:1px solid #e5e7eb; border-radius:12px; padding:10px 12px; font-size:9px; color:#555; resize:none; margin-bottom:8px;">La guida completa per stimare costi, incentivi e tempi di ritorno di un impianto fotovoltaico residenziale nel 2025.</textarea>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                            <input readonly value="fotovoltaico, costi, 2025"
+                                style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:8px 10px; font-size:9px;">
+                            <input readonly value="guida-fotovoltaico-2025"
+                                style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:8px 10px; font-size:9px;">
+                        </div>
+                    </div>
+
+                    <!-- Hero Area -->
+                    <div class="section-card">
+                        <span class="label-micro">Hero Area</span>
+                        <input readonly value="Il VERO costo del fotovoltaico nel 2025"
+                            style="width:100%; font-size:15px; font-weight:900; border-bottom:1px solid #f3f4f6; padding:6px 0; color:#111; background:transparent; margin-bottom:8px;">
+                        <textarea readonly rows="2"
+                            style="width:100%; font-size:10px; color:#6b7280; font-weight:500; resize:none; background:transparent; margin-bottom:8px;">La guida tecnica che nessun installatore vuole che tu legga prima del preventivo.</textarea>
+                        <input readonly value="Soddisfatto o rimborsato — Preventivo gratuito entro 24h"
+                            style="width:100%; background:#f9fafb; border-radius:12px; padding:10px 12px; font-size:9px; color:#555;">
+                    </div>
+
+                    <!-- Sezione 01 Problema -->
+                    <div class="section-card">
+                        <span class="label-micro"><i class="fas fa-triangle-exclamation" style="margin-right:3px;"></i>
+                            01. Problema</span>
+                        <input readonly value="Il preventivo nasconde sempre qualcosa"
+                            style="width:100%; font-size:13px; font-weight:900; border-bottom:1px solid #f3f4f6; padding:5px 0; color:#111; background:transparent; margin-bottom:8px;">
+                        <textarea readonly rows="3"
+                            style="width:100%; font-size:10px; background:#f9fafb; border-radius:12px; padding:10px; color:#555; resize:none;">Ogni anno migliaia di famiglie si ritrovano con costi finali molto superiori al preventivo iniziale. Le voci nascoste — adeguamento elettrico, pratiche GSE, IVA agevolata — possono aumentare la spesa del 30-40%.</textarea>
+                    </div>
+
+                    <!-- Sezione 02 Soluzione -->
+                    <div class="section-card" style="border-left:2px solid #000 !important;">
+                        <span class="label-micro"><i class="fas fa-lightbulb" style="margin-right:3px;"></i> 02.
+                            Soluzione</span>
+                        <input readonly value="Il metodo che protegge il tuo budget"
+                            style="width:100%; font-size:13px; font-weight:900; border-bottom:1px solid #f3f4f6; padding:5px 0; color:#111; background:transparent; margin-bottom:8px;">
+                        <textarea readonly rows="3"
+                            style="width:100%; font-size:10px; background:#f9fafb; border-radius:12px; padding:10px; color:#555; resize:none; margin-bottom:8px;">Abbiamo sviluppato una metodologia di analisi preventiva basata su 200+ installazioni che identifica tutte le voci di costo prima della firma del contratto.</textarea>
+                        <div style="background:#171717; border-radius:12px; padding:12px;">
+                            <span
+                                style="font-size:7px; font-weight:900; text-transform:uppercase; color:#525252; display:block; margin-bottom:4px;">Stack</span>
+                            <input readonly value="Analisi strutturale tetto + Calcolo Kwp + Incentivi Conto Energia"
+                                style="width:100%; background:transparent; border-bottom:1px solid #333; font-size:10px; font-weight:700; color:#e5e7eb; padding:4px 0;">
+                        </div>
+                    </div>
+
+                    <!-- Action bar -->
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; padding-top:4px;">
+                        <button
+                            style="height:44px; background:white; border:1px solid #ef4444; color:#ef4444; border-radius:12px; font-weight:900; font-size:9px; text-transform:uppercase; letter-spacing:0.08em;">Elimina</button>
+                        <button
+                            style="height:44px; background:white; border:1px solid #000; color:#000; border-radius:12px; font-weight:900; font-size:9px; text-transform:uppercase; letter-spacing:0.08em;">Salva</button>
+                        <button
+                            style="height:44px; background:#000; color:#fff; border-radius:12px; font-weight:900; font-size:9px; text-transform:uppercase; letter-spacing:0.08em;">Pubblica</button>
+                    </div>
+
+                </div><!-- /body -->
+
+                <div
+                    style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig 4.1 — Content Architect: editor blog generato dall'AI a partire dalla Knowledge Base
+                </div>
+            </div>
+
+            <p>
+                Ogni articolo è strutturato per massimizzare la conversione e il posizionamento SEO. Le sezioni vengono
+                generate dall'IA, ma rimangono <b>completamente editabili</b>: puoi modificare titoli, testi e prompt
+                immagine direttamente dall'app prima di pubblicare.
+            </p>
+
+            <ul>
+                <li><b>Cover Image</b> — carica o sostituisce l'immagine di copertina dell'articolo</li>
+                <li><b>SEO Config</b> — meta title, description, keywords e slug URL ottimizzati</li>
+                <li><b>Hero Area</b> — H1, sottotitolo e risk reversal (garanzie) per convertire</li>
+                <li><b>Sezioni Narrative</b> — Problema → Soluzione → Autorità → Confronto → CTA → FAQ</li>
+                <li><b>Azione</b> — Salva bozza, Pubblica live o Elimina l'articolo</li>
+            </ul>
+
+
+            <!-- ═══════════════════════════════════════
+                 SEZIONE 3 — SOCIAL HUB (edit-post.html)
+                 ═══════════════════════════════════════ -->
+            <h2>Social Hub — Post Manager</h2>
+
+            <p>
+                Il <b>Social Hub</b> raccoglie tutti i post social generati automaticamente dall'IA per ogni prodotto o
+                servizio del catalogo. Testi pronti per LinkedIn, Facebook, Instagram, X e TikTok — con analisi
+                psicologica, hook d'attacco e prompt per generare immagini e video AI.
+            </p>
+
+            <!-- PREVIEW REALE: edit-post.html — stesso stile di 03_catalog.html -->
+            <div class="my-10 rounded-3xl overflow-hidden border border-slate-200 shadow-xl" id="preview-post"
+                style="background:#fafafa;">
+
+                <!-- Header Shell -->
+                <div
+                    style="background:#0f172a; padding:0.6rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.4rem; min-width:0;">
+                        <span
+                            style="width:9px; height:9px; border-radius:50%; background:#ef4444; flex-shrink:0; display:block;"></span>
+                        <span
+                            style="width:9px; height:9px; border-radius:50%; background:#f59e0b; flex-shrink:0; display:block;"></span>
+                        <span
+                            style="width:9px; height:9px; border-radius:50%; background:#22c55e; flex-shrink:0; display:block;"></span>
+                        <span
+                            style="font-size:8px; font-family:ui-monospace,monospace; color:#64748b; margin-left:0.5rem; white-space:nowrap;">Social
+                            Hub — Post Manager</span>
+                    </div>
+                    <span
+                        style="font-size:7px; font-family:ui-monospace,monospace; color:#3b82f6; font-weight:700; text-transform:uppercase;">SiTeBoS
+                        Interface</span>
+                </div>
+
+                <!-- Body -->
+                <div class="p-5 max-w-xl mx-auto space-y-4" style="font-family:'Inter',sans-serif; background:#fafafa;">
+
+                    <!-- Header app -->
+                    <header
+                        style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:0.75rem; border-bottom:1px solid #f3f4f6;">
+                        <div>
+                            <div
+                                style="display:inline-block; background:#000; color:#fff; font-size:7px; font-weight:900; text-transform:uppercase; letter-spacing:0.1em; padding:2px 8px; border-radius:99px; margin-bottom:4px; font-style:italic;">
+                                Social Hub</div>
+                            <h2
+                                style="font-size:16px; font-weight:900; text-transform:uppercase; letter-spacing:-0.04em; margin:0; color:#0f172a;">
+                                Impianto Fotovoltaico</h2>
+                            <p
+                                style="font-size:8px; font-weight:900; color:#9ca3af; text-transform:uppercase; letter-spacing:0.1em; margin:3px 0 0;">
+                                ID: SOP-0482</p>
+                        </div>
+                        <div style="text-align:right;">
+                            <div
+                                style="font-size:24px; font-weight:900; line-height:1; color:#0f172a; letter-spacing:-0.04em;">
+                                5</div>
+                            <div
+                                style="font-size:7px; font-weight:900; color:#9ca3af; text-transform:uppercase; letter-spacing:0.1em;">
+                                Varianti</div>
+                        </div>
+                    </header>
+
+                    <!-- Analisi Psicologica AI -->
+                    <div style="background:#0f172a; color:#fff; border-radius:1.5rem; padding:1.25rem;">
+                        <span
+                            style="font-size:8px; font-weight:900; text-transform:uppercase; letter-spacing:0.15em; color:#475569; font-style:italic; display:block; margin-bottom:0.75rem;">🧠
+                            Analisi Psicologica AI</span>
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <div>
+                                <p
+                                    style="font-size:7px; font-weight:900; text-transform:uppercase; color:#475569; margin:0 0 3px;">
+                                    Drivers Emotivi</p>
+                                <p style="font-size:10px; font-weight:500; line-height:1.5; color:#e2e8f0; margin:0;">
+                                    Risparmio energetico immediato, indipendenza dalla rete, sicurezza per la famiglia.
+                                </p>
+                            </div>
+                            <div>
+                                <p
+                                    style="font-size:7px; font-weight:900; text-transform:uppercase; color:#475569; margin:0 0 3px;">
+                                    Bias Cognitivi Attivati</p>
+                                <p
+                                    style="font-size:10px; font-weight:500; line-height:1.5; color:#94a3b8; margin:0; font-style:italic;">
+                                    Loss Aversion · Social Proof · Authority Bias</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LinkedIn Post -->
+                    <div class="section-card space-y-3">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="display:flex; align-items:center; gap:8px;">
+                                <span
+                                    style="width:28px; height:28px; background:#dbeafe; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fab fa-linkedin" style="font-size:12px; color:#1d4ed8;"></i>
+                                </span>
+                                <span
+                                    style="font-size:8px; font-weight:900; text-transform:uppercase; background:#f1f5f9; color:#1e293b; padding:2px 8px; border-radius:99px; letter-spacing:0.08em;">LINKEDIN</span>
+                            </span>
+                            <button
+                                style="width:30px; height:30px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                <i class="fas fa-copy" style="font-size:11px; color:#94a3b8;"></i>
+                            </button>
+                        </div>
+                        <div>
+                            <span class="label-micro">🎯 Gancio d'Attacco (Hook)</span>
+                            <div
+                                style="background:#f8fafc; border-radius:12px; padding:10px; font-size:11px; font-weight:900; color:#0f172a; line-height:1.4;">
+                                Il tuo impianto fotovoltaico ti fa guadagnare mentre dormi. Ecco i numeri reali.</div>
+                        </div>
+                        <div>
+                            <span class="label-micro">Testo Post</span>
+                            <textarea readonly rows="3"
+                                style="width:100%; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px; font-size:10px; font-weight:500; line-height:1.5; color:#374151; resize:none;">Dopo 6 mesi dall'installazione, i nostri clienti riportano un risparmio medio del 73% sulla bolletta. Dati reali, verificati e documentati. 🌱
+ROI medio: 5.2 anni | Garanzia: 25 anni | Assistenza: 24/7</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Instagram Post -->
+                    <div class="section-card space-y-3">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="display:flex; align-items:center; gap:8px;">
+                                <span
+                                    style="width:28px; height:28px; background:#fce7f3; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fab fa-instagram" style="font-size:12px; color:#be185d;"></i>
+                                </span>
+                                <span
+                                    style="font-size:8px; font-weight:900; text-transform:uppercase; background:#f1f5f9; color:#1e293b; padding:2px 8px; border-radius:99px; letter-spacing:0.08em;">INSTAGRAM</span>
+                            </span>
+                            <button
+                                style="width:30px; height:30px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                <i class="fas fa-copy" style="font-size:11px; color:#94a3b8;"></i>
+                            </button>
+                        </div>
+                        <div>
+                            <span class="label-micro">Testo Post</span>
+                            <textarea readonly rows="3"
+                                style="width:100%; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px; font-size:10px; font-weight:500; line-height:1.5; color:#374151; resize:none;">☀️ +73% risparmio in bolletta. Non è magia, è ingegneria.
+Scopri il sistema che 847 famiglie hanno già scelto.
+👉 Link in bio — preventivo gratuito in 24h</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Prompts Generazione -->
+                    <div class="section-card space-y-3" style="border-style:dashed !important;">
+                        <span class="label-micro">⚡ Prompting Generazione Visiva</span>
+                        <div>
+                            <span class="label-micro">Master Prompt Immagine (Flux / Gemini)</span>
+                            <textarea readonly rows="3"
+                                style="width:100%; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px; font-size:9px; color:#64748b; resize:none;">Professional photo of a modern Italian house rooftop with premium solar panels, golden hour lighting, clean architectural photography, warm tones, sustainability...</textarea>
+                        </div>
+                        <div>
+                            <span class="label-micro">Master Prompt Video (Veo 2 — 8s)</span>
+                            <textarea readonly rows="2"
+                                style="width:100%; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px; font-size:9px; color:#64748b; resize:none;">Cinematic drone shot of countryside house with solar panels, sunrise, warm golden light, professional documentary style...</textarea>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                            <button
+                                style="padding:12px; background:#0f172a; color:#fff; border-radius:12px; font-size:9px; font-weight:900; text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:6px; letter-spacing:0.06em;">
+                                <i class="fas fa-image" style="font-size:10px;"></i> Genera Immagine
+                            </button>
+                            <button
+                                style="padding:12px; background:#2563eb; color:#fff; border-radius:12px; font-size:9px; font-weight:900; text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:6px; letter-spacing:0.06em;">
+                                <i class="fas fa-video" style="font-size:10px;"></i> Genera Video
+                            </button>
+                        </div>
+                    </div>
+
+                </div><!-- /body -->
+
+                <div
+                    style="padding:0.5rem 1rem; background:#f1f5f9; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8; font-family:ui-sans-serif,sans-serif; text-align:center; font-weight:700; text-transform:uppercase; letter-spacing:0.1em;">
+                    Fig 4.2 — Social Hub: post AI pronti per LinkedIn, Instagram, X, TikTok + generazione immagini e
+                    video
+                </div>
+            </div>
+
+            <p>
+                Il Social Hub non sostituisce la strategia social — la <b>automatizza</b>. Ogni post viene generato con
+                un'analisi psicologica del target, un hook d'attacco calibrato per fermare lo scroll, e il testo
+                completo ottimizzato per ogni piattaforma.
+            </p>
+
+            <ul>
+                <li><b>Analisi Psicologica AI</b> — emotional/logical drivers e bias cognitivi attivati</li>
+                <li><b>Post Multi-Piattaforma</b> — LinkedIn, Facebook, Instagram, X, TikTok — editabili e copiabili
+                </li>
+                <li><b>Image Prompt</b> — prompt per Flux/Gemini per generare l'immagine del post <b>(da modificare)</b>
+                </li>
+                <li><b>Video Prompt VEO 2</b> — prompt per generare un video da 8 secondi <b>(da modificare)</b></li>
+            </ul>
+
+        </article>
+
+        <!-- PAGINATION -->
+        <div class="flex items-center justify-between mt-20 pt-10 border-t border-gray-100">
+            <a href="03_catalog.html" class="flex flex-col gap-1 items-start group text-left">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Precedente</span>
+                <span class="font-black text-xs uppercase group-hover:underline">03. Catalogo &amp; Procedure</span>
+            </a>
+            <a href="05_customer.html" class="flex flex-col gap-1 items-end group text-right">
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-300">Successivo</span>
+                <span class="font-black text-xs uppercase group-hover:underline text-blue-600">05. Customer Exp <i
+                        class="fas fa-arrow-right ml-1"></i></span>
+            </a>
+        </div>
+    </main>
+
+    <script>
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            tg.BackButton.show();
+            tg.BackButton.onClick(() => location.href = 'index.html');
+        }
+    </script>
+</body>
+
+</html>

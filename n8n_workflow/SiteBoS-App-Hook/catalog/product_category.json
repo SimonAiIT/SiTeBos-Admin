@@ -1,0 +1,968 @@
+{
+  "name": "product_category",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Access Denied or Data Not Found\",\n  \"code\": 500\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1488,
+        272
+      ],
+      "id": "7a15a3d7-af01-4234-9d78-f78c47890b35",
+      "name": "500"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "5e225cf6-76bb-4e19-8657-35cac49fd399",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1728,
+        848
+      ],
+      "id": "11bde195-8d40-4af7-907c-3182b60068c2",
+      "name": "Webhook",
+      "webhookId": "5e225cf6-76bb-4e19-8657-35cac49fd399"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.oCategory }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        464,
+        240
+      ],
+      "id": "075f98e1-3045-476c-b036-7b100ab26f79",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<system_instructions>\n  <persona>\n    Sei \"CategoryBlockBuilder\", un Business Architect digitale specializzato nella progettazione di blocchi catalogo pronti all'uso. Il tuo compito è trasformare dati di ricerca e richieste utente in strutture JSON perfette, differenziando tra Procedure (SOP), Servizi (SER) e Prodotti (PRO).\n  </persona>\n  <rules>\n    <rule>\n      L'output DEVE essere esclusivamente un oggetto JSON valido. ZERO markdown, ZERO chiacchiere.\n    </rule>\n    <rule>\n      IDENTIFICAZIONE TAG (MANDATORIA): \n      - Controlla il parametro `requested_type`. \n      - Se è \"SOP\", \"SER\" o \"PRO\", usa quello. \n      - Se è vuoto, analizza il contesto e assegna autonomamente la macro-categoria più corretta.\n      - Il campo `\"name\"` della categoria principale DEVE iniziare con il tag scelto: es. \"[SOP] Nome Categoria\".\n    </rule>\n    <rule>\n      STRUTTURA JSON ROOT:\n      L'oggetto deve avere: `\"name\"`, `\"short_name\"`, `\"callback_data\"`, `\"macrocategories\"` (solo il valore TAG senza parentesi, es: \"SOP\").\n    </rule>\n    <rule>\n      STRUTTURA SUBCATEGORIES:\n      L'array `\"subcategories\"` deve contenere da 8 a 15 oggetti con: `{\"name\": \"...\", \"short_name\": \"...\", \"callback_data\": \"...\"}`.\n    </rule>\n    <rule>\n      REGOLE DI LABELING:\n      1. `\"short_name\"`: Max 25 caratteri. DEVE iniziare con una emoji a tema. Usa un linguaggio semplice (\"Capra-friendly\").\n      2. `\"callback_data\"`: ID univoco in SNAKE_CASE_UPPERCASE (es. GESTIONE_CASSA). Rimuovi l'emoji.\n    </rule>\n    <rule>\n      TINY ENTERPRISE MINDSET: Progetta gli item in modo che siano atomici, pratici e immediatamente attivabili per una piccola azienda.\n    </rule>\n  </rules>\n</system_instructions>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<prompt>\n  <task>\n    Genera un singolo oggetto JSON che rappresenti una nuova categoria aziendale completa di sottocategorie. \n    Analizza il `<business_context>` e i dati della `<market_research_data>` per creare un'offerta coerente e professionale.\n  </task>\n\n  <requested_type>{{ $json.user_request.type || \"\" }}</requested_type>\n\n  <business_context>\n    <![CDATA[\n    Ragione Sociale: {{ $json.owner_data.ragione_sociale }}\n    DNA Aziendale: {{ $json.HoneyPot.company_context_string }}\n    ]]>\n  </business_context>\n\n  <market_research_data>\n     <![CDATA[\n     {{ $json.sOUTPUT }}\n     ]]>\n  </market_research_data>\n\n  <new_category_request>\n    <name>{{ $json.user_request.category_name }}</name>\n    <description>{{ $json.user_request.category_description }}</description>\n  </new_category_request>\n  \n  <instructions>\n    Lingua di output: **{{ $json.user_request.language || \"Italiano\" }}**.\n    \n    1. Determina se questa categoria è una [SOP], un [SER] o un [PRO] basandoti su `<requested_type>` o sull'analisi dei dati di ricerca.\n    2. Raffina il nome della categoria per renderlo autorevole (es. \"[SOP] Protocollo Igiene\" invece di \"pulizie\").\n    3. Genera sottocategorie che rappresentino i \"mattoni\" operativi o commerciali di questa categoria.\n    4. Assicurati che ogni `callback_data` sia univoco all'interno dell'oggetto.\n  </instructions>\n\n  <output_format_example>\n  {\n    \"name\": \"[SER] Sviluppo E-commerce AI\",\n    \"short_name\": \"🛍️ E-commerce AI\",\n    \"callback_data\": \"CAT_ECOMMERCE_AI\",\n    \"macrocategories\": \"SER\",\n    \"subcategories\": [\n      {\n        \"name\": \"Configurazione Agente Supporto Clienti\",\n        \"short_name\": \"🤖 Assistente Clienti\",\n        \"callback_data\": \"SVC_ASSISTENTE_CLIENTI\"\n      }\n    ]\n  }\n  </output_format_example>\n</prompt>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "={{ $json.owner_data.model_choice }}",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "oCategory",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.file_data }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.mime_type }}",
+              "type": "string"
+            },
+            {
+              "id": "8c6968f0-a518-4107-891f-25062c46f68e",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "4192bd20-86fa-4c3e-a726-9f341441893e",
+              "name": "billing_source.use",
+              "value": "=Product Category Taxonomy {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "63cbb12e-2863-4eca-9dcd-df70a014ad3a",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/5e225cf6-76bb-4e19-8657-35cac49fd399",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -112,
+        256
+      ],
+      "id": "d2f36a5c-3170-4548-9456-dfc6601a87a3",
+      "name": "Tassionomy"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<system_instructions>\n  <persona>\n    Sei un \"Business & Product Intelligence Analyst\" senior. La tua specializzazione è l'identificazione, la scomposizione e la catalogazione di asset aziendali: Prodotti (PRO), Servizi (SER) e Procedure Operative (SOP). \n    Sei esperto nell'analisi multimodale e sai estrarre dati strutturati da web, PDF, immagini e listini grezzi.\n  </persona>\n  <rules>\n    <rule>\n      **LOGICA DI CLASSIFICAZIONE (MANDATORIA):**\n      Analizza il parametro `type`. Se vuoto, decidi in base al contenuto:\n      - [PRO] -> Se l'asset è un oggetto fisico, un software pacchettizzato o un kit.\n      - [SER] -> Se l'asset è una prestazione intellettuale, oraria o una consulenza.\n      - [SOP] -> Se l'asset è una regola interna, un protocollo di sicurezza o un metodo di lavoro.\n    </rule>\n    <rule>\n      **GERARCHIA DELLE FONTI:**\n      - SCOPE 0 (Asset Caricato): Se presente `<uploaded_asset_context>`, estrai i dati ESCLUSIVAMENTE da lì. Usa il web solo per chiarire specifiche tecniche ambigue.\n      - SCOPE 1 (Brand/Fornitore): Se non c'è un file ma il topic cita un brand, analizza i canali ufficiali di quel brand.\n      - SCOPE 2 (Mercato): Se non c'è un file né un brand, effettua una ricerca sui leader di settore e benchmark di mercato.\n    </rule>\n    <rule>\n      **ATTRIBUTI DOMAIN-AGNOSTIC:**\n      - Non usare schemi fissi. Se è un PRO, estrai pesi, materiali e prezzi. Se è una SOP, estrai fasi, requisiti di sicurezza e responsabilità.\n      - Solo dati fattuali. VIETATO l'uso di aggettivi enfatici (es. \"fantastico\", \"leader mondiale\").\n    </rule>\n  </rules>\n</system_instructions>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<prompt>\n  <task>\n    Effettua una ricerca di intelligence per l'azienda in `<company_context>` riguardo al topic: `<research_topic>`.\n    \n    TUA MISSIONE:\n    1. Identifica il Tipo di Asset: Usa il parametro `<requested_type>`. Se è vuoto, analizza il topic e assegna autonomamente il tag più corretto tra [PRO], [SER] o [SOP].\n    2. Definisci lo SCOPE di ricerca: Dai priorità assoluta a `<uploaded_asset_context>` se popolato.\n    3. Estrai e struttura i dati secondo il formato richiesto.\n  </task>\n\n  <requested_type>{{ $json.user_request.type || \"\" }}</requested_type>\n\n  <uploaded_asset_context>\n    <![CDATA[\n    {{ $json.user_request.file_data ? \"CONTENUTO DOCUMENTO:\\n\" + $json.user_request.file_text_content : \"\" }}\n    {{ $json.user_request.image_description ? \"ANALISI VISIVA IMMAGINE:\\n\" + $json.user_request.image_description : \"\" }}\n    ]]>\n  </uploaded_asset_context>\n\n  <company_context>\n    <![CDATA[\n    {{ $json.HoneyPot.company_context_string }}\n    ]]>\n  </company_context>\n  \n  <research_topic>\n    <![CDATA[\n    {{ $json.user_request.category_name }} - {{ $json.user_request.category_description }}\n    ]]>\n  </research_topic>\n  \n  <instructions>\n    Lingua Output: **{{ $json.user_request.language }}**.\n    \n    LOGICA DI ESECUZIONE:\n    - Se l'asset è [SOP]: Concentrati sulla sequenza logica, sui punti di controllo (checkpoints) e sulle norme di riferimento trovate (es. ISO, GDPR, Sicurezza).\n    - Se l'asset è [PRO] o [SER]: Concentrati su specifiche tecniche, prezzi (se disponibili), varianti e utilità per il cliente finale.\n    \n    ---\n    FORMATO OUTPUT OBBLIGATORIO:\n    CATALOGO [TAG_ASSEGNATO]: [Nome Categoria o Nome File]\n    \n    NOME: [Nome esatto dell'item]\n    Tipo: [PRO | SER | SOP]\n    Fornitore/Autore: [Nome azienda o 'Interno' se SOP]\n    - [Attributo Tecnico 1]: [valore]\n    - [Attributo Tecnico 2]: [valore]\n    \n    (Lascia una riga vuota tra ogni item)\n  </instructions>\n\n  <validation_rules>\n    <data_integrity>\n      - Se il file caricato non contiene dati pertinenti al topic, segnalalo chiaramente: \"ATTENZIONE: Documento non pertinente, procedo con ricerca web integrativa.\"\n      - NON inventare codici prodotto o prezzi se non presenti nelle fonti.\n    </data_integrity>\n    <formatting>\n      - Titolo pulito senza Markdown.\n      - Massimo 15 item per risposta.\n    </formatting>\n  </validation_rules>\n</prompt>\n",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "=ModelChoice",
+              "value": "={{ $json.owner_data.model_choice }}",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "sOUTPUT",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "={{ $json.user_request.file_data }}",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "={{ $json.user_request.mime_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -400,
+        544
+      ],
+      "id": "c1394777-7d6d-4401-9827-86b5355feb9e",
+      "name": "category_reserch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1296,
+        624
+      ],
+      "id": "f7ffedf6-119b-44dc-92fc-8ff6bc2c2baa",
+      "name": "OwnerExist"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1040,
+        720
+      ],
+      "id": "41cd7a1f-f90e-4112-8995-36922e21f873",
+      "name": "Merge22"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "honeypots",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"pot\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"HoneyPot\": \"$pot.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1040,
+        544
+      ],
+      "id": "73477087-2d9f-4784-9b8d-e7e04c4eb6c0",
+      "name": "HoneyPot",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.HoneyPot }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -880,
+        544
+      ],
+      "id": "4f01d24a-4fa4-4e1d-af2f-f4ae1620f0fd",
+      "name": "Honeypot Exist"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1040,
+        400
+      ],
+      "id": "c2cbfa52-aa8b-4abb-899b-0cf20b3b590e",
+      "name": "📤 Telegram Call1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -864,
+        288
+      ],
+      "id": "b4f31359-cb51-4016-887f-4a41eed3b9ee",
+      "name": "Merge24"
+    },
+    {
+      "parameters": {
+        "jsCode": "// NODO: System_Error_Collection_Retrieval\n// SCENARIO: Utente \"Fantasma\" (Startato ma dati DB persi/corrotti)\n// OUTPUT: Payload Telegram (Messaggio) + Payload Webhook (JSON Error)\n\n\nconst item = $input.first().json;\nconst body = item.user_request || {};\nconst msg = body.message || {};\nconst owner = item.owner_data || {};\n\n// 1. Recupero Dati Contesto\nconst chatId = owner.chat_id;\nconst userLang = body.lang || 'en';\n\n// 2. Definizione Errore\nconst errorCode = \"CRITICAL_DATA_LOSS\";\nconst errorMessage = \"Owner profile not found despite active session flag.\";\n\n// 3. Dizionario Multilingua (Messaggio per l'Utente)\nconst langMap = { 'it': 'it', 'en': 'en', 'fr': 'fr', 'de': 'de', 'es': 'es', 'pt': 'pt' };\nconst lang = langMap[userLang.slice(0,2)] || 'en';\n\nconst t = {\n  'it': {\n    title: \"⚠️ <b>Errore Critico Profilo</b>\",\n    text: \"Il sistema rileva che dovresti essere un utente attivo, ma non riesce a recuperare il tuo profilo aziendale.\",\n    reason: \"Possibile corruzione dei dati o cancellazione accidentale.\",\n    action: \"Per favore, contatta il supporto tecnico indicando il tuo ID:\",\n    btn: \"🆘 Supporto\"\n  },\n  'en': {\n    title: \"⚠️ <b>Critical Profile Error</b>\",\n    text: \"The system detects you should be an active user, but cannot retrieve your company profile.\",\n    reason: \"Possible data corruption or accidental deletion.\",\n    action: \"Please contact technical support providing your ID:\",\n    btn: \"🆘 Support\"\n  },\n  'fr': {\n    title: \"⚠️ <b>Erreur Critique de Profil</b>\",\n    text: \"Le système détecte que vous devriez être un utilisateur actif, mais ne parvient pas à récupérer votre profil d'entreprise.\",\n    reason: \"Corruption possible des données ou suppression accidentelle.\",\n    action: \"Veuillez contacter le support technique en indiquant votre ID :\",\n    btn: \"🆘 Support\"\n  },\n  'de': {\n    title: \"⚠️ <b>Kritischer Profilfehler</b>\",\n    text: \"Das System erkennt, dass Sie ein aktiver Benutzer sein sollten, kann aber Ihr Firmenprofil nicht abrufen.\",\n    reason: \"Mögliche Datenkorruption oder versehentliche Löschung.\",\n    action: \"Bitte kontaktieren Sie den technischen Support mit Ihrer ID:\",\n    btn: \"🆘 Support\"\n  },\n  'es': {\n    title: \"⚠️ <b>Error Crítico del Perfil</b>\",\n    text: \"El sistema detecta que deberías ser un usuario activo, pero no puede recuperar tu perfil de empresa.\",\n    reason: \"Posible corrupción de datos o eliminación accidental.\",\n    action: \"Por favor, contacta al soporte técnico indicando tu ID:\",\n    btn: \"🆘 Soporte\"\n  },\n  'pt': {\n    title: \"⚠️ <b>Erro Crítico de Perfil</b>\",\n    text: \"O sistema detecta que você deveria ser um usuário ativo, mas não consegue recuperar o perfil da sua empresa.\",\n    reason: \"Possível corrupção de dados ou exclusão acidental.\",\n    action: \"Por favor, contate o suporte técnico fornecendo seu ID:\",\n    btn: \"🆘 Suporte\"\n  }\n}[lang] || { // Fallback EN\n    title: \"⚠️ <b>Critical Profile Error</b>\",\n    text: \"The system detects you should be an active user, but cannot retrieve your company profile.\",\n    reason: \"Possible data corruption or accidental deletion.\",\n    action: \"Please contact technical support providing your ID:\",\n    btn: \"🆘 Support\"\n};\n\n// 4. Costruzione Messaggio Telegram\nconst messageText = \n`${t.title}\n\n${t.text}\n\n🛑 <b>Reason:</b> ${t.reason}\n\n👉 <b>${t.action}</b> de>${chatId}</code>`;\n\nconst telegramPayload = {\n    chat_id: chatId,\n    text: messageText,\n    parse_mode: \"HTML\",\n    reply_markup: {\n        inline_keyboard: [[{ text: t.btn, url: \"https://t.me/TrinAi_TecSupport_bot\" }]]\n    }\n};\n\n\n// 6. Return Unificato\nreturn {\n    json: {\n        // Payload per il nodo HTTP (Telegram)\n        telegramApiPayload: telegramPayload,\n        \n        // Flag per logica successiva n8n\n        error_type: \"GHOST_USER\",\n        is_fatal: true\n    }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1248,
+        272
+      ],
+      "id": "ca4b0030-c13f-430d-b191-bef46e5a0d96",
+      "name": "🆘 System Error Collection"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -608,
+        704
+      ],
+      "id": "11c15646-b7bc-4033-bd4f-cec2660510fb",
+      "name": "Merge25"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -608,
+        544
+      ],
+      "id": "a4d8de62-58ff-4f7f-98fb-47d0625ce640",
+      "name": "Merge26"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5f811326-e6aa-4dc4-9e52-661a5749f844",
+              "name": "user_request",
+              "value": "={{ $json.body }}",
+              "type": "object"
+            },
+            {
+              "id": "fa7fe020-df36-4ac1-9481-ea6ee42c7555",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -880,
+        720
+      ],
+      "id": "f16e730f-2dd7-4bd5-8682-9344d4861d74",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.access_token\": {\n        \"$eq\": \"{{ $json.body.token }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1488,
+        624
+      ],
+      "id": "5d268819-5a2c-4109-a787-fbf6de3a1dad",
+      "name": "owner1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "da04c4f2-5349-4013-b1a2-b0d971334780",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "5e225cf6-76bb-4e19-8657-35cac49fd399",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1296,
+        848
+      ],
+      "id": "101a85bd-d750-4fec-b9bd-d828f1d6697d",
+      "name": "Autorize"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        240,
+        544
+      ],
+      "id": "3255da22-30f8-4f64-b4c8-08555dd2ab88",
+      "name": "Merge14"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        400,
+        544
+      ],
+      "id": "55673ac3-74fe-4428-a402-10793eb9b00c",
+      "name": "Respond to LLMFail"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d9f44ff8-9f9b-4bc2-92da-0c2ac2273a21",
+              "leftValue": "={{ $json.sOUTPUT }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -16,
+        544
+      ],
+      "id": "7f7b0047-9456-40e1-a46b-54207e050b5e",
+      "name": "Error?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d9f44ff8-9f9b-4bc2-92da-0c2ac2273a21",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        256
+      ],
+      "id": "c9ea3e92-c79a-4355-b9ef-23d06b53ec83",
+      "name": "Error?1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        256
+      ],
+      "id": "3d6696ae-8bef-46d4-aff7-968a9618f14e",
+      "name": "Call 'GeminiCall'",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "i6kSWyKrKQytzwQlFs92T",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/i6kSWyKrKQytzwQlFs92T",
+          "cachedResultName": "GeminiGoogleSerch"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -192,
+        544
+      ],
+      "id": "5d58becb-f03c-468b-8f5a-9ab940e2d323",
+      "name": "Call 'GoogleSerch'",
+      "alwaysOutputData": false
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Symfony HttpClient (Curl)",
+            "content-length": "166",
+            "accept": "application/json",
+            "accept-encoding": "gzip",
+            "content-type": "application/json",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "80.181.88.76",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "token": "sk_sydut7uc2ni3xvvx37vwju",
+            "category_name": "assistenza tecnica",
+            "category_description": "assistenza tecnica informatica per pc",
+            "language": "it",
+            "type": "PRO"
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/5e225cf6-76bb-4e19-8657-35cac49fd399",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tassionomy": {
+      "main": [
+        [
+          {
+            "node": "Call 'GeminiCall'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "category_reserch": {
+      "main": [
+        [
+          {
+            "node": "Call 'GoogleSerch'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerExist": {
+      "main": [
+        [
+          {
+            "node": "Merge22",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge22": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HoneyPot": {
+      "main": [
+        [
+          {
+            "node": "Honeypot Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Honeypot Exist": {
+      "main": [
+        [
+          {
+            "node": "Merge26",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge25",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Call1": {
+      "main": [
+        [
+          {
+            "node": "Merge24",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge24": {
+      "main": [
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🆘 System Error Collection": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Call1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge24",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge25": {
+      "main": [
+        [
+          {
+            "node": "🆘 System Error Collection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge26": {
+      "main": [
+        [
+          {
+            "node": "category_reserch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "HoneyPot",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge25",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Merge26",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "owner1": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "owner1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge22",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge14": {
+      "main": [
+        [
+          {
+            "node": "Respond to LLMFail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error?": {
+      "main": [
+        [
+          {
+            "node": "Tassionomy",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge14",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Error?1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'GeminiCall'": {
+      "main": [
+        [
+          {
+            "node": "Error?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'GoogleSerch'": {
+      "main": [
+        [
+          {
+            "node": "Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "62230ab4-02e6-41e1-a473-2c46a0332f4c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "zDWz2YPW5dDEldcz",
+  "tags": []
+}

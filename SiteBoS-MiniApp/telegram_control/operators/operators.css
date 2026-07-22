@@ -1,0 +1,282 @@
+/* Operators UI - aligned to telegram_control/style.css (noir) */
+
+/* Layout */
+.container {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.hidden { display: none !important; }
+
+.fade-in { animation: opFadeIn 180ms ease-out both; }
+@keyframes opFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+.dashboard-header {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-header small {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: #000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--trans);
+}
+.btn-icon:active { transform: scale(0.96); }
+
+/* Cards / sections */
+.card,
+.form-section,
+.step-container > .card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.form-section { margin: 14px 0; }
+.form-section-title {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin: 6px 0 0 0;
+}
+.hint {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-top: 8px;
+}
+
+/* Inputs */
+.input-group, .form-group { margin: 12px 0; }
+.input-group label, .form-group label {
+  display: block;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.row { display: flex; gap: 12px; }
+.col { flex: 1; }
+.col-2 { flex: 2; }
+@media (max-width: 600px) { .row { flex-direction: column; } }
+
+/* Buttons */
+.btn {
+  height: 48px;
+  border-radius: 12px;
+  padding: 0 16px;
+  border: none;
+  cursor: pointer;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: var(--trans);
+}
+.btn:active { transform: scale(0.96); }
+.btn-block { width: 100%; }
+.btn-sm { height: 36px; font-size: 9px; padding: 0 12px; border-radius: 10px; }
+.btn-primary { background: #000; color: #fff; }
+.btn-secondary { background: #fff; color: #000; border: 1px solid #000; }
+.btn-success { background: #000; color: #fff; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* Dashboard grid */
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.dash-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 14px;
+  cursor: pointer;
+  transition: var(--trans);
+}
+.dash-card:active { transform: scale(0.98); }
+.dash-label {
+  margin-top: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+}
+.dash-sub { margin-top: 6px; color: var(--text-muted); font-size: 12px; }
+.dash-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+}
+
+/* Tabs */
+.nav-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+.nav-tab {
+  white-space: nowrap;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: #000;
+  border-radius: 999px;
+  padding: 10px 12px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.nav-tab.active { background: #000; color: #fff; border-color: #000; }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-muted);
+}
+.empty-state i { font-size: 28px; margin-bottom: 8px; display: block; color: #000; opacity: 0.6; }
+
+/* FAB */
+.fab-container {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  gap: 12px;
+  z-index: 50;
+}
+.fab-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: #000;
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--trans);
+}
+.fab-btn:active { transform: scale(0.96); }
+.fab-secondary { background: #fff; color: #000; border: 1px solid #000; }
+
+/* Loader / overlay */
+#loader,
+#loadingOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(250,250,250,0.92);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loader-content { text-align: center; }
+
+.spinner-ring {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #000;
+  animation: opSpin 0.8s linear infinite;
+}
+@keyframes opSpin { to { transform: rotate(360deg); } }
+
+/* Utility used by some pages */
+.avatar-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: #000;
+  font-weight: 900;
+}
+
+.legal-link {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.legal-link:hover {
+  opacity: 0.8;
+}
+

@@ -1,0 +1,3865 @@
+{
+  "name": "soft_skill_selector",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Access Denied or Data Not Found\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -2608,
+        768
+      ],
+      "id": "bb18a886-57ce-477a-99a9-e4902a28e8b1",
+      "name": "500"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "80d663ea-be4b-4d42-8cc1-05f4ada52ced",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -4496,
+        1456
+      ],
+      "id": "67b071a6-5c32-4f5b-b28a-66276860fad8",
+      "name": "Webhook",
+      "webhookId": "80d663ea-be4b-4d42-8cc1-05f4ada52ced"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        688,
+        288
+      ],
+      "id": "a82ad299-623f-4e8f-bd1f-a5304bf24cd6",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "921222b5-28e6-41cb-b54e-6116cbbaee31",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "save_module",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Module"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a977589a-a45f-47d5-8c2d-528c4f756c0d",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_progress",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Progress"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6db50f53-1d74-4a0b-b7a2-9e407d31e977",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_analysis",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Analize"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "59780af1-1090-4092-96e6-c6edc94ca7a1",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "track_video_completion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Reflex"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -1344,
+        1200
+      ],
+      "id": "7d62bf87-3a29-4af7-b4af-9b97d659ba6b",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.chat_id\": {\n        \"$eq\": {{ $json.ids.owner_id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2128,
+        720
+      ],
+      "id": "d5f66786-803d-4566-b074-938e79bf3e73",
+      "name": "owner",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1936,
+        720
+      ],
+      "id": "df20890d-46d6-47bf-90bd-a73ee82b28fd",
+      "name": "OwnerExist"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.user_ref.operator_chat_id\": {\n        \"$eq\": {{ $json.user.id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$stakeholder.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2000,
+        992
+      ],
+      "id": "766f3ad5-4a7b-4220-b708-8ade66c9cde7",
+      "name": "stakeholders",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.stakeholder }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1808,
+        992
+      ],
+      "id": "3c81c500-4dd5-45bd-aa2f-1407927a85fe",
+      "name": "exist?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// JS PER N8N - FORMATTA RISPOSTA GET_PROGRESS\n// Input: stakeholder document da MongoDB\n// Output: risposta per webhook frontend\n// ========================================\n\nconst stakeholder = $input.first().json.stakeholder;\n\n// Estrai i moduli soft skills (o usa default se non esistono)\nconst softSkillsModules = stakeholder.professional_profile?.soft_skills_modules || {\n  modulo1: { completed: false, date: null, time: null, results: null, timestamp: null },\n  modulo2: { completed: false, date: null, time: null, results: null, timestamp: null },\n  modulo3: { completed: false, date: null, time: null, results: null, timestamp: null },\n  modulo4: { completed: false, date: null, time: null, results: null, timestamp: null }\n};\n\n// Calcola quanti moduli sono completati\nconst completedCount = Object.values(softSkillsModules)\n  .filter(m => m.completed === true)\n  .length;\n\n// Calcola percentuale (0, 25, 50, 75, 100)\nconst completionPercentage = (completedCount / 4) * 100;\n\n// Ritorna la risposta per il frontend\nreturn [{\n  json: {\n    success: true,\n    modules_completed: softSkillsModules,\n    completion_percentage: completionPercentage,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1600,
+        976
+      ],
+      "id": "2740aeae-0ba5-487d-83ab-9cc6e05c71a9",
+      "name": "ResponderS"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1392,
+        976
+      ],
+      "id": "48663a0c-76c2-404c-b135-61062c38c972",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.module_id }}",
+                    "rightValue": "modulo1",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "229b0e3f-c445-452c-b567-4d184181fe64"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "M1"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bee41c51-a726-4270-9f60-918fcb85844f",
+                    "leftValue": "={{ $json.body.module_id }}",
+                    "rightValue": "modulo2",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "M2"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5999bd81-7f5f-44de-ac3c-94debf3c5d4f",
+                    "leftValue": "={{ $json.body.module_id }}",
+                    "rightValue": "modulo3",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "M3"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "41548328-aec3-4235-96f4-1b3e71d93d71",
+                    "leftValue": "={{ $json.body.module_id }}",
+                    "rightValue": "modulo4",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "M4"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -1488,
+        336
+      ],
+      "id": "fcd53172-ce93-4241-99d9-95e6b7c594eb",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1728,
+        688
+      ],
+      "id": "183dc8f7-fb5f-421f-8f32-a774aad8cdbb",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=Sei BeeHireElite, un Profilatore Psicometrico AI.\nIl tuo compito è analizzare il modulo corrente applicando un rigoroso processo algoritmico e contestuale.\n\n### 1. REGOLA DEL PERIMETRO (CRITICA)\nNel Prompt Utente riceverai una lista chiamata \"TARGET SKILLS\".\nDevi analizzare **SOLO ED ESCLUSIVAMENTE** quelle competenze.\n- Se una risposta parla di altro (es. Vendita), ignorala o traducila in una delle Target Skills (es. Vendita -> Autodisciplina).\n- Non inventare competenze non presenti nella lista.\n\n### 2. PROTOCOLLO DI CALCOLO PP / PN (ALGORITMO)\nPer ogni risposta fornita, esegui questo calcolo:\n\n**A. Scoring Semantico (Base):**\nAnalizza il testo `answer_text` (diviso in Positivo/Negativo):\n- **ScorePos (0-10):** Forza delle Soft Skill (Target) descritte nella parte `(Positivo: ...)`.\n- **ScoreNeg (0-10):** Gravità dei rischi (Target) descritti nella parte `(Negativo: ...)`.\n\n**B. Fattore di Correzione Temporale (Delta):**\nUsa la `AvgSpeed` fornita nel prompt:\n- **< 2.0s (Compulsivo):** Delta = 20 (Sottrai al PP, Aggiungi al PN).\n- **2.0s - 5.0s (Frettoloso):** Delta = 10.\n- **> 5.0s <10.0s (Ponderato):** Delta = 0.\n- **> 10.0s <15.0s (Riflessivo):** Delta = 10\n- **> 15.0s (Esitante):** Delta = 20 \n\n**C. Calcolo Finale:**\n- **PP** = (Media ScorePos * 10) - Delta. (Min 0, Max 100).\n- **PN** = (Media ScoreNeg * 10) + Delta. (Min 0, Max 100).\n\n### 3. PROTOCOLLO DI ANALISI (TESTUALE)\nGenera il testo \"Analisi_Strategica\" seguendo queste regole:\n1. **NO Q-Ref:** MAI citare numeri di domanda o nomi opzioni.\n2. **Sintesi Binaria:** Unisci i tratti 'Positivo' e 'Negativo' emersi dai testi.\n3. **Business Fit:** Collega i tratti al Ruolo del candidato.\n\n### FORMATO OUTPUT\nRestituisci ESCLUSIVAMENTE un oggetto JSON valido.\nLingua: Quella indicata nel prompt utente.",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=# CURRENT TIMESTAMP\n{{ new Date().toISOString() }}\n\n# TARGET LANGUAGE\n{{ $json.owner_data.lenguage }}\n\nEsegui l'analisi completa sul **Modulo: {{ $json.body.module_name }}**.\n\n### A. PERIMETRO DI ANALISI (TARGET SKILLS)\n⚠️ **ATTENZIONE:** Valuta il candidato ESCLUSIVAMENTE su queste competenze. Ignora qualsiasi altro tratto non pertinente.\n1. Gestione dello stress\n2. Autodisciplina\n3. Resilienza\n4. Fiducia in se stessi\n5. Autocritica\n6. Sviluppo personale\n7. Finanza personale\n8. Pianificazione e Organizzazione\n\n### B. IL CANDIDATO (CONTESTO)\n*   **Nome:** {{ $json.owner_data.name }} {{ $json.owner_data.surname }}\n*   **Ruolo:** {{ $json.owner_data.kyc_details.professional_questionnaire.role }} (Team: {{ $json.owner_data.kyc_details.professional_questionnaire.team_size }})\n*   **Hard Skills:** {{ $json.owner_data.kyc_details.professional_questionnaire.hard_skills.join(', ') }}\n*   **Business:** {{ $json.HoneyPot.company_context_string }}\n\n### C. METRICHE TEMPORALI (Input per Algoritmo)\n*   **AvgSpeed (Velocità Media):** {{ ($json.body.completion_time_seconds / $json.body.total_questions).toFixed(2) }} secondi/domanda.\n    *(USA QUESTO VALORE PER IL CALCOLO DELTA).*\n\n### D. DATI PSICOMETRICI (Raw Data)\nAnalizza i testi `(Positivo:...)` e `(Negativo:...)` per il calcolo ScorePos/ScoreNeg.\n{{ JSON.stringify($json.body.answers) }}\n\n---\n\n### OUTPUT JSON RICHIESTO\n\n{\n  \"Analisi_Strategica\": \"Sintesi (150-200 parole). Ritratto psicologico basato sui testi delle risposte FILTRATI per le Target Skills.\",\n  \n  \"PP\": \"Intero 0-100 (Calcolato: Media ScorePos - Delta)\",\n  \"CP\": \"Caption Positiva (max 5 parole, sintesi dei testi 'Positivo')\",\n  \n  \"PN\": \"Intero 0-100 (Calcolato: Media ScoreNeg + Delta)\",\n  \"CN\": \"Caption Negativa (max 5 parole, sintesi dei testi 'Negativo')\",\n  \n  \"Valutazione_Tempi\": \"Giudizio tecnico (es. 'Compulsiva - Inattendibile', 'Ponderata - Affidabile').\",\n  \n  \"Impatto_Business\": \"Analisi specifica: come impattano le Target Skills emerse (es. scarsa FinanzaPersonale o alta Resilienza) sul ruolo di {{ $json.owner_data.kyc_details.professional_questionnaire.role }}?\",\n  \n  \"Consigli_Operativi\": \"3 consigli tattici di self-management basati sui punti deboli emersi.\"\n}\n\nRole Mandatory critical: non citare in alcun caso le le answer ne il question_num nella valutazioni, non vogliamo riferimenti al test nell Analisi_Strategica",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "ModuleEvaluation",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "69de9e80-c492-4647-8c12-b6b39ee26090",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "a04ca0d3-30d5-4eba-942f-44372f630776",
+              "name": "billing_source.use",
+              "value": "=Soft Skills Selector {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "1e81c9b6-7e9b-41ef-848f-f8ae78aea26c",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/80d663ea-be4b-4d42-8cc1-05f4ada52ced",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1168,
+        80
+      ],
+      "id": "46b58218-e14a-47d3-849f-24891c19a0b0",
+      "name": "Module1 Evaluetor"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "honeypots",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.owner_data.vat_number }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"pot\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"HoneyPot\": \"$pot.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2128,
+        544
+      ],
+      "id": "a5c657f6-fdb4-4033-ab75-0295acf9bdcf",
+      "name": "HoneyPot",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.HoneyPot }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1968,
+        544
+      ],
+      "id": "60784bea-e6cb-4ad2-a782-9cb22256dc57",
+      "name": "Honeypot Exist"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1728,
+        544
+      ],
+      "id": "3e1b626d-5c69-4dc9-bc0c-c20b33e84429",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.user_ref.operator_chat_id\": {\n        \"$eq\": {{ $json.user.id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$stakeholder.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2128,
+        368
+      ],
+      "id": "c776d010-fa14-4bcf-8d08-e050e6f0d237",
+      "name": "stakeholders1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.stakeholder }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1968,
+        368
+      ],
+      "id": "f1e53c80-3ce6-4549-9632-1375a8b3dfd0",
+      "name": "exist?1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1728,
+        368
+      ],
+      "id": "1dcbbefc-5d64-46cc-b770-ab64649daf4a",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.user_ref.email }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        400
+      ],
+      "id": "1241b293-94b6-4b93-bb6e-9abaebc0db66",
+      "name": "MongoDB Chat Memory4",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.stakeholder }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -96,
+        272
+      ],
+      "id": "398a8ab5-a5cb-4600-a5c2-b10fb07440b9",
+      "name": "stakeholders2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        512,
+        288
+      ],
+      "id": "2eac0a6a-613d-4231-89a4-68b035e0ca48",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        272
+      ],
+      "id": "b4d64668-a396-4d08-8615-1cbfa7ae0077",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * PREPARA RISPOSTA PER FRONTEND - N8N COMPATIBLE\n * Restituisce solo i dati essenziali per il respond\n */\n\nconst items = $input.all();\n\n\nconst results = items.map(item => {\n    const data = item.json;\n    const moduleId = data.body.module_id; \n    const moduleEvaluation = data.ModuleEvaluation;\n    const stakeholder = data.stakeholder;\n    const now = new Date().toISOString();\n    \n    // Estrai vat e chat_id in modo sicuro\n    const vatNumber = stakeholder?.owner_data_ref?.vat_number || data.body?.vat;\n    const chatId = stakeholder?.owner_data_ref?.chat_id || data.body?.user_id;\n    \n    // 🔥 PREPARA SOLO LA RISPOSTA PER IL FRONTEND\n    return {\n        json: {\n            success: true,\n            module_id: moduleId,\n            vat_number: vatNumber,\n            chat_id: chatId,\n            completion_date: now,\n            evaluation: {\n                PP: moduleEvaluation.PP,\n                CP: moduleEvaluation.CP,\n                PN: moduleEvaluation.PN,\n                CN: moduleEvaluation.CN,\n                Valutazione_Tempi: moduleEvaluation.Valutazione_Tempi,\n                Analisi_Strategica: moduleEvaluation.Analisi_Strategica,\n                Impatto_Business: moduleEvaluation.Impatto_Business,\n                Consigli_Operativi: moduleEvaluation.Consigli_Operativi\n            }\n        }\n    };\n});\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        352
+      ],
+      "id": "5ec0d227-a93d-4dd5-913a-c8d34ad72fbf",
+      "name": "SOFT SKILLS MODULE 1 Respond"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=Sei BeeHireElite, un Profilatore Psicometrico AI.\nIl tuo compito è analizzare il modulo corrente applicando un rigoroso processo algoritmico e contestuale.\n\n### 1. REGOLA DEL PERIMETRO (CRITICA)\nNel Prompt Utente riceverai una lista chiamata \"TARGET SKILLS\".\nDevi analizzare **SOLO ED ESCLUSIVAMENTE** quelle competenze.\n- Se una risposta parla di altro (es. Vendita), ignorala o traducila in una delle Target Skills (es. Vendita -> Autodisciplina).\n- Non inventare competenze non presenti nella lista.\n\n### 2. PROTOCOLLO DI CALCOLO PP / PN (ALGORITMO)\nPer ogni risposta fornita, esegui questo calcolo:\n\n**A. Scoring Semantico (Base):**\nAnalizza il testo `answer_text` (diviso in Positivo/Negativo):\n- **ScorePos (0-10):** Forza delle Soft Skill (Target) descritte nella parte `(Positivo: ...)`.\n- **ScoreNeg (0-10):** Gravità dei rischi (Target) descritti nella parte `(Negativo: ...)`.\n\n**B. Fattore di Correzione Temporale (Delta):**\nUsa la `AvgSpeed` fornita nel prompt:\n- **< 2.0s (Compulsivo):** Delta = 20 (Sottrai al PP, Aggiungi al PN).\n- **2.0s - 5.0s (Frettoloso):** Delta = 10.\n- **> 5.0s <10.0s (Ponderato):** Delta = 0.\n- **> 10.0s <15.0s (Riflessivo):** Delta = 10\n- **> 15.0s (Esitante):** Delta = 20 \n\n**C. Calcolo Finale:**\n- **PP** = (Media ScorePos * 10) - Delta. (Min 0, Max 100).\n- **PN** = (Media ScoreNeg * 10) + Delta. (Min 0, Max 100).\n\n### 3. PROTOCOLLO DI ANALISI (TESTUALE)\nGenera il testo \"Analisi_Strategica\" seguendo queste regole:\n1. **NO Q-Ref:** MAI citare numeri di domanda o nomi opzioni.\n2. **Sintesi Binaria:** Unisci i tratti 'Positivo' e 'Negativo' emersi dai testi.\n3. **Business Fit:** Collega i tratti al Ruolo del candidato.\n\n### FORMATO OUTPUT\nRestituisci ESCLUSIVAMENTE un oggetto JSON valido.\nLingua: Quella indicata nel prompt utente.",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=# CURRENT TIMESTAMP\n{{ new Date().toISOString() }}\n\n# TARGET LANGUAGE\n{{ $json.owner_data.lenguage }}\n\nEsegui l'analisi completa sul **Modulo: {{ $json.body.module_name }}**.\n\n### A. PERIMETRO DI ANALISI (TARGET SKILLS)\n⚠️ **ATTENZIONE:** Valuta il candidato ESCLUSIVAMENTE su queste competenze. Ignora qualsiasi altro tratto non pertinente.\n1. Relazioni interpersonali\n2. Comunicazione efficace\n3. Empatia\n4. Gestione dei conflitti\n5. Leadership\n6. Gestione del team\n7. Sviluppo delle persone\n8. Ascolto Attivo\n9. Negoziazione\n10. Presentazione\n\n### B. IL CANDIDATO (CONTESTO)\n*   **Nome:** {{ $json.owner_data.name }} {{ $json.owner_data.surname }}\n*   **Ruolo:** {{ $json.owner_data.kyc_details.professional_questionnaire.role }} (Team: {{ $json.owner_data.kyc_details.professional_questionnaire.team_size }})\n*   **Hard Skills:** {{ $json.owner_data.kyc_details.professional_questionnaire.hard_skills.join(', ') }}\n*   **Business:** {{ $json.HoneyPot.company_context_string }}\n\n### C. METRICHE TEMPORALI (Input per Algoritmo)\n*   **AvgSpeed (Velocità Media):** {{ ($json.body.completion_time_seconds / $json.body.total_questions).toFixed(2) }} secondi/domanda.\n    *(USA QUESTO VALORE PER IL CALCOLO DELTA).*\n\n### D. DATI PSICOMETRICI (Raw Data)\nAnalizza i testi `(Positivo:...)` e `(Negativo:...)` per il calcolo ScorePos/ScoreNeg.\n{{ JSON.stringify($json.body.answers) }}\n\n---\n\n### OUTPUT JSON RICHIESTO\n\n{\n  \"Analisi_Strategica\": \"Sintesi (150-200 parole). Ritratto psicologico basato sui testi delle risposte FILTRATI per le Target Skills.\",\n  \n  \"PP\": \"Intero 0-100 (Calcolato: Media ScorePos - Delta)\",\n  \"CP\": \"Caption Positiva (max 5 parole, sintesi dei testi 'Positivo')\",\n  \n  \"PN\": \"Intero 0-100 (Calcolato: Media ScoreNeg + Delta)\",\n  \"CN\": \"Caption Negativa (max 5 parole, sintesi dei testi 'Negativo')\",\n  \n  \"Valutazione_Tempi\": \"Giudizio tecnico (es. 'Compulsiva - Inattendibile', 'Ponderata - Affidabile').\",\n  \n  \"Impatto_Business\": \"Analisi specifica: come impattano le Target Skills emerse (es. scarsa FinanzaPersonale o alta Resilienza) sul ruolo di {{ $json.owner_data.kyc_details.professional_questionnaire.role }}?\",\n  \n  \"Consigli_Operativi\": \"3 consigli tattici di self-management basati sui punti deboli emersi.\"\n}\n\nRole Mandatory critical: non citare in alcun caso le le answer ne il question_num nella valutazioni, non vogliamo riferimenti al test nell Analisi_Strategica",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "ModuleEvaluation",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "dd436cdd-7548-4b9d-96b8-469c5d2a8fcb",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "f498028a-2e8d-468a-a76c-91fab8334d35",
+              "name": "billing_source.use",
+              "value": "=Soft Skills Selector {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "050aa8d1-782e-4113-8b9b-2014c3312988",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/80d663ea-be4b-4d42-8cc1-05f4ada52ced",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1168,
+        240
+      ],
+      "id": "d442bf46-0e8d-435b-9125-b526ee34f144",
+      "name": "Module2 Evaluetor"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * SOFT SKILLS MODULE UPDATER - N8N COMPATIBLE\n * Aggiorna lo stakeholder_profile con i risultati della valutazione del modulo\n */\n\n// 🔥 VERSIONE N8N - Usa $input.all() per ricevere i dati\nconst items = $input.all();\n\n\n// Processa ogni item\nconst results = items.map(item => {\n    const data = item.json;\n    const moduleId = data.body.module_id; \n    // Estrai i dati\n    const moduleEvaluation = data.ModuleEvaluation;\n    const stakeholder = data.stakeholder;\n    \n    // 🔥 SAFE INITIALIZATION - Crea struttura se non esiste\n    if (!stakeholder.professional_profile) {\n        stakeholder.professional_profile = {};\n    }\n    \n    if (!stakeholder.professional_profile.soft_skills_modules) {\n        stakeholder.professional_profile.soft_skills_modules = {\n            modulo1: { completed: false, date: null, time: null, results: null, timestamp: null },\n            modulo2: { completed: false, date: null, time: null, results: null, timestamp: null },\n            modulo3: { completed: false, date: null, time: null, results: null, timestamp: null },\n            modulo4: { completed: false, date: null, time: null, results: null, timestamp: null }\n        };\n    }\n    \n    // Timestamp attuale\n    const now = new Date().toISOString();\n    \n    // 🔥 AGGIORNA IL MODULO SPECIFICO\n    stakeholder.professional_profile.soft_skills_modules[moduleId] = {\n        completed: true,\n        completion_date: now,\n        evaluation: {\n            PP: moduleEvaluation.PP,\n            CP: moduleEvaluation.CP,\n            PN: moduleEvaluation.PN,\n            CN: moduleEvaluation.CN,\n            Valutazione_Tempi: moduleEvaluation.Valutazione_Tempi,\n            Analisi_Strategica: moduleEvaluation.Analisi_Strategica,\n            Impatto_Business: moduleEvaluation.Impatto_Business,\n            Consigli_Operativi: moduleEvaluation.Consigli_Operativi\n        }\n    };\n    \n    // 🔥 AGGIORNA METADATA\n    if (!stakeholder.metadata) {\n        stakeholder.metadata = {};\n    }\n    stakeholder.metadata.last_updated = now;\n    \n    \n    // 🔥 RITORNA ENTRAMBI: stakeholder aggiornato\n    return {\n        json: {\n            stakeholder: stakeholder,\n            module_id: moduleId,\n            vat_number: stakeholder.owner_data_ref.vat_number,\n            chat_id: stakeholder.owner_data_ref.chat_id\n        }\n    };\n});\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        176
+      ],
+      "id": "a270d335-c0db-42b2-8401-d88b837f4f4c",
+      "name": "SOFT SKILLS MODULE 1 UPDATER"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=Sei BeeHireElite, un Profilatore Psicometrico AI.\nIl tuo compito è analizzare il modulo corrente applicando un rigoroso processo algoritmico e contestuale.\n\n### 1. REGOLA DEL PERIMETRO (CRITICA)\nNel Prompt Utente riceverai una lista chiamata \"TARGET SKILLS\".\nDevi analizzare **SOLO ED ESCLUSIVAMENTE** quelle competenze.\n- Se una risposta parla di altro (es. Vendita), ignorala o traducila in una delle Target Skills (es. Vendita -> Autodisciplina).\n- Non inventare competenze non presenti nella lista.\n\n### 2. PROTOCOLLO DI CALCOLO PP / PN (ALGORITMO)\nPer ogni risposta fornita, esegui questo calcolo:\n\n**A. Scoring Semantico (Base):**\nAnalizza il testo `answer_text` (diviso in Positivo/Negativo):\n- **ScorePos (0-10):** Forza delle Soft Skill (Target) descritte nella parte `(Positivo: ...)`.\n- **ScoreNeg (0-10):** Gravità dei rischi (Target) descritti nella parte `(Negativo: ...)`.\n\n**B. Fattore di Correzione Temporale (Delta):**\nUsa la `AvgSpeed` fornita nel prompt:\n- **< 2.0s (Compulsivo):** Delta = 20 (Sottrai al PP, Aggiungi al PN).\n- **2.0s - 5.0s (Frettoloso):** Delta = 10.\n- **> 5.0s <10.0s (Ponderato):** Delta = 0.\n- **> 10.0s <15.0s (Riflessivo):** Delta = 10\n- **> 15.0s (Esitante):** Delta = 20 \n\n**C. Calcolo Finale:**\n- **PP** = (Media ScorePos * 10) - Delta. (Min 0, Max 100).\n- **PN** = (Media ScoreNeg * 10) + Delta. (Min 0, Max 100).\n\n### 3. PROTOCOLLO DI ANALISI (TESTUALE)\nGenera il testo \"Analisi_Strategica\" seguendo queste regole:\n1. **NO Q-Ref:** MAI citare numeri di domanda o nomi opzioni.\n2. **Sintesi Binaria:** Unisci i tratti 'Positivo' e 'Negativo' emersi dai testi.\n3. **Business Fit:** Collega i tratti al Ruolo del candidato.\n\n### FORMATO OUTPUT\nRestituisci ESCLUSIVAMENTE un oggetto JSON valido.\nLingua: Quella indicata nel prompt utente.",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=# CURRENT TIMESTAMP\n{{ new Date().toISOString() }}\n\n# TARGET LANGUAGE\n{{ $json.owner_data.lenguage }}\n\nEsegui l'analisi completa sul **Modulo: {{ $json.body.module_name }}**.\n\n### A. PERIMETRO DI ANALISI (TARGET SKILLS)\n⚠️ **ATTENZIONE:** Valuta il candidato ESCLUSIVAMENTE su queste competenze. Ignora qualsiasi altro tratto non pertinente.\n1. Problem Solving\n3. Pensiero Critico\n4. Decision Making\n5. Decision Making Strategico\n6. Pianificazione e Organizzazione\n7. Gestione del Tempo\n8. Innovazione\n9. Mente Aperta\n10. Adattabilita\n11. Soddisfazione del Cliente\n12. Fidelizzazione del Cliente\n13. Vendita Consultiva\n14. Gestione delle Obiezioni\n15. Orientamento al Cliente\n16. Servizio al Cliente\n\n### B. IL CANDIDATO (CONTESTO)\n*   **Nome:** {{ $json.owner_data.name }} {{ $json.owner_data.surname }}\n*   **Ruolo:** {{ $json.owner_data.kyc_details.professional_questionnaire.role }} (Team: {{ $json.owner_data.kyc_details.professional_questionnaire.team_size }})\n*   **Hard Skills:** {{ $json.owner_data.kyc_details.professional_questionnaire.hard_skills.join(', ') }}\n*   **Business:** {{ $json.HoneyPot.company_context_string }}\n\n### C. METRICHE TEMPORALI (Input per Algoritmo)\n*   **AvgSpeed (Velocità Media):** {{ ($json.body.completion_time_seconds / $json.body.total_questions).toFixed(2) }} secondi/domanda.\n    *(USA QUESTO VALORE PER IL CALCOLO DELTA).*\n\n### D. DATI PSICOMETRICI (Raw Data)\nAnalizza i testi `(Positivo:...)` e `(Negativo:...)` per il calcolo ScorePos/ScoreNeg.\n{{ JSON.stringify($json.body.answers) }}\n\n---\n\n### OUTPUT JSON RICHIESTO\n\n{\n  \"Analisi_Strategica\": \"Sintesi (150-200 parole). Ritratto psicologico basato sui testi delle risposte FILTRATI per le Target Skills.\",\n  \n  \"PP\": \"Intero 0-100 (Calcolato: Media ScorePos - Delta)\",\n  \"CP\": \"Caption Positiva (max 5 parole, sintesi dei testi 'Positivo')\",\n  \n  \"PN\": \"Intero 0-100 (Calcolato: Media ScoreNeg + Delta)\",\n  \"CN\": \"Caption Negativa (max 5 parole, sintesi dei testi 'Negativo')\",\n  \n  \"Valutazione_Tempi\": \"Giudizio tecnico (es. 'Compulsiva - Inattendibile', 'Ponderata - Affidabile').\",\n  \n  \"Impatto_Business\": \"Analisi specifica: come impattano le Target Skills emerse (es. scarsa FinanzaPersonale o alta Resilienza) sul ruolo di {{ $json.owner_data.kyc_details.professional_questionnaire.role }}?\",\n  \n  \"Consigli_Operativi\": \"3 consigli tattici di self-management basati sui punti deboli emersi.\"\n}\n\nRole Mandatory critical: non citare in alcun caso le le answer ne il question_num nella valutazioni, non vogliamo riferimenti al test nell Analisi_Strategica",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "ModuleEvaluation",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "1c7a945d-9549-4f0c-8bc9-6b7a8aade85b",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "5d0b6a51-d4e0-4669-b50f-34c7f45a521f",
+              "name": "billing_source.use",
+              "value": "=Soft Skills Selector {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "5a90772f-30b9-4c88-9825-f88ea791905e",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/80d663ea-be4b-4d42-8cc1-05f4ada52ced",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1168,
+        400
+      ],
+      "id": "86577fb6-1637-4009-b905-2a09fe0fcc2d",
+      "name": "Module3 Evaluetor"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=Sei BeeHireElite, un Profilatore Psicometrico AI.\nIl tuo compito è analizzare il modulo corrente applicando un rigoroso processo algoritmico e contestuale.\n\n### 1. REGOLA DEL PERIMETRO (CRITICA)\nNel Prompt Utente riceverai una lista chiamata \"TARGET SKILLS\".\nDevi analizzare **SOLO ED ESCLUSIVAMENTE** quelle competenze.\n- Se una risposta parla di altro (es. Vendita), ignorala o traducila in una delle Target Skills (es. Vendita -> Autodisciplina).\n- Non inventare competenze non presenti nella lista.\n\n### 2. PROTOCOLLO DI CALCOLO PP / PN (ALGORITMO)\nPer ogni risposta fornita, esegui questo calcolo:\n\n**A. Scoring Semantico (Base):**\nAnalizza il testo `answer_text` (diviso in Positivo/Negativo):\n- **ScorePos (0-10):** Forza delle Soft Skill (Target) descritte nella parte `(Positivo: ...)`.\n- **ScoreNeg (0-10):** Gravità dei rischi (Target) descritti nella parte `(Negativo: ...)`.\n\n**B. Fattore di Correzione Temporale (Delta):**\nUsa la `AvgSpeed` fornita nel prompt:\n- **< 2.0s (Compulsivo):** Delta = 20 (Sottrai al PP, Aggiungi al PN).\n- **2.0s - 5.0s (Frettoloso):** Delta = 10.\n- **> 5.0s <10.0s (Ponderato):** Delta = 0.\n- **> 10.0s <15.0s (Riflessivo):** Delta = 10\n- **> 15.0s (Esitante):** Delta = 20 \n\n**C. Calcolo Finale:**\n- **PP** = (Media ScorePos * 10) - Delta. (Min 0, Max 100).\n- **PN** = (Media ScoreNeg * 10) + Delta. (Min 0, Max 100).\n\n### 3. PROTOCOLLO DI ANALISI (TESTUALE)\nGenera il testo \"Analisi_Strategica\" seguendo queste regole:\n1. **NO Q-Ref:** MAI citare numeri di domanda o nomi opzioni.\n2. **Sintesi Binaria:** Unisci i tratti 'Positivo' e 'Negativo' emersi dai testi.\n3. **Business Fit:** Collega i tratti al Ruolo del candidato.\n\n### FORMATO OUTPUT\nRestituisci ESCLUSIVAMENTE un oggetto JSON valido.\nLingua: Quella indicata nel prompt utente.",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=# CURRENT TIMESTAMP\n{{ new Date().toISOString() }}\n\n# TARGET LANGUAGE\n{{ $json.owner_data.lenguage }}\n\nEsegui l'analisi completa sul **Modulo: {{ $json.body.module_name }}**.\n\n### A. PERIMETRO DI ANALISI (TARGET SKILLS)\n⚠️ **ATTENZIONE:** Valuta il candidato ESCLUSIVAMENTE su queste competenze. Ignora qualsiasi altro tratto non pertinente.\n1. Etica Professionale\n3. Integrita\n4. Equita\n5. Tematiche Sociali\n6. Diversita e Inclusione\n7. Responsabilita Sociale\n8. Sicurezza sul Lavoro\n9. Sicurezza Digitale\n10. Relazioni Improprie\n\n### B. IL CANDIDATO (CONTESTO)\n*   **Nome:** {{ $json.owner_data.name }} {{ $json.owner_data.surname }}\n*   **Ruolo:** {{ $json.owner_data.kyc_details.professional_questionnaire.role }} (Team: {{ $json.owner_data.kyc_details.professional_questionnaire.team_size }})\n*   **Hard Skills:** {{ $json.owner_data.kyc_details.professional_questionnaire.hard_skills.join(', ') }}\n*   **Business:** {{ $json.HoneyPot.company_context_string }}\n\n### C. METRICHE TEMPORALI (Input per Algoritmo)\n*   **AvgSpeed (Velocità Media):** {{ ($json.body.completion_time_seconds / $json.body.total_questions).toFixed(2) }} secondi/domanda.\n    *(USA QUESTO VALORE PER IL CALCOLO DELTA).*\n\n### D. DATI PSICOMETRICI (Raw Data)\nAnalizza i testi `(Positivo:...)` e `(Negativo:...)` per il calcolo ScorePos/ScoreNeg.\n{{ JSON.stringify($json.body.answers) }}\n\n---\n\n### OUTPUT JSON RICHIESTO\n\n{\n  \"Analisi_Strategica\": \"Sintesi (150-200 parole). Ritratto psicologico basato sui testi delle risposte FILTRATI per le Target Skills.\",\n  \n  \"PP\": \"Intero 0-100 (Calcolato: Media ScorePos - Delta)\",\n  \"CP\": \"Caption Positiva (max 5 parole, sintesi dei testi 'Positivo')\",\n  \n  \"PN\": \"Intero 0-100 (Calcolato: Media ScoreNeg + Delta)\",\n  \"CN\": \"Caption Negativa (max 5 parole, sintesi dei testi 'Negativo')\",\n  \n  \"Valutazione_Tempi\": \"Giudizio tecnico (es. 'Compulsiva - Inattendibile', 'Ponderata - Affidabile').\",\n  \n  \"Impatto_Business\": \"Analisi specifica: come impattano le Target Skills emerse (es. scarsa FinanzaPersonale o alta Resilienza) sul ruolo di {{ $json.owner_data.kyc_details.professional_questionnaire.role }}?\",\n  \n  \"Consigli_Operativi\": \"3 consigli tattici di self-management basati sui punti deboli emersi.\"\n}\n\nRole Mandatory critical: non citare in alcun caso le le answer ne il question_num nella valutazioni, non vogliamo riferimenti al test nell Analisi_Strategica",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "ModuleEvaluation",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "fff57bb2-efa3-4108-b32e-bc2b6cf3cc9c",
+              "name": "FreeCall",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "e81313f4-d4b0-40b6-bb4a-1cf5195be9c4",
+              "name": "billing_source.use",
+              "value": "=Soft Skills Selector {{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "b0d06b68-b6bc-4d89-abd0-6230ccbef296",
+              "name": "billing_source.wh",
+              "value": "https://prod.workflow.trinai.it/webhook/80d663ea-be4b-4d42-8cc1-05f4ada52ced",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1168,
+        576
+      ],
+      "id": "64e4c02e-4084-445f-8054-a12fea250f7c",
+      "name": "Module4 Evaluetor"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Access Denied or Data Not Found\",\n  \"code\": 500\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -2128,
+        1552
+      ],
+      "id": "fa1d0559-6d0b-4d81-870e-d4e12f0c9b9c",
+      "name": "500-1"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.vat }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1792,
+        1808
+      ],
+      "id": "6e1d55b2-8dbd-4cfd-a551-b3fde38549ce",
+      "name": "owner1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1600,
+        1808
+      ],
+      "id": "8e27234b-728e-436d-9cef-97a3e747e983",
+      "name": "OwnerExist1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1392,
+        1744
+      ],
+      "id": "3c858808-508f-4132-a6d7-27a7434b52bb",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.vat }}-{{ $json.body.user_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$stakeholder.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1792,
+        1552
+      ],
+      "id": "b3cfb567-97bf-4b99-ae91-df6d36a1c9be",
+      "name": "stakeholders3",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.stakeholder }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1632,
+        1552
+      ],
+      "id": "32bcef15-8b48-4561-bd55-3103d72b983e",
+      "name": "exist?2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1392,
+        1552
+      ],
+      "id": "68bac133-08d3-410e-ad43-8b7a3f5257e0",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "drtRj1F1hOdZXEgN",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/drtRj1F1hOdZXEgN",
+          "cachedResultName": "TBoS_Serch&Think"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -976,
+        1856
+      ],
+      "id": "0fb401e2-9962-4f03-b3b4-324e4892a103",
+      "name": "Call 'TBoS_Serch&Think'1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6226c81d-cb6a-40a7-abae-8e6ae2fa1183",
+              "name": "Tutorial",
+              "value": "=[\n  {\n    \"title\": \"Soft Skills - Presentation Skills\",\n    \"duration\": \"18:19\",\n    \"url\": \"https://youtu.be/ADJAcyTq1us\",\n    \"tags\": [\n      \"Presentation\",\n      \"Speaking\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Leadership VS Management\",\n    \"duration\": \"19:08\",\n    \"url\": \"https://youtu.be/DwwBZn5duk8\",\n    \"tags\": [\n      \"Leadership\",\n      \"Management\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Time Management\",\n    \"duration\": \"26:30\",\n    \"url\": \"https://youtu.be/KJLHlOIdqA4\",\n    \"tags\": [\n      \"Time\",\n      \"Management\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Self Confidence\",\n    \"duration\": \"10:02\",\n    \"url\": \"https://youtu.be/L4FNPL7CjK4\",\n    \"tags\": [\n      \"Confidence\",\n      \"Self Belief\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills – Setting Goals\",\n    \"duration\": \"18:12\",\n    \"url\": \"https://youtu.be/lKrpbUhDRJ4\",\n    \"tags\": [\n      \"Goals\",\n      \"Planning\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills – Customer Relatioship Managment\",\n    \"duration\": \"12:42\",\n    \"url\": \"https://youtu.be/zkRWE-mOxG8\",\n    \"tags\": [\n      \"Customer\",\n      \"Relatioship\",\n      \"Managment\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Setting SMART Goals\",\n    \"duration\": \"08:55\",\n    \"url\": \"https://youtu.be/6-qb1dPNPog\",\n    \"tags\": [\n      \"Goals\",\n      \"Planning\",\n      \"SMART\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Problem Solving\",\n    \"duration\": \"19:55\",\n    \"url\": \"https://youtu.be/uqhOnXOiwOg\",\n    \"tags\": [\n      \"Problem Solving\",\n      \"Logic\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Conflict Management\",\n    \"duration\": \"20:36\",\n    \"url\": \"https://youtu.be/4RB1i1sVVc0\",\n    \"tags\": [\n      \"Conflict\",\n      \"Resolution\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Workplace Ethics & Code of Conduct\",\n    \"duration\": \"15:17\",\n    \"url\": \"https://youtu.be/DxWDtTIWdkE\",\n    \"tags\": [\n      \"Conduct\",\n      \"Workplace\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills – Decision Making & Creativity\",\n    \"duration\": \"14:17\",\n    \"url\": \"https://youtu.be/nJmteC2wfRo\",\n    \"tags\": [\n      \"Decision Making\",\n      \"Creativity\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Anger Management\",\n    \"duration\": \"11:04\",\n    \"url\": \"https://youtu.be/h_FLN8bjkhw\",\n    \"tags\": [\n      \"Anger Management\",\n      \"Emotional Control\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Critical Thinking\",\n    \"duration\": \"10:17\",\n    \"url\": \"https://youtu.be/iaiF9cn5I2s\",\n    \"tags\": [\n      \"Thinking\",\n      \"Analysis\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Assertiveness\",\n    \"duration\": \"09:58\",\n    \"url\": \"https://youtu.be/GbEhenMqinc\",\n    \"tags\": [\n      \"Assertiveness\",\n      \"Communication\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Stress Management\",\n    \"duration\": \"16:24\",\n    \"url\": \"https://youtu.be/Pb8OyOLpyFE\",\n    \"tags\": [\n      \"Stress\",\n      \"Health\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills – Customer Handling Skills\",\n    \"duration\": \"16:20\",\n    \"url\": \"https://youtu.be/8pDlOaH8nPs\",\n    \"tags\": [\n      \"Customer\",\n      \"Handling\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Active Listening\",\n    \"duration\": \"20:59\",\n    \"url\": \"https://youtu.be/EyPwKwVhyw4\",\n    \"tags\": [\n      \"Listening\",\n      \"Communication\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Self Esteem\",\n    \"duration\": \"09:31\",\n    \"url\": \"https://youtu.be/iKTrL5TUUUg\",\n    \"tags\": [\n      \"Self Esteem\",\n      \"Psychology\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Positive Attitude and Pleasing Personality\",\n    \"duration\": \"17:25\",\n    \"url\": \"https://youtu.be/BjeKGQnZJOo\",\n    \"tags\": [\n      \"Positive Attitude\",\n      \"Pleasing Personality\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Work Life Balance\",\n    \"duration\": \"08:14\",\n    \"url\": \"https://youtu.be/_q1jz9Iyzyg\",\n    \"tags\": [\n      \"Work Life Balance\",\n      \"Lifestyle\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Coaching e Mentoring\",\n    \"duration\": \"21:12\",\n    \"url\": \"https://youtu.be/ngTPeNdIWAE\",\n    \"tags\": [\n      \"Work Life Balance\",\n      \"Lifestyle\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Business Negotiation Skills\",\n    \"duration\": \"10:48\",\n    \"url\": \"https://youtu.be/MFj7QIXn-mM\",\n    \"tags\": [\n      \"Negotiation\",\n      \"Bargaining\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Stress Management\",\n    \"duration\": \"29:39\",\n    \"url\": \"https://youtu.be/QZaQikM6M_I\",\n    \"tags\": [\n      \"Stress\",\n      \"Health\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills – Team Motivation\",\n    \"duration\": \"29:39\",\n    \"url\": \"https://youtu.be/VjgDgnELkIs\",\n    \"tags\": [\n      \"Teamwork\",\n      \"Team\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Positive Body Language\",\n    \"duration\": \"09:14\",\n    \"url\": \"https://youtu.be/sEwLobDeb1I\",\n    \"tags\": [\n      \"Body Language\",\n      \"Positivity\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Impromptu Speaking\",\n    \"duration\": \"07:15\",\n    \"url\": \"https://youtu.be/E751EkFmGcE\",\n    \"tags\": [\n      \"Public Speaking\",\n      \"Improv\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills –Effective Delegation\",\n    \"duration\": \"17:45\",\n    \"url\": \"https://youtu.be/R9NVk6LXHbM\",\n    \"tags\": [\n      \"Management\",\n      \"Delegation\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Improving Personal Productivity\",\n    \"duration\": \"09:15\",\n    \"url\": \"https://youtu.be/eT9UvkBrqgI\",\n    \"tags\": [\n      \"Productivity\",\n      \"Time Management\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Mind Mapping\",\n    \"duration\": \"28:06\",\n    \"url\": \"https://youtu.be/PMv8miN-xtk\",\n    \"tags\": [\n      \"Thinking\",\n      \"Planning\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Social Intelligence\",\n    \"duration\": \"08:53\",\n    \"url\": \"https://youtu.be/PuFSX6RFE4Y\",\n    \"tags\": [\n      \"Social Intelligence\",\n      \"Empathy\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills – Tip for Leadership\",\n    \"duration\": \"10:45\",\n    \"url\": \"https://youtu.be/PuFSX6RFE4Y\",\n    \"tags\": [\n      \"Leadership\",\n      \"Improv\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Career Development Planning\",\n    \"duration\": \"08:05\",\n    \"url\": \"https://youtu.be/9v8cIl5ovWY\",\n    \"tags\": [\n      \"Career\",\n      \"Planning\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Fidelizzare i clienti\",\n    \"duration\": \"08:05\",\n    \"url\": \"https://youtu.be/9v8cIl5ovWY\",\n    \"tags\": [\n      \"Customer\",\n      \"Service\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Social Learning\",\n    \"duration\": \"10:00\",\n    \"url\": \"https://youtu.be/9_cNF-RkLGU\",\n    \"tags\": [\n      \"Social Learning\",\n      \"Teamwork\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Employee Supervision\",\n    \"duration\": \"06:50\",\n    \"url\": \"https://youtu.be/UiRilZqbGB0\",\n    \"tags\": [\n      \"Supervision\",\n      \"Management\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills – Personal Integrity\",\n    \"duration\": \"12:47\",\n    \"url\": \"https://youtu.be/UiRilZqbGB0\",\n    \"tags\": [\n      \"Personal\",\n      \"Integrity\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Influencing Skills\",\n    \"duration\": \"08:50\",\n    \"url\": \"https://www.youtube.com/playlist?list=PLWPirh4EWFpFIElSxplDlEhRDZHkBD-0n&index=47\",\n    \"tags\": [\n      \"Influence\",\n      \"Persuasion\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Attention Management\",\n    \"duration\": \"05:41\",\n    \"url\": \"https://youtu.be/HyFdzYJNXHY\",\n    \"tags\": [\n      \"Focus\",\n      \"Attention\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Business Ethics\",\n    \"duration\": \"17:39\",\n    \"url\": \"https://youtu.be/pExDOe3yKsw\",\n    \"tags\": [\n      \"Ethics\",\n      \"Values\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Workplace Diversity\",\n    \"duration\": \"06:25\",\n    \"url\": \"https://youtu.be/823VaL2eRhE\",\n    \"tags\": [\n      \"Diversity\",\n      \"Inclusion\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Workplace Civility\",\n    \"duration\": \"06:29\",\n    \"url\": \"https://youtu.be/BAYVWI4bL7M\",\n    \"tags\": [\n      \"Civility\",\n      \"Workplace\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Exam Related Stress\",\n    \"duration\": \"07:59\",\n    \"url\": \"https://youtu.be/XDAYcSLBcPI\",\n    \"tags\": [\n      \"Stress\",\n      \"Exams\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills -Superare la paura del palcoscenico\",\n    \"duration\": \"17:07\",\n    \"url\": \"https://youtu.be/XDAYcSLBcPI\",\n    \"tags\": [\n      \"Public Speaking\",\n      \"Improv\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Strategy Management\",\n    \"duration\": \"07:34\",\n    \"url\": \"https://youtu.be/BVRBDCn5DxE\",\n    \"tags\": [\n      \"Strategy\",\n      \"Management\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Finding Your Life's Purpose\",\n    \"duration\": \"11:05\",\n    \"url\": \"https://youtu.be/VCAjT2BJ09s\",\n    \"tags\": [\n      \"Purpose\",\n      \"Self Development\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Mindful Parenting\",\n    \"duration\": \"31:05\",\n    \"url\": \"https://youtu.be/ye0WGfJzZH4\",\n    \"tags\": [\n      \"Parenting\",\n      \"Mindfulness\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Stress Management\",\n    \"duration\": \"29:39\",\n    \"url\": \"https://youtu.be/alYxZ6H6oDA\",\n    \"tags\": [\n      \"Stress\",\n      \"Health\"\n    ]\n  }\n]",
+              "type": "array"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2128,
+        1728
+      ],
+      "id": "72dec06e-8961-4248-98d6-5178151ab78c",
+      "name": "Tutoril List"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=# IDENTITÀ\nSei un **AI Career Coach** esperto in analisi comportamentale e sviluppo professionale. La tua specializzazione è interpretare profili soft skills e generare piani di crescita personalizzati, orientati al business.\n\n# CONTESTO\nStai analizzando il profilo completo di un professionista che ha completato 4 moduli di valutazione soft skills (150 domande totali). Ogni modulo valuta aree specifiche:\n- **Modulo 1**: Resilienza, Leadership, Autodisciplina, Gestione Stress, Finanza Personale\n- **Modulo 2**: Comunicazione, Negoziazione, Relazioni, Gestione Conflitti, Sviluppo Persone\n- **Modulo 3**: Innovazione, Problem Solving, Decision Making, Orientamento Cliente, Gestione Tempo\n- **Modulo 4**: Integrità, Etica, Responsabilità Sociale, Sicurezza, Diversità & Inclusione\n\n# OBIETTIVO\nGenerare un'analisi completa che sia:\n1. **NON INTIMIDATORIA**: Enfatizza i punti di forza prima dei miglioramenti\n2. **ACTIONABLE**: Consigli concreti, non teorici\n3. **PERSONALIZZATA**: Basata su dati reali, non generica\n4. **PROGRESSIVA**: Max 3-5 video raccomandati (non 72!)\n5. **MOTIVANTE**: Tono positivo e costruttivo\n\n# STILE DI COMUNICAZIONE\n- Usa **seconda persona singolare** (\"Tu\", \"Il tuo\")\n- Tono **caldo ma professionale**\n- Frasi **brevi e dirette** (max 25 parole per frase)\n- **Nessun jargon** psicologico complesso\n- Esempi **concreti** dal mondo business B2B\n\n# OUTPUT FORMAT\nGenera ESATTAMENTE questo JSON (niente testo prima/dopo):\n\n{\n\"success\": true,\n\"complete_profile\": {\n\"summary\": {\n\"archetype\": \"string (max 4 parole, evocativo)\",\n\"tagline\": \"string (max 10 parole, ispirante)\",\n\"description\": \"string (2-3 frasi, 50-80 parole)\"\n},\n\"strengths\": [\"string\", \"string\", \"string\", \"string\"],\n\"areas_to_improve\": [\n{\n\"skill\": \"string\",\n\"current_level\": \"Base|Moderato|Avanzato\",\n\"why\": \"string (1 frase, perché emerge dal test)\",\n\"impact\": \"string (1 frase, conseguenza business)\"\n}\n],\n\"recommended_videos\": [\n{\n\"priority\": 1,\n\"video\": {oggetto dal Tutorial array},\n\"why_this\": \"string (20-30 parole, personalizzato)\",\n\"expected_improvement\": \"string (es: +15 punti in X)\",\n\"estimated_time\": \"string (durata)\"\n}\n],\n\"stats\": {\n\"overall_score\": number,\n\"modules_completed\": 4,\n\"total_questions\": 150,\n\"completion_date\": \"string ISO\"\n}\n}\n}",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=# CURRENT TIMESTAMP\n{{ new Date().toISOString() }}\n\n# TARGET LANGUAGE\n{{ $json.owner_data.lenguage }}\n\n### B. IL CANDIDATO (CONTESTO)\n*   **Nome:** {{ $json.owner_data.name }} {{ $json.owner_data.surname }}\n*   **Ruolo:** {{ $json.owner_data.kyc_details.professional_questionnaire.role }} (Team: {{ $json.owner_data.kyc_details.professional_questionnaire.team_size }})\n*   **Hard Skills:** {{ $json.owner_data.kyc_details.professional_questionnaire.hard_skills.join(', ') }}\n\n\n### D. DATI PSICOMETRICI (Raw Data)\n{{ JSON.stringify($json.stakeholder.professional_profile.soft_skills_modules) }}\n\n**Video Tutorial Disponibili:**\n{{ JSON.stringify($json.Tutorial) }}\n\n---\n\n# TASK\n\nAnalizza i 4 moduli completati e genera un'analisi completa seguendo queste regole:\n\n## 1. SUMMARY\n- **Archetype**: Sintetizza il profilo in un titolo evocativo (es: \"Il Visionario Pragmatico\", \"L'Architetto Relazionale\")\n- **Tagline**: Una frase ispirazionale che catturi l'essenza\n- **Description**: 2-3 frasi che descrivono il profilo comportamentale COMPLESSIVO (non ripetere i singoli moduli)\n\n## 2. STRENGTHS (MAX 4)\nEstrai i **4 punti di forza PIÙ RILEVANTI** dai moduli. Criteri:\n- PP (Punteggio Positivo) > 60\n- Menzionati in più moduli\n- Rilevanti per il ruolo (owner_manager B2B AI Consulting)\n- Formulazione: \"Skill specifica + breve descrizione\" (es: \"Resilienza eccezionale in situazioni di alta pressione\")\n\n## 3. AREAS TO IMPROVE (MAX 3)\nSeleziona le **3 aree di miglioramento PIÙ CRITICHE** per il business. Criteri:\n- PN (Punteggio Negativo) > 50\n- Impatto diretto sul successo aziendale\n- Migliorabili con formazione specifica\n- **IMPORTANTE**: Non usare linguaggio negativo (\"sei debole in\") ma costruttivo (\"puoi crescere in\")\n\n## 4. RECOMMENDED VIDEOS (ESATTAMENTE 3)\nSeleziona **3 video** dall'array Tutorial che matchano PERFETTAMENTE con le aree di miglioramento:\n\n**Priorità 1**: Il video CHE RISOLVE IL PROBLEMA PIÙ CRITICO\n**Priorità 2**: Il video che supporta un'area complementare\n**Priorità 3**: Il video per consolidare un punto di forza\n\nPer ogni video:\n- **why_this**: Spiega PERCHÈ questo video è perfetto per LUI (non generico)\n- **expected_improvement**: Stima realistica dei punti guadagnabili (basati sul gap attuale)\n- Usa durata effettiva dal campo `duration`\n\n## 5. STATS\nCalcola:\n- **overall_score**: Media ponderata dei PP di tutti i moduli (PP1 + PP2 + PP3 + PP4) / 4\n- **total_time_spent**: Somma approssimata dei tempi di completion (stima ~35 min totali)\n- **completion_date**: Usa la data del modulo4\n\n---\n\n# VINCOLI CRITICI\n\n❌ **NON FARE**:\n- Non menzionare \"Punteggio Positivo/Negativo\" nell'output (linguaggio tecnico interno)\n- Non usare \"PN 51\" o \"PP 68\" nel testo user-facing\n- Non raccomandare più di 3 video\n- Non essere vago (\"migliorare la comunicazione\") → Essere specifico (\"comunicare in modo assertivo nei conflitti\")\n\n✅ **FARLO**:\n- Usa i dati ESATTI dal profilo (nomi, età, settore)\n- Personalizza ogni frase al suo contesto (B2B AI Consulting, solo proprietor)\n- Usa esempi CONCRETI dal suo business (es: \"Quando presenti Gemini a un CEO diffidente...\")\n\n---\n\n# MATCHING VIDEO → SKILLS\n\nUsa questo mapping dei tags nei Tutorial per scegliere il video giusto\n\n\n---\n\n# OUTPUT\nGenera il JSON completo ora.\n",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "Evaluation",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1152,
+        1856
+      ],
+      "id": "7131a2b8-efe7-406f-b9aa-5534508bfd67",
+      "name": "Analize"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1e7b0b7d-fffe-49fd-a5d7-a1132dfa63fe",
+              "name": "stakeholder",
+              "value": "={{ $json.stakeholder }}",
+              "type": "object"
+            },
+            {
+              "id": "b72887a4-78aa-4a98-ab00-72db431b8079",
+              "name": "stakeholder.professional_profile.soft_skills_complete_profile",
+              "value": "={{ $json.Evaluation.complete_profile }}",
+              "type": "object"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -768,
+        1856
+      ],
+      "id": "229669b8-9206-469e-a748-2da07334b318",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.owner_data_ref.vat_number }}-{{ $json.stakeholder.owner_data_ref.chat_id }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        1888
+      ],
+      "id": "18038a8f-806e-4e60-8c63-53636c48aebd",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.stakeholder }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -32,
+        1760
+      ],
+      "id": "937cb824-8078-4133-bb36-af3ad2d07a2f",
+      "name": "stakeholders4"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * PREPARA RISPOSTA PER FRONTEND\n * Restituisce solo i dati essenziali per il respond\n */\nconst stakeholder = $input.first().json.stakeholder;\n// Estrai l'analisi completa che hai appena salvato\nconst profile = stakeholder.professional_profile?.soft_skills_complete_profile || {};\n\n// Risposta al frontend\nreturn {\n  json: {\n    success: true,\n    action: \"get_analysis\",\n    timestamp: new Date().toISOString(),\n    data: {\n      summary: profile.summary || {},\n      strengths: profile.strengths || [],\n      areas_to_improve: profile.areas_to_improve || [],\n      recommended_videos: profile.recommended_videos || [],\n      stats: profile.stats || {}\n    }\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        544,
+        1856
+      ],
+      "id": "156adf8c-8b9b-4423-b35b-9bc7a5648536",
+      "name": "SOFT SKILLS Analisi Respond"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        720,
+        1776
+      ],
+      "id": "be2aa900-d642-4a3b-92cc-ae924b400198",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        1760
+      ],
+      "id": "741ae590-b052-4b5a-a6ac-6e96b49a8bb7",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -608,
+        1536
+      ],
+      "id": "16715b07-8020-4bf4-9ea3-70898a609c53",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "96ed333c-d45d-446f-a236-7d7b538ccd8f",
+              "leftValue": "={{ $json.stakeholder.professional_profile.soft_skills_complete_profile.summary }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1152,
+        1552
+      ],
+      "id": "c0c83040-9297-4f46-bf87-4f137f798a7e",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * PREPARA RISPOSTA PER FRONTEND\n * Restituisce solo i dati essenziali per il respond\n */\nconst stakeholder = $input.first().json.stakeholder;\n// Estrai l'analisi completa che hai appena salvato\nconst profile = stakeholder.professional_profile?.soft_skills_complete_profile || {};\n\n// Risposta al frontend\nreturn {\n  json: {\n    success: true,\n    action: \"get_analysis\",\n    timestamp: new Date().toISOString(),\n    data: {\n      summary: profile.summary || {},\n      strengths: profile.strengths || [],\n      areas_to_improve: profile.areas_to_improve || [],\n      recommended_videos: profile.recommended_videos || [],\n      stats: profile.stats || {}\n    }\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        1536
+      ],
+      "id": "213cc8cc-5363-4037-8160-6bc51410e4b6",
+      "name": "SOFT SKILLS Analisi Respond1"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.vat }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -928,
+        1280
+      ],
+      "id": "13820620-0d64-4ddc-a0b5-a4243956e6d7",
+      "name": "owner2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -736,
+        1280
+      ],
+      "id": "51cd602d-ad11-4dd4-9c3c-6e48d2f55a15",
+      "name": "OwnerExist2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -528,
+        1216
+      ],
+      "id": "5b82199e-fd67-44cc-ac98-02d92857faf4",
+      "name": "Merge7"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $json.body.vat }}-{{ $json.body.user_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$stakeholder.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -928,
+        1024
+      ],
+      "id": "7bbbf912-a916-4fc2-855f-4004680fbfab",
+      "name": "stakeholders5",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.stakeholder }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -768,
+        1024
+      ],
+      "id": "2073423f-b7a0-45dc-a2a8-90f36b52a12a",
+      "name": "exist?3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -528,
+        1024
+      ],
+      "id": "97eaf9b3-43ca-4c30-9fc7-d2c25d5e3ddf",
+      "name": "Merge8"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "drtRj1F1hOdZXEgN",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/drtRj1F1hOdZXEgN",
+          "cachedResultName": "TBoS_Serch&Think"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        1024
+      ],
+      "id": "35015b6e-a218-4695-b578-38a0a2f79e28",
+      "name": "Call 'TBoS_Serch&Think'2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d719b99e-2292-4194-827e-14c5411741dd",
+              "name": "SystemInstruction",
+              "value": "=<system_instructions>\n  <role>\n    You are a Senior Psychometric Profiler and HR AI Specialist specialized in dynamic behavioral assessment and professional development tracking.\n  </role>\n\n  <core_capabilities>\n    <capability>Analyze post-training reflections with clinical objectivity</capability>\n    <capability>Update psychometric profiles based on behavioral evidence</capability>\n    <capability>Classify engagement levels (Transformational, Standard, Hostile)</capability>\n    <capability>Recommend learning paths based on skill gaps</capability>\n    <capability>Update Big Five personality traits based on behavioral patterns</capability>\n    <capability>Rewrite module strategic analyses when scores change significantly</capability>\n    <capability>Maintain consolidated HR consultant notes (rewrite, not append)</capability>\n  </core_capabilities>\n\n  <evaluation_framework>\n    <level name=\"LEVEL 2: DEEP INSIGHT (Transformational)\" score=\"+5 to +10\">\n      <triggers>\n        <trigger>User cites specific video concepts, frameworks, or techniques</trigger>\n        <trigger>Admits past mistakes or blind spots with vulnerability</trigger>\n        <trigger>Proposes concrete, actionable next steps with specifics</trigger>\n        <trigger>Shows genuine self-awareness and introspection</trigger>\n      </triggers>\n      <actions>\n        <action target=\"learning_history\">ADD entry with \"transformational\" engagement level</action>\n        <action target=\"soft_skills_modules\">\n          INCREASE PP scores (+5 to +10), DECREASE PN scores (-3 to -5)\n          REWRITE evaluation fields: CP, CN, Analisi_Strategica, Impatto_Business, Consigli_Operativi\n          ADD timestamp reference at start of Analisi_Strategica: \"AGGIORNAMENTO [YYYY-MM-DD]: ...\"\n        </action>\n        <action target=\"soft_skills_complete_profile.areas_to_improve\">IMPROVE current_level or REMOVE if resolved</action>\n        <action target=\"soft_skills_complete_profile.strengths\">ADD new strength if breakthrough detected</action>\n        <action target=\"soft_skills_complete_profile.recommended_videos\">ROTATE: remove completed, shift priorities, add new from Tutorial library</action>\n        <action target=\"soft_skills_complete_profile.stats.overall_score\">INCREASE (+3 to +7)</action>\n        <action target=\"soft_skills_complete_profile.summary\">UPDATE archetype/tagline/description if major shift detected</action>\n        <action target=\"behavioral_profile.big_five\">\n          Openness to Experience: +3 to +7\n          Conscientiousness: +2 to +5 (if action-oriented)\n          Agreeableness: +2 to +4 (if shows empathy)\n        </action>\n        <action target=\"behavioral_profile.notes\">REWRITE complete HR consultant note incorporating latest transformational insight and Big Five changes</action>\n        <action target=\"behavioral_profile.last_updated\">Update to current timestamp</action>\n      </actions>\n    </level>\n\n    <level name=\"LEVEL 1: STANDARD (Compliance)\" score=\"0\">\n      <triggers>\n        <trigger>Generic positive feedback without specific examples</trigger>\n        <trigger>No specific frameworks or personal insights mentioned</trigger>\n        <trigger>Superficial engagement without depth</trigger>\n      </triggers>\n      <actions>\n        <action target=\"learning_history\">ADD entry with \"standard\" engagement level</action>\n        <action target=\"soft_skills_modules\">Keep PP/PN unchanged. Update Valutazione_Tempi timestamp if field exists</action>\n        <action target=\"soft_skills_complete_profile.stats.completion_date\">UPDATE timestamp</action>\n        <action target=\"behavioral_profile.notes\">REWRITE HR note with minor update about standard engagement, keep most content similar but refresh timestamp</action>\n        <action target=\"behavioral_profile.last_updated\">Update timestamp</action>\n      </actions>\n    </level>\n\n    <level name=\"LEVEL -1: HOSTILE (Resistance)\" score=\"-5 to -15\">\n      <triggers>\n        <trigger>Dismissive language or profanity</trigger>\n        <trigger>Refusal to engage with content</trigger>\n        <trigger>Arrogant dismissal of training material</trigger>\n        <trigger>Hostile or aggressive tone</trigger>\n      </triggers>\n      <actions>\n        <action target=\"learning_history\">ADD entry with \"hostile_resistance\" flag</action>\n        <action target=\"soft_skills_modules\">\n          modulo1.evaluation.PN: +8 to +12\n          modulo2.evaluation.PN: +10 to +15\n          modulo4.evaluation.PN: +5 to +10\n          APPEND to CN: \"Cognitive Rigidity, Resistance to Change\" (modulo1), \"Aggressiveness, Defensiveness\" (modulo2), \"Unprofessional Behavior\" (modulo4)\n          REWRITE Analisi_Strategica emphasizing resistance patterns and defensive behaviors\n          ADD alert at start: \"ALERT [YYYY-MM-DD]: Resistenza ostile al feedback professionale rilevata\"\n        </action>\n        <action target=\"soft_skills_complete_profile.stats.overall_score\">DECREASE (-5 to -10)</action>\n        <action target=\"soft_skills_complete_profile.summary.archetype\">Change to \"Il Resistente Difensivo\" or equivalent in target language</action>\n        <action target=\"soft_skills_complete_profile.summary.tagline\">Change to warning message about growth requiring openness</action>\n        <action target=\"soft_skills_complete_profile.recommended_videos\">KEEP same video as priority 1 (force re-engagement)</action>\n        <action target=\"behavioral_profile.big_five\">\n          Openness to Experience: -5 to -10\n          Neuroticism: +5 to +10\n          Agreeableness: -8 to -15\n        </action>\n        <action target=\"behavioral_profile.red_flag\">SET to true</action>\n        <action target=\"behavioral_profile.red_flag_reason\">Describe hostile resistance behavior</action>\n        <action target=\"behavioral_profile.notes\">REWRITE HR note with RED FLAG emphasis, resistance patterns, and risk assessment for management</action>\n        <action target=\"behavioral_profile.last_updated\">Update timestamp</action>\n      </actions>\n    </level>\n  </evaluation_framework>\n\n  <module_analysis_updates>\n    <rule>When PP or PN scores change in any module (modulo1-4), you MUST rewrite the corresponding evaluation fields to reflect the new assessment</rule>\n    \n    <fields_to_update_per_module>\n      <field name=\"PP\">New numeric score (0-100)</field>\n      <field name=\"CP\">Compact Positive summary (max 8 words) reflecting new strengths</field>\n      <field name=\"PN\">New numeric score (0-100)</field>\n      <field name=\"CN\">Compact Negative summary (max 8 words) reflecting current weaknesses</field>\n      <field name=\"Analisi_Strategica\">REWRITE complete strategic analysis (200-300 words) incorporating:\n        - New PP/PN balance and what it means\n        - Evidence from user reflection that drove the change\n        - Updated behavioral patterns observed\n        - Current risk/opportunity assessment\n        - Reference specific concepts or frameworks mentioned by user\n        - Start with timestamp: \"AGGIORNAMENTO [YYYY-MM-DD]: \" for LEVEL 2, \"ALERT [YYYY-MM-DD]: \" for LEVEL -1\n      </field>\n      <field name=\"Impatto_Business\">UPDATE business impact assessment (150-200 words) with:\n        - How score changes affect business outcomes\n        - New risks or opportunities emerged from behavioral shift\n        - Alignment with candidate's role, team size, and hard skills\n      </field>\n      <field name=\"Consigli_Operativi\">REVISE actionable recommendations array:\n        - Remove recommendations if issue resolved (LEVEL 2)\n        - Add new recommendations for emerging issues\n        - Keep 3-5 prioritized action items\n        - Each item: 50-80 words, specific and actionable\n      </field>\n      <field name=\"Valutazione_Tempi\">Keep original value unless updating for LEVEL 1 timestamp refresh</field>\n    </fields_to_update_per_module>\n\n    <update_guidelines>\n      <guideline>LEVEL 2: Rewrite Analisi_Strategica to highlight breakthrough, reduce negative emphasis, add growth trajectory evidence</guideline>\n      <guideline>LEVEL 1: Keep existing analysis unchanged, only update timestamps if Valutazione_Tempi field exists</guideline>\n      <guideline>LEVEL -1: Rewrite Analisi_Strategica to emphasize resistance patterns, increase risk warnings, document defensive behaviors</guideline>\n      <guideline>Always maintain professional, evidence-based clinical tone</guideline>\n      <guideline>Reference specific video content, frameworks, or reflection quotes when relevant</guideline>\n      <guideline>Ensure consistency between module evaluations and soft_skills_complete_profile.summary</guideline>\n      <guideline>Use target language for all text fields</guideline>\n    </update_guidelines>\n\n    <module_mapping>\n      <module name=\"modulo1\">Self-Awareness, Resilience, Stress Management, Self-Development, Personal Finance</module>\n      <module name=\"modulo2\">Communication, Negotiation, Interpersonal Relations, Conflict Management, People Development</module>\n      <module name=\"modulo3\">Innovation, Strategic Thinking, Decision Making, Customer Service, Sales, Time Management</module>\n      <module name=\"modulo4\">Professional Ethics, Integrity, Diversity and Inclusion, Social Responsibility, Workplace Safety</module>\n    </module_mapping>\n  </module_analysis_updates>\n\n  <scoring_rules>\n    <rule>PP scores range: 0-100 (never exceed)</rule>\n    <rule>PN scores range: 0-100 (never exceed)</rule>\n    <rule>overall_score: weighted average of (PP - PN) across 4 modules, rounded to 1 decimal, cap at 100</rule>\n    <rule>Big Five traits: 0-100 range, adjust based on behavioral evidence</rule>\n    <rule>current_level progression: Base → Moderato → Avanzato</rule>\n  </scoring_rules>\n\n  <video_rotation_logic applicable_to=\"LEVEL 2 only\">\n    <step>1. REMOVE completed video from recommended_videos array</step>\n    <step>2. SHIFT priorities: current priority 2 becomes priority 1, current priority 3 becomes priority 2</step>\n    <step>3. SELECT new priority 3 from Tutorial library:\n      - Target LOWEST scoring skill from areas_to_improve\n      - Must NOT duplicate recently completed videos (check learning_history)\n      - Prefer videos with tags matching weak module skills\n      - Ensure video addresses current skill gaps identified in modules\n    </step>\n  </video_rotation_logic>\n\n  <behavioral_profile_structure>\n    <field name=\"big_five\" type=\"object\">\n      <trait name=\"openness_to_experience\" range=\"0-100\">Willingness to try new things, intellectual curiosity</trait>\n      <trait name=\"conscientiousness\" range=\"0-100\">Organization, dependability, discipline</trait>\n      <trait name=\"extraversion\" range=\"0-100\">Sociability, assertiveness, energy</trait>\n      <trait name=\"agreeableness\" range=\"0-100\">Compassion, cooperation, trust</trait>\n      <trait name=\"neuroticism\" range=\"0-100\">Emotional instability, anxiety, moodiness</trait>\n    </field>\n    <field name=\"red_flag\" type=\"boolean\">Warning indicator for hostile behavior</field>\n    <field name=\"red_flag_reason\" type=\"string\">Explanation if red_flag is true</field>\n    <field name=\"notes\" type=\"string\">\n      REWRITE completely as a single consolidated HR consultant note (200-300 words max).\n      This is an internal clinical assessment not visible to the user.\n      Structure as:\n      - Opening: Current behavioral profile summary with Big Five snapshot\n      - Body: Key patterns observed, latest learning activity impact, personality trait evolution\n      - Background context: Role, team size, business model, expertise areas\n      - Red flags or positive indicators for HR/management\n      - Closing: Current stance and actionable recommendations\n      Include timestamp reference: \"Last update: [YYYY-MM-DD]\" at the end.\n      Do NOT append. OVERWRITE the entire notes field each time with fresh consolidated assessment.\n    </field>\n    <field name=\"last_updated\" type=\"timestamp\">ISO 8601 format</field>\n    <field name=\"communication_style\">Preserve existing value</field>\n    <field name=\"interaction_summary\">Preserve existing object</field>\n    <field name=\"current_stance\">Preserve existing object</field>\n    <field name=\"expertise_areas\">Preserve existing array</field>\n    <field name=\"public_reputation\">Preserve existing object</field>\n  </behavioral_profile_structure>\n\n  <learning_history_structure>\n    <field name=\"learning_history\" location=\"professional_profile\">\n      <description>Create this section if it does not exist. Add to existing if it does.</description>\n      <subfield name=\"videos_completed\" type=\"array\">\n        <entry>\n          <video_url type=\"string\">Unique identifier from training stimulus</video_url>\n          <video_title type=\"string\">From Tutorial library or training stimulus</video_title>\n          <completed_at type=\"timestamp\">ISO 8601 format - current timestamp</completed_at>\n          <engagement_level type=\"enum\">transformational | standard | hostile_resistance</engagement_level>\n          <reflection_summary type=\"string\">Key insights extracted from user reflection (50-100 words)</reflection_summary>\n          <score_impact type=\"string\">Summary of score changes applied (e.g., \"+7 overall, +10 PP modulo2, -5 PN modulo3\")</score_impact>\n        </entry>\n      </subfield>\n      <subfield name=\"total_videos_watched\" type=\"integer\">Increment by 1 each time</subfield>\n      <subfield name=\"last_learning_activity\" type=\"timestamp\">ISO 8601 format - current timestamp</subfield>\n    </field>\n  </learning_history_structure>\n\n  <language>\n    Target output language: {{ $json.owner_data.lenguage }}\n    All text fields (archetype, tagline, description, reflection_summary, notes, Analisi_Strategica, CP, CN, etc.) must be written in this language.\n  </language>\n\n  <output_format>\n    Return ONLY a JSON object with these two sections:\n    {\n      \"professional_profile\": { ...full updated object with all original fields preserved... },\n      \"behavioral_profile\": { ...full updated object with all original fields preserved... }\n    }\n    \n    NO other root fields. NO markdown. NO explanatory text. NO code fences.\n    Preserve ALL existing fields and nested structures. Only UPDATE values that need changing.\n  </output_format>\n</system_instructions>",
+              "type": "string"
+            },
+            {
+              "id": "5296f5d3-7b3d-4413-b94d-a84aa778d95f",
+              "name": "Prompt",
+              "value": "=<analysis_request>\n  <context>\n    <current_timestamp>{{ new Date().toISOString() }}</current_timestamp>\n    <target_language>{{ $json.owner_data.lenguage }}</target_language>\n    \n    <candidate_profile>\n      <identity>{{ $json.owner_data.name }} {{ $json.owner_data.surname }}</identity>\n      <current_role>{{ $json.owner_data.kyc_details.professional_questionnaire.role }}</current_role>\n      <team_size>{{ $json.owner_data.kyc_details.professional_questionnaire.team_size }}</team_size>\n      <hard_skills>{{ $json.owner_data.kyc_details.professional_questionnaire.hard_skills.join(', ') }}</hard_skills>\n    </candidate_profile>\n  </context>\n\n  <input_data>\n    <professional_profile>\n      <![CDATA[\n      {{ JSON.stringify($json.stakeholder.professional_profile, null, 2) }}\n      ]]>\n    </professional_profile>\n\n    <behavioral_profile>\n      <![CDATA[\n      {{ JSON.stringify($json.stakeholder.behavioral_profile, null, 2) }}\n      ]]>\n    </behavioral_profile>\n\n    <training_stimulus>\n      <video_url>{{ $json.body.video_url }}</video_url>\n      <video_title>{{ $json.Tutorial.find(v => v.url === $json.body.video_url)?.title || \"Unknown\" }}</video_title>\n    </training_stimulus>\n\n    <user_reflection>\n      <![CDATA[\n      {{ $json.body.riflessione_personale }}\n      ]]>\n    </user_reflection>\n\n    <tutorial_library>\n      <![CDATA[\n      {{ JSON.stringify($json.Tutorial, null, 2) }}\n      ]]>\n    </tutorial_library>\n  </input_data>\n\n  <task>\n    1. Read and analyze the user_reflection carefully\n    2. Classify as LEVEL 2 (Deep Insight), LEVEL 1 (Standard), or LEVEL -1 (Hostile) based on triggers in system instructions\n    3. Apply score adjustments to relevant soft_skills_modules (PP/PN scores)\n    4. REWRITE module evaluation fields (CP, CN, Analisi_Strategica, Impatto_Business, Consigli_Operativi) if scores changed\n    5. Update Big Five personality traits in behavioral_profile based on engagement pattern and reflection content\n    6. Add new entry to learning_history.videos_completed (create learning_history section if missing)\n    7. If LEVEL 2: rotate recommended_videos (remove completed, shift priorities, select new from tutorial_library based on skill gaps)\n    8. If LEVEL -1: set red_flag in behavioral_profile with detailed reason\n    9. Update all timestamps (completion_date, last_updated, last_learning_activity)\n    10. REWRITE behavioral_profile.notes as consolidated HR consultant assessment (200-300 words, do NOT append)\n    11. Recalculate overall_score based on new module scores\n    12. Update soft_skills_complete_profile.summary if major personality shift detected\n    13. Return ONLY professional_profile and behavioral_profile sections with ALL original fields preserved\n  </task>\n\n  <output_requirements>\n    <requirement>Return ONLY this JSON structure:\n      {\n        \"professional_profile\": { ...complete object with all fields... },\n        \"behavioral_profile\": { ...complete object with all fields... }\n      }\n    </requirement>\n    <requirement>NO markdown code fences, NO other root fields, NO explanatory text</requirement>\n    <requirement>All scores must stay within 0-100 boundaries (cap if exceeded)</requirement>\n    <requirement>Use ISO 8601 format for all timestamps (YYYY-MM-DDTHH:mm:ss.sssZ)</requirement>\n    <requirement>All text fields must be in {{ $json.owner_data.lenguage }} language</requirement>\n    <requirement>behavioral_profile.notes must be REWRITTEN as consolidated assessment (200-300 words max), NOT appended</requirement>\n    <requirement>Preserve ALL existing fields in both sections, only update values that need changing</requirement>\n    <requirement>If learning_history does not exist in professional_profile, create it with proper structure</requirement>\n    <requirement>Ensure Analisi_Strategica references specific evidence from user reflection when scores change</requirement>\n  </output_requirements>\n</analysis_request>",
+              "type": "string"
+            },
+            {
+              "id": "58c5d485-7b2f-402e-af88-a6d92ffe95f4",
+              "name": "ModelChoice",
+              "value": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+              "type": "string"
+            },
+            {
+              "id": "dd713543-b2c4-4e31-a989-54a11b80ef31",
+              "name": "GeminiKey",
+              "value": "={{ $json.owner_data.gemini_key }}",
+              "type": "string"
+            },
+            {
+              "id": "ecd4b2fe-495c-4836-b13b-28d159a8c94e",
+              "name": "errorPath",
+              "value": "={{ $json.owner_data.vat_number }}",
+              "type": "string"
+            },
+            {
+              "id": "3135c929-6335-42ab-aa6c-661e3014ba96",
+              "name": "grounding",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "b3e47699-3b67-4519-a728-997ab1d0b4d3",
+              "name": "thinking",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "36e1c66c-7a2c-41ab-aef4-0c32eeefb302",
+              "name": "outputRename",
+              "value": "Evaluation",
+              "type": "string"
+            },
+            {
+              "id": "daf09ab5-889e-48b8-95b3-f366880d604c",
+              "name": "data",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "34b378c9-02a7-47c1-b2b9-98e6c9beaa20",
+              "name": "mimeType",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        1024
+      ],
+      "id": "579a8b14-e2d6-47f4-8a32-367305a7e4bd",
+      "name": "ReAnalize"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ee2cdc51-82f5-4446-9059-d148f9f333a8",
+              "name": "stakeholder.professional_profile.soft_skills_modules",
+              "value": "={{ $json.Evaluation.professional_profile.soft_skills_modules }}",
+              "type": "object"
+            },
+            {
+              "id": "ef1023bf-118b-4ed4-93cd-ca47c5bd1c8c",
+              "name": "stakeholder.professional_profile.soft_skills_complete_profile",
+              "value": "={{ $json.Evaluation.professional_profile.soft_skills_complete_profile }}",
+              "type": "object"
+            },
+            {
+              "id": "586ff448-0b85-431b-9065-7cfbfee3d380",
+              "name": "stakeholder.professional_profile.learning_history",
+              "value": "={{ $json.Evaluation.professional_profile.learning_history }}",
+              "type": "object"
+            },
+            {
+              "id": "bfcc5274-a655-4759-b45d-22496b702cc5",
+              "name": "stakeholder.behavioral_profile",
+              "value": "={{ $json.Evaluation.behavioral_profile }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        1120
+      ],
+      "id": "e9e99ff7-b50c-44fd-97ab-24385b1b850b",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        576,
+        1040
+      ],
+      "id": "b002bd24-1bd1-41e1-ac0f-9f59c1ff28ef",
+      "name": "Merge9"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.owner_data_ref.vat_number }}-{{ $json.stakeholder.owner_data_ref.chat_id }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        1168
+      ],
+      "id": "04b1f1a4-c1d3-4775-b6a3-195171220805",
+      "name": "MongoDB Chat Memory1",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.stakeholder }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1056,
+        1040
+      ],
+      "id": "bfe36f0e-2324-446a-b050-9c20a9ff8b84",
+      "name": "stakeholders6"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * PREPARA RISPOSTA PER FRONTEND dopo track_video_completion\n * Restituisce le 2 sezioni aggiornate + learning_history\n */\nconst professional_profile = $input.first().json.stakeholder.professional_profile;\nconst behavioral_profile = $input.first().json.stakeholder.behavioral_profile;\n\n// Estrai learning_history e soft_skills_complete_profile\nconst learningHistory = professional_profile?.learning_history || null;\nconst profile = professional_profile?.soft_skills_complete_profile || {};\n\nreturn {\n  json: {\n    success: true,\n    action: \"track_video_completion\",\n    timestamp: new Date().toISOString(),\n    data: {\n      // Dati per complete-profile (se user vuole vedere subito l'aggiornamento)\n      summary: profile.summary || {},\n      strengths: profile.strengths || [],\n      areas_to_improve: profile.areas_to_improve || [],\n      recommended_videos: profile.recommended_videos || [],\n      stats: profile.stats || {},\n      learning_history: learningHistory,\n      professional_profile: professional_profile,\n      behavioral_profile: behavioral_profile\n    }\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        784,
+        1264
+      ],
+      "id": "704407d6-38b8-4199-ae88-987e79f11501",
+      "name": "SOFT SKILLS Analisi Respond2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1904,
+        1248
+      ],
+      "id": "ab36fd0f-c52d-4168-9098-ae045a88fb33",
+      "name": "Merge10"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1584,
+        1232
+      ],
+      "id": "51d3913c-855e-463f-87d7-c500b8b5069f",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1904,
+        1104
+      ],
+      "id": "ccd32d6c-75f3-4aa5-bf3d-0df4846a2fa4",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6226c81d-cb6a-40a7-abae-8e6ae2fa1183",
+              "name": "Tutorial",
+              "value": "=[\n  {\n    \"title\": \"Soft Skills - Presentation Skills\",\n    \"duration\": \"18:19\",\n    \"url\": \"https://youtu.be/ADJAcyTq1us\",\n    \"tags\": [\n      \"Presentation\",\n      \"Speaking\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Leadership VS Management\",\n    \"duration\": \"19:08\",\n    \"url\": \"https://youtu.be/DwwBZn5duk8\",\n    \"tags\": [\n      \"Leadership\",\n      \"Management\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Time Management\",\n    \"duration\": \"26:30\",\n    \"url\": \"https://youtu.be/KJLHlOIdqA4\",\n    \"tags\": [\n      \"Time\",\n      \"Management\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Self Confidence\",\n    \"duration\": \"10:02\",\n    \"url\": \"https://youtu.be/L4FNPL7CjK4\",\n    \"tags\": [\n      \"Confidence\",\n      \"Self Belief\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills – Setting Goals\",\n    \"duration\": \"18:12\",\n    \"url\": \"https://youtu.be/lKrpbUhDRJ4\",\n    \"tags\": [\n      \"Goals\",\n      \"Planning\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills – Customer Relatioship Managment\",\n    \"duration\": \"12:42\",\n    \"url\": \"https://youtu.be/zkRWE-mOxG8\",\n    \"tags\": [\n      \"Customer\",\n      \"Relatioship\",\n      \"Managment\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Setting SMART Goals\",\n    \"duration\": \"08:55\",\n    \"url\": \"https://youtu.be/6-qb1dPNPog\",\n    \"tags\": [\n      \"Goals\",\n      \"Planning\",\n      \"SMART\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Problem Solving\",\n    \"duration\": \"19:55\",\n    \"url\": \"https://youtu.be/uqhOnXOiwOg\",\n    \"tags\": [\n      \"Problem Solving\",\n      \"Logic\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Conflict Management\",\n    \"duration\": \"20:36\",\n    \"url\": \"https://youtu.be/4RB1i1sVVc0\",\n    \"tags\": [\n      \"Conflict\",\n      \"Resolution\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Workplace Ethics & Code of Conduct\",\n    \"duration\": \"15:17\",\n    \"url\": \"https://youtu.be/DxWDtTIWdkE\",\n    \"tags\": [\n      \"Conduct\",\n      \"Workplace\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills – Decision Making & Creativity\",\n    \"duration\": \"14:17\",\n    \"url\": \"https://youtu.be/nJmteC2wfRo\",\n    \"tags\": [\n      \"Decision Making\",\n      \"Creativity\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Anger Management\",\n    \"duration\": \"11:04\",\n    \"url\": \"https://youtu.be/h_FLN8bjkhw\",\n    \"tags\": [\n      \"Anger Management\",\n      \"Emotional Control\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Critical Thinking\",\n    \"duration\": \"10:17\",\n    \"url\": \"https://youtu.be/iaiF9cn5I2s\",\n    \"tags\": [\n      \"Thinking\",\n      \"Analysis\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Assertiveness\",\n    \"duration\": \"09:58\",\n    \"url\": \"https://youtu.be/GbEhenMqinc\",\n    \"tags\": [\n      \"Assertiveness\",\n      \"Communication\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Stress Management\",\n    \"duration\": \"16:24\",\n    \"url\": \"https://youtu.be/Pb8OyOLpyFE\",\n    \"tags\": [\n      \"Stress\",\n      \"Health\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills – Customer Handling Skills\",\n    \"duration\": \"16:20\",\n    \"url\": \"https://youtu.be/8pDlOaH8nPs\",\n    \"tags\": [\n      \"Customer\",\n      \"Handling\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Active Listening\",\n    \"duration\": \"20:59\",\n    \"url\": \"https://youtu.be/EyPwKwVhyw4\",\n    \"tags\": [\n      \"Listening\",\n      \"Communication\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Self Esteem\",\n    \"duration\": \"09:31\",\n    \"url\": \"https://youtu.be/iKTrL5TUUUg\",\n    \"tags\": [\n      \"Self Esteem\",\n      \"Psychology\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Positive Attitude and Pleasing Personality\",\n    \"duration\": \"17:25\",\n    \"url\": \"https://youtu.be/BjeKGQnZJOo\",\n    \"tags\": [\n      \"Positive Attitude\",\n      \"Pleasing Personality\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Work Life Balance\",\n    \"duration\": \"08:14\",\n    \"url\": \"https://youtu.be/_q1jz9Iyzyg\",\n    \"tags\": [\n      \"Work Life Balance\",\n      \"Lifestyle\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Coaching e Mentoring\",\n    \"duration\": \"21:12\",\n    \"url\": \"https://youtu.be/ngTPeNdIWAE\",\n    \"tags\": [\n      \"Work Life Balance\",\n      \"Lifestyle\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Business Negotiation Skills\",\n    \"duration\": \"10:48\",\n    \"url\": \"https://youtu.be/MFj7QIXn-mM\",\n    \"tags\": [\n      \"Negotiation\",\n      \"Bargaining\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Stress Management\",\n    \"duration\": \"29:39\",\n    \"url\": \"https://youtu.be/QZaQikM6M_I\",\n    \"tags\": [\n      \"Stress\",\n      \"Health\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills – Team Motivation\",\n    \"duration\": \"29:39\",\n    \"url\": \"https://youtu.be/VjgDgnELkIs\",\n    \"tags\": [\n      \"Teamwork\",\n      \"Team\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Positive Body Language\",\n    \"duration\": \"09:14\",\n    \"url\": \"https://youtu.be/sEwLobDeb1I\",\n    \"tags\": [\n      \"Body Language\",\n      \"Positivity\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Impromptu Speaking\",\n    \"duration\": \"07:15\",\n    \"url\": \"https://youtu.be/E751EkFmGcE\",\n    \"tags\": [\n      \"Public Speaking\",\n      \"Improv\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills –Effective Delegation\",\n    \"duration\": \"17:45\",\n    \"url\": \"https://youtu.be/R9NVk6LXHbM\",\n    \"tags\": [\n      \"Management\",\n      \"Delegation\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Improving Personal Productivity\",\n    \"duration\": \"09:15\",\n    \"url\": \"https://youtu.be/eT9UvkBrqgI\",\n    \"tags\": [\n      \"Productivity\",\n      \"Time Management\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Mind Mapping\",\n    \"duration\": \"28:06\",\n    \"url\": \"https://youtu.be/PMv8miN-xtk\",\n    \"tags\": [\n      \"Thinking\",\n      \"Planning\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Social Intelligence\",\n    \"duration\": \"08:53\",\n    \"url\": \"https://youtu.be/PuFSX6RFE4Y\",\n    \"tags\": [\n      \"Social Intelligence\",\n      \"Empathy\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills – Tip for Leadership\",\n    \"duration\": \"10:45\",\n    \"url\": \"https://youtu.be/PuFSX6RFE4Y\",\n    \"tags\": [\n      \"Leadership\",\n      \"Improv\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Career Development Planning\",\n    \"duration\": \"08:05\",\n    \"url\": \"https://youtu.be/9v8cIl5ovWY\",\n    \"tags\": [\n      \"Career\",\n      \"Planning\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Fidelizzare i clienti\",\n    \"duration\": \"08:05\",\n    \"url\": \"https://youtu.be/9v8cIl5ovWY\",\n    \"tags\": [\n      \"Customer\",\n      \"Service\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Social Learning\",\n    \"duration\": \"10:00\",\n    \"url\": \"https://youtu.be/9_cNF-RkLGU\",\n    \"tags\": [\n      \"Social Learning\",\n      \"Teamwork\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Employee Supervision\",\n    \"duration\": \"06:50\",\n    \"url\": \"https://youtu.be/UiRilZqbGB0\",\n    \"tags\": [\n      \"Supervision\",\n      \"Management\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills – Personal Integrity\",\n    \"duration\": \"12:47\",\n    \"url\": \"https://youtu.be/UiRilZqbGB0\",\n    \"tags\": [\n      \"Personal\",\n      \"Integrity\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Influencing Skills\",\n    \"duration\": \"08:50\",\n    \"url\": \"https://www.youtube.com/playlist?list=PLWPirh4EWFpFIElSxplDlEhRDZHkBD-0n&index=47\",\n    \"tags\": [\n      \"Influence\",\n      \"Persuasion\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Attention Management\",\n    \"duration\": \"05:41\",\n    \"url\": \"https://youtu.be/HyFdzYJNXHY\",\n    \"tags\": [\n      \"Focus\",\n      \"Attention\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Business Ethics\",\n    \"duration\": \"17:39\",\n    \"url\": \"https://youtu.be/pExDOe3yKsw\",\n    \"tags\": [\n      \"Ethics\",\n      \"Values\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Workplace Diversity\",\n    \"duration\": \"06:25\",\n    \"url\": \"https://youtu.be/823VaL2eRhE\",\n    \"tags\": [\n      \"Diversity\",\n      \"Inclusion\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Workplace Civility\",\n    \"duration\": \"06:29\",\n    \"url\": \"https://youtu.be/BAYVWI4bL7M\",\n    \"tags\": [\n      \"Civility\",\n      \"Workplace\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Exam Related Stress\",\n    \"duration\": \"07:59\",\n    \"url\": \"https://youtu.be/XDAYcSLBcPI\",\n    \"tags\": [\n      \"Stress\",\n      \"Exams\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills -Superare la paura del palcoscenico\",\n    \"duration\": \"17:07\",\n    \"url\": \"https://youtu.be/XDAYcSLBcPI\",\n    \"tags\": [\n      \"Public Speaking\",\n      \"Improv\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Strategy Management\",\n    \"duration\": \"07:34\",\n    \"url\": \"https://youtu.be/BVRBDCn5DxE\",\n    \"tags\": [\n      \"Strategy\",\n      \"Management\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Finding Your Life's Purpose\",\n    \"duration\": \"11:05\",\n    \"url\": \"https://youtu.be/VCAjT2BJ09s\",\n    \"tags\": [\n      \"Purpose\",\n      \"Self Development\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Mindful Parenting\",\n    \"duration\": \"31:05\",\n    \"url\": \"https://youtu.be/ye0WGfJzZH4\",\n    \"tags\": [\n      \"Parenting\",\n      \"Mindfulness\"\n    ]\n  },\n  {\n    \"title\": \"Soft Skills - Stress Management\",\n    \"duration\": \"29:39\",\n    \"url\": \"https://youtu.be/alYxZ6H6oDA\",\n    \"tags\": [\n      \"Stress\",\n      \"Health\"\n    ]\n  }\n]",
+              "type": "array"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -144,
+        1024
+      ],
+      "id": "3299904f-0579-4393-9c6f-99b5f7ec7a3e",
+      "name": "Tutoril List1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e9b8e374-ce6a-4905-9391-2da17b73002c",
+              "leftValue": "={{ $json.stakeholder.professional_profile.role }}",
+              "rightValue": "operator",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -384,
+        176
+      ],
+      "id": "1f21b872-1717-49cb-b88e-3f44adb475bb",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.user_ref.email }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        0,
+        128
+      ],
+      "id": "41165cb3-ab7c-4c62-888c-23d5b7378bbe",
+      "name": "MongoDB Chat Memory5",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.stakeholder }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "827e5427-8af1-45e6-9136-70e07723491f",
+      "name": "stakeholders7"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e9b8e374-ce6a-4905-9391-2da17b73002c",
+              "leftValue": "={{ $json.stakeholder.professional_profile.role }}",
+              "rightValue": "operator",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -480,
+        1744
+      ],
+      "id": "081d5f68-4a43-425d-a642-9901c7577286",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.owner_data_ref.vat_number }}-{{ $json.stakeholder.system_access.telegram_chat_id }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        1744
+      ],
+      "id": "dc63d018-f9d8-4e76-a76d-b3ba1791bb0e",
+      "name": "MongoDB Chat Memory6",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.stakeholder }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -208,
+        1616
+      ],
+      "id": "c5f3ca49-4c88-473a-ba40-26a26bc0237b",
+      "name": "stakeholders8"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e9b8e374-ce6a-4905-9391-2da17b73002c",
+              "leftValue": "={{ $json.stakeholder.professional_profile.role }}",
+              "rightValue": "operator",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        784,
+        864
+      ],
+      "id": "d4bfefee-6724-42c6-adb7-94308a9f948f",
+      "name": "If4"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.stakeholder.owner_data_ref.vat_number }}-{{ $json.stakeholder.system_access.telegram_chat_id }}",
+        "collectionName": "stakeholders",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        864
+      ],
+      "id": "af63ca56-d435-4a0f-a2dc-6445b7afabe1",
+      "name": "MongoDB Chat Memory7",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.stakeholder }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1056,
+        736
+      ],
+      "id": "d11a80af-2385-4172-89b0-68e76f34dad6",
+      "name": "stakeholders10"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "da04c4f2-5349-4013-b1a2-b0d971334780",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "https://prod.workflow.trinai.it/webhook/80d663ea-be4b-4d42-8cc1-05f4ada52ced",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -3904,
+        1456
+      ],
+      "id": "1daffd3f-1864-4955-a592-c2f25274d3c2",
+      "name": "Autorize"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&'; // La tua chiave segreta\n\n// 1. Recupero del token\nconst rawAsh =\n  item.ash ||\n  item.query?.ash ||\n  item.body?.ash ||\n  item.body?.web_app_data?.data ||\n  item.body?.message?.web_app_data?.data;\n\nif (!rawAsh || typeof rawAsh !== \"string\") {\n  throw new Error(\"ASH non trovato nell'input.\");\n}\n\n// 2. Separazione Payload e Firma\nconst [encodedPayload, signatureReceived] = rawAsh.split(\".\");\n\nif (!encodedPayload || !signatureReceived) {\n  throw new Error(\"Formato ASH non valido.\");\n}\n\n// 3. Decodifica e verifica integrità\nlet decodedPayload;\ntry {\n    decodedPayload = Buffer.from(encodedPayload, \"base64\").toString(\"utf8\");\n} catch (e) {\n    throw new Error(\"Errore decodifica Base64.\");\n}\n\n// --- LOGICA DI VERIFICA FIRMA ---\nfunction verifySignature(payload, secret, receivedSig) {\n    let hash = 0;\n    const combined = payload + secret;\n    for (let i = 0; i < combined.length; i++) {\n        hash = ((hash << 5) - hash) + combined.charCodeAt(i);\n        hash = hash & hash; \n    }\n    const expectedSig = Math.abs(hash).toString(16);\n    return expectedSig === receivedSig;\n}\n\nif (!verifySignature(decodedPayload, SECRET_KEY, signatureReceived)) {\n    // Se la firma non corrisponde, blocchiamo tutto qui!\n    throw new Error(\"SICUREZZA: Firma ASH non valida o manomessa. Accesso negato.\");\n}\n// --------------------------------\n\n// 4. Estrazione ID (Solo se la firma è valida)\nconst parts = decodedPayload.split(\"|\");\n\nreturn [{\n    json: {\n        ...item,\n        ids: {\n            owner_id: parts[0],\n            operator: parts[1],\n            timestamp: parts[2],\n            webhook: parts[3]\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3888,
+        1968
+      ],
+      "id": "b1eb49cc-40af-4668-8f63-98fdccf70a54",
+      "name": "Ash Decoder",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- 1. CONFIGURAZIONE ---\nconst BOT_TOKEN = \"8644939941:AAHPiZM3D9xg6TbHXGSiCfiXbA4q99fyuYQ\";\nconst initData = $input.item.json.body._auth;\n\nif (!initData) return { isValid: false, error: \"Dato _auth mancante\" };\n\n// --- 2. LIBRERIA CRIPTOGRAFICA PURE JS (SHA-256 & HMAC) ---\nconst CryptoJS = (function() {\n    function sha256(m) {\n        var h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];\n        var k = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];\n        var b = Array.from(typeof m === 'string' ? new TextEncoder().encode(m) : m);\n        var l = b.length * 8; b.push(0x80);\n        while ((b.length * 8) % 512 !== 448) b.push(0);\n        for (var i = 7; i >= 0; i--) b.push((l / Math.pow(2, i * 8)) & 0xff);\n        for (var i = 0; i < b.length; i += 64) {\n            var w = new Int32Array(64);\n            for (var j = 0; j < 16; j++) w[j] = (b[i + j * 4] << 24) | (b[i + j * 4 + 1] << 16) | (b[i + j * 4 + 2] << 8) | (b[i + j * 4 + 3]);\n            for (var j = 16; j < 64; j++) {\n                var s0 = ((w[j - 15] >>> 7) | (w[j - 15] << 25)) ^ ((w[j - 15] >>> 18) | (w[j - 15] << 14)) ^ (w[j - 15] >>> 3);\n                var s1 = ((w[j - 2] >>> 17) | (w[j - 2] << 15)) ^ ((w[j - 2] >>> 19) | (w[j - 2] << 13)) ^ (w[j - 2] >>> 10);\n                w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;\n            }\n            var [a, c, d, e, f, g, i_h, j_h] = h;\n            var v = [...h];\n            for (var j = 0; j < 64; j++) {\n                var S1 = ((v[4] >>> 6) | (v[4] << 26)) ^ ((v[4] >>> 11) | (v[4] << 21)) ^ ((v[4] >>> 25) | (v[4] << 7));\n                var ch = (v[4] & v[5]) ^ (~v[4] & v[6]);\n                var t1 = (v[7] + S1 + ch + k[j] + w[j]) | 0;\n                var S0 = ((v[0] >>> 2) | (v[0] << 30)) ^ ((v[0] >>> 13) | (v[0] << 19)) ^ ((v[0] >>> 22) | (v[0] << 10));\n                var maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);\n                var t2 = (S0 + maj) | 0;\n                v.unshift((t1 + t2) | 0); v.splice(8); v[4] = (v[4] + t1) | 0;\n            }\n            for (var j = 0; j < 8; j++) h[j] = (h[j] + v[j]) | 0;\n        }\n        return h.reduce((acc, val) => acc.concat([(val >>> 24) & 0xff, (val >>> 16) & 0xff, (val >>> 8) & 0xff, val & 0xff]), []);\n    }\n\n    if (typeof TextEncoder === \"undefined\") {\n        window.TextEncoder = function() {};\n        TextEncoder.prototype.encode = function(s) {\n            return new Uint8Array(unescape(encodeURIComponent(s)).split(\"\").map(c => c.charCodeAt(0)));\n        };\n    }\n\n    return {\n        hmac: function(key, message) {\n            var k = typeof key === 'string' ? Array.from(new TextEncoder().encode(key)) : key;\n            var m = Array.from(new TextEncoder().encode(message));\n            var b = 64;\n            if (k.length > b) k = sha256(k);\n            while (k.length < b) k.push(0);\n            var ipad = k.map(x => x ^ 0x36);\n            var opad = k.map(x => x ^ 0x5c);\n            var inner = sha256(ipad.concat(m));\n            return sha256(opad.concat(inner));\n        }\n    };\n})();\n\n// --- 3. LOGICA PARSING ---\nconst data = {};\ninitData.split('&').forEach(pair => {\n    const [k, v] = pair.split('=');\n    data[k] = decodeURIComponent(v);\n});\n\nconst hashReceived = data.hash;\nconst checkString = Object.keys(data)\n    .filter(k => k !== 'hash')\n    .sort()\n    .map(k => k + '=' + data[k])\n    .join('\\n');\n\n// --- 4. CALCOLO HASH TELEGRAM ---\nconst secretKey = CryptoJS.hmac(\"WebAppData\", BOT_TOKEN);\nconst computedHashBytes = CryptoJS.hmac(secretKey, checkString);\nconst computedHash = computedHashBytes.map(b => b.toString(16).padStart(2, '0')).join('');\n\n// --- 5. CONTROLLO SCADENZA (MAX 1 ORA) ---\nconst now = Math.floor(Date.now() / 1000);\nconst authDate = parseInt(data.auth_date);\nconst isExpired = (now - authDate) > 3600; // Scade dopo 3600 secondi (1 ora)\n\n// --- 6. RISULTATO FINALE ---\nconst isHashValid = (computedHash === hashReceived);\n\nreturn {\n    isValid: isHashValid && !isExpired,\n    isExpired: isExpired,\n    isHashValid: isHashValid,\n    user: data.user ? JSON.parse(data.user) : null,\n    auth_date_human: new Date(authDate * 1000).toLocaleString('it-IT'),\n    debug: {\n        time_diff_seconds: now - authDate,\n        computed: computedHash,\n        received: hashReceived\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3888,
+        1728
+      ],
+      "id": "433ebb9c-0a46-4935-96a7-de377a611a15",
+      "name": "telegram_validator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c0743357-f434-4892-bd7b-5847fa15c35c",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -3680,
+        1728
+      ],
+      "id": "0f971286-6076-42b1-8e54-7e7c3cd75bff",
+      "name": "Valid"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -3888,
+        1280
+      ],
+      "id": "b4e66b94-5849-4247-a3f6-4dc8e1791400",
+      "name": "Merge11"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -4208,
+        1296
+      ],
+      "id": "2020d64c-aea3-4e14-97b9-dd3047601afd",
+      "name": "Merge12"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "802ff2bf-4689-4e01-a09d-5d93b5765ea7",
+              "name": "ids.owner_id",
+              "value": "={{ $json.ids.owner_id }}",
+              "type": "number"
+            },
+            {
+              "id": "37b9a364-37de-4137-a7af-61cffc7352d9",
+              "name": "ids.operator",
+              "value": "={{ $json.ids.operator }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "ignoreConversionErrors": false
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3664,
+        1952
+      ],
+      "id": "02f38ad6-018c-44e1-9777-66eb379dc60d",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Gllwt1kRS2qIgtg-USUnD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/Gllwt1kRS2qIgtg-USUnD",
+          "cachedResultName": "GeminiCall"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -592,
+        352
+      ],
+      "id": "a6677124-8a95-4dee-bd77-aa8163ce3c51",
+      "name": "Call 'GeminiCall'"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Mozilla/5.0 (Linux; Android 15; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.111 Mobile Safari/537.36 Telegram-Android/12.6.4 (Xiaomi 24094RAD4G; Android 15; SDK 35; HIGH)",
+            "content-length": "21470",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7",
+            "content-type": "application/json",
+            "origin": "https://trinaibusinessoperatingsystem.github.io",
+            "priority": "u=1, i",
+            "referer": "https://trinaibusinessoperatingsystem.github.io/",
+            "sec-ch-ua": "\"Android WebView\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+            "sec-ch-ua-mobile": "?1",
+            "sec-ch-ua-platform": "\"Android\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "151.19.102.222",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https",
+            "x-requested-with": "org.telegram.messenger"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "save_module",
+            "ash": "MjA0MTQwODg3NXw3MjAzNzk3Mjd8MTc3Nzg4NDczNTk2N3xlZjRhZWNlNC05ZWMwLTQwMjYtYTdhNy0zMjg1NjJiY2JkZjY=.7bba525d",
+            "msg_id": "16",
+            "_auth": "query_id=AAFPH_AqAAAAAE8f8Cqlcljq&user=%7B%22id%22%3A720379727%2C%22first_name%22%3A%22ImYourEnd%22%2C%22last_name%22%3A%22%22%2C%22username%22%3A%22ImYorEnd%22%2C%22language_code%22%3A%22it%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2FkFg2QYP2r0j9PZyiU5vudFwjSHEG3u7r5kwUwtf3uyk.svg%22%7D&auth_date=1777982059&signature=LF1bNfgmhblCarnbd1Z6aINdnqxokxEKaTQs32rgVepAPBoANoMwU3QXyZ0dvudIdrld-q5Zpfhdm8kI9U5nAw&hash=53bd2987c18e64bcc382c2774af98d69b08ca8a2f98e2747727f62e20032f9a9",
+            "timestamp": "2026-05-05T12:00:29.917Z",
+            "module_id": "modulo1",
+            "module_name": "L'Io Interiore: Fondamenta e Resilienza",
+            "total_questions": 39,
+            "answered_questions": 39,
+            "completion_time_seconds": 360,
+            "completion_date": "2026-05-05T12:00:29.917Z",
+            "answers": [
+              {
+                "question_num": 1,
+                "scenario": "Quando punti a un traguardo importante, come gestisci la scelta tra avere un vantaggio subito o costruire nel tempo?",
+                "answer": "Compromesso",
+                "answer_text": "(Positivo: equilibrio pragmatico tra visione futura e godimento del presente, alta flessibilità adattiva e capacità di mediazione tra diverse priorità temporali, approccio versatile orientato al realismo operativo) (Negativo: rischio di mediocrità prestazionale non eccellendo in nessuna delle due direzioni, potenziale percezione di mancanza di visione radicale o di indecisione strategica).",
+                "soft_skills": [
+                  "Autodisciplina",
+                  "GestioneDelTempo"
+                ]
+              },
+              {
+                "question_num": 2,
+                "scenario": "Quando le persone o l'ambiente di lavoro generano forte stress, quale parola descrive meglio la tua reazione?",
+                "answer": "Preparato",
+                "answer_text": "(Positivo: approccio proattivo e orientato alla prevenzione dei rischi, vigilanza strategica e capacità di anticipare le criticità ambientali, senso di responsabilità elevato) (Negativo: tendenza all'iper-vigilanza e allo stress anticipatorio, rischio di ansia cronica dovuta al monitoraggio costante dei pericoli, percezione di persona apprensiva o pessimista).",
+                "soft_skills": [
+                  "GestioneDelloStress",
+                  "Resilienza"
+                ]
+              },
+              {
+                "question_num": 5,
+                "scenario": "Ti scontri spesso con un collega che vuole avere sempre ragione a tutti i costi. Come reagisci per non farti logorare?",
+                "answer": "Mi lamento, ma evito lo scontro",
+                "answer_text": "(Positivo: capacità di sfogare la tensione mantenendo formalmente la pace operativa, resilienza passiva che permette di sopravvivere in ambienti ostili) (Negativo: accumulo di stress represso e tossicità latente, mancata risoluzione del conflitto alla radice, percezione di persona non assertiva e tendente al vittimismo passivo).",
+                "soft_skills": [
+                  "Resilienza",
+                  "GestioneDelloStress"
+                ]
+              },
+              {
+                "question_num": 9,
+                "scenario": "Pensando ai tuoi traguardi professionali più ambiziosi, quelli che ti stanno più a cuore. Quanto ti pesa raggiungerli?",
+                "answer": "Mi Impegno",
+                "answer_text": "(Positivo: orientamento realistico all'azione e determinazione costante, equilibrio tra sfida e capacità, consapevolezza dell'importanza del processo e dello sforzo focalizzato) (Negativo: rischio di frustrazione se i risultati non sono immediati, potenziale sovraccarico in caso di ostacoli imprevisti, percezione di una sicurezza iniziale che potrebbe vacillare sotto pressione estrema).",
+                "soft_skills": [
+                  "Resilienza",
+                  "Autocritica"
+                ]
+              },
+              {
+                "question_num": 15,
+                "scenario": "Pensa al futuro, qual è la sensazione che provi più spesso?",
+                "answer": "Pronto ad Ogni Caso",
+                "answer_text": "(Positivo: eccellente capacità di previsione e gestione proattiva del rischio, approccio metodico alla pianificazione del futuro che garantisce sicurezza e controllo in ogni scenario) (Negativo: rischio di ansia anticipatoria e iper-controllo paralizzante, potenziale perdita di spontaneità operativa, eccessivo dispendio di energie cognitive nella preparazione di scenari improbabili).",
+                "soft_skills": [
+                  "PianificazioneEOrganizzazione",
+                  "GestioneDelloStress"
+                ]
+              },
+              {
+                "question_num": 22,
+                "scenario": "Quanta parte di quello che guadagni metti via per il futuro?",
+                "answer": "Salvadanaio Vuoto",
+                "answer_text": "(Positivo: orientamento alla gratificazione immediata e assenza di ansia anticipatoria legata al futuro, capacità di vivere pienamente il presente investendo nel benessere attuale) (Negativo: imprevidenza finanziaria critica e mancanza di pianificazione strategica, elevata vulnerabilità a shock economici esterni, assenza di visione prospettica).",
+                "soft_skills": [
+                  "FinanzaPersonale",
+                  "Autodisciplina"
+                ]
+              },
+              {
+                "question_num": 26,
+                "scenario": "Guardando al tuo percorso fino ad oggi, come descriveresti le occasioni che hai incontrato?",
+                "answer": "Pochi Spiragli",
+                "answer_text": "(Positivo: realismo pragmatico e gestione equilibrata delle aspettative, capacità di muoversi con cautela in contesti complessi senza farsi influenzare da facili entusiasmi) (Negativo: potenziale mancanza di proattività nel creare nuove opportunità, rischio di accontentarsi dello status quo per timore di fallire, ambizione contenuta).",
+                "soft_skills": [
+                  "Innovazione",
+                  "MenteAperta"
+                ]
+              },
+              {
+                "question_num": 28,
+                "scenario": "Quanto senti che gli altri, riconoscano davvero il tuo impegno?",
+                "answer": "Apprezzato Abbastanza",
+                "answer_text": "(Positivo: autonomia emotiva e sano realismo, capacità di trarre soddisfazione dal proprio operato indipendentemente dal riconoscimento pubblico costante, stabilità interna) (Negativo: potenziale mancanza di ambizione nel ricercare posizioni di maggiore prestigio, rischio di autosvalutazione latente o eccessiva modestia).",
+                "soft_skills": [
+                  "FiduciaInSeStessi",
+                  "Autocritica"
+                ]
+              },
+              {
+                "question_num": 31,
+                "scenario": "Immagina di essere al centro dell'attenzione. Come ti senti di solito in queste situazioni?",
+                "answer": "Attenzione ok, Ma Non Troppa",
+                "answer_text": "(Positivo: equilibrio ottimale tra presenza scenica e sobrietà professionale, capacità di gestire la visibilità con misura senza bisogno di protagonismo, affidabilità riconosciuta) (Negativo: potenziale sottoutilizzo del proprio potenziale di influenza su grandi gruppi, rischio di rimanere in ombra in contesti iper-competitivi).",
+                "soft_skills": [
+                  "FiduciaInSeStessi",
+                  "Autocritica"
+                ]
+              },
+              {
+                "question_num": 33,
+                "scenario": "A che punto della tua vita hai raggiunto la piena indipendenza economica, senza più contare sull'aiuto della tua famiglia?",
+                "answer": "Adolescente",
+                "answer_text": "(Positivo: precocità nell'assunzione di responsabilità e forte orientamento all'autonomia ('early-bloomer'), spirito d'iniziativa eccezionale e resilienza economica) (Negativo: potenziale accelerazione forzata dei processi maturativi con sacrificio di fasi esplorative, rischio di eccessiva focalizzazione sulla dimensione utilitaristica).",
+                "soft_skills": [
+                  "Autodisciplina",
+                  "Autocritica"
+                ]
+              },
+              {
+                "question_num": 34,
+                "scenario": "Ti viene assegnato un compito estremamente noioso e ripetitivo. Qual è la tua strategia per portarlo a termine?",
+                "answer": "Trovo un Senso Anche nella Noia",
+                "answer_text": "(Positivo: autodisciplina superiore e forte etica del dovere ('conscientiousness'), capacità di trasformare la routine in un esercizio di precisione e padronanza) (Negativo: rischio di eccessiva rigidità e perfezionismo improduttivo, potenziale stress da iper-responsabilizzazione in attività a basso valore aggiunto).",
+                "soft_skills": [
+                  "Autodisciplina",
+                  "PianificazioneEOrganizzazione"
+                ]
+              },
+              {
+                "question_num": 35,
+                "scenario": "Ricevi una critica dura che ritieni profondamente ingiusta e non meritata. Qual è la tua reazione interiore?",
+                "answer": "Non me ne curo e Passo Oltre",
+                "answer_text": "(Positivo: eccellente pragmatismo emotivo e rapidità di elaborazione del feedback, attitudine a superare i conflitti senza rimuginazioni improduttive) (Negativo: rischio di superficialità nell'analisi delle proprie aree di miglioramento, potenziale percezione di indifferenza o scarsa sensibilità relazionale).",
+                "soft_skills": [
+                  "Resilienza",
+                  "Autocritica"
+                ]
+              },
+              {
+                "question_num": 36,
+                "scenario": "Osserva il tuo spazio di lavoro o il modo in cui pianifichi la tua giornata: quale di questi scenari ti descrive meglio?",
+                "answer": "Organizzato Sempre",
+                "answer_text": "(Positivo: eccellente organizzazione funzionale e pragmatica, capacità di ottimizzare tempi e risorse attraverso una pianificazione metodica e affidabile, equilibrio tra controllo e flessibilità) (Negativo: potenziale mancanza di attenzione verso i dettagli micro-organizzativi estremi, rischio di sottovalutazione della complessità in contesti iper-strutturati).",
+                "soft_skills": [
+                  "PianificazioneEOrganizzazione",
+                  "GestioneDelTempo"
+                ]
+              },
+              {
+                "question_num": 38,
+                "scenario": "Pensando al tuo percorso di carriera, qual è il traguardo che desideri davvero raggiungere?",
+                "answer": "Punto in Alto",
+                "answer_text": "(Positivo: forte orientamento al successo e ambizione verticale superiore, determinazione ferrea nel raggiungimento di posizioni di leadership e massima autorealizzazione professionale) (Negativo: elevato rischio di squilibrio tra vita privata e lavoro, potenziale stress da performance cronico, rischio di logoramento delle relazioni per eccessiva competitività).",
+                "soft_skills": [
+                  "Autocritica",
+                  "SviluppoPersonale"
+                ]
+              },
+              {
+                "question_num": 40,
+                "scenario": "Stai svolgendo un compito critico, ma intorno a te ci sono continui rumori e interruzioni. Come reagisce la tua mente?",
+                "answer": "Focus Mentale",
+                "answer_text": "(Positivo: eccellente capacità di concentrazione profonda ('deep work') e resistenza ferrea alle interferenze esterne, massima efficienza operativa anche in ambienti caotici) (Negativo: rischio di isolamento autoreferenziale e scarsa consapevolezza del contesto circostante, potenziale percezione di distacco sociale o mancanza di empatia verso il team).",
+                "soft_skills": [
+                  "GestioneDelTempo",
+                  "PianificazioneEOrganizzazione"
+                ]
+              },
+              {
+                "question_num": 47,
+                "scenario": "Pensa al tragitto che compi ogni giorno per andare al lavoro. Come vivi abitualmente quel tempo di spostamento?",
+                "answer": "Lungo, Ma Si Fa",
+                "answer_text": "(Positivo: pragmatismo operativo e sana tolleranza alla routine inevitabile, capacità di adattamento e accettazione dei vincoli logistici con equilibrio emotivo) (Negativo: tendenza alla rassegnazione passiva, rischio di non cercare attivamente soluzioni per ottimizzare la qualità della vita extra-lavorativa).",
+                "soft_skills": [
+                  "GestioneDelloStress",
+                  "Resilienza"
+                ]
+              },
+              {
+                "question_num": 53,
+                "scenario": "Quanto ti senti osservato e \"sotto esame\" dagli altri, di solito?",
+                "answer": "Scelgo di Essere Consapevole, Ma Non Ossessionato",
+                "answer_text": "(Positivo: equilibrio ottimale tra autoconsapevolezza sociale e sicurezza interiore, capacità di gestire l'immagine pubblica con naturalezza e professionalità) (Negativo: rischio di sottile conformismo per eccessiva preoccupazione di mantenere un'immagine sempre impeccabile e socialmente accettata).",
+                "soft_skills": [
+                  "FiduciaInSeStessi",
+                  "Autocritica"
+                ]
+              },
+              {
+                "question_num": 54,
+                "scenario": "Lavoro da sogno o stabilità affettiva?",
+                "answer": "Nuove Avventure",
+                "answer_text": "(Positivo: forte orientamento alla crescita e determinazione nel cogliere sfide professionali stimolanti, spirito di esplorazione superiore) (Negativo: potenziale sottovalutazione dei costi emotivi e dello stress da sradicamento, rischio di agire impulsivamente trascurando i legami significativi).",
+                "soft_skills": [
+                  "Adattabilita",
+                  "PropensioneAlRischio"
+                ]
+              },
+              {
+                "question_num": 55,
+                "scenario": "Che \"stagione\" ti sembra di vivere?",
+                "answer": "Primavera",
+                "answer_text": "(Positivo: equilibrio emotivo e stabilità rassicurante, focalizzazione costruttiva sul presente e sulla crescita incrementale controllata) (Negativo: potenziale mancanza di slancio ambizioso e spinta verso traguardi dirompenti, rischio di adagiarsi in una routine troppo conservativa).",
+                "soft_skills": [
+                  "FinanzaPersonale",
+                  "GestioneDelTempo"
+                ]
+              },
+              {
+                "question_num": 56,
+                "scenario": "Come cambia il tuo modo di lavorare e la tua concentrazione quando sai di essere osservato da colleghi o superiori?",
+                "answer": "Resto Indifferente",
+                "answer_text": "(Positivo: eccezionale capacità di concentrazione e impermeabilità alle distrazioni ambientali, alta efficienza operativa in contesti ad alta densità sociale) (Negativo: rischio di isolamento relazionale e scarsa ricettività ai feedback esterni, percezione di distacco o mancanza di spirito di squadra).",
+                "soft_skills": [
+                  "Autocritica",
+                  "GestioneDelloStress"
+                ]
+              },
+              {
+                "question_num": 57,
+                "scenario": "Pensa alla tua attuale sensazione di prosperità nella vita.",
+                "answer": "Campo Ben Coltivato",
+                "answer_text": "(Positivo: stabilità economica e metodica gestione delle risorse, orientamento alla sicurezza e alla continuità dei risultati nel lungo periodo) (Negativo: potenziale scarsa ambizione o resistenza a cambiamenti disruptivi che potrebbero elevare ulteriormente il livello di prosperità).",
+                "soft_skills": [
+                  "FinanzaPersonale",
+                  "GestioneDelTempo"
+                ]
+              },
+              {
+                "question_num": 58,
+                "scenario": "Pensa al tuo \"meteo interiore\".",
+                "answer": "Cielo con Nuvole Passeggere",
+                "answer_text": "(Positivo: equilibrio emotivo ottimale e plasticità affettiva, capacità di integrare le variazioni dell'umore senza perdere il focus operativo) (Negativo: rischio di eccessiva moderazione che può essere percepita come mancanza di slancio o di passione autentica).",
+                "soft_skills": [
+                  "GestioneDelloStress",
+                  "Resilienza"
+                ]
+              },
+              {
+                "question_num": 67,
+                "scenario": "Che tipo di pressione eserciti su te stesso per raggiungere i tuoi traguardi?",
+                "answer": "Centrato Perfettamente",
+                "answer_text": "(Positivo: eccellente equilibrio tra ambizione e pragmatismo, attitudine a raggiungere obiettivi di qualità senza sacrificare la sostenibilità e la salute) (Negativo: potenziale eccesso di realismo che può frenare l'ispirazione verso risultati davvero eccezionali o rivoluzionari).",
+                "soft_skills": [
+                  "Autocritica",
+                  "Autodisciplina"
+                ]
+              },
+              {
+                "question_num": 68,
+                "scenario": "Quanto ti mette a tuo agio l'idea di partire senza prenotare?",
+                "answer": "Pianificazione Rassicurante",
+                "answer_text": "(Positivo: metodica organizzazione e gestione oculata delle variabili, attitudine a minimizzare l'errore attraverso la preparazione meticolosa) (Negativo: rigidità cognitiva di fronte a cambiamenti repentini di scenario, elevato stress percepito quando i piani non possono essere rispettati).",
+                "soft_skills": [
+                  "Adattabilità",
+                  "Innovazione"
+                ]
+              },
+              {
+                "question_num": 71,
+                "scenario": "Quale immagine associ al tuo percorso nella vita?",
+                "answer": "Strada di Campagna",
+                "answer_text": "(Positivo: approccio pragmatico e realistico alla complessità, eccellente adattabilità tattica di fronte a deviazioni impreviste del percorso) (Negativo: potenziale mancanza di ambizione verso obiettivi di scala globale, rischio di accontentarsi di un progresso incrementale senza picchi di eccellenza).",
+                "soft_skills": [
+                  "FiduciaInSeStessi",
+                  "Autocritica"
+                ]
+              },
+              {
+                "question_num": 75,
+                "scenario": "Quale immagine descrive meglio il tuo paesaggio emotivo?",
+                "answer": "Casa",
+                "answer_text": "(Positivo: resilienza equilibrata e attitudine a resistere alle turbolenze senza perdere la propria integrità identitaria e professionale) (Negativo: potenziale accumulo di tensione non elaborata, rischio di somatizzazione o di esplosioni emotive differite per mancanza di sfogo).",
+                "soft_skills": [
+                  "Resilienza",
+                  "GestioneDelloStress"
+                ]
+              },
+              {
+                "question_num": 77,
+                "scenario": "Stai uscendo di casa dove sono le chiavi?",
+                "answer": "Sai dove sono",
+                "answer_text": "(Positivo: buona gestione funzionale delle risorse e controllo pragmatico dell'ambiente circostante senza eccessi ossessivi) (Negativo: rischio di inefficienza occasionale in situazioni di forte pressione, potenziale mancanza di ottimizzazione rigorosa dei processi personali).",
+                "soft_skills": [
+                  "PianificazioneEOrganizzazione",
+                  "GestioneDelTempo"
+                ]
+              },
+              {
+                "question_num": 82,
+                "scenario": "Qual è la tua \"fame\" di ricchezza?",
+                "answer": "Montagna Dorata",
+                "answer_text": "(Positivo: forte orientamento alla performance economica e determinazione nel raggiungimento di standard di ricchezza elevati come leva di impatto) (Negativo: rischio di squilibrio tra vita professionale e privata, potenziale eccesso di focalizzazione sull'accumulo a scapito del benessere).",
+                "soft_skills": [
+                  "FinanzaPersonale",
+                  "Autodisciplina"
+                ]
+              },
+              {
+                "question_num": 84,
+                "scenario": "Il tuo passato:  leggero zaino o pesante fardello?",
+                "answer": "Zaino Semi-Pieno",
+                "answer_text": "(Positivo: spiccata capacità di analisi riflessiva del proprio percorso e consapevolezza profonda dei propri limiti e aree di miglioramento) (Negativo: tendenza al rimuginio emotivo e rischio di paralisi parziale per eccesso di recriminazione, difficoltà nel procedere con slancio).",
+                "soft_skills": [
+                  "Autocritica",
+                  "Resilienza"
+                ]
+              },
+              {
+                "question_num": 87,
+                "scenario": "Quando le cose vanno veramente storte, come vedi la tua luce interiore?",
+                "answer": "Sole Ininterrotto",
+                "answer_text": "(Positivo: resilienza emotiva granitica e capacità di mantenere un ottimismo contagioso anche in condizioni di crisi estrema) (Negativo: rischio di negazione della realtà e scarsa profondità nell'elaborazione dei feedback negativi, potenziale percezione di inautenticità).",
+                "soft_skills": [
+                  "GestioneDelloStress",
+                  "Resilienza"
+                ]
+              },
+              {
+                "question_num": 88,
+                "scenario": "Quando intraprendi un percorso \"navighi a vista\" o usi la \"bussola\" per orientarti?",
+                "answer": "Strumenti Moderni",
+                "answer_text": "(Positivo: eccellente rigore metodologico e monitoraggio data-driven costante della performance per il miglioramento continuo) (Negativo: rischio di iper-analisi e dipendenza eccessiva dalle metriche, potenziale soffocamento dell'intuito e della creatività spontanea).",
+                "soft_skills": [
+                  "Autocritica",
+                  "SviluppoPersonale"
+                ]
+              },
+              {
+                "question_num": 93,
+                "scenario": "Come è il terreno su cui fai crescere il tuo futuro?",
+                "answer": "Poche Piantine",
+                "answer_text": "(Positivo: primo passo consapevole verso la costruzione di una base finanziaria pur mantenendo uno stile di vita flessibile e dinamico) (Negativo: risparmio inferiore alla media e potenziale insufficienza di capitale per progetti ambiziosi, esposizione a rischi economici medi).",
+                "soft_skills": [
+                  "FinanzaPersonale",
+                  "PianificazioneEOrganizzazione"
+                ]
+              },
+              {
+                "question_num": 97,
+                "scenario": "Pensa a come preferisci essere pagato?",
+                "answer": "Bilancia Equilibrata",
+                "answer_text": "(Positivo: eccellente flessibilità retributiva e capacità di gestire l'incertezza economica bilanciandola con l'ambizione orientata ai risultati) (Negativo: potenziale dispersione di focus tra il bisogno di sicurezza e la ricerca del premio, mancanza di una scelta direzionale netta).",
+                "soft_skills": [
+                  "FinanzaPersonale",
+                  "Autodisciplina"
+                ]
+              },
+              {
+                "question_num": 98,
+                "scenario": "Hai finito un prodotto di uso quotidiano in casa. Qual è la tua reazione?",
+                "answer": "Leggero Fastidio",
+                "answer_text": "(Positivo: gestione equilibrata e realistica degli inconvenienti domestici, capacità di risolvere le mancanze senza generare stress disfunzionale) (Negativo: rischio di inefficienze ricorrenti per mancata ottimizzazione dei processi di approvvigionamento e pianificazione).",
+                "soft_skills": [
+                  "PianificazioneEOrganizzazione",
+                  "GestioneDelTempo"
+                ]
+              },
+              {
+                "question_num": 118,
+                "scenario": "Il tuo capo ti risponde per l'ennesima volta \"Non si puo fare!\", come te lo immagini in quel momento.",
+                "answer": "Albero Solitario",
+                "answer_text": "(Positivo: massima auto-efficacia e determinazione ferrea nel perseguire la propria visione indipendentemente dalle resistenze esterne) (Negativo: potenziale isolamento professionale per eccessiva autoreferenzialità, rischio di non valorizzare la saggezza collettiva o i vincoli organizzativi legittimi).",
+                "soft_skills": [
+                  "SviluppoPersonale",
+                  "GestioneDelleObiezioni"
+                ]
+              },
+              {
+                "question_num": 119,
+                "scenario": "Vai a vivere in campagna, lasci tutto a cosa ti dedichi?",
+                "answer": "Coltivo Alberi da Frutta",
+                "answer_text": "(Positivo: eccellente integrazione tra auto-realizzazione personale e responsabilità sociale, garantendo uno sviluppo equilibrato e sostenibile) (Negativo: ambizione mediata dalla ricerca di armonia, potenziale mancanza di focalizzazione estrema su un singolo obiettivo di performance).",
+                "soft_skills": [
+                  "SviluppoPersonale",
+                  "OrientamentoAlCliente"
+                ]
+              },
+              {
+                "question_num": 121,
+                "scenario": "Rifiutano qualcosa che ti eri impegnato a fare con tanto impegno, cosa vedi?",
+                "answer": "Vaso Crepato",
+                "answer_text": "(Positivo: resilienza adattiva e volontà di mantenere l'integrità operativa nonostante le ferite reputazionali o professionali subite) (Negativo: persistenza di un senso di vulnerabilità residua che può condizionare le performance future, rischio di insicurezza latente).",
+                "soft_skills": [
+                  "SviluppoPersonale,GestioneDelleObiezioni"
+                ]
+              },
+              {
+                "question_num": 133,
+                "scenario": "Per dispetto, all'ultimo minuto \"cambiano le regole del gioco\". Come reagisci?",
+                "answer": "Riorganizzo i Pezzi",
+                "answer_text": "(Positivo: resilienza operativa di base e volontà di ripristinare l'ordine per garantire la continuità del progetto nonostante le avversità) (Negativo: adattamento faticoso e reattivo che potrebbe risentire dello stress accumulato, mancanza di una visione proattiva sulla sfida).",
+                "soft_skills": [
+                  "FiduciaInSeStessi",
+                  "GestioneDelCambiamento"
+                ]
+              },
+              {
+                "question_num": 143,
+                "scenario": "Ti sei Perso in una foresta piena di rumori, come trovi la strada per uscire?",
+                "answer": "Seguo il Sentiero",
+                "answer_text": "(Positivo: ferma determinazione nel perseguire percorsi consolidati e sicuri per raggiungere l'obiettivo in modo efficiente e lineare) (Negativo: visione a tunnel e scarsa sensibilità ai segnali deboli dell'ambiente, rischio di ignorare opportunità o minacce fuori dal tracciato prestabilito).",
+                "soft_skills": [
+                  "SviluppoPersonale",
+                  "AscoltoAttivo"
+                ]
+              }
+            ]
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/80d663ea-be4b-4d42-8cc1-05f4ada52ced",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "owner",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "stakeholders",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Tutoril List",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "owner2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerExist": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders": {
+      "main": [
+        [
+          {
+            "node": "exist?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exist?": {
+      "main": [
+        [
+          {
+            "node": "ResponderS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ResponderS": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Module1 Evaluetor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Module2 Evaluetor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Module3 Evaluetor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Module4 Evaluetor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "HoneyPot",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Module1 Evaluetor": {
+      "main": [
+        [
+          {
+            "node": "Call 'GeminiCall'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HoneyPot": {
+      "main": [
+        [
+          {
+            "node": "Honeypot Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Honeypot Exist": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "stakeholders1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "stakeholders1": {
+      "main": [
+        [
+          {
+            "node": "exist?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exist?1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory4": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholders2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SOFT SKILLS MODULE 1 Respond": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Module2 Evaluetor": {
+      "main": [
+        [
+          {
+            "node": "Call 'GeminiCall'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SOFT SKILLS MODULE 1 UPDATER": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Module3 Evaluetor": {
+      "main": [
+        [
+          {
+            "node": "Call 'GeminiCall'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Module4 Evaluetor": {
+      "main": [
+        [
+          {
+            "node": "Call 'GeminiCall'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner1": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerExist1": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "500-1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "stakeholders3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "stakeholders3": {
+      "main": [
+        [
+          {
+            "node": "exist?2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exist?2": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500-1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'TBoS_Serch&Think'1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tutoril List": {
+      "main": [
+        [
+          {
+            "node": "owner1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analize": {
+      "main": [
+        [
+          {
+            "node": "Call 'TBoS_Serch&Think'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "SOFT SKILLS Analisi Respond",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholders4",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders4": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SOFT SKILLS Analisi Respond": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "SOFT SKILLS Analisi Respond1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Analize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SOFT SKILLS Analisi Respond1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner2": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerExist2": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "500-1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge7": {
+      "main": [
+        [
+          {
+            "node": "stakeholders5",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "stakeholders5": {
+      "main": [
+        [
+          {
+            "node": "exist?3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "exist?3": {
+      "main": [
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500-1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge8": {
+      "main": [
+        [
+          {
+            "node": "Tutoril List1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'TBoS_Serch&Think'2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ReAnalize": {
+      "main": [
+        [
+          {
+            "node": "Call 'TBoS_Serch&Think'2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge9": {
+      "main": [
+        [
+          {
+            "node": "SOFT SKILLS Analisi Respond2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholders6",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders6": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SOFT SKILLS Analisi Respond2": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge10": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tutoril List1": {
+      "main": [
+        [
+          {
+            "node": "ReAnalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "stakeholders7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "stakeholders2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory5": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholders7",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders7": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "stakeholders8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "stakeholders4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory6": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholders8",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders8": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "stakeholders10",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "stakeholders6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory7": {
+      "ai_memory": [
+        [
+          {
+            "node": "stakeholders10",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stakeholders10": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "Ash Decoder",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "telegram_validator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ash Decoder": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "telegram_validator": {
+      "main": [
+        [
+          {
+            "node": "Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid": {
+      "main": [
+        [
+          {
+            "node": "Merge12",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge11": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge12": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Merge12",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Call 'GeminiCall'": {
+      "main": [
+        [
+          {
+            "node": "SOFT SKILLS MODULE 1 UPDATER",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "SOFT SKILLS MODULE 1 Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c50d3eb6-aa6a-4eeb-b893-43a70fdd591c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "UJnb2IPiaqB8cwcK",
+  "tags": []
+}

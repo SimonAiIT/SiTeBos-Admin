@@ -1,0 +1,3029 @@
+{
+  "name": "telegram_customerBot",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Access Denied or Data Not Found\",\n  \"code\": 500\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -2384,
+        -464
+      ],
+      "id": "0b793ab3-9f80-4b2a-9871-244f1c7e87eb",
+      "name": "500"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "8eb69e84-d20d-486e-a70e-9acf31c3da9e",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1472,
+        160
+      ],
+      "id": "2e0d88fc-4e92-4b58-9e33-278bbdb86d4e",
+      "name": "Webhook",
+      "webhookId": "a7923d60-a125-447b-9fe9-ed81a231453a"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -672,
+        -1296
+      ],
+      "id": "29cd1f82-4607-44dc-b85b-efc4096a91db",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0c28587a-e44d-4563-96fa-c3545ccf995c",
+              "leftValue": "={{ $json.body.message.entities[0].type }}",
+              "rightValue": "bot_command",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "56a9aa36-d219-474f-897c-1509c39a1cf6",
+              "leftValue": "={{ $json.body.message.text }}",
+              "rightValue": "/start",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -160,
+        -416
+      ],
+      "id": "7a66f758-6a09-441d-967b-362ded339fb5",
+      "name": "Start"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/{{ $json.telegramApiPayload.method }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.telegramApiPayload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -672,
+        -1136
+      ],
+      "id": "9ad63ba0-fd68-44ca-b539-829d66596aba",
+      "name": "📤 Telegram Manager",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Prepare_Vault_Legal_Disclaimer\n// DESC: Termini di Servizio B2B con riferimenti GDPR e AI Act\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\n\nconst messageText = `\n <b>TERMINI DI SERVIZIO E COMPLIANCE AI</b>\n━━━━━━━━━━━━━━━━━━━━\n <b>SiteBoS Vault & Customer Service</b>\n \n🏛️ Per attivare le funzionalità avanzate del Vostro Bot Privato, è necessario prendere visione e accettare le seguenti clausole operative, formulate in ottemperanza al <b>Regolamento UE 2024/1689 (AI Act)</b> e al <b>GDPR</b>:\n\n🛡️ <b>1. PERIMETRO DI CONOSCENZA (DATA ISOLATION)</b>\nL'intelligenza artificiale collegata a questo bot attinge esclusivamente alla <i>\"Conoscenza Pubblica\"</i> caricata nel Vostro <b>Mini Site TrinAi</b>.\n• <b>Sicurezza:</b> I documenti fiscali, i report e i file sensibili che riceverai nel Vault sono criptati e isolati. L'IA non può accedervi (Privacy by Design - Art. 25 GDPR), garantendo che nessun dato privato venga mai divulgato durante le conversazioni con i clienti.\n\n⚠️ <b>2. UTILIZZO DI GOOGLE AI (FREE TIER)</b>\nIl sistema utilizza <b>la tua chiave API Google Gemini.</b> \n<b>Se utilizzi il piano gratuito:</b>\n• <b>Trattamento Dati:</b> Google può analizzare e utilizzare i testi delle conversazioni per addestrare i propri modelli. <b>TrinAi srl</b> non è responsabile per le politiche di conservazione dati di Google. È Vostro onere aggiornare l'Informativa Privacy ai sensi dell'Art. 13 GDPR.\n• <b>Continuità:</b> Le API gratuite sono soggette a limiti di frequenza (Rate Limit). In caso di sovraccarico, il bot potrebbe non rispondere immediatamente.\n\n⚖️ <b>3. RESPONSABILITÀ DELL'IMPRENDITORE</b>\nL'IA può generare risposte imprecise o \"allucinazioni\". \n• <b>Responsabilità Legale:</b> Il <b>Proprietario del Bot (tu)</b> è l'unico responsabile legale delle informazioni fornite dal bot ai propri clienti finali (Art. 2043 C.C.). <b>TrinAi srl fornisce l'architettura SiteBos</b>, ma il controllo editoriale spetta all'azienda. \n• <b>Trasparenza:</b> Ai sensi dell'Art. 50 dell'AI Act, è Vostro obbligo informare gli utenti che stanno interagendo con un sistema di IA.\n\n📂 <b>4. CONSERVAZIONE E LOG</b>\nOgni interazione viene registrata sui database TrinAi srl per scopi di Audit e consultazione. I log sono accessibili solo tramite la tua chiave di amministrazione SiteBos.\n\n🛑 <b>5. MANCATA ACCETTAZIONE</b>\nIn caso di mancata accettazione dei presenti termini, il modulo di Interazione AI (Customer Bot) <u>non potrà essere attivato</u>. La chat di Telegram non risponderà ad alcun input testuale. Tuttavia, la funzione <b>Vault (Archivio Sicuro)</b> rimarrà attiva, permettendoti di continuare a ricevere regolarmente file, evidenze e report certificati.\n\n━━━━━━━━━━━━━━━━━━━━\n<i>Cliccando sul pulsante in basso, dichiari di aver compreso i rischi tecnici legati all'uso di AI di terze parti e accetti le limitazioni del servizio e le responsabilità indicate.</i>`;\n\nreturn [{\n    json: {\n        ...item,\n        telegramApiPayload: {\n            method: \"sendMessage\",\n            chat_id: owner.chat_id,\n            text: messageText,\n            parse_mode: \"HTML\",\n            disable_web_page_preview: true,\n            reply_markup: {\n                inline_keyboard: [\n                    [{ text: \"✅ Accetto le Condizioni di Utilizzo\", callback_data: \"m_vault_accept_terms\" }]\n                ]\n            }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -592
+      ],
+      "id": "e9fbfe7c-f3fc-4dac-be7e-07f1871293b3",
+      "name": "Prepare Vault Welcome Message"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -784,
+        -256
+      ],
+      "id": "b24aa9fd-c982-4c47-a82d-bb04c6f3fe9c",
+      "name": "OwnerExist"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6dd6d676-95a4-4bf5-a20a-c1b2994b217b",
+              "leftValue": "={{ $json.query.user_id }}",
+              "rightValue": "={{ $json.body.message?.from?.id ?? $json.body.callback_query?.from?.id }}",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        848,
+        -288
+      ],
+      "id": "31779c69-b813-4dfe-a27c-4a620a778653",
+      "name": "Owner?"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.chat_id\": {\n        \"$eq\": {{ $json.query.user_id || $json.body.user_id}}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -944,
+        -256
+      ],
+      "id": "46e01f5e-76c7-445e-b8cf-c0d9fe358cc9",
+      "name": "owner_data",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -400,
+        -288
+      ],
+      "id": "fab36fdc-091a-45fc-b2a9-1a6839bfb45f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "m_vault_accept_terms",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f34bc892-9f79-46f3-b231-499dadc54f1d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "AcceptTerms"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bbed08b1-ce1a-4116-ae69-fff4fd63e65c",
+                    "leftValue": "={{ $json.body.callback_query.data }}",
+                    "rightValue": "=m_vault_activate_commit",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VaultActivate"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "aab64de1-adc5-49a7-a09d-a5309e4afeab",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_bot_config",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "get_config"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5d16c4df-4eaa-4722-aa85-b2b70f64a0bd",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "=save_bot_config",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "save_bot"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        -448
+      ],
+      "id": "76eaeed2-42a6-440f-b29c-e57f22c1057a",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Prepare_Vault_Memory_Payment\n// DESC: Gestione Paywall per il Vostro Bot (Con tasto Aggiorna se serve)\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst chatId = owner.chat_id;\nconst messageId = item.body.callback_query.message.message_id;\n\nconst COSTO_ATTIVAZIONE = 50;\nconst saldo = owner.credits_balance || 0;\nconst ragioneSociale = owner.ragione_sociale || \"Azienda non specificata\";\nconst vatNumber = owner.vat_number || \"P.IVA non disponibile\";\nconst desc =owner.business_description;\n  \nlet msgText = \"\";\nlet buttons = [];\n\nif (saldo >= COSTO_ATTIVAZIONE) {\n    // --- CASO A: SALDO DISPONIBILE (UI d'azione) ---\n    msgText = `\n🧠 <b>ATTIVAZIONE: CUSTOMER MEMORY & DATA VAULT</b>\n━━━━━━━━━━━━━━━━━━━━\nCondizioni accettate. Il Vostro Bot Personale è pronto per essere configurato come:\n<b>Assistente Customer Service</b>.\n🏢 - <b>${ragioneSociale}</b> - <b>P.IVA:</b> <code>${vatNumber}</code>\n<i> ${desc} </i> \n\n<b>L'attivazione del modulo abilita la possibilita di conversare con il Vostro Bot di Telegram con la persistenza dei dati e la continuità logica delle conversazioni.\n.</b>\n\n💎 <b>COSA ABILITATE ORA:</b>\n• <b>Memoria Contestuale:</b> L'IA ricorderà gli ultimi 15 scambi per fornire risposte precise.\n• <b>Storage Storico:</b> Salvataggio integrale di ogni sessione su database <b>TrinAi</b> per scopi di Audit.\n• <b>Manager Data Pipe:</b> Abilitazione del flusso dati verso il Vostro pannello di controllo.\n\n💰 <b>DETTAGLI OPERAZIONE:</b>\n├ Costo Attivazione: <b>${COSTO_ATTIVAZIONE} Crediti</b>\n├ Tuo Saldo Attuale: <b>${saldo} Crediti</b>\n└ Saldo Finale: <b>${saldo - COSTO_ATTIVAZIONE} Crediti</b>\n\n━━━━━━━━━━━━━━━━━━━━\n⚠️ <i>L'investimento è \"Una Tantum\": lo storage della conoscenza prodotta è incluso. Confermate l'attivazione?</i>`;\n\n    buttons = [\n        [{ text: `🔋 Conferma e Attiva (${COSTO_ATTIVAZIONE} Crediti)`, callback_data: \"m_vault_activate_commit\" }]\n    ];\n\n} else {\n    // --- CASO B: SALDO INSUFFICIENTE (UI di ricarica + Aggiorna) ---\n    msgText = `\n⚠️ <b>SALDO INSUFFICIENTE</b>\n━━━━━━━━━━━━━━━━━━━━\nPer attivare il modulo <b>Customer Memory & Data Vault</b> sul Vostro bot personale sono necessari <b>${COSTO_ATTIVAZIONE} crediti</b>.\n\n📊 <b>Tuo saldo attuale:</b> ${saldo} Crediti\n📉 <b>Crediti mancanti:</b> ${COSTO_ATTIVAZIONE - saldo} Crediti\n\nL'archiviazione sicura e la gestione della memoria storica richiedono risorse di storage dedicate sul database <b>TrinAi</b>. \n\n👉 <i>Potete ricaricare il saldo sulla piattaforma ufficiale e cliccare su 'Aggiorna Saldo' per procedere.</i>`;\n\n    buttons = [\n        [{ text: \"🛒 Vai alla Ricarica\", url: \"https://dashboard.trinai.it/\" }],\n        [{ text: \"🔄 Aggiorna Saldo\", callback_data: \"m_vault_accept_terms\" }]\n    ];\n}\n\nreturn [{\n    json: {\n        ...item,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: chatId,\n            message_id: messageId,\n            text: msgText,\n            parse_mode: \"HTML\",\n            reply_markup: { inline_keyboard: buttons }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -768
+      ],
+      "id": "bcbe58ff-a482-4cb9-a2d9-8cb87a8769c2",
+      "name": "Prepare Vault Memory Payment"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.owner_data_ref.chat_id\": {\n        \"$eq\": {{ $json.owner_data.chat_id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -672,
+        -1760
+      ],
+      "id": "1f1001eb-2242-4daf-b595-f41638bb5e81",
+      "name": "Stakeholder1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d12c796a-4e17-4456-9a7d-022242576163",
+              "leftValue": "={{ $json.stakeholder }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -672,
+        -1536
+      ],
+      "id": "1356d6ce-62a4-46ed-ad4a-3c1ed09b069d",
+      "name": "Stakeholder Exist1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -176,
+        -1536
+      ],
+      "id": "b1bc898e-6d9a-4f34-9458-6a2ababdce1b",
+      "name": "Merge11"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2112787d-3137-4342-8d59-a6a3bd40a908",
+              "leftValue": "={{ $json.owner_data.credits_balance }}",
+              "rightValue": 300,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -400,
+        -1504
+      ],
+      "id": "292a0f9e-1c7b-4d84-b548-3eb02e3466f6",
+      "name": "CeckBalance"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Prepare_Vault_Success_Welcome\n// DESC: Messaggio di attivazione avvenuta con focus su Personalità IA\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\nconst owner = item.owner_data || {};\nconst chatId = owner.chat_id;\nconst messageId = item.body.callback_query.message.message_id;\n\nconst ragioneSociale = owner.ragione_sociale || \"la Vostra Azienda\";\nconst botUsername = owner.bot_username || \"VostroBot_bot\";\n\n// URL PULITO: L'identità verrà gestita tramite Telegram Hash\nconst webAppUrl = `https://simonaiit.github.io/SiteBoS-MiniApp/bot_config.html`;\n\nconst messageText = `\n🎊 <b>BOT ATTIVATO: LA VOSTRA IA È ONLINE!</b>\n━━━━━━━━━━━━━━━━━━━━\nL'assistente <b>Customer Service</b> per <b>${ragioneSociale}</b> è ora pienamente operativo e pronto per accogliere il Vostro pubblico.\n\n📢 <b>DISTRIBUZIONE AI:</b>\nPer permettere ai clienti di conversare con la Vostra azienda:\n1. Aprite le informazioni del profilo di questo bot.\n2. Copiate lo Username (es: <code>@${botUsername}</code>).\n3. Condividetelo sui Vostri canali ufficiali (Sito Web, Social, Biglietti da visita).\n\n🚀 <b>MODULI ATTIVI:</b>\n• <b>Customer Service:</b> Risposte automatiche h24 basate sulla conoscenza del Vostro <b>Mini Site TrinAi</b>.\n• <b>Memoria Storica:</b> L'IA mantiene il filo del discorso per 15 scambi consecutivi.\n• <b>Vault Privato:</b> Continuerete a ricevere ed archiviare qui i report certificati dai Vostri operatori.\n\n🛠️ <b>MODELLAZIONE DEL COMPORTAMENTO:</b>\nUtilizzate il tasto qui sotto per accedere alla <b>Configurazione Avanzata</b>. Potete decidere la \"faccia\" che la Vostra IA mostrerà al mondo:\n├ <b>Permessi Media:</b> Consentite o bloccate l'invio di Immagini e File dai clienti.\n├ <b>Tono di Voce:</b> Impostate lo stile (es. Formale, Amichevole, Tecnico, Orientato alla Vendita).\n└ <b>Direct Prompt:</b> Raffinate le istruzioni operative impartite all'intelligenza.\n\n━━━━━━━━━━━━━━━━━━━━\n👇 <i>Scrivete un messaggio per testare la risposta:</i>`;\n\nreturn [{\n    json: {\n        ...item,\n        telegramApiPayload: {\n            method: \"editMessageText\",\n            chat_id: chatId,\n            message_id: messageId,\n            text: messageText,\n            parse_mode: \"HTML\",\n            reply_markup: {\n                inline_keyboard: [\n                    [{ text: \"⚙️ Configurazione Bot\", web_app: { url: webAppUrl } }]\n                ]\n            }\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -928
+      ],
+      "id": "8d45a11a-024b-4dc0-9f28-60dd09648bfc",
+      "name": "Prepare Vault Success Welcome"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "be2a8357-a58c-4c6d-b31c-d59b68646589",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "8eb69e84-d20d-486e-a70e-9acf31c3da9e",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "3bef5163-5ade-406e-9452-9d86522ab667",
+              "leftValue": "={{ $json.body._auth }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "69689e76-de9a-4a49-b321-2a9d2ff52c19",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "b49e4c02-f41b-433a-940d-fabfbc537ad6",
+              "leftValue": "={{ $json.body.ash }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1280,
+        -16
+      ],
+      "id": "cdd3f662-bf84-476d-b499-0a480f94ae99",
+      "name": "AutorizeApp"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2384,
+        -288
+      ],
+      "id": "9ae77f11-eac5-4ee0-a303-682aae6e095d",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- 1. CONFIGURAZIONE ---\nconst item = $input.item.json;\nconst initData = $input.item.json.body._auth;\nconst BOT_TOKEN = $input.item.json.owner_data.bot_key;\n\n\nif (!initData) return { isValid: false, error: \"Dato _auth mancante\" };\n\n// --- 2. LIBRERIA CRIPTOGRAFICA PURE JS (SHA-256 & HMAC) ---\nconst CryptoJS = (function() {\n    function sha256(m) {\n        var h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];\n        var k = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];\n        var b = Array.from(typeof m === 'string' ? new TextEncoder().encode(m) : m);\n        var l = b.length * 8; b.push(0x80);\n        while ((b.length * 8) % 512 !== 448) b.push(0);\n        for (var i = 7; i >= 0; i--) b.push((l / Math.pow(2, i * 8)) & 0xff);\n        for (var i = 0; i < b.length; i += 64) {\n            var w = new Int32Array(64);\n            for (var j = 0; j < 16; j++) w[j] = (b[i + j * 4] << 24) | (b[i + j * 4 + 1] << 16) | (b[i + j * 4 + 2] << 8) | (b[i + j * 4 + 3]);\n            for (var j = 16; j < 64; j++) {\n                var s0 = ((w[j - 15] >>> 7) | (w[j - 15] << 25)) ^ ((w[j - 15] >>> 18) | (w[j - 15] << 14)) ^ (w[j - 15] >>> 3);\n                var s1 = ((w[j - 2] >>> 17) | (w[j - 2] << 15)) ^ ((w[j - 2] >>> 19) | (w[j - 2] << 13)) ^ (w[j - 2] >>> 10);\n                w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;\n            }\n            var [a, c, d, e, f, g, i_h, j_h] = h;\n            var v = [...h];\n            for (var j = 0; j < 64; j++) {\n                var S1 = ((v[4] >>> 6) | (v[4] << 26)) ^ ((v[4] >>> 11) | (v[4] << 21)) ^ ((v[4] >>> 25) | (v[4] << 7));\n                var ch = (v[4] & v[5]) ^ (~v[4] & v[6]);\n                var t1 = (v[7] + S1 + ch + k[j] + w[j]) | 0;\n                var S0 = ((v[0] >>> 2) | (v[0] << 30)) ^ ((v[0] >>> 13) | (v[0] << 19)) ^ ((v[0] >>> 22) | (v[0] << 10));\n                var maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);\n                var t2 = (S0 + maj) | 0;\n                v.unshift((t1 + t2) | 0); v.splice(8); v[4] = (v[4] + t1) | 0;\n            }\n            for (var j = 0; j < 8; j++) h[j] = (h[j] + v[j]) | 0;\n        }\n        return h.reduce((acc, val) => acc.concat([(val >>> 24) & 0xff, (val >>> 16) & 0xff, (val >>> 8) & 0xff, val & 0xff]), []);\n    }\n\n    if (typeof TextEncoder === \"undefined\") {\n        window.TextEncoder = function() {};\n        TextEncoder.prototype.encode = function(s) {\n            return new Uint8Array(unescape(encodeURIComponent(s)).split(\"\").map(c => c.charCodeAt(0)));\n        };\n    }\n\n    return {\n        hmac: function(key, message) {\n            var k = typeof key === 'string' ? Array.from(new TextEncoder().encode(key)) : key;\n            var m = Array.from(new TextEncoder().encode(message));\n            var b = 64;\n            if (k.length > b) k = sha256(k);\n            while (k.length < b) k.push(0);\n            var ipad = k.map(x => x ^ 0x36);\n            var opad = k.map(x => x ^ 0x5c);\n            var inner = sha256(ipad.concat(m));\n            return sha256(opad.concat(inner));\n        }\n    };\n})();\n\n// --- 3. LOGICA PARSING ---\nconst data = {};\ninitData.split('&').forEach(pair => {\n    const [k, v] = pair.split('=');\n    data[k] = decodeURIComponent(v);\n});\n\nconst hashReceived = data.hash;\nconst checkString = Object.keys(data)\n    .filter(k => k !== 'hash')\n    .sort()\n    .map(k => k + '=' + data[k])\n    .join('\\n');\n\n// --- 4. CALCOLO HASH TELEGRAM ---\nconst secretKey = CryptoJS.hmac(\"WebAppData\", BOT_TOKEN);\nconst computedHashBytes = CryptoJS.hmac(secretKey, checkString);\nconst computedHash = computedHashBytes.map(b => b.toString(16).padStart(2, '0')).join('');\n\n// --- 5. CONTROLLO SCADENZA (MAX 1 ORA) ---\nconst now = Math.floor(Date.now() / 1000);\nconst authDate = parseInt(data.auth_date);\nconst isExpired = (now - authDate) > 3600; // Scade dopo 3600 secondi (1 ora)\n\n// --- 6. RISULTATO FINALE ---\nconst isHashValid = (computedHash === hashReceived);\n\nreturn {\n    ...item,\n    isValid: isHashValid && !isExpired,\n    isExpired: isExpired,\n    isHashValid: isHashValid,\n    user: data.user ? JSON.parse(data.user) : null,\n    auth_date_human: new Date(authDate * 1000).toLocaleString('it-IT'),\n    debug: {\n        time_diff_seconds: now - authDate,\n        computed: computedHash,\n        received: hashReceived\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2176,
+        -288
+      ],
+      "id": "4d81f9cb-5079-4a03-a2b5-f08d7129fc3a",
+      "name": "telegram_validator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0c81033b-45d3-46ad-8449-cd854d0ee023",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2016,
+        -288
+      ],
+      "id": "05f58259-7091-4bfa-a5a1-d68c53b92238",
+      "name": "isValid"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "get_bot_config",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f34bc892-9f79-46f3-b231-499dadc54f1d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bbed08b1-ce1a-4116-ae69-fff4fd63e65c",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "=save_bot_config",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Save"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "8534ac7e-0f52-479b-9995-1520bab05d2b",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "handover",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "HandOver"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "8bce8b81-b093-46be-9bbb-04d40881b278",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "=submit_ticket",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Ticket"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3423bc40-1a99-4689-9327-4a3bc0d05a89",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "u_calc",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Acquisti"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -944,
+        -1072
+      ],
+      "id": "6d5c0eb2-9c02-44c7-9bfb-762ceb9659ff",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "16eb9205-42b8-421e-abbf-f67f77355467",
+              "name": "customer_bot_config",
+              "value": "={{ $json.owner_data.customer_bot_config }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -944,
+        -1280
+      ],
+      "id": "ec289e96-e6eb-4676-9087-f30ea23eedb6",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.customer_bot_config }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -944,
+        -1456
+      ],
+      "id": "142af077-8e50-41fe-ae8d-c97967acd379",
+      "name": "Respond to GetMiniApp"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "10bd33a1-67ba-47a9-b743-c2a9e2bb2930",
+              "name": "owner_data.customer_bot_config",
+              "value": "={{ $json.body.config }}",
+              "type": "object"
+            },
+            {
+              "id": "3cb39f74-87e6-43ce-9712-7ff154a4c3bf",
+              "name": "owner_data.customer_bot_config.last_updated_at",
+              "value": "={{ $now.toUTC().toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1568,
+        -784
+      ],
+      "id": "ca36ccaa-4363-43d1-85c0-679a1420edf5",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1376,
+        -800
+      ],
+      "id": "15dc4e2d-9199-4f87-bd86-dd2b6fdf34fa",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -1568,
+        -992
+      ],
+      "id": "9d295681-0217-4d89-843b-73974ae3462e",
+      "name": "MongoDB Chat Memory",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -1568,
+        -1136
+      ],
+      "id": "47c5af04-4df7-4522-911d-04f47153d42b",
+      "name": "owner",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1232,
+        -1152
+      ],
+      "id": "b9baef8d-abb0-4485-b941-fa291a850241",
+      "name": "Respond to GetMiniApp1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d14b4715-baea-47c3-ac0b-a151a3b384be",
+              "name": "urlMiniApp",
+              "value": "={{ \n  (() => {\n    const userId = $json.body?.data?.owner_id || \n                   $json.body?.data?.chat_id || \n                   $json.body?.callback_query?.from?.id || \n                   $json.body?.message?.from?.id ||\n                   $json.body?.user_id;\n                   \n    // Array degli ID abilitati all'ambiente di test (GitHub Pages)\n    const testers = [\"2041408875\", \"8305126267\"];\n                   \n    return testers.includes(String(userId)) \n      ? \"https://trinaibusinessoperatingsystem.github.io/SiteBoS-MiniApp/telegram_control/\" \n      : \"https://telegram.trinai.it/\";\n  })()\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1280,
+        160
+      ],
+      "id": "03a9d786-7703-4059-8602-7e2f7da488ca",
+      "name": "appUrl"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c93b2e9e-6c1d-46fb-8d74-c9d1f2b35cc9",
+              "leftValue": "={{ $json.body.file_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -3680,
+        -1568
+      ],
+      "id": "22f9fd2e-5d1a-422b-9377-5880d2ac7a3f",
+      "name": "allegati?"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "body.file_data.base64_content",
+        "options": {
+          "fileName": "={{ $json.body.file_data.file_name }}",
+          "mimeType": "={{ $json.body.file_data.mime_type }}"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -3680,
+        -1728
+      ],
+      "id": "1d61f2cc-1c39-4f89-8611-1eae4c97eec9",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -3408,
+        -1744
+      ],
+      "id": "d2cf10b7-378a-4338-af54-b90fa21cfc34",
+      "name": "Merge42"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// NODO: Prepare_Handover_Data\n// DESC: Decripta destinatario e prepara le caption. \n//       Log per il Vault generato SOLO alla chiusura.\n// ═══════════════════════════════════════════════════════════════\n\nconst item = $input.first().json;\nconst body = item.body || {};\nconst owner = item.owner_data || {};\nconst ash = body.ash;\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\n\n// --- 1. DECRIPTAZIONE ASH ---\nif (!ash || !ash.includes('.')) {\n    throw new Error(\"Ash di destinazione non valido.\");\n}\n\nconst [encodedPayload, sigReceived] = ash.split('.');\nconst decodedPayload = Buffer.from(encodedPayload, 'base64').toString('utf-8');\n\nfunction generateSignature(str, key) {\n    let hash = 0;\n    const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        const char = combined.charCodeAt(i);\n        hash = ((hash << 5) - hash) + char;\n        hash = hash & hash; \n    }\n    return Math.abs(hash).toString(16);\n}\n\nif (sigReceived !== generateSignature(decodedPayload, SECRET_KEY)) {\n    throw new Error(\"Firma Ash non valida. Accesso negato.\");\n}\n\nconst [targetChatId, timestamp, webhookId] = decodedPayload.split('|');\n\n// --- 2. PULIZIA TESTO ---\nfunction cleanHTML(t) {\n    return t ? String(t).replace(/<(?!b|i|u|code|a|pre|\\/b|\\/i|\\/u|\\/code|\\/a|\\/pre)[^>]+>/gi, '') : '';\n}\nconst cleanText = cleanHTML(body.message_text);\n\n// --- 3. PAYLOAD PER IL CLIENTE (Sempre generato) ---\nconst customerMsg = `\n🎧 <b>AGGIORNAMENTO ASSISTENZA</b>\n━━━━━━━━━━━━━━━━━━━━\nCiao, il team di <b>${owner.ragione_sociale}</b> ha risposto alla tua richiesta:\n\n\"${cleanText}\"\n\n${body.close_ticket ? '\\n📍 <i>La sessione di assistenza è stata chiusa.</i>' : ''}\n━━━━━━━━━━━━━━━━━━━━`;\n\nconst payload_customer = {\n    chat_id: targetChatId,\n    caption: customerMsg,\n    parse_mode: \"HTML\"\n};\n\n// --- 4. LOG PER IL VAULT (Solo se close_ticket è true) ---\nlet payload_vault = null;\nif (body.close_ticket === true) {\n    const vaultMsg = `\n🗄️ <b>HANDOVER CHIUSO: LOG ARCHIVIO</b>\n━━━━━━━━━━━━━━━━━━━━\n👤 <b>OPERATORE:</b> <b>${item.user?.first_name || 'Owner'}</b>\n🎯 <b>CLIENTE ID:</b> <code>${targetChatId}</code>\n\n💬 <b>ULTIMO MESSAGGIO:</b>\n<i>\"${cleanText}\"</i>\n\n📎 <b>ALLEGATO INVIATO:</b> <code>${body.file_data?.file_name || 'Nessuno'}</code>\n✅ <b>STATUS:</b> CERTIFICATO E CHIUSO\n━━━━━━━━━━━━━━━━━━━━`;\n\n    payload_vault = {\n        method: \"sendMessage\", // Messaggio testuale, non mandiamo il file al manager\n        chat_id: owner.chat_id,\n        text: vaultMsg,\n        parse_mode: \"HTML\"\n    };\n}\n\n// --- 5. RITORNO DATI ---\nreturn [{\n    json: {\n        ...item,\n        auth_result: {\n            isValid: true,\n            chatId: targetChatId\n        },\n        payload_customer: payload_customer,\n        payload_owner: payload_vault,\n        send_to_owner: (payload_vault !== null) // Flag utile per uno Switch in n8n\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3856,
+        -1760
+      ],
+      "id": "a8e3c671-5b8b-46c5-8d8c-31e7fb1ebb81",
+      "name": "Prepare_Handover_Data"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload_owner }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -3360,
+        -1424
+      ],
+      "id": "da2c4027-2c27-41bf-adcd-e222c8f06a5e",
+      "name": "📤 Telegram Manager3",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/sendDocument",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "=document",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "chat_id",
+              "value": "={{ $json.payload_customer.chat_id }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $json.payload_customer.caption }}"
+            },
+            {
+              "name": "parse_mode",
+              "value": "={{ $json.payload_customer.parse_mode }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -3408,
+        -1904
+      ],
+      "id": "782afee2-627c-4b82-9199-5e199a307e89",
+      "name": "📤 Telegram User",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -3152,
+        -1904
+      ],
+      "id": "de3225a0-ae52-4a46-8d00-92072f6e63e6",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst { ids, owner_data: owner, body, user, stakeholder } = item;\n\n// 1. PULIZIA TESTO (Rimuoviamo tag HTML non supportati da Telegram)\nfunction cleanHTML(t) {\n    return t ? String(t).replace(/<(?!b|i|u|code|a|pre|\\/b|\\/i|\\/u|\\/code|\\/a|\\/pre)[^>]+>/gi, '') : '';\n}\nconst cleanText = cleanHTML(body.message_text);\n\n// 2. RECUPERO NOME OPERATORE (Chi sta scrivendo ora)\nconst operatore = user?.first_name || \"Owner\";\n\n// 3. PAYLOAD PER IL CLIENTE (Destinatario finale)\n// Usiamo ids.customer_id estratto dal Decoder\nitem.payload_customer = {\n    method: \"sendMessage\",\n    chat_id: ids.customer_id,\n    text: `🎧 <b>RISPOSTA DA ${owner.ragione_sociale.toUpperCase()}</b>\\n━━━━━━━━━━━━━━━━━━━━\\n\"<i>${cleanText}</i>\"\\n\\n${body.close_ticket ? '📍 <b>Nota:</b> <i>Il ticket è stato risolto e la sessione chiusa.</i>' : '💬 <i>Puoi rispondere a questo messaggio se hai bisogno di altro.</i>'}`,\n    parse_mode: \"HTML\"\n};\n\n// 4. LOG PER IL VAULT DELL'OWNER (Solo alla chiusura)\nif (body.close_ticket === true) {\n    const nomeCliente = stakeholder.user_ref?.nome || \"Utente\";\n    \n    item.payload_owner = {\n        method: \"sendMessage\",\n        chat_id: ids.owner_id,\n        text: `🗄️ <b>HANDOVER CHIUSO E ARCHIVIATO</b>\\n━━━━━━━━━━━━━━━━━━━━\\n👤 <b>Operatore:</b> ${operatore}\\n🎯 <b>Cliente:</b> ${nomeCliente}\\n🆔 <b>User ID:</b> <code>${ids.customer_id}</code>\\n\\n💬 <b>Ultima risposta:</b>\\n\"<i>${cleanText}</i>\"\\n\\n✅ <b>STATUS:</b> RISOLTO`,\n        parse_mode: \"HTML\"\n    };\n    item.send_to_owner = true;\n} else {\n    item.send_to_owner = false;\n}\n\nreturn [item];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3456,
+        -1552
+      ],
+      "id": "876af778-d6bf-4148-9248-b768d24c2e5e",
+      "name": "Prepare_Handover_Data_NoFile"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1040,
+        -272
+      ],
+      "id": "4b471851-6006-4dd1-8771-f8dd80079da5",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "zSaxay9LieuBlGP3",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/zSaxay9LieuBlGP3",
+          "cachedResultName": "telegramUser_@customerbot"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1216,
+        -272
+      ],
+      "id": "f22a51f3-e7d9-494b-bd9c-49c472ea4bc6",
+      "name": "Call 'telegramUser_customebot'"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.chat_id\": {\n        \"$eq\": {{ $json.ids.owner_id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2176,
+        -128
+      ],
+      "id": "e41c226e-c8ba-49d8-a41e-96d25a01ffca",
+      "name": "owner_data2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "be2a8357-a58c-4c6d-b31c-d59b68646589",
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "8eb69e84-d20d-486e-a70e-9acf31c3da9e",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -400,
+        0
+      ],
+      "id": "00ff0b2b-2a1e-413b-870d-58a57c828067",
+      "name": "AutorizeHook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d866f6b-8459-4f73-bcf4-2be0c37a3f8a",
+              "leftValue": "={{ $json.owner_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2016,
+        -128
+      ],
+      "id": "dc810a40-129b-49e7-b695-c5816c349a3a",
+      "name": "OwnerExist1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c93b2e9e-6c1d-46fb-8d74-c9d1f2b35cc9",
+              "leftValue": "={{ $json.body.file_data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -3680,
+        -2176
+      ],
+      "id": "15b07515-ac84-4685-949b-cb73b4c1d5c9",
+      "name": "allegati?1"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "body.file_data.base64_content",
+        "options": {
+          "fileName": "={{ $json.body.file_data.file_name }}",
+          "mimeType": "={{ $json.body.file_data.mime_type }}"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -3680,
+        -2336
+      ],
+      "id": "00a95ee4-4fdc-4722-ab74-95b2f7439168",
+      "name": "Convert to File1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -3392,
+        -2352
+      ],
+      "id": "90c87890-8266-4209-b7e4-df8d480d0aa2",
+      "name": "Merge43"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload_owner }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -3136,
+        -2352
+      ],
+      "id": "47f02e9c-c795-4de2-b406-0b18396fcff5",
+      "name": "📤 Telegram Manager5",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/sendDocument",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "=document",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "chat_id",
+              "value": "={{ $json.payload_customer.chat_id }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $json.payload_customer.caption }}"
+            },
+            {
+              "name": "parse_mode",
+              "value": "={{ $json.payload_customer.parse_mode }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -3392,
+        -2512
+      ],
+      "id": "ea3660bf-6571-45ca-a94e-b1bf88af72e6",
+      "name": "📤 Telegram User1",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload_customer }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -3136,
+        -2160
+      ],
+      "id": "663ef82d-a7f4-4d25-8ba2-e8b17052e3f3",
+      "name": "📤 Telegram Manager6",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -3136,
+        -2512
+      ],
+      "id": "59986181-3b31-41d6-ac8e-80513dd2f2cc",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2944,
+        -2176
+      ],
+      "id": "150e32fa-d288-45d0-9ad2-617c1363ba9c",
+      "name": "Merge44"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst { ids, owner_data: owner, stakeholder, body } = item;\nconst ticket = body.ticket_data || {};\n\n// --- FABBRICA FRESH ASH ---\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst WEBHOOK_ID = 'e353fa8d-62fb-4203-a2a7-20369d832e00';\nconst timestamp = Date.now().toString();\nconst payload = `${ids.owner_id}|${ids.customer_id}|${timestamp}|${WEBHOOK_ID}`;\n\nfunction generateSignature(str, key) {\n    let hash = 0; const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        hash = ((hash << 5) - hash) + combined.charCodeAt(i);\n        hash = hash & hash;\n    }\n    return Math.abs(hash).toString(16);\n}\nconst freshAsh = `${Buffer.from(payload).toString('base64')}.${generateSignature(payload, SECRET_KEY)}`;\n\n// --- URL MINIAPP (Strictly from urlMiniApp) ---\nconst handoverUrl = `${item.urlMiniApp}handover.html?ash=${freshAsh}`;\n\n// --- MESSAGGI ---\nconst nome = stakeholder.user_ref?.nome || item.user.first_name;\n\nitem.payload_customer = {\n    chat_id: ids.customer_id,\n    caption: `✅ <b>DOCUMENTO RICEVUTO</b>\\n━━━━━━━━━━━━━━━━━━━━\\nAbbiamo ricevuto l'allegato per il reparto <b>${ticket.department}</b>.\\n\\n<i>Un operatore prenderà in carico la richiesta.</i>`,\n    parse_mode: \"HTML\"\n};\n\nitem.payload_owner = {\n    method: \"sendMessage\",\n    chat_id: ids.owner_id,\n    text: `📎 <b>TICKET CON ALLEGATO</b>\\n━━━━━━━━━━━━━━━━━━━━\\n👤 <b>Da:</b> ${nome}\\n📂 <b>Area:</b> ${ticket.department}\\n\\n💬 <b>Nota:</b> \"<i>${ticket.message}</i>\"\\n\\n👉 <i>File disponibile nel Vault.</i>`,\n    parse_mode: \"HTML\",\n    reply_markup: {\n        inline_keyboard: [[{ text: \"🤝 RISPONDI AL CLIENTE\", web_app: { url: handoverUrl } }]]\n    }\n};\n\nitem.send_to_owner = true;\nreturn [item];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3856,
+        -2368
+      ],
+      "id": "0141c70b-d7bf-4425-bca2-0b0555eb9a98",
+      "name": "Prepare_Ticket_Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst { ids, owner_data: owner, stakeholder, body, user } = item;\nconst ticket = body.ticket_data || {};\n\n// --- 1. GENERAZIONE FRESH ASH ---\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\nconst WEBHOOK_ID = 'e353fa8d-62fb-4203-a2a7-20369d832e00';\nconst timestamp = Date.now().toString();\nconst payload = `${ids.owner_id}|${ids.customer_id}|${timestamp}|${WEBHOOK_ID}`;\n\nfunction generateSignature(str, key) {\n    let hash = 0; const combined = str + key;\n    for (let i = 0; i < combined.length; i++) {\n        hash = ((hash << 5) - hash) + combined.charCodeAt(i);\n        hash = hash & hash;\n    }\n    return Math.abs(hash).toString(16);\n}\nconst freshAsh = `${Buffer.from(payload).toString('base64')}.${generateSignature(payload, SECRET_KEY)}`;\nconst handoverUrl = `${item.urlMiniApp}handover.html?ash=${freshAsh}`;\n\n// --- 2. RECUPERO DATI ANAGRAFICI (Deep Mapping) ---\nconst isKnown = stakeholder.type !== \"UNKOWN\";\nconst u = stakeholder.user_ref || {};\n\nconst nomeCompleto = isKnown ? `${u.first_name\n || \"\"} ${u.last_name || \"\"}`.trim() : user.first_name;\nconst email = u.email || \"Non fornita\";\nconst telefono = u.telefono || \"N/D\";\nconst cf = u.codiceFiscale || \"N/D\";\nconst status = isKnown ? \"🟢 CLIENTE VERIFICATO\" : \"⚪ GUEST (Lead da qualificare)\";\n\n// --- 3. COSTRUZIONE MESSAGGIO EXECUTIVE ---\nlet vaultMsg = `🎫 <b>NUOVO TICKET ASSISTENZA</b>\\n`;\nvaultMsg += `━━━━━━━━━━━━━━━━━━━━\\n\\n`;\n\nvaultMsg += `👤 <b>SCHEDA ANAGRAFICA</b>\\n`;\nvaultMsg += `├ <b>Nome:</b> ${nomeCompleto}\\n`;\nvaultMsg += `├ <b>Stato:</b> ${status}\\n`;\nvaultMsg += `├ <b>Email:</b> <code>${email}</code>\\n`;\nvaultMsg += `├ <b>Telefono:</b> <code>${telefono}</code>\\n`;\nif (isKnown && u.codiceFiscale) vaultMsg += `├ <b>C.F.:</b> <code>${cf}</code>\\n`;\nvaultMsg += `└ <b>TG ID:</b> <code>${ids.customer_id}</code>\\n\\n`;\n\nvaultMsg += `⚙️ <b>DETTAGLI OPERATIVI</b>\\n`;\nvaultMsg += `├ <b>Area:</b> <code>${ticket.department.toUpperCase()}</code>\\n`;\nvaultMsg += `└ <b>Priorità:</b> ${ticket.priority === 'Alta' ? '🔴 ALTA' : '🟡 MEDIA'}\\n\\n`;\n\nvaultMsg += `💬 <b>MESSAGGIO:</b>\\n`;\nvaultMsg += `<i>\"${ticket.message}\"</i>\\n\\n`;\n\nvaultMsg += `━━━━━━━━━━━━━━━━━━━━\\n`;\nvaultMsg += `👇 <b>GESTIONE IMMEDIATA:</b>`;\n\nitem.payload_owner = {\n    method: \"sendMessage\",\n    chat_id: ids.owner_id,\n    text: vaultMsg,\n    parse_mode: \"HTML\",\n    reply_markup: {\n        inline_keyboard: [[{ text: \"🤝 RISPONDI AL CLIENTE\", web_app: { url: handoverUrl } }]]\n    }\n};\n\n// --- 4. CONFERMA CLIENTE ---\nitem.payload_customer = {\n    method: \"sendMessage\",\n    chat_id: ids.customer_id,\n    text: `✅ <b>RICHIESTA INVIATA</b>\\n━━━━━━━━━━━━━━━━━━━━\\nCiao <b>${nomeCompleto.split(' ')[0]}</b>, abbiamo ricevuto il tuo ticket.\\n\\nIl team di <b>${owner.ragione_sociale}</b> ti risponderà qui su Telegram il prima possibile.`,\n    parse_mode: \"HTML\"\n};\n\nitem.send_to_owner = true;\nreturn [item];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3440,
+        -2160
+      ],
+      "id": "61e71cdb-87eb-448a-a4c4-1d6aa3055fb4",
+      "name": "Prepare_Ticket_Data_NoFile"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.user_ref.chat_id\": {\n        \"$eq\": {{ $json.ids.customer_id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -2032,
+        -848
+      ],
+      "id": "8c593ddb-fa68-4765-80d0-647cc5050c53",
+      "name": "Stakeholder",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d12c796a-4e17-4456-9a7d-022242576163",
+              "leftValue": "={{ $json.stakeholder }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2032,
+        -640
+      ],
+      "id": "0daec24a-3f48-4cd6-997d-80df75cc01ef",
+      "name": "Stakeholder Exist"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2032,
+        -1024
+      ],
+      "id": "a92b23ef-9a55-463e-ac93-9b05262e512c",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "842682a5-1a12-4fc3-ae8b-b656fb8d22db",
+              "name": "stakeholder.type",
+              "value": "UNKOWN",
+              "type": "string"
+            },
+            {
+              "id": "9a3a3be1-f58a-4b0a-be68-82348a106c02",
+              "name": "stakeholder.chat_id",
+              "value": "={{ $json.user.id }}",
+              "type": "number"
+            },
+            {
+              "id": "1ce0804f-bb1c-4984-bf3d-72b3c9c37125",
+              "name": "stakeholder.name",
+              "value": "={{ $json.user.first_name }}",
+              "type": "string"
+            },
+            {
+              "id": "113e78cc-8e8d-488c-a1e7-b73237b03858",
+              "name": "body",
+              "value": "={{ $json.body }}",
+              "type": "object"
+            },
+            {
+              "id": "8a3a39f7-c806-43f5-8996-1202e27f5727",
+              "name": "owner_data",
+              "value": "={{ $json.owner_data }}",
+              "type": "object"
+            },
+            {
+              "id": "e0faf5f2-7f31-4c58-bf57-9fd7ffed4fd9",
+              "name": "urlMiniApp",
+              "value": "={{ $json.urlMiniApp }}",
+              "type": "string"
+            },
+            {
+              "id": "e57aa673-dfec-4acd-ba42-04691dfe5251",
+              "name": "stakeholder.user_ref.cognome",
+              "value": "={{ $json.user.last_name || \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "0ca99666-132e-4316-8b6d-f9ee0f8eeabc",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2032,
+        -448
+      ],
+      "id": "8d63c3ad-3f62-422e-85b7-3730185490fa",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&'; // La tua chiave segreta\n\n// 1. Recupero del token\nconst rawAsh =\n  item.ash ||\n  item.query?.ash ||\n  item.body?.ash ||\n  item.body?.web_app_data?.data ||\n  item.body?.message?.web_app_data?.data;\n\nif (!rawAsh || typeof rawAsh !== \"string\") {\n  throw new Error(\"ASH non trovato nell'input.\");\n}\n\n// 2. Separazione Payload e Firma\nconst [encodedPayload, signatureReceived] = rawAsh.split(\".\");\n\nif (!encodedPayload || !signatureReceived) {\n  throw new Error(\"Formato ASH non valido.\");\n}\n\n// 3. Decodifica e verifica integrità\nlet decodedPayload;\ntry {\n    decodedPayload = Buffer.from(encodedPayload, \"base64\").toString(\"utf8\");\n} catch (e) {\n    throw new Error(\"Errore decodifica Base64.\");\n}\n\n// --- LOGICA DI VERIFICA FIRMA ---\nfunction verifySignature(payload, secret, receivedSig) {\n    let hash = 0;\n    const combined = payload + secret;\n    for (let i = 0; i < combined.length; i++) {\n        hash = ((hash << 5) - hash) + combined.charCodeAt(i);\n        hash = hash & hash; \n    }\n    const expectedSig = Math.abs(hash).toString(16);\n    return expectedSig === receivedSig;\n}\n\nif (!verifySignature(decodedPayload, SECRET_KEY, signatureReceived)) {\n    // Se la firma non corrisponde, blocchiamo tutto qui!\n    throw new Error(\"SICUREZZA: Firma ASH non valida o manomessa. Accesso negato.\");\n}\n// --------------------------------\n\n// 4. Estrazione ID (Solo se la firma è valida)\nconst parts = decodedPayload.split(\"|\");\n\nreturn [{\n    json: {\n        ...item,\n        ids: {\n            owner_id: parts[0],\n            customer_id: parts[1],\n            timestamp: parts[2],\n            webhook: parts[3]\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2384,
+        -112
+      ],
+      "id": "ec768711-0b5f-4b41-9dcf-c64207f8ec9e",
+      "name": "Ash Decoder",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data.bot_key }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload_customer }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -3152,
+        -1552
+      ],
+      "id": "299fa4ad-ae7c-42ee-80b0-01c3df8413b1",
+      "name": "📤 Telegram Manager4",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2944,
+        -1568
+      ],
+      "id": "e3c42df4-f270-4547-bb8e-d6f4db9c4770",
+      "name": "Merge45"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "jnH1bR1I5w25S3aw",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/jnH1bR1I5w25S3aw",
+          "cachedResultName": "Commerce_Engine"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -1760,
+        -1584
+      ],
+      "id": "90d3b245-ec44-4a13-980e-b9935d102324",
+      "name": "Call 'ecommerce'"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1552,
+        -1584
+      ],
+      "id": "72bc5244-480e-4953-b568-bf7da0772785",
+      "name": "Respond to GetMiniApp2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d3206da7-b947-472d-acc1-b2e04125017f",
+              "name": "bot_config",
+              "value": "={{ $json.owner_data.customer_bot_config }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        -400
+      ],
+      "id": "113bf752-4a94-4f60-863f-a4c1e20b95a4",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.bot_config }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        624,
+        -400
+      ],
+      "id": "18ec4333-3924-47f1-9765-61ea2f300e62",
+      "name": "Respond to Webhook4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "858ed9f4-3ee9-483d-a8f4-5f3f976c928e",
+              "name": "owner_data.customer_bot_config",
+              "value": "={{ $json.body.config }}",
+              "type": "object"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1440,
+        -368
+      ],
+      "id": "65de535b-5659-45f9-ab51-3f9bc017a392",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        -1232,
+        -656
+      ],
+      "id": "f7bbf095-053e-4294-b138-6291d0e0679b",
+      "name": "MongoDB Chat Memory2",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -1232,
+        -800
+      ],
+      "id": "fb8de55f-7a91-46b9-a397-50219def190f",
+      "name": "owner1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.owner_data.vat_number }}",
+        "collectionName": "owner_sessions",
+        "databaseName": "MemoryManager"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryMongoDbChat",
+      "typeVersion": 1,
+      "position": [
+        1632,
+        -224
+      ],
+      "id": "153e0498-1b78-4770-a6ce-69217b2fdc82",
+      "name": "MongoDB Chat Memory3",
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "insertMode": "override",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $json.owner_data }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        1632,
+        -368
+      ],
+      "id": "1f7b97bf-12c2-4b2f-8808-cb1dc1042512",
+      "name": "owner2",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2016,
+        -384
+      ],
+      "id": "08d6a41b-d430-4abb-9e7f-ba8eedcd887d",
+      "name": "Respond to GetMiniApp3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- 1. CONFIGURAZIONE ---\nconst BOT_TOKEN = \"8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ\";\nconst initData = $input.item.json.body._auth;\n\nif (!initData) return { isValid: false, error: \"Dato _auth mancante\" };\n\n// --- 2. LIBRERIA CRIPTOGRAFICA PURE JS (SHA-256 & HMAC) ---\nconst CryptoJS = (function() {\n    function sha256(m) {\n        var h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];\n        var k = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];\n        var b = Array.from(typeof m === 'string' ? new TextEncoder().encode(m) : m);\n        var l = b.length * 8; b.push(0x80);\n        while ((b.length * 8) % 512 !== 448) b.push(0);\n        for (var i = 7; i >= 0; i--) b.push((l / Math.pow(2, i * 8)) & 0xff);\n        for (var i = 0; i < b.length; i += 64) {\n            var w = new Int32Array(64);\n            for (var j = 0; j < 16; j++) w[j] = (b[i + j * 4] << 24) | (b[i + j * 4 + 1] << 16) | (b[i + j * 4 + 2] << 8) | (b[i + j * 4 + 3]);\n            for (var j = 16; j < 64; j++) {\n                var s0 = ((w[j - 15] >>> 7) | (w[j - 15] << 25)) ^ ((w[j - 15] >>> 18) | (w[j - 15] << 14)) ^ (w[j - 15] >>> 3);\n                var s1 = ((w[j - 2] >>> 17) | (w[j - 2] << 15)) ^ ((w[j - 2] >>> 19) | (w[j - 2] << 13)) ^ (w[j - 2] >>> 10);\n                w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;\n            }\n            var [a, c, d, e, f, g, i_h, j_h] = h;\n            var v = [...h];\n            for (var j = 0; j < 64; j++) {\n                var S1 = ((v[4] >>> 6) | (v[4] << 26)) ^ ((v[4] >>> 11) | (v[4] << 21)) ^ ((v[4] >>> 25) | (v[4] << 7));\n                var ch = (v[4] & v[5]) ^ (~v[4] & v[6]);\n                var t1 = (v[7] + S1 + ch + k[j] + w[j]) | 0;\n                var S0 = ((v[0] >>> 2) | (v[0] << 30)) ^ ((v[0] >>> 13) | (v[0] << 19)) ^ ((v[0] >>> 22) | (v[0] << 10));\n                var maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);\n                var t2 = (S0 + maj) | 0;\n                v.unshift((t1 + t2) | 0); v.splice(8); v[4] = (v[4] + t1) | 0;\n            }\n            for (var j = 0; j < 8; j++) h[j] = (h[j] + v[j]) | 0;\n        }\n        return h.reduce((acc, val) => acc.concat([(val >>> 24) & 0xff, (val >>> 16) & 0xff, (val >>> 8) & 0xff, val & 0xff]), []);\n    }\n\n    if (typeof TextEncoder === \"undefined\") {\n        window.TextEncoder = function() {};\n        TextEncoder.prototype.encode = function(s) {\n            return new Uint8Array(unescape(encodeURIComponent(s)).split(\"\").map(c => c.charCodeAt(0)));\n        };\n    }\n\n    return {\n        hmac: function(key, message) {\n            var k = typeof key === 'string' ? Array.from(new TextEncoder().encode(key)) : key;\n            var m = Array.from(new TextEncoder().encode(message));\n            var b = 64;\n            if (k.length > b) k = sha256(k);\n            while (k.length < b) k.push(0);\n            var ipad = k.map(x => x ^ 0x36);\n            var opad = k.map(x => x ^ 0x5c);\n            var inner = sha256(ipad.concat(m));\n            return sha256(opad.concat(inner));\n        }\n    };\n})();\n\n// --- 3. LOGICA PARSING ---\nconst data = {};\ninitData.split('&').forEach(pair => {\n    const [k, v] = pair.split('=');\n    data[k] = decodeURIComponent(v);\n});\n\nconst hashReceived = data.hash;\nconst checkString = Object.keys(data)\n    .filter(k => k !== 'hash')\n    .sort()\n    .map(k => k + '=' + data[k])\n    .join('\\n');\n\n// --- 4. CALCOLO HASH TELEGRAM ---\nconst secretKey = CryptoJS.hmac(\"WebAppData\", BOT_TOKEN);\nconst computedHashBytes = CryptoJS.hmac(secretKey, checkString);\nconst computedHash = computedHashBytes.map(b => b.toString(16).padStart(2, '0')).join('');\n\n// --- 5. CONTROLLO SCADENZA (MAX 1 ORA) ---\nconst now = Math.floor(Date.now() / 1000);\nconst authDate = parseInt(data.auth_date);\nconst isExpired = (now - authDate) > 3600; // Scade dopo 3600 secondi (1 ora)\n\n// --- 6. RISULTATO FINALE ---\nconst isHashValid = (computedHash === hashReceived);\n\nreturn {\n    isValid: isHashValid && !isExpired,\n    isExpired: isExpired,\n    isHashValid: isHashValid,\n    user: data.user ? JSON.parse(data.user) : null,\n    auth_date_human: new Date(authDate * 1000).toLocaleString('it-IT'),\n    debug: {\n        time_diff_seconds: now - authDate,\n        computed: computedHash,\n        received: hashReceived\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1744,
+        -272
+      ],
+      "id": "b13ef2d8-6b55-4473-93e7-b5e058fcd472",
+      "name": "telegram_validator1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.owner_data_ref.chat_id\": {\n        \"$eq\": {{ $json.user.id }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1744,
+        -464
+      ],
+      "id": "e4f11ecf-265b-4e58-8bd0-474db55b2996",
+      "name": "Stakeholder2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d12c796a-4e17-4456-9a7d-022242576163",
+              "leftValue": "={{ $json.stakeholder }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1744,
+        -608
+      ],
+      "id": "a437c2a6-8ea5-47f1-956e-05267e5ad5d2",
+      "name": "Stakeholder Exist2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -944,
+        -448
+      ],
+      "id": "4c1c0669-51b2-4e32-83ae-290b527e3db7",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"error\": {\n    \"code\": \"504\",\n    \"title\": \"SAVE BILLING FAIL\",\n    \"message\": \"ERRORE NEL SALVATAGIO DEL PAGAMENTO \"\n  }\n}",
+        "options": {
+          "responseCode": 504
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -16,
+        -1328
+      ],
+      "id": "c66d8c3a-b024-46e9-834c-ff211c743954",
+      "name": "BillingFAIL"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4O56BKsRFw321LD7",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4O56BKsRFw321LD7",
+          "cachedResultName": "Standard_AcCredit"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -224,
+        -1184
+      ],
+      "id": "e5fad7d6-0e59-4bd6-8c3d-dc74d1d03c77",
+      "name": "Call 'Standard_AcCredit'"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0b0961b9-271d-4fdf-8233-63bc2ea11ebf",
+              "leftValue": "={{ $json.billing_error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -16,
+        -1184
+      ],
+      "id": "4815df0c-adb1-4030-8f5a-553c5ef232f5",
+      "name": "BillingError"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "91c4ce69-ff65-4495-9c1e-36b2ca50c870",
+              "name": "billing_source.wh",
+              "value": "=https://prod.workflow.trinai.it/webhook/8eb69e84-d20d-486e-a70e-9acf31c3da9e",
+              "type": "string"
+            },
+            {
+              "id": "358f9459-c678-4ef3-9ca3-e63cb0769f11",
+              "name": "billing_source.use",
+              "value": "=Telegram Customer Bot",
+              "type": "string"
+            },
+            {
+              "id": "8bd7e1fd-7edf-4559-ba30-092f61ad55e3",
+              "name": "owner_data.credits_balance",
+              "value": "={{ $json.owner_data.credits_balance }}",
+              "type": "number"
+            },
+            {
+              "id": "d441f543-c453-4a4e-a41f-11b877fda1dc",
+              "name": "user.id",
+              "value": "={{ $json.owner_data.chat_id }}",
+              "type": "number"
+            },
+            {
+              "id": "58c859ad-6f46-4a95-82a4-4f9c6c3a326f",
+              "name": "modelVersion",
+              "value": "TrinAi-Valut-Bot",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -400,
+        -1184
+      ],
+      "id": "566c498f-39ea-4cb0-8116-641b6afe5f39",
+      "name": "Billing"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "prod.workflow.trinai.it",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0",
+            "content-length": "598",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "it,it-IT;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "content-type": "application/json",
+            "origin": "https://simonaiit.github.io",
+            "priority": "u=1, i",
+            "referer": "https://simonaiit.github.io/",
+            "sec-ch-ua": "\"Not)A;Brand\";v=\"24\", \"Microsoft Edge WebView2\";v=\"149\", \"Microsoft Edge\";v=\"149\", \"Chromium\";v=\"149\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "via": "2.0 Caddy",
+            "x-forwarded-for": "151.57.3.184",
+            "x-forwarded-host": "prod.workflow.trinai.it",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "_auth": "query_id=AAF7KwZvAwAAAHsrBm81PRcj&user=%7B%22id%22%3A8305126267%2C%22first_name%22%3A%22Giuseppe%22%2C%22last_name%22%3A%22B%22%2C%22language_code%22%3A%22it%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2Fp6piCXvtNSGj4KPd60vozxgOJss0ji-aGRNNX4I7CVNme0ergMr6kC1wUoV60zBY.svg%22%7D&auth_date=1781856748&signature=R_Yk8vBUqtMc_knTyLvUjochDwUwDtwBjN6tx31CqrP6cLk8Y0Nq2CB6GWCCT-keBbhkbJz083uk4srjXwTVBw&hash=48525cd36e34654c9c6c4b706cfcb1f7a955dd4b2111e000178ec5fb127e5dc8",
+            "user_id": 8305126267,
+            "action": "get_bot_config"
+          },
+          "webhookUrl": "https://prod.workflow.trinai.it/webhook/8eb69e84-d20d-486e-a70e-9acf31c3da9e",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "appUrl",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Vault Welcome Message": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Prepare Vault Welcome Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Owner?": {
+      "main": [
+        [
+          {
+            "node": "Start",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner_data": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerExist": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Owner?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Prepare Vault Memory Payment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CeckBalance",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Vault Memory Payment": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stakeholder1": {
+      "main": [
+        [
+          {
+            "node": "Stakeholder Exist1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stakeholder Exist1": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge11": {
+      "main": [
+        [
+          {
+            "node": "Billing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CeckBalance": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Stakeholder1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Vault Memory Payment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Manager": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Vault Success Welcome": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AutorizeApp": {
+      "main": [
+        [
+          {
+            "node": "Ash Decoder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AutorizeHook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "telegram_validator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "telegram_validator": {
+      "main": [
+        [
+          {
+            "node": "isValid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isValid": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Stakeholder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "telegram_validator1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "allegati?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "allegati?1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'ecommerce'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to GetMiniApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "owner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner": {
+      "main": [
+        [
+          {
+            "node": "Respond to GetMiniApp1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "appUrl": {
+      "main": [
+        [
+          {
+            "node": "AutorizeApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Merge42",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge42": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram User",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📤 Telegram Manager3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "allegati?": {
+      "main": [
+        [
+          {
+            "node": "Prepare_Handover_Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare_Handover_Data_NoFile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare_Handover_Data": {
+      "main": [
+        [
+          {
+            "node": "Merge42",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram User": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Manager3": {
+      "main": [
+        [
+          {
+            "node": "Merge45",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Prepare_Handover_Data_NoFile": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📤 Telegram Manager4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook2": {
+      "main": [
+        [
+          {
+            "node": "Call 'telegramUser_customebot'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AutorizeHook": {
+      "main": [
+        [
+          {
+            "node": "owner_data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner_data2": {
+      "main": [
+        [
+          {
+            "node": "OwnerExist1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OwnerExist1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "allegati?1": {
+      "main": [
+        [
+          {
+            "node": "Prepare_Ticket_Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Convert to File1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare_Ticket_Data_NoFile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File1": {
+      "main": [
+        [
+          {
+            "node": "Merge43",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge43": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram User1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📤 Telegram Manager5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Manager5": {
+      "main": [
+        [
+          {
+            "node": "Merge44",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "📤 Telegram User1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Manager6": {
+      "main": [
+        [
+          {
+            "node": "Merge44",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        []
+      ]
+    },
+    "Merge44": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare_Ticket_Data": {
+      "main": [
+        [
+          {
+            "node": "Merge43",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare_Ticket_Data_NoFile": {
+      "main": [
+        [
+          {
+            "node": "📤 Telegram Manager5",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📤 Telegram Manager6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stakeholder": {
+      "main": [
+        [
+          {
+            "node": "Stakeholder Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stakeholder Exist": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ash Decoder": {
+      "main": [
+        [
+          {
+            "node": "owner_data2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Telegram Manager4": {
+      "main": [
+        [
+          {
+            "node": "Merge45",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge45": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'ecommerce'": {
+      "main": [
+        [
+          {
+            "node": "Respond to GetMiniApp2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB Chat Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "owner2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "owner2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "owner2": {
+      "main": [
+        [
+          {
+            "node": "Respond to GetMiniApp3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "telegram_validator1": {
+      "main": [
+        [
+          {
+            "node": "Stakeholder2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stakeholder2": {
+      "main": [
+        [
+          {
+            "node": "Stakeholder Exist2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stakeholder Exist2": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Standard_AcCredit'": {
+      "main": [
+        [
+          {
+            "node": "BillingError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BillingError": {
+      "main": [
+        [
+          {
+            "node": "BillingFAIL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Vault Success Welcome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Billing": {
+      "main": [
+        [
+          {
+            "node": "Call 'Standard_AcCredit'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7285e665-c9bb-47ee-b941-6ae64d810716",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "E87mNulHplu4Nmcl",
+  "tags": []
+}

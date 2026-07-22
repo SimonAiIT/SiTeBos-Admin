@@ -1,0 +1,1185 @@
+{
+  "name": "Comunication_hub",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "f9ff7847-db13-41eb-bc27-216c6a732aca",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1376,
+        1216
+      ],
+      "id": "8aaf78af-cc07-4ac6-a4cc-8e8db29f141d",
+      "name": "Webhook",
+      "webhookId": "f9ff7847-db13-41eb-bc27-216c6a732aca"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.webhookUrl }}",
+              "rightValue": "f9ff7847-db13-41eb-bc27-216c6a732aca",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "id": "cond-webhook-match"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1184,
+        1216
+      ],
+      "id": "48d35192-36d2-4588-ab6a-65460c2bb973",
+      "name": "Autorize"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- 1. CONFIGURAZIONE ---\nconst BOT_TOKEN = \"8378810625:AAHK3Zya8qFKD4OzFBbwSTOAGolDeY7jiJQ\";\nconst initData = $input.item.json.body._auth;\n\nif (!initData) return { isValid: false, error: \"Dato _auth mancante\" };\n\n// --- 2. LIBRERIA CRIPTOGRAFICA PURE JS (SHA-256 & HMAC) ---\nconst CryptoJS = (function() {\n    function sha256(m) {\n        var h = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];\n        var k = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];\n        var b = Array.from(typeof m === 'string' ? new TextEncoder().encode(m) : m);\n        var l = b.length * 8; b.push(0x80);\n        while ((b.length * 8) % 512 !== 448) b.push(0);\n        for (var i = 7; i >= 0; i--) b.push((l / Math.pow(2, i * 8)) & 0xff);\n        for (var i = 0; i < b.length; i += 64) {\n            var w = new Int32Array(64);\n            for (var j = 0; j < 16; j++) w[j] = (b[i + j * 4] << 24) | (b[i + j * 4 + 1] << 16) | (b[i + j * 4 + 2] << 8) | (b[i + j * 4 + 3]);\n            for (var j = 16; j < 64; j++) {\n                var s0 = ((w[j - 15] >>> 7) | (w[j - 15] << 25)) ^ ((w[j - 15] >>> 18) | (w[j - 15] << 14)) ^ (w[j - 15] >>> 3);\n                var s1 = ((w[j - 2] >>> 17) | (w[j - 2] << 15)) ^ ((w[j - 2] >>> 19) | (w[j - 2] << 13)) ^ (w[j - 2] >>> 10);\n                w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;\n            }\n            var [a, c, d, e, f, g, i_h, j_h] = h;\n            var v = [...h];\n            for (var j = 0; j < 64; j++) {\n                var S1 = ((v[4] >>> 6) | (v[4] << 26)) ^ ((v[4] >>> 11) | (v[4] << 21)) ^ ((v[4] >>> 25) | (v[4] << 7));\n                var ch = (v[4] & v[5]) ^ (~v[4] & v[6]);\n                var t1 = (v[7] + S1 + ch + k[j] + w[j]) | 0;\n                var S0 = ((v[0] >>> 2) | (v[0] << 30)) ^ ((v[0] >>> 13) | (v[0] << 19)) ^ ((v[0] >>> 22) | (v[0] << 10));\n                var maj = (v[0] & v[1]) ^ (v[0] & v[2]) ^ (v[1] & v[2]);\n                var t2 = (S0 + maj) | 0;\n                v.unshift((t1 + t2) | 0); v.splice(8); v[4] = (v[4] + t1) | 0;\n            }\n            for (var j = 0; j < 8; j++) h[j] = (h[j] + v[j]) | 0;\n        }\n        return h.reduce((acc, val) => acc.concat([(val >>> 24) & 0xff, (val >>> 16) & 0xff, (val >>> 8) & 0xff, val & 0xff]), []);\n    }\n\n    if (typeof TextEncoder === \"undefined\") {\n        window.TextEncoder = function() {};\n        TextEncoder.prototype.encode = function(s) {\n            return new Uint8Array(unescape(encodeURIComponent(s)).split(\"\").map(c => c.charCodeAt(0)));\n        };\n    }\n\n    return {\n        hmac: function(key, message) {\n            var k = typeof key === 'string' ? Array.from(new TextEncoder().encode(key)) : key;\n            var m = Array.from(new TextEncoder().encode(message));\n            var b = 64;\n            if (k.length > b) k = sha256(k);\n            while (k.length < b) k.push(0);\n            var ipad = k.map(x => x ^ 0x36);\n            var opad = k.map(x => x ^ 0x5c);\n            var inner = sha256(ipad.concat(m));\n            return sha256(opad.concat(inner));\n        }\n    };\n})();\n\n// --- 3. LOGICA PARSING ---\nconst data = {};\ninitData.split('&').forEach(pair => {\n    const [k, v] = pair.split('=');\n    data[k] = decodeURIComponent(v);\n});\n\nconst hashReceived = data.hash;\nconst checkString = Object.keys(data)\n    .filter(k => k !== 'hash')\n    .sort()\n    .map(k => k + '=' + data[k])\n    .join('\\n');\n\n// --- 4. CALCOLO HASH TELEGRAM ---\nconst secretKey = CryptoJS.hmac(\"WebAppData\", BOT_TOKEN);\nconst computedHashBytes = CryptoJS.hmac(secretKey, checkString);\nconst computedHash = computedHashBytes.map(b => b.toString(16).padStart(2, '0')).join('');\n\n// --- 5. CONTROLLO SCADENZA (MAX 1 ORA) ---\nconst now = Math.floor(Date.now() / 1000);\nconst authDate = parseInt(data.auth_date);\nconst isExpired = (now - authDate) > 3600;\n\n// --- 6. RISULTATO FINALE ---\nconst isHashValid = (computedHash === hashReceived);\n\nreturn {\n    isValid: isHashValid && !isExpired,\n    isExpired: isExpired,\n    isHashValid: isHashValid,\n    user: data.user ? JSON.parse(data.user) : null,\n    auth_date_human: new Date(authDate * 1000).toLocaleString('it-IT'),\n    debug: {\n        time_diff_seconds: now - authDate,\n        computed: computedHash,\n        received: hashReceived\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -976,
+        1216
+      ],
+      "id": "b7fd204e-f261-41b1-a108-5d3677061845",
+      "name": "telegram_validator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cond-is-valid-true",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -784,
+        1216
+      ],
+      "id": "28652302-51c2-455e-a623-d3b0a5b339da",
+      "name": "isValid"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"error\",\n  \"code\": 403,\n  \"message\": \"⛔️ ACCESS DENIED: Unauthorized User or Invalid Endpoint.\",\n  \"details\": \"L'autenticazione Telegram non ha superato i controlli di sicurezza.\"\n}",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -784,
+        1408
+      ],
+      "id": "fd2ed854-12b1-4698-9764-c25b2dcfa009",
+      "name": "⛔️ 403 Forbidden"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst SECRET_KEY = 'TrinAI-Autorize-Transaction-2=2&';\n\nconst rawAsh =\n  item.ash ||\n  item.query?.ash ||\n  item.body?.ash ||\n  item.body?.web_app_data?.data ||\n  item.body?.message?.web_app_data?.data;\n\nif (!rawAsh || typeof rawAsh !== \"string\") {\n  throw new Error(\"ASH non trovato nell'input.\");\n}\n\nconst [encodedPayload, signatureReceived] = rawAsh.split(\".\");\nif (!encodedPayload || !signatureReceived) {\n  throw new Error(\"Formato ASH non valido.\");\n}\n\nlet decodedPayload;\ntry {\n    decodedPayload = Buffer.from(encodedPayload, \"base64\").toString(\"utf8\");\n} catch (e) {\n    throw new Error(\"Errore decodifica Base64.\");\n}\n\nfunction verifySignature(payload, secret, receivedSig) {\n    let hash = 0;\n    const combined = payload + secret;\n    for (let i = 0; i < combined.length; i++) {\n        hash = ((hash << 5) - hash) + combined.charCodeAt(i);\n        hash = hash & hash; \n    }\n    const expectedSig = Math.abs(hash).toString(16);\n    return expectedSig === receivedSig;\n}\n\nif (!verifySignature(decodedPayload, SECRET_KEY, signatureReceived)) {\n    throw new Error(\"SICUREZZA: Firma ASH non valida o manomessa. Accesso negato.\");\n}\n\nconst parts = decodedPayload.split(\"|\");\nreturn [{\n    json: {\n        ...item,\n        ids: {\n            owner_id: parts[0],\n            customer_id: parts[1],\n            timestamp: parts[2],\n            webhook: parts[3]\n        }\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -576,
+        1216
+      ],
+      "id": "1404ec3f-9646-4c77-9dab-c20dd48e92e4",
+      "name": "Ash Decoder"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "owner_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.chat_id\": {\n        \"$eq\": {{ parseInt($('Ash Decoder').first().json.ids?.owner_id || $('telegram_validator').first().json.user?.id || 0) }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"owner\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"owner_data\": \"$owner.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -384,
+        1216
+      ],
+      "id": "b505614c-432f-43c4-88e8-202bda1e3049",
+      "name": "Owner",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -176,
+        1216
+      ],
+      "id": "5fcac58d-209f-42f6-8f7a-78161a6e0ecb",
+      "name": "MergeWebhookOwner"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('MergeWebhookOwner').first().json.body.action }}",
+                    "rightValue": "get_support_inbox",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "cond-action-inbox"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "get_support_inbox"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('MergeWebhookOwner').first().json.body.action }}",
+                    "rightValue": "get_handover_details",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "cond-action-details"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "get_handover_details"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('MergeWebhookOwner').first().json.body.action }}",
+                    "rightValue": "handover",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "cond-action-handover"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "handover"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        32,
+        1216
+      ],
+      "id": "c613f3c6-ed32-460a-a1a4-8c3062d922ea",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "collection": "active_sessions",
+        "options": {},
+        "query": "={}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        976
+      ],
+      "id": "f47a6e0a-c20a-4937-9602-036e2b7651e0",
+      "name": "GetActiveSessions",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        432,
+        976
+      ],
+      "id": "fd83e25f-8c79-4e82-a6e9-ce60ad3def83",
+      "name": "MergeInbox"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst sessions = [];\n\nitems.forEach(item => {\n    const doc = item.json;\n    if (!doc.sessionId) return;\n    \n    let customerId = doc.customer_chatid || doc.customer_id;\n    if (!customerId) {\n        const parts = doc.sessionId.split('-');\n        customerId = parts[0];\n    }\n    \n    let customerName = doc.customer_name;\n    if (!customerName && doc.lead_profile) {\n        customerName = `${doc.lead_profile.first_name || ''} ${doc.lead_profile.last_name || ''}`.trim();\n    }\n    if (!customerName) {\n        customerName = `Cliente (${customerId})`;\n    }\n    \n    let lastMessage = \"Vedi dettagli...\";\n    if (Array.isArray(doc.messages) && doc.messages.length > 0) {\n        const lastMsg = doc.messages[doc.messages.length - 1];\n        lastMessage = lastMsg.data?.content || lastMsg.kwargs?.content || lastMsg.text || lastMsg.content || lastMessage;\n    }\n    \n    let type = doc.type || \"TICKET\";\n    if (doc.sessionId.includes('prev')) {\n        type = \"PREVENTIVO\";\n    }\n    \n    sessions.push({\n        customer_id: customerId,\n        customer_name: customerName,\n        last_message: lastMessage,\n        type: type,\n        status: doc.status || (doc.closed ? \"resolved\" : \"open\"),\n        closed: doc.closed || false\n    });\n});\n\nreturn [{ json: { success: true, sessions } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        976
+      ],
+      "id": "07e50c76-bd19-4917-ba93-d08dce224118",
+      "name": "MapInboxSessions"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        832,
+        976
+      ],
+      "id": "ce3fd59c-82ed-4524-9eb7-d706c7dfc1a2",
+      "name": "RespondInbox"
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "active_sessions",
+        "query": "=[\n  {\n    \"$match\": {\n      \"messages.0.data.customer_chatid\": {\n        \"$eq\": {{ $('MergeWebhookOwner').first().json.body.target_customer_id || 0 }}\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"session\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"active_session\": \"$session.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        1216
+      ],
+      "id": "d75189f3-6da7-4cd0-bd9f-24746f1dd226",
+      "name": "GetActiveSession",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "aggregate",
+        "collection": "stakeholders",
+        "query": "=[\n  {\n    \"$match\": {\n      \"sessionId\": {\n        \"$eq\": \"{{ $('MergeWebhookOwner').first().json.body.target_customer_id }}\"\n      }\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder\": {\n        \"$arrayElemAt\": [\"$messages\", 0]\n      },\n      \"_id\": 0\n    }\n  },\n  {\n    \"$project\": {\n      \"stakeholder_data\": \"$stakeholder.data\",\n      \"_id\": 0\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        1344
+      ],
+      "id": "3de1c199-e760-4128-8956-8aaebe01780b",
+      "name": "GetStakeholder",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "orders",
+        "options": {},
+        "query": "={\"sessionId\": { \"$regex\": \"^{{ $('MergeWebhookOwner').first().json.body.target_customer_id }}-\" }}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        1456
+      ],
+      "id": "6e437fe8-8b3a-416c-94be-22fcb1182023",
+      "name": "GetOrders",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "y0Vv5Z0ayk7oyhal",
+          "name": "MemoryManager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        432,
+        1280
+      ],
+      "id": "1e382cf3-2c36-4f1b-8dd8-4a2f6a483636",
+      "name": "MergeSessionStakeholder"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        592,
+        1376
+      ],
+      "id": "3b680134-b3c4-40f8-87a8-83bba5a107f8",
+      "name": "MergeDetailsAll"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        752,
+        1376
+      ],
+      "id": "640d7e43-4ce4-4ab4-9651-81b66f412abe",
+      "name": "MergeDetailsPayload"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nreturn [{\n    json: {\n        success: true,\n        target_customer_id: item.body?.target_customer_id,\n        active_session: item.active_session || {},\n        stakeholder: item.stakeholder_data || {},\n        orders: item.orders || []\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        1376
+      ],
+      "id": "010837d6-a1d5-4552-8e0e-204c83a6030e",
+      "name": "MergeDetails"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1072,
+        1376
+      ],
+      "id": "4abb42b9-b46c-4f0d-9320-c6c18bd6ee80",
+      "name": "RespondDetails"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cond-has-attachment",
+              "leftValue": "={{ $json.body?.file_data?.base64_content }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        1616
+      ],
+      "id": "4cac3907-4a09-4a7d-ba92-cc907e7f8fd9",
+      "name": "HasAttachment?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst fileData = item.body?.file_data;\nif (!fileData || !fileData.base64_content) {\n    return [{ json: item }];\n}\nreturn {\n  binary: {\n    data: {\n      data: fileData.base64_content,\n      mimeType: fileData.mime_type || 'application/octet-stream',\n      fileName: fileData.file_name || 'allegato',\n      fileExtension: (fileData.file_name || 'allegato').split('.').pop()\n    }\n  },\n  json: item\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        1520
+      ],
+      "id": "45bce83b-8384-47f4-9007-627b8c3b0a6f",
+      "name": "Base64ToBinary"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $('MergeWebhookOwner').first().json.owner_data?.bot_key }}/sendDocument",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "document",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "chat_id",
+              "value": "={{ $('MergeWebhookOwner').first().json.body.target_customer_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        624,
+        1520
+      ],
+      "id": "470d769e-c02f-41f8-aabd-b429d1d2d1f8",
+      "name": "SendTelegramDocument"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        832,
+        1520
+      ],
+      "id": "45d6ddbd-8cef-4841-abd9-8773ca420a05",
+      "name": "MergeDocumentPayload"
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch"
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1024,
+        1616
+      ],
+      "id": "4b579da3-15fa-47f2-92d5-07beefac1035",
+      "name": "MergeAttachment"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cond-has-message-text",
+              "leftValue": "={{ $json.body?.message_text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1184,
+        1616
+      ],
+      "id": "12017839-d4bf-4ad4-b3e2-84f048164fb7",
+      "name": "HasMessageText?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.owner_data?.bot_key }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": \"{{ $json.body?.target_customer_id }}\",\n  \"text\": \"{{ $json.body?.message_text }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1376,
+        1520
+      ],
+      "id": "5e11ec22-bd50-4e16-9ce4-4203f58e8eba",
+      "name": "SendTelegramMessage"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1584,
+        1520
+      ],
+      "id": "ddf26aa8-dcd9-408d-8613-b7edf55f364a",
+      "name": "MergeMessagePayload"
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch"
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1728,
+        1616
+      ],
+      "id": "6853cf93-4338-4408-8974-c795ee2616f4",
+      "name": "MergeMessage"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cond-close-ticket",
+              "leftValue": "={{ $json.body?.close_ticket }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1888,
+        1616
+      ],
+      "id": "d538077b-5a28-4b02-bceb-d71f3a776489",
+      "name": "CloseTicket?"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "active_sessions",
+        "updateKey": "={\"$set\": {\"closed\": true, \"status\": \"resolved\"}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        2080,
+        1520
+      ],
+      "id": "b33f8079-fc9d-4d73-8ad1-e25b6d60774a",
+      "name": "CloseSession",
+      "credentials": {
+        "mongoDb": {
+          "id": "y13c5M3Ph9NulKen",
+          "name": "Telegram_owner_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $('MergeMessage').first().json.owner_data?.bot_key }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": \"{{ $('MergeMessage').first().json.body?.target_customer_id }}\",\n  \"text\": \"✅ Il tuo ticket di supporto è stato chiuso. Le risposte automatiche dell'AI sono state riattivate.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        2272,
+        1504
+      ],
+      "id": "3d45cd10-41b6-4e1d-9b14-80b49e0ff03a",
+      "name": "SendClosingMessage"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2480,
+        1520
+      ],
+      "id": "00cb44f8-6729-4d85-bd5e-25936614f18f",
+      "name": "MergeClosePayload"
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch"
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2624,
+        1616
+      ],
+      "id": "eb187511-cc0b-4554-a2a4-60083ce90a9a",
+      "name": "MergeClose"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Autorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autorize": {
+      "main": [
+        [
+          {
+            "node": "telegram_validator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "telegram_validator": {
+      "main": [
+        [
+          {
+            "node": "isValid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "isValid": {
+      "main": [
+        [
+          {
+            "node": "Ash Decoder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⛔️ 403 Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ash Decoder": {
+      "main": [
+        [
+          {
+            "node": "Owner",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "MergeWebhookOwner",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Owner": {
+      "main": [
+        [
+          {
+            "node": "MergeWebhookOwner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MergeWebhookOwner": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "GetActiveSessions",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "MergeInbox",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "GetActiveSession",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GetStakeholder",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GetOrders",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "MergeDetailsPayload",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "HasAttachment?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetActiveSessions": {
+      "main": [
+        [
+          {
+            "node": "MergeInbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MergeInbox": {
+      "main": [
+        [
+          {
+            "node": "MapInboxSessions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MapInboxSessions": {
+      "main": [
+        [
+          {
+            "node": "RespondInbox",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetActiveSession": {
+      "main": [
+        [
+          {
+            "node": "MergeSessionStakeholder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetStakeholder": {
+      "main": [
+        [
+          {
+            "node": "MergeSessionStakeholder",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "GetOrders": {
+      "main": [
+        [
+          {
+            "node": "MergeDetailsAll",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MergeSessionStakeholder": {
+      "main": [
+        [
+          {
+            "node": "MergeDetailsAll",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MergeDetailsAll": {
+      "main": [
+        [
+          {
+            "node": "MergeDetailsPayload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MergeDetailsPayload": {
+      "main": [
+        [
+          {
+            "node": "MergeDetails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MergeDetails": {
+      "main": [
+        [
+          {
+            "node": "RespondDetails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HasAttachment?": {
+      "main": [
+        [
+          {
+            "node": "Base64ToBinary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MergeAttachment",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Base64ToBinary": {
+      "main": [
+        [
+          {
+            "node": "SendTelegramDocument",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "MergeDocumentPayload",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "SendTelegramDocument": {
+      "main": [
+        [
+          {
+            "node": "MergeDocumentPayload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MergeDocumentPayload": {
+      "main": [
+        [
+          {
+            "node": "MergeAttachment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MergeAttachment": {
+      "main": [
+        [
+          {
+            "node": "HasMessageText?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HasMessageText?": {
+      "main": [
+        [
+          {
+            "node": "SendTelegramMessage",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MergeMessage",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "SendTelegramMessage": {
+      "main": [
+        [
+          {
+            "node": "MergeMessagePayload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MergeMessagePayload": {
+      "main": [
+        [
+          {
+            "node": "MergeMessage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MergeMessage": {
+      "main": [
+        [
+          {
+            "node": "CloseTicket?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CloseTicket?": {
+      "main": [
+        [
+          {
+            "node": "CloseSession",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MergeClose",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "CloseSession": {
+      "main": [
+        [
+          {
+            "node": "SendClosingMessage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SendClosingMessage": {
+      "main": [
+        [
+          {
+            "node": "MergeClosePayload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MergeClosePayload": {
+      "main": [
+        [
+          {
+            "node": "MergeClose",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "0bfdeeef-77ea-4d11-809c-720b7f85b2d0",
+  "meta": {
+    "instanceId": "ce96c1da52854952d6033754b3d632468704a3c149b2a8a301c2b60c112ce7d0"
+  },
+  "id": "i8NzKU5ka21w1VUy",
+  "tags": []
+}
