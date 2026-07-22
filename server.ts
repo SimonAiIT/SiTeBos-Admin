@@ -89,8 +89,10 @@ app.post("/api/auth/n8n-keys", async (req, res) => {
   try {
     const { _auth, ash, action } = req.body;
     
-    // Strict Telegram WebApp / ASH session validation
-    if (!(_auth && typeof _auth === 'string' && _auth.trim() !== '') && !(ash && typeof ash === 'string' && ash.trim() !== '')) {
+    const isLocalhost = req.hostname === 'localhost' || req.hostname === '127.0.0.1';
+
+    // Strict Telegram WebApp / ASH session validation (bypassed on localhost dev)
+    if (!isLocalhost && !(_auth && typeof _auth === 'string' && _auth.trim() !== '') && !(ash && typeof ash === 'string' && ash.trim() !== '')) {
       return res.status(401).json({
         success: false,
         message: "Accesso negato. Sessione Telegram o parametro ASH non valido.",
